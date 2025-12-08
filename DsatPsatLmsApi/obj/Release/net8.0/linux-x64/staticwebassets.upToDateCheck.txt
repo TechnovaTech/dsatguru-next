@@ -1,0 +1,3 @@
+wwwroot\templates\question_template.csv
+wwwroot\uploads\images\5b726fc5-c637-4443-8739-7939f8bb2798.png
+wwwroot\uploads\images\dd807d48-8fa9-403d-8fde-a0591578f529.png

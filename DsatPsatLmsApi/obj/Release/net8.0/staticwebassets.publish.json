@@ -1,0 +1,125 @@
+{
+  "Version": 1,
+  "Hash": "72ztsQX4CN3Cms8gaxgYcT+bLmBrip5fhTgqWNlNr90=",
+  "Source": "DsatPsatLmsApi",
+  "BasePath": "_content/DsatPsatLmsApi",
+  "Mode": "Default",
+  "ManifestType": "Publish",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "DsatPsatLmsApi\\wwwroot",
+      "Source": "DsatPsatLmsApi",
+      "ContentRoot": "d:\\dsatguru\\DsatPsatLmsApi\\wwwroot\\",
+      "BasePath": "_content/DsatPsatLmsApi",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "d:\\dsatguru\\DsatPsatLmsApi\\wwwroot\\uploads\\images\\dd807d48-8fa9-403d-8fde-a0591578f529.png",
+      "SourceId": "DsatPsatLmsApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "d:\\dsatguru\\DsatPsatLmsApi\\wwwroot\\",
+      "BasePath": "_content/DsatPsatLmsApi",
+      "RelativePath": "uploads/images/dd807d48-8fa9-403d-8fde-a0591578f529#[.{fingerprint}]?.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "r27xdovrtw",
+      "Integrity": "E98UYiULCP0kbPq9NX2LQPTf2szJyn1SrWgNnGyaiK0=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\images\\dd807d48-8fa9-403d-8fde-a0591578f529.png"
+    }
+  ],
+  "Endpoints": [
+    {
+      "Route": "uploads/images/dd807d48-8fa9-403d-8fde-a0591578f529.png",
+      "AssetFile": "d:\\dsatguru\\DsatPsatLmsApi\\wwwroot\\uploads\\images\\dd807d48-8fa9-403d-8fde-a0591578f529.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "2538348"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"E98UYiULCP0kbPq9NX2LQPTf2szJyn1SrWgNnGyaiK0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 16 Jul 2025 06:23:43 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-E98UYiULCP0kbPq9NX2LQPTf2szJyn1SrWgNnGyaiK0="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/images/dd807d48-8fa9-403d-8fde-a0591578f529.r27xdovrtw.png",
+      "AssetFile": "d:\\dsatguru\\DsatPsatLmsApi\\wwwroot\\uploads\\images\\dd807d48-8fa9-403d-8fde-a0591578f529.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "2538348"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"E98UYiULCP0kbPq9NX2LQPTf2szJyn1SrWgNnGyaiK0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 16 Jul 2025 06:23:43 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "r27xdovrtw"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/images/dd807d48-8fa9-403d-8fde-a0591578f529.png"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-E98UYiULCP0kbPq9NX2LQPTf2szJyn1SrWgNnGyaiK0="
+        }
+      ]
+    }
+  ]
+}

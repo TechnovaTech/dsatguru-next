@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "E:\\dsatguru\\DsatPsatLmsApi\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{29224C09-A457-104B-4A5C-3668CD57DF02}|DsatPsatLmsApi.csproj|e:\\dsatguru\\dsatpsatlmsapi\\migrations\\20250714103417_addenhancedquestionbank.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{29224C09-A457-104B-4A5C-3668CD57DF02}|DsatPsatLmsApi.csproj|solutionrelative:migrations\\20250714103417_addenhancedquestionbank.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "20250714103417_AddEnhancedQuestionBank.cs",
+              "DocumentMoniker": "E:\\dsatguru\\DsatPsatLmsApi\\Migrations\\20250714103417_AddEnhancedQuestionBank.cs",
+              "RelativeDocumentMoniker": "Migrations\\20250714103417_AddEnhancedQuestionBank.cs",
+              "ToolTip": "E:\\dsatguru\\DsatPsatLmsApi\\Migrations\\20250714103417_AddEnhancedQuestionBank.cs",
+              "RelativeToolTip": "Migrations\\20250714103417_AddEnhancedQuestionBank.cs",
+              "ViewState": "AgIAABYAAAAAAAAAAAAgwBsAAABNAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-14T10:39:01.566Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
