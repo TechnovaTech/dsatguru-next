@@ -12,6 +12,8 @@ import practiceRoutes from './routes/practice.js'
 import testSessionRoutes from './routes/testSession.js'
 import webhookRoutes from './routes/webhooks.js'
 import adminCourseRoutes from './routes/adminCourse.js'
+import adminRoutes from './routes/admin.js'
+import miscRoutes from './routes/misc.js'
 
 dotenv.config()
 
@@ -25,6 +27,7 @@ await mongoose.connect(mongoUri)
 
 app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
+app.use('/api/admin', adminRoutes)
 app.use('/api/admin/course', adminCourseRoutes)
 app.use('/api/enrollment', enrollmentRoutes)
 app.use('/api/payment', paymentRoutes)
@@ -32,6 +35,7 @@ app.use('/api/checkout', checkoutRoutes)
 app.use('/api/practice', practiceRoutes)
 app.use('/api/test-session', testSessionRoutes)
 app.use('/api/webhooks', webhookRoutes)
+app.use('/api', miscRoutes)
 
 app.get('/health', (req, res) => res.json({ ok: true }))
 
