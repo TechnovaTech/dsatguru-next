@@ -3,6 +3,8 @@ import cors from 'cors'
 import morgan from 'morgan'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
+import next from 'next'
+import path from 'path'
 import authRoutes from './routes/auth.js'
 import userRoutes from './routes/user.js'
 import enrollmentRoutes from './routes/enrollment.js'
@@ -39,5 +41,14 @@ app.use('/api', miscRoutes)
 
 app.get('/health', (req, res) => res.json({ ok: true }))
 
-const port = process.env.PORT || 5000
-app.listen(port, () => console.log(`API listening on ${port}`))
+const dev = process.env.NODE_ENV !== 'production'
+const nextDir = path.resolve(process.cwd(), '../web')
+const nextApp = next({ dev, dir: nextDir })
+const handle = nextApp.getRequestHandler()
+
+await nextApp.prepare()
+
+app.all('*', (req, res) => handle(req, res))
+
+const port = process.env.PORT || 3000
+app.listen(port, () => console.log(`Server listening on ${port}`))

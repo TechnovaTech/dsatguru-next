@@ -1,6 +1,7 @@
+"use client"
 import { useEffect, useState } from 'react'
 import { FiUsers, FiDollarSign, FiCalendar, FiHelpCircle } from 'react-icons/fi'
-import { getDashboardStats } from '../../services/api/admin'
+import { getDashboardStats } from '../../../lib/api/admin'
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState(null)
@@ -46,9 +47,3 @@ function StatCard({ title, value, icon, color }) {
     </div>
   )
 }
-
-export async function getServerSideProps() {
-  return { props: {} }
-}
-
-//

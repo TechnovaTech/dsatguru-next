@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node src/index.js",
     "start": "NODE_ENV=production node src/index.js",
-    "seed-admin": "node src/seedAdmin.js"
+    "seed-admin": "node src/seedAdmin.js",
+    "build": "npm run build --prefix ../web && NODE_ENV=production node src/index.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -16,6 +17,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.0",
     "morgan": "^1.10.0",
-    "stripe": "^16.0.0"
+    "stripe": "^16.0.0",
+    "next": "^14.2.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }
