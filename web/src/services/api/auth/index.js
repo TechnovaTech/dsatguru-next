@@ -2,7 +2,7 @@ import axios from "axios";
 import { showToast } from "../../../utils/toastUtils";
 import { saveUserToStorage } from "./authService";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
 
 const getHeaders = () => ({
   headers: {
@@ -16,7 +16,7 @@ const getHeaders = () => ({
 export const login = async (credentials) => {
   try {
     const response = await axios.post(
-      `${API_BASE_URL}/api/auth/login`,
+      `${API_BASE_URL}/auth/login`,
       credentials,
       getHeaders()
     );
@@ -35,7 +35,7 @@ export const login = async (credentials) => {
 export const signup = async (userData) => {
   try {
     const response = await axios.post(
-      `${API_BASE_URL}/api/auth/register`,
+      `${API_BASE_URL}/auth/register`,
       { name: userData.name, email: userData.email, password: userData.password },
       getHeaders()
     );
@@ -53,7 +53,7 @@ export const signup = async (userData) => {
 export const forgotPassword = async (email) => {
   try {
     const response = await axios.post(
-      `${API_BASE_URL}/api/auth/forgot-password`,
+      `${API_BASE_URL}/auth/forgot-password`,
       { email },
       getHeaders()
     );
@@ -71,7 +71,7 @@ export const forgotPassword = async (email) => {
 export const resetPassword = async (token, newPassword) => {
   try {
     const response = await axios.post(
-      `${API_BASE_URL}/api/auth/reset-password`,
+      `${API_BASE_URL}/auth/reset-password`,
       { token, newPassword },
       getHeaders()
     );
@@ -88,7 +88,7 @@ export const resetPassword = async (token, newPassword) => {
 
 export const logout = async () => {
   try {
-    await axios.post(`${API_BASE_URL}/api/auth/logout`, {}, getHeaders());
+    await axios.post(`${API_BASE_URL}/auth/logout`, {}, getHeaders());
   } catch (error) {}
   if (typeof window !== 'undefined') {
     localStorage.removeItem("authToken");
@@ -100,7 +100,7 @@ export const logout = async () => {
 
 export const getProfile = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/user/me`, getHeaders());
+    const response = await axios.get(`${API_BASE_URL}/user/me`, getHeaders());
     return response.data.user;
   } catch (error) {
     showToast(error?.response?.data?.message || "Failed to fetch profile", "error");

@@ -4,15 +4,26 @@ import NextLink from 'next/link'
 import { useRouter } from 'next/router'
 
 export const Link = ({ to, href, replace, children, ...rest }) => {
-  const finalHref = href ?? to
+  let finalHref = href ?? to
+  if (finalHref && typeof finalHref === 'object') {
+    const { pathname = '', query = {}, hash = '' } = finalHref
+    const qs = Object.keys(query).length ? `?${new URLSearchParams(query).toString()}` : ''
+    finalHref = `${pathname}${qs}${hash || ''}`
+  }
   return <NextLink href={finalHref} replace={replace} {...rest}>{children}</NextLink>
 }
 
 export const useNavigate = () => {
   const router = useRouter()
   return (to, opts) => {
-    if (opts?.replace) router.replace(to)
-    else router.push(to)
+    let href = to
+    if (href && typeof href === 'object') {
+      const { pathname = '', query = {}, hash = '' } = href
+      const qs = Object.keys(query).length ? `?${new URLSearchParams(query).toString()}` : ''
+      href = `${pathname}${qs}${hash || ''}`
+    }
+    if (opts?.replace) router.replace(href)
+    else router.push(href)
   }
 }
 

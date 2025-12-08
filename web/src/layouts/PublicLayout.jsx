@@ -86,7 +86,7 @@ const PublicLayout = ({ children }) => {
               </Link>
             </div>
             {typeof window !== 'undefined' && localStorage.getItem("authToken") ? (
-              <Link to={user?.role === 'Admin' ? "/admin-dashboard" : "/dashboard"} className="text-sm bg-blue-600 text-white px-5 py-2 rounded-md font-medium hover:bg-blue-700 transition cursor-pointer">Go to Dashboard</Link>
+              <Link to={user?.role === 'Admin' ? "/admin/dashboard" : "/dashboard"} className="text-sm bg-blue-600 text-white px-5 py-2 rounded-md font-medium hover:bg-blue-700 transition cursor-pointer">Go to Dashboard</Link>
             ) : (
               <div className="flex space-x-4">
                 <Link to="/login" className="text-sm bg-blue-600 text-white px-5 py-2 rounded-md font-medium hover:bg-blue-700 transition cursor-pointer">Login</Link>
@@ -116,7 +116,7 @@ const PublicLayout = ({ children }) => {
                 </div>
                 <div className="flex flex-col gap-4">
                   {typeof window !== 'undefined' && localStorage.getItem("authToken") ? (
-                    <Link to={user?.role === 'Admin' ? "/admin-dashboard" : "/dashboard"} onClick={closeMenu} className="w-full text-center bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 transition cursor-pointer">Dashboard</Link>
+                    <Link to={user?.role === 'Admin' ? "/admin/dashboard" : "/dashboard"} onClick={closeMenu} className="w-full text-center bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 transition cursor-pointer">Dashboard</Link>
                   ) : (
                     <>
                       <Link to="/login" onClick={closeMenu} className="w-full text-center bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 transition cursor-pointer">Login</Link>

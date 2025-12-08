@@ -1,7 +1,7 @@
 import axios from "axios";
 import { showToast } from "../../../utils/toastUtils";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
 
 const getHeaders = () => ({
   headers: {
@@ -15,7 +15,7 @@ const getHeaders = () => ({
 export const getAllCoursesWithSchedule = async () => {
   try {
     const response = await axios.get(
-      `${API_BASE_URL}/api/admin/course/with-schedule`
+      `${API_BASE_URL}/admin/course/with-schedule`
     );
     return response.data;
   } catch (error) {
@@ -31,7 +31,7 @@ export const createCheckoutSession = async (courseId, scheduleId, returnTo = '/d
   try {
     const base = typeof window !== 'undefined' ? window.location.origin : ''
     const response = await axios.post(
-      `${API_BASE_URL}/api/checkout/create-session`,
+      `${API_BASE_URL}/checkout/create-session`,
       { 
         courseId, 
         scheduleId,
@@ -54,7 +54,7 @@ export const createCheckoutSession = async (courseId, scheduleId, returnTo = '/d
 export const getAllEnrolledCourses = async () => {
   try {
     const response = await axios.get(
-      `${API_BASE_URL}/api/enrollment`,
+      `${API_BASE_URL}/enrollment`,
       getHeaders()
     );
     return response.data.data;
@@ -70,7 +70,7 @@ export const getAllEnrolledCourses = async () => {
 export const checkEnrollment = async (courseId) => {
   try {
     const response = await axios.get(
-      `${API_BASE_URL}/api/enrollment/check/${courseId}`,
+      `${API_BASE_URL}/enrollment/check/${courseId}`,
       getHeaders()
     );
     return response.data?.isEnrolled ?? response.data?.data?.isEnrolled ?? false;
@@ -81,7 +81,7 @@ export const checkEnrollment = async (courseId) => {
 
 export const getZoomSessionLink = async (values) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/admin/zoom-sessions`, {
+    const response = await axios.get(`${API_BASE_URL}/admin/zoom-sessions`, {
       params: {
         ...values,
       },

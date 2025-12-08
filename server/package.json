@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "node src/index.js",
-    "start": "NODE_ENV=production node src/index.js"
+    "start": "NODE_ENV=production node src/index.js",
+    "seed-admin": "node src/seedAdmin.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

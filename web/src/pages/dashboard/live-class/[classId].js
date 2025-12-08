@@ -1,4 +1,4 @@
-import LiveClassRoom from '../../../../../dsat-psat-lms-frontend-student/src/components/LiveClass/LiveClassRoom'
+import LiveClassRoom from 'student/components/LiveClass/LiveClassRoom'
 
 export default function Page() {
   return <LiveClassRoom />

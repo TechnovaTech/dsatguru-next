@@ -24,8 +24,8 @@ export default function LoginPage() {
       const user = res.data.user;
       setUser(user);
       if (user.role === 'Admin') { navigate('/admin/dashboard'); return; }
-      const { courseSlug } = location.state || {};
-      if (courseSlug) { navigate(`/enrollment/${courseId}`); } else { navigate("/dashboard"); }
+      const { courseId } = location.state || {};
+      if (courseId) { navigate(`/enrollment/${courseId}`); } else { navigate('/dashboard'); }
     } catch (error) {
     } finally { setSubmitting(false); }
   };
