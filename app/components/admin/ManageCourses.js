@@ -13,7 +13,8 @@ export default function ManageCourses() {
 
   const fetchCourses = async () => {
     try {
-      const response = await fetch('/api/admin/courses')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const response = await fetch('/api/admin/courses', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       if (response.ok) {
         const data = await response.json()
         setCourses(data)

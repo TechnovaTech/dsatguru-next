@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import Course from '../../../../lib/models/Course'
+import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
 
 export async function GET() {
   try {
@@ -15,11 +16,16 @@ export async function GET() {
 export async function POST(request) {
   try {
     await connectDB()
-    const data = await request.json()
-    const course = new Course(data)
-    await course.save()
+    const token = getTokenFromRequest(request)
+    const decoded = verifyToken(token)
+    if (!decoded || decoded.role !== 'Admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const body = await request.json()
+    const course = await Course.create(body)
     return NextResponse.json(course, { status: 201 })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to create course' }, { status: 500 })
   }
 }
+

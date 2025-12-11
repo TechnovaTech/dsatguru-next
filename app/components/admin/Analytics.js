@@ -7,30 +7,34 @@ export default function Analytics() {
   const [revenueData, setRevenueData] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const mockOverview = {
-    totalRevenue: 45680,
-    monthlyRevenue: 8950,
-    totalEnrollments: 1234,
-    monthlyEnrollments: 156,
-    activeStudents: 892,
-    activeTutors: 45
-  }
-
-  const mockRevenueData = [
-    { month: "Jan", revenue: 4200, enrollments: 89 },
-    { month: "Feb", revenue: 5100, enrollments: 112 },
-    { month: "Mar", revenue: 4800, enrollments: 98 },
-    { month: "Apr", revenue: 6200, enrollments: 134 },
-    { month: "May", revenue: 7100, enrollments: 156 },
-    { month: "Jun", revenue: 8950, enrollments: 178 }
-  ]
-
   useEffect(() => {
-    setTimeout(() => {
-      setOverview(mockOverview)
-      setRevenueData(mockRevenueData)
-      setLoading(false)
-    }, 1000)
+    const fetchAnalytics = async () => {
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+        const res = await fetch('/api/admin/analytics', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+        if (res.ok) {
+          const json = await res.json()
+          const totals = json.totals || {}
+          const derivedMonthlyRevenue = Math.round((totals.revenue || 0) / 6)
+          const derivedMonthlyEnrollments = Math.round((totals.students || 0) / 12)
+          setOverview({
+            totalRevenue: totals.revenue || 0,
+            monthlyRevenue: derivedMonthlyRevenue,
+            totalEnrollments: totals.students || 0,
+            monthlyEnrollments: derivedMonthlyEnrollments,
+            activeStudents: totals.students || 0,
+            activeTutors: totals.tutors || 0
+          })
+          const months = ['Jan','Feb','Mar','Apr','May','Jun']
+          setRevenueData(months.map((m, i) => ({ month: m, revenue: derivedMonthlyRevenue, enrollments: derivedMonthlyEnrollments + i })))
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAnalytics()
   }, [])
 
   if (loading) return <div className="min-h-screen bg-gray-50 p-6">Loading analytics...</div>

@@ -28,7 +28,8 @@ export default function TestManagement() {
 
   const fetchTests = async () => {
     try {
-      const response = await fetch('/api/admin/tests')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const response = await fetch('/api/admin/tests', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       if (response.ok) {
         const data = await response.json()
         setTests(data)
@@ -42,7 +43,8 @@ export default function TestManagement() {
 
   const fetchQuestionBanks = async () => {
     try {
-      const response = await fetch('/api/admin/question-banks')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const response = await fetch('/api/admin/question-banks', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       if (response.ok) {
         const data = await response.json()
         setQuestionBanks(data)
@@ -61,9 +63,10 @@ export default function TestManagement() {
       
       const method = editingTest ? 'PUT' : 'POST'
       
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify(formData)
       })
 
@@ -113,8 +116,10 @@ export default function TestManagement() {
   const handleDelete = async (testId) => {
     if (confirm('Are you sure you want to delete this test?')) {
       try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
         const response = await fetch(`/api/admin/tests/${testId}`, {
-          method: 'DELETE'
+          method: 'DELETE',
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
         })
         if (response.ok) {
           fetchTests()
@@ -127,9 +132,10 @@ export default function TestManagement() {
 
   const toggleTestStatus = async (testId, currentStatus) => {
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       const response = await fetch(`/api/admin/tests/${testId}/toggle-status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ isActive: !currentStatus })
       })
       if (response.ok) {

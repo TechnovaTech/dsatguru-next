@@ -4,22 +4,35 @@ import { FiUsers, FiBookOpen, FiDollarSign, FiCalendar, FiHelpCircle, FiPlus } f
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
-    totalStudents: 156,
-    totalTutors: 12,
-    totalRevenue: 45230,
-    upcomingClasses: 8,
-    totalQuestions: 4250,
-    recentEnrollments: [
-      { studentName: 'John Doe', courseName: 'DSAT Math Mastery', enrolledAt: new Date() },
-      { studentName: 'Jane Smith', courseName: 'DSAT English Excellence', enrolledAt: new Date() },
-      { studentName: 'Mike Johnson', courseName: 'PSAT Prep Complete', enrolledAt: new Date() }
-    ],
-    next24hClasses: [
-      { title: 'Advanced Math Concepts', instructorName: 'Dr. Smith', startTime: new Date() },
-      { title: 'Reading Comprehension', instructorName: 'Prof. Johnson', startTime: new Date() },
-      { title: 'Writing Strategies', instructorName: 'Ms. Davis', startTime: new Date() }
-    ]
+    totalStudents: 0,
+    totalTutors: 0,
+    totalRevenue: 0,
+    upcomingClasses: 0,
+    totalQuestions: 0,
+    recentEnrollments: [],
+    next24hClasses: []
   })
+
+  useEffect(() => {
+    const fetchOverview = async () => {
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+        const res = await fetch('/api/admin/analytics', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+        if (res.ok) {
+          const json = await res.json()
+          const totals = json.totals || {}
+          setStats(prev => ({
+            ...prev,
+            totalStudents: totals.students || 0,
+            totalTutors: totals.tutors || 0,
+            totalRevenue: totals.revenue || 0,
+            totalQuestions: totals.questions || 0
+          }))
+        }
+      } catch {}
+    }
+    fetchOverview()
+  }, [])
 
   return (
     <div className="p-6 space-y-6">

@@ -8,57 +8,46 @@ export default function PaymentManager() {
   const [filter, setFilter] = useState("all")
   const [loading, setLoading] = useState(true)
 
-  const mockPayments = [
-    {
-      id: "pay_1234567890",
-      studentName: "John Smith",
-      courseName: "DSAT Math Mastery",
-      amount: 199,
-      status: "succeeded",
-      method: "Credit Card",
-      createdAt: new Date()
-    },
-    {
-      id: "pay_0987654321",
-      studentName: "Jane Doe",
-      courseName: "DSAT English Excellence",
-      amount: 149,
-      status: "pending",
-      method: "PayPal",
-      createdAt: new Date()
-    },
-    {
-      id: "pay_1122334455",
-      studentName: "Mike Johnson",
-      courseName: "PSAT Prep Complete",
-      amount: 99,
-      status: "failed",
-      method: "Credit Card",
-      createdAt: new Date()
-    }
-  ]
-
   useEffect(() => {
-    setTimeout(() => {
-      setPayments(mockPayments)
-      const totals = mockPayments.reduce((acc, p) => {
-        acc.totalRevenue += Number(p.amount || 0)
-        acc.successful += p.status?.toLowerCase() === "succeeded" ? 1 : 0
-        acc.pending += p.status?.toLowerCase() === "pending" ? 1 : 0
-        acc.failed += p.status?.toLowerCase() === "failed" ? 1 : 0
-        return acc
-      }, { totalRevenue: 0, successful: 0, pending: 0, failed: 0 })
-      
-      setStats({
-        totalRevenue: totals.totalRevenue,
-        monthlyRevenue: totals.totalRevenue,
-        pendingPayments: totals.pending,
-        refundRequests: 0,
-        successfulTransactions: totals.successful,
-        failedTransactions: totals.failed,
-      })
-      setLoading(false)
-    }, 1000)
+    const fetchPayments = async () => {
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+        const res = await fetch('/api/admin/payments', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setPayments(data.map(p => ({
+            id: p._id,
+            studentName: '',
+            courseName: '',
+            amount: p.amount,
+            status: p.status,
+            method: p.paymentGateway,
+            createdAt: p.createdAt
+          })))
+          const totals = data.reduce((acc, p) => {
+            acc.totalRevenue += Number(p.amount || 0)
+            const s = (p.status || '').toLowerCase()
+            acc.successful += s === 'succeeded' ? 1 : 0
+            acc.pending += s === 'pending' ? 1 : 0
+            acc.failed += s === 'failed' ? 1 : 0
+            return acc
+          }, { totalRevenue: 0, successful: 0, pending: 0, failed: 0 })
+          setStats({
+            totalRevenue: totals.totalRevenue,
+            monthlyRevenue: Math.round(totals.totalRevenue / 6),
+            pendingPayments: totals.pending,
+            refundRequests: 0,
+            successfulTransactions: totals.successful,
+            failedTransactions: totals.failed,
+          })
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchPayments()
   }, [])
 
   const statusLabel = (status) => {

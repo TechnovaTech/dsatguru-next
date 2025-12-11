@@ -3,18 +3,45 @@ import { useState, useEffect } from 'react'
 import { FiEdit, FiToggleLeft, FiToggleRight, FiFilter } from 'react-icons/fi'
 
 export default function UserManagement() {
-  const [users, setUsers] = useState([
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Student', isActive: true, createdAt: new Date() },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'Student', isActive: true, createdAt: new Date() },
-    { id: 3, name: 'Admin User', email: 'admin@dsatmain.com', role: 'Admin', isActive: true, createdAt: new Date() }
-  ])
-  const [loading, setLoading] = useState(false)
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('')
 
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+        const res = await fetch('/api/admin/users', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setUsers(data)
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchUsers()
+  }, [])
+
   const handleToggleStatus = async (id) => {
-    setUsers(prev => prev.map(user => 
-      user.id === id ? { ...user, isActive: !user.isActive } : user
-    ))
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const user = users.find(u => u._id === id || u.id === id)
+      const res = await fetch(`/api/admin/users/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ isActive: !(user?.isActive) })
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setUsers(prev => prev.map(u => (u._id === updated._id || u.id === updated._id) ? updated : u))
+      }
+    } catch {}
   }
 
   const filteredUsers = users.filter(user => {
@@ -55,7 +82,7 @@ export default function UserManagement() {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredUsers.map((user) => (
-                <tr key={user.id}>
+                <tr key={user._id || user.id}>
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{user.name}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{user.email}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">
@@ -79,7 +106,7 @@ export default function UserManagement() {
                   </td>
                   <td className="px-6 py-4 text-sm font-medium">
                     <button
-                      onClick={() => handleToggleStatus(user.id)}
+                      onClick={() => handleToggleStatus(user._id || user.id)}
                       className="text-blue-600 hover:text-blue-900 mr-3"
                     >
                       {user.isActive ? <FiToggleRight /> : <FiToggleLeft />}

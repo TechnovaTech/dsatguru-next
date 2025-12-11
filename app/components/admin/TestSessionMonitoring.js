@@ -70,8 +70,10 @@ export default function TestSessionMonitoring() {
   const terminateSession = async (sessionId) => {
     if (confirm('Are you sure you want to terminate this test session?')) {
       try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
         const response = await fetch(`/api/admin/test-sessions/${sessionId}/terminate`, {
-          method: 'POST'
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
         })
         if (response.ok) {
           fetchSessions()
@@ -84,9 +86,10 @@ export default function TestSessionMonitoring() {
 
   const extendTime = async (sessionId, additionalMinutes) => {
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       const response = await fetch(`/api/admin/test-sessions/${sessionId}/extend`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ additionalMinutes })
       })
       if (response.ok) {

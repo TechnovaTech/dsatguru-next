@@ -1,53 +1,27 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
+import TestSession from '../../../../lib/models/TestSession'
 
 export async function GET() {
   try {
     await connectDB()
-    // Mock data for user results
-    const results = [
-      {
-        _id: '1',
-        studentName: 'John Doe',
-        studentEmail: 'john@example.com',
-        testTitle: 'SAT Practice Test 1',
-        testType: 'Practice',
-        score: 85,
-        correctAnswers: 42,
-        totalQuestions: 50,
-        duration: 165, // minutes
-        completedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-        startTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 - 165 * 60 * 1000)
-      },
-      {
-        _id: '2',
-        studentName: 'Jane Smith',
-        studentEmail: 'jane@example.com',
-        testTitle: 'SAT Mock Test',
-        testType: 'Mock',
-        score: 78,
-        correctAnswers: 31,
-        totalQuestions: 40,
-        duration: 110,
-        completedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-        startTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 - 110 * 60 * 1000)
-      },
-      {
-        _id: '3',
-        studentName: 'Alice Johnson',
-        studentEmail: 'alice@example.com',
-        testTitle: 'SAT Assessment',
-        testType: 'Assessment',
-        score: 92,
-        correctAnswers: 46,
-        totalQuestions: 50,
-        duration: 140,
-        completedAt: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
-        startTime: new Date(Date.now() - 3 * 60 * 60 * 1000 - 140 * 60 * 1000)
-      }
-    ]
-    return NextResponse.json(results)
+    const sessions = await TestSession.find().sort({ createdAt: -1 }).limit(100).populate('userId', 'name email')
+    const formatted = sessions.map(s => ({
+      _id: s._id,
+      studentName: s.userId?.name,
+      studentEmail: s.userId?.email,
+      testTitle: 'Session',
+      testType: s.sessionType,
+      status: s.status,
+      score: s.score,
+      totalQuestions: s.totalQuestions,
+      answeredQuestions: s.answeredQuestions,
+      correctAnswers: s.correctAnswers,
+      createdAt: s.createdAt
+    }))
+    return NextResponse.json(formatted)
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch user results' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to fetch results' }, { status: 500 })
   }
 }
+
