@@ -44,7 +44,7 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      <div className="w-64 bg-white shadow-lg">
+      <div className="w-64 h-screen bg-white shadow-lg overflow-y-auto">
         <div className="p-6 border-b">
           <h1 className="text-xl font-bold text-blue-600">DSATGURU Admin</h1>
           <p className="text-sm text-gray-600">Welcome, {user?.name}</p>

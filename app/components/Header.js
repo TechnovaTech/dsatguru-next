@@ -78,7 +78,7 @@ export default function Header() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 10 }}
-                      className="absolute top-full left-1/2 transform -translate-x-1/2 mt-3 w-80 p-2 grid gap-2 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50"
+                      className="absolute top-full left-1/2 transform -translate-x-1/2 mt-3 w-80 p-2 grid gap-2 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto"
                     >
                       {courses.map((course, idx) => {
                         const color = colors[idx % colors.length]
@@ -167,7 +167,7 @@ export default function Header() {
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ duration: 0.3 }}
-                className="fixed top-0 right-0 h-full w-3/4 bg-white shadow-lg z-50 flex flex-col justify-between px-8 py-12"
+                className="fixed top-0 right-0 h-full w-3/4 bg-white shadow-lg z-50 flex flex-col justify-between px-8 py-12 overflow-y-auto"
               >
                 <div>
                   <div className="flex justify-between items-center mb-6">

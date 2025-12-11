@@ -39,7 +39,7 @@ export default function DashboardLayout({ children }) {
 
       {/* Sidebar */}
       <aside
-        className={`h-screen fixed z-50 md:static top-0 right-0 bg-white text-gray-800 w-64 p-6 space-y-6 flex flex-col justify-between transform transition-transform duration-300 ease-in-out shadow-lg
+        className={`h-screen fixed z-50 md:static top-0 right-0 bg-white text-gray-800 w-64 p-6 space-y-6 flex flex-col justify-between overflow-y-auto transform transition-transform duration-300 ease-in-out shadow-lg
         ${isOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"}`}
       >
         <div>
