@@ -3,54 +3,9 @@ import { useState, useEffect } from 'react'
 import { FiPlus, FiEdit, FiTrash2, FiEye, FiDollarSign, FiUsers, FiBarChart, FiCalendar, FiVideo, FiDownload, FiFileText, FiSave, FiArrowLeft } from 'react-icons/fi'
 
 export default function CourseManagement() {
-  const [courses, setCourses] = useState([
-    { 
-      id: 1, 
-      title: 'DSAT Math Mastery', 
-      description: 'Complete DSAT Math preparation', 
-      price: 299, 
-      discountedPrice: 199, 
-      type: 'course',
-      enrollmentsCount: 45,
-      revenue: 8955,
-      highlightsCount: 4,
-      schedulesCount: 2,
-      faqsCount: 3,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    { 
-      id: 2, 
-      title: 'DSAT English Excellence', 
-      description: 'Master DSAT English', 
-      price: 249, 
-      discountedPrice: 149, 
-      type: 'course',
-      enrollmentsCount: 32,
-      revenue: 4768,
-      highlightsCount: 3,
-      schedulesCount: 1,
-      faqsCount: 2,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    { 
-      id: 3, 
-      title: 'PSAT Prep Complete', 
-      description: 'Full PSAT preparation', 
-      price: 199, 
-      discountedPrice: 99, 
-      type: 'course',
-      enrollmentsCount: 28,
-      revenue: 2772,
-      highlightsCount: 5,
-      schedulesCount: 3,
-      faqsCount: 4,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ])
-  const [loading, setLoading] = useState(false)
+  const [courses, setCourses] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editingCourse, setEditingCourse] = useState(null)
   const [selectedCourse, setSelectedCourse] = useState(null)
@@ -62,11 +17,113 @@ export default function CourseManagement() {
     maxPrice: '',
     type: ''
   })
-  const [pagination, setPagination] = useState({ page: 1, pageSize: 10 })
+  const [pagination, setPagination] = useState({ 
+    page: 1, 
+    pageSize: 10, 
+    totalCount: 0, 
+    totalPages: 1 
+  })
+
+  // Fetch courses from API
+  const fetchCourses = async () => {
+    try {
+      setLoading(true)
+      setError('')
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setError('No authentication token found')
+        return
+      }
+
+      const queryParams = new URLSearchParams({
+        page: pagination.page.toString(),
+        pageSize: pagination.pageSize.toString(),
+        ...(filters.search && { search: filters.search }),
+        ...(filters.type && { type: filters.type }),
+        ...(filters.minPrice && { minPrice: filters.minPrice }),
+        ...(filters.maxPrice && { maxPrice: filters.maxPrice })
+      })
+
+      const response = await fetch(`/api/admin/courses?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch courses')
+      }
+
+      const data = await response.json()
+      setCourses(data.courses || [])
+      setPagination(prev => ({
+        ...prev,
+        totalCount: data.totalCount || 0,
+        totalPages: data.totalPages || 1
+      }))
+    } catch (error) {
+      console.error('Error fetching courses:', error)
+      setError('Failed to load courses')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleDelete = async (courseId) => {
-    if (window.confirm('Are you sure you want to delete this course?')) {
-      setCourses(prev => prev.filter(course => course.id !== courseId))
+    if (!window.confirm('Are you sure you want to delete this course?')) return
+    
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/admin/courses/${courseId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete course')
+      }
+
+      // Refresh courses list
+      fetchCourses()
+    } catch (error) {
+      console.error('Error deleting course:', error)
+      alert(error.message)
+    }
+  }
+
+  const handleSaveCourse = async (courseData) => {
+    try {
+      const token = localStorage.getItem('token')
+      const isEditing = courseData.id
+      const url = isEditing ? `/api/admin/courses/${courseData.id}` : '/api/admin/courses'
+      const method = isEditing ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(courseData)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to save course')
+      }
+
+      // Refresh courses list
+      fetchCourses()
+      setShowModal(false)
+      setEditingCourse(null)
+    } catch (error) {
+      console.error('Error saving course:', error)
+      alert(error.message)
     }
   }
 
@@ -74,21 +131,27 @@ export default function CourseManagement() {
     setFilters(prev => ({ ...prev, [key]: value }))
   }
 
-  const filteredCourses = courses.filter(course => {
-    if (filters.search && !course.title.toLowerCase().includes(filters.search.toLowerCase()) && 
-        !course.description.toLowerCase().includes(filters.search.toLowerCase())) {
-      return false
-    }
-    if (filters.type && course.type !== filters.type) return false
-    if (filters.minPrice && course.price < parseFloat(filters.minPrice)) return false
-    if (filters.maxPrice && course.price > parseFloat(filters.maxPrice)) return false
-    return true
-  })
-  const totalCount = filteredCourses.length
-  const totalPages = Math.max(1, Math.ceil(totalCount / pagination.pageSize))
+  // Load courses on component mount and when filters/pagination change
+  useEffect(() => {
+    fetchCourses()
+  }, [pagination.page, pagination.pageSize])
+
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (pagination.page === 1) {
+        fetchCourses()
+      } else {
+        setPagination(prev => ({ ...prev, page: 1 }))
+      }
+    }, 500)
+    return () => clearTimeout(timeoutId)
+  }, [filters.search, filters.type, filters.minPrice, filters.maxPrice])
+
+  const totalCount = pagination.totalCount || 0
+  const totalPages = pagination.totalPages || 1
   const startIndex = (pagination.page - 1) * pagination.pageSize
-  const endIndex = startIndex + pagination.pageSize
-  const displayCourses = filteredCourses.slice(startIndex, endIndex)
+  const endIndex = Math.min(startIndex + pagination.pageSize, totalCount)
 
   if (showContentManagement && selectedCourse) {
     return (
@@ -102,17 +165,35 @@ export default function CourseManagement() {
     )
   }
 
+  if (loading && courses.length === 0) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading courses...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Course & Question Bank Management</h1>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded flex items-center gap-2"
+          className="bg-blue-500 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-600"
+          disabled={loading}
         >
           <FiPlus /> Add Course
         </button>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
 
       <div className="bg-white p-4 rounded-lg shadow">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -183,7 +264,14 @@ export default function CourseManagement() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {displayCourses.length > 0 ? displayCourses.map((course) => (
+            {loading ? (
+              <tr>
+                <td colSpan="7" className="px-6 py-8 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                  <p className="text-gray-500">Loading...</p>
+                </td>
+              </tr>
+            ) : courses.length > 0 ? courses.map((course) => (
               <tr key={course.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
                   <div>
@@ -284,20 +372,23 @@ export default function CourseManagement() {
 
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-700">
-          Showing {totalCount === 0 ? 0 : startIndex + 1} to {Math.min(endIndex, totalCount)} of {totalCount} courses
+          Showing {totalCount === 0 ? 0 : startIndex + 1} to {endIndex} of {totalCount} courses
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <button
-            disabled={pagination.page === 1}
+            disabled={pagination.page === 1 || loading}
             onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
-            className="px-3 py-1 border rounded disabled:opacity-50"
+            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
           >
             Previous
           </button>
+          <span className="px-3 py-1 text-sm text-gray-600">
+            Page {pagination.page} of {totalPages}
+          </span>
           <button
-            disabled={pagination.page >= totalPages}
+            disabled={pagination.page >= totalPages || loading}
             onClick={() => setPagination(prev => ({ ...prev, page: Math.min(totalPages, prev.page + 1) }))}
-            className="px-3 py-1 border rounded disabled:opacity-50"
+            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
           >
             Next
           </button>
@@ -362,17 +453,7 @@ export default function CourseManagement() {
       {showModal && (
         <CourseModal
           course={editingCourse}
-          onSave={(updated) => {
-            setShowModal(false)
-            setEditingCourse(null)
-            setCourses(prev => {
-              if (updated && updated.id) {
-                return prev.map(c => (c.id === updated.id ? updated : c))
-              }
-              const newId = Math.max(0, ...prev.map(c => c.id)) + 1
-              return [...prev, { ...updated, id: newId, createdAt: new Date(), updatedAt: new Date() }]
-            })
-          }}
+          onSave={handleSaveCourse}
           onClose={() => {
             setShowModal(false)
             setEditingCourse(null)
@@ -386,24 +467,71 @@ export default function CourseManagement() {
 function CourseContentManager({ course, onBack }) {
   const [activeTab, setActiveTab] = useState('meetings')
   const [courseData, setCourseData] = useState({
-    meetings: [
-      { id: 1, title: 'Kickoff Meeting', date: 'Mon 8 PM', link: 'https://zoom.us/j/123' }
-    ],
-    materials: [
-      { id: 1, title: 'Algebra Basics PDF', link: '#' }
-    ],
-    syllabus: [
-      { id: 1, week: 1, title: 'Algebra' },
-      { id: 2, week: 2, title: 'Geometry' }
-    ],
-    assignments: [
-      { id: 1, title: 'Practice Set 1', dueDate: 'Next Mon', status: 'Pending' }
-    ]
+    meetings: [],
+    materials: [],
+    syllabus: [],
+    assignments: []
   })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSave = () => {
-    console.log('Saved', courseData)
+  // Fetch course content
+  const fetchContent = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/admin/courses/${course.id}/content`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch course content')
+      }
+
+      const data = await response.json()
+      setCourseData(data.content)
+    } catch (error) {
+      console.error('Error fetching content:', error)
+      setError('Failed to load course content')
+    } finally {
+      setLoading(false)
+    }
   }
+
+  const handleSave = async () => {
+    try {
+      setSaving(true)
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/admin/courses/${course.id}/content`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: courseData })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save course content')
+      }
+
+      alert('Course content saved successfully!')
+    } catch (error) {
+      console.error('Error saving content:', error)
+      alert('Failed to save course content')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Load content on mount
+  useEffect(() => {
+    fetchContent()
+  }, [course.id])
 
   return (
     <div className="p-6 space-y-6">
@@ -417,9 +545,10 @@ function CourseContentManager({ course, onBack }) {
         </div>
         <button
           onClick={handleSave}
-          className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-green-700"
+          disabled={saving || loading}
+          className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-green-700 disabled:opacity-50"
         >
-          <FiSave /> Save Changes
+          <FiSave /> {saving ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
 
@@ -445,7 +574,19 @@ function CourseContentManager({ course, onBack }) {
         </div>
       </div>
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
       <div className="bg-white rounded-lg shadow-md p-6">
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mr-3"></div>
+            <span>Loading content...</span>
+          </div>
+        ) : (
         {activeTab === 'meetings' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -453,7 +594,7 @@ function CourseContentManager({ course, onBack }) {
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
-                  meetings: [...prev.meetings, { id: Date.now(), title: 'New Meeting', date: 'Fri 6 PM', link: '#' }]
+                  meetings: [...prev.meetings, { title: 'New Meeting', date: 'Fri 6 PM', link: '#' }]
                 }))}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
               >
@@ -461,8 +602,8 @@ function CourseContentManager({ course, onBack }) {
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {courseData.meetings.map((m) => (
-                <div key={m.id} className="border rounded-lg p-4">
+              {courseData.meetings.map((m, index) => (
+                <div key={m._id || index} className="border rounded-lg p-4">
                   <div className="font-medium">{m.title}</div>
                   <div className="text-sm text-gray-600">{m.date}</div>
                   <a href={m.link} className="text-blue-600 text-sm">Join</a>
@@ -479,7 +620,7 @@ function CourseContentManager({ course, onBack }) {
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
-                  materials: [...prev.materials, { id: Date.now(), title: 'New Material', link: '#' }]
+                  materials: [...prev.materials, { title: 'New Material', link: '#' }]
                 }))}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
               >
@@ -487,8 +628,8 @@ function CourseContentManager({ course, onBack }) {
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {courseData.materials.map((mat) => (
-                <div key={mat.id} className="border rounded-lg p-4">
+              {courseData.materials.map((mat, index) => (
+                <div key={mat._id || index} className="border rounded-lg p-4">
                   <div className="font-medium">{mat.title}</div>
                   <a href={mat.link} className="text-blue-600 text-sm">Download</a>
                 </div>
@@ -504,7 +645,7 @@ function CourseContentManager({ course, onBack }) {
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
-                  syllabus: [...prev.syllabus, { id: Date.now(), week: prev.syllabus.length + 1, title: 'New Topic' }]
+                  syllabus: [...prev.syllabus, { week: prev.syllabus.length + 1, title: 'New Topic' }]
                 }))}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
               >
@@ -512,8 +653,8 @@ function CourseContentManager({ course, onBack }) {
               </button>
             </div>
             <div className="space-y-3">
-              {courseData.syllabus.map((t) => (
-                <div key={t.id} className="border rounded-lg p-4">
+              {courseData.syllabus.map((t, index) => (
+                <div key={t._id || index} className="border rounded-lg p-4">
                   <div className="font-medium">Week {t.week}: {t.title}</div>
                 </div>
               ))}
@@ -528,7 +669,7 @@ function CourseContentManager({ course, onBack }) {
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
-                  assignments: [...prev.assignments, { id: Date.now(), title: 'New Assignment', dueDate: 'TBD', status: 'Pending' }]
+                  assignments: [...prev.assignments, { title: 'New Assignment', dueDate: 'TBD', status: 'Pending' }]
                 }))}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
               >
@@ -536,8 +677,8 @@ function CourseContentManager({ course, onBack }) {
               </button>
             </div>
             <div className="space-y-3">
-              {courseData.assignments.map((a) => (
-                <div key={a.id} className="border rounded-lg p-4">
+              {courseData.assignments.map((a, index) => (
+                <div key={a._id || index} className="border rounded-lg p-4">
                   <div className="font-medium">{a.title}</div>
                   <div className="text-sm text-gray-600">Due: {a.dueDate}</div>
                   <span className={`inline-block px-2 py-1 rounded text-xs ${a.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>{a.status}</span>
@@ -545,6 +686,7 @@ function CourseContentManager({ course, onBack }) {
               ))}
             </div>
           </div>
+        )}
         )}
       </div>
     </div>
@@ -562,10 +704,11 @@ function CourseModal({ course, onSave, onClose }) {
     discountedPrice: course?.discountedPrice || '',
     discountPercentage: course?.discountPercentage || '',
     backgroundColor: course?.backgroundColor || '#e0ffff',
-    highlights: course?.highlights || [''],
-    schedules: course?.schedules || [{ day: '', time: '' }],
-    faqs: course?.faqs || [{ question: '', answer: '' }]
+    highlights: course?.highlights?.map(h => h.text || h) || [''],
+    schedules: course?.schedules?.map(s => ({ day: s.day || '', time: s.time || '' })) || [{ day: '', time: '' }],
+    faqs: course?.faqs?.map(f => ({ question: f.question || '', answer: f.answer || '' })) || [{ question: '', answer: '' }]
   })
+  const [loading, setLoading] = useState(false)
 
   const updateSchedule = (index, key, value) => {
     setFormData(prev => ({
@@ -612,9 +755,17 @@ function CourseModal({ course, onSave, onClose }) {
     setFormData(prev => ({ ...prev, faqs: prev.faqs.filter((_, i) => i !== index) }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    onSave({ ...formData, updatedAt: new Date() })
+    setLoading(true)
+    
+    try {
+      await onSave(formData)
+    } catch (error) {
+      console.error('Error saving course:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -848,8 +999,10 @@ function CourseModal({ course, onSave, onClose }) {
           </div>
 
           <div className="flex gap-4 justify-end pt-4 border-t">
-            <button type="button" onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-50">Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">{formData.id ? 'Update' : 'Create'} Course</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-50" disabled={loading}>Cancel</button>
+            <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50" disabled={loading}>
+              {loading ? 'Saving...' : (formData.id ? 'Update' : 'Create')} Course
+            </button>
           </div>
         </form>
       </div>
