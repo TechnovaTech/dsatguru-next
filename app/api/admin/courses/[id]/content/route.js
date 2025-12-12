@@ -1,25 +1,28 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../../lib/db'
 import Course from '../../../../../../lib/models/Course'
-import { getTokenFromRequest, verifyToken } from '../../../../../../lib/auth'
+import jwt from 'jsonwebtoken'
 
 export async function GET(request, { params }) {
   try {
-    await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const token = request.headers.get('authorization')?.replace('Bearer ', '')
+    if (!token) {
+      return NextResponse.json({ error: 'No token provided' }, { status: 401 })
     }
 
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    if (decoded.role !== 'Admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    await connectDB()
     const course = await Course.findById(params.id)
+    
     if (!course) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 })
     }
 
     return NextResponse.json({
-      courseId: course._id,
-      title: course.title,
       content: {
         meetings: course.meetings || [],
         materials: course.materials || [],
@@ -29,22 +32,26 @@ export async function GET(request, { params }) {
     })
   } catch (error) {
     console.error('Error fetching course content:', error)
-    return NextResponse.json({ error: 'Failed to fetch course content' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to fetch content' }, { status: 500 })
   }
 }
 
 export async function PUT(request, { params }) {
   try {
-    await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const token = request.headers.get('authorization')?.replace('Bearer ', '')
+    if (!token) {
+      return NextResponse.json({ error: 'No token provided' }, { status: 401 })
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    if (decoded.role !== 'Admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
     const { content } = await request.json()
     
-    const updated = await Course.findByIdAndUpdate(
+    await connectDB()
+    const course = await Course.findByIdAndUpdate(
       params.id,
       {
         meetings: content.meetings || [],
@@ -55,21 +62,13 @@ export async function PUT(request, { params }) {
       { new: true }
     )
 
-    if (!updated) {
+    if (!course) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 })
     }
 
-    return NextResponse.json({
-      message: 'Course content updated successfully',
-      content: {
-        meetings: updated.meetings || [],
-        materials: updated.materials || [],
-        syllabus: updated.syllabus || [],
-        assignments: updated.assignments || []
-      }
-    })
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error updating course content:', error)
-    return NextResponse.json({ error: 'Failed to update course content' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to update content' }, { status: 500 })
   }
 }

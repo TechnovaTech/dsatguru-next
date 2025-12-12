@@ -14,10 +14,10 @@ export default function ManageCourses() {
   const fetchCourses = async () => {
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      const response = await fetch('/api/admin/courses', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      const response = await fetch('/api/courses', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       if (response.ok) {
         const data = await response.json()
-        setCourses(data)
+        setCourses(Array.isArray(data) ? data : data.courses || data.data || [])
       }
     } catch (error) {
       console.error('Error fetching courses:', error)
@@ -61,7 +61,7 @@ export default function ManageCourses() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {(courses || []).filter(c => c.type ? c.type === 'course' : true).map((course) => (
+            {Array.isArray(courses) ? courses.filter(c => c.type ? c.type === 'course' : true).map((course) => (
               <tr key={course._id || course.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
                   <div>
@@ -84,7 +84,7 @@ export default function ManageCourses() {
                   </button>
                 </td>
               </tr>
-            ))}
+            )) : []}
           </tbody>
         </table>
       </div>
@@ -95,23 +95,56 @@ export default function ManageCourses() {
 function CourseContentManager({ course, onBack }) {
   const [activeTab, setActiveTab] = useState('meetings')
   const [courseData, setCourseData] = useState({
-    meetings: [
-      { id: 1, title: 'Kickoff Meeting', date: 'Mon 8 PM', link: 'https://zoom.us/j/123' }
-    ],
-    materials: [
-      { id: 1, title: 'Algebra Basics PDF', link: '#' }
-    ],
-    syllabus: [
-      { id: 1, week: 1, title: 'Algebra' },
-      { id: 2, week: 2, title: 'Geometry' }
-    ],
-    assignments: [
-      { id: 1, title: 'Practice Set 1', dueDate: 'Next Mon', status: 'Pending' }
-    ]
+    meetings: [],
+    materials: [],
+    syllabus: [],
+    assignments: []
   })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
 
-  const handleSave = () => {
-    console.log('Saved', courseData)
+  useEffect(() => {
+    fetchContent()
+  }, [course.id])
+
+  const fetchContent = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/admin/courses/${course.id}/content`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setCourseData(data.content)
+      }
+    } catch (error) {
+      console.error('Error fetching content:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    try {
+      setSaving(true)
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/admin/courses/${course.id}/content`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ content: courseData })
+      })
+      if (response.ok) {
+        alert('Content saved successfully!')
+      }
+    } catch (error) {
+      console.error('Error saving content:', error)
+      alert('Failed to save content')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -126,9 +159,10 @@ function CourseContentManager({ course, onBack }) {
         </div>
         <button
           onClick={handleSave}
-          className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-green-700"
+          disabled={saving || loading}
+          className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-green-700 disabled:opacity-50"
         >
-          <FiSave /> Save Changes
+          <FiSave /> {saving ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
 
@@ -155,14 +189,20 @@ function CourseContentManager({ course, onBack }) {
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-6">
-        {activeTab === 'meetings' && (
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        ) : (
+          <>
+            {activeTab === 'meetings' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Live Meetings</h2>
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
-                  meetings: [...prev.meetings, { id: Date.now(), title: 'New Meeting', date: 'Fri 6 PM', link: '#' }]
+                  meetings: [...prev.meetings, { title: '', date: '', link: '' }]
                 }))}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
               >
@@ -170,11 +210,61 @@ function CourseContentManager({ course, onBack }) {
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {courseData.meetings.map((m) => (
-                <div key={m.id} className="border rounded-lg p-4">
-                  <div className="font-medium">{m.title}</div>
-                  <div className="text-sm text-gray-600">{m.date}</div>
-                  <a href={m.link} className="text-blue-600 text-sm">Join</a>
+              {courseData.meetings.map((m, index) => (
+                <div key={m._id || index} className="border rounded-lg p-4">
+                  <input
+                    type="text"
+                    value={m.title}
+                    onChange={(e) => {
+                      const updated = [...courseData.meetings]
+                      updated[index] = { ...updated[index], title: e.target.value }
+                      setCourseData(prev => ({ ...prev, meetings: updated }))
+                    }}
+                    className="w-full mb-2 p-2 border rounded"
+                    placeholder="Meeting title"
+                  />
+                  <input
+                    type="text"
+                    value={m.date}
+                    onChange={(e) => {
+                      const updated = [...courseData.meetings]
+                      updated[index] = { ...updated[index], date: e.target.value }
+                      setCourseData(prev => ({ ...prev, meetings: updated }))
+                    }}
+                    className="w-full mb-2 p-2 border rounded"
+                    placeholder="Date & time"
+                  />
+                  <input
+                    type="url"
+                    value={m.link}
+                    onChange={(e) => {
+                      const updated = [...courseData.meetings]
+                      updated[index] = { ...updated[index], link: e.target.value }
+                      setCourseData(prev => ({ ...prev, meetings: updated }))
+                    }}
+                    className="w-full mb-2 p-2 border rounded"
+                    placeholder="Meeting link"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCourseData(prev => ({
+                        ...prev,
+                        meetings: [...prev.meetings.slice(0, index + 1), { title: '', date: '', link: '' }, ...prev.meetings.slice(index + 1)]
+                      }))}
+                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Add Below
+                    </button>
+                    <button
+                      onClick={() => {
+                        const updated = courseData.meetings.filter((_, i) => i !== index)
+                        setCourseData(prev => ({ ...prev, meetings: updated }))
+                      }}
+                      className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -188,7 +278,7 @@ function CourseContentManager({ course, onBack }) {
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
-                  materials: [...prev.materials, { id: Date.now(), title: 'New Material', link: '#' }]
+                  materials: [...prev.materials, { title: '', link: '' }]
                 }))}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
               >
@@ -196,10 +286,50 @@ function CourseContentManager({ course, onBack }) {
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {courseData.materials.map((mat) => (
-                <div key={mat.id} className="border rounded-lg p-4">
-                  <div className="font-medium">{mat.title}</div>
-                  <a href={mat.link} className="text-blue-600 text-sm">Download</a>
+              {courseData.materials.map((mat, index) => (
+                <div key={mat._id || index} className="border rounded-lg p-4">
+                  <input
+                    type="text"
+                    value={mat.title}
+                    onChange={(e) => {
+                      const updated = [...courseData.materials]
+                      updated[index] = { ...updated[index], title: e.target.value }
+                      setCourseData(prev => ({ ...prev, materials: updated }))
+                    }}
+                    className="w-full mb-2 p-2 border rounded"
+                    placeholder="Material title"
+                  />
+                  <input
+                    type="url"
+                    value={mat.link}
+                    onChange={(e) => {
+                      const updated = [...courseData.materials]
+                      updated[index] = { ...updated[index], link: e.target.value }
+                      setCourseData(prev => ({ ...prev, materials: updated }))
+                    }}
+                    className="w-full mb-2 p-2 border rounded"
+                    placeholder="Download link"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCourseData(prev => ({
+                        ...prev,
+                        materials: [...prev.materials.slice(0, index + 1), { title: '', link: '' }, ...prev.materials.slice(index + 1)]
+                      }))}
+                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Add Below
+                    </button>
+                    <button
+                      onClick={() => {
+                        const updated = courseData.materials.filter((_, i) => i !== index)
+                        setCourseData(prev => ({ ...prev, materials: updated }))
+                      }}
+                      className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -213,7 +343,7 @@ function CourseContentManager({ course, onBack }) {
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
-                  syllabus: [...prev.syllabus, { id: Date.now(), week: prev.syllabus.length + 1, title: 'New Topic' }]
+                  syllabus: [...prev.syllabus, { week: prev.syllabus.length + 1, title: '', description: '' }]
                 }))}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
               >
@@ -221,9 +351,63 @@ function CourseContentManager({ course, onBack }) {
               </button>
             </div>
             <div className="space-y-3">
-              {courseData.syllabus.map((t) => (
-                <div key={t.id} className="border rounded-lg p-4">
-                  <div className="font-medium">Week {t.week}: {t.title}</div>
+              {courseData.syllabus.map((t, index) => (
+                <div key={t._id || index} className="border rounded-lg p-4">
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="number"
+                      value={t.week}
+                      onChange={(e) => {
+                        const updated = [...courseData.syllabus]
+                        updated[index] = { ...updated[index], week: parseInt(e.target.value) }
+                        setCourseData(prev => ({ ...prev, syllabus: updated }))
+                      }}
+                      className="w-20 p-2 border rounded"
+                      placeholder="Week"
+                    />
+                    <input
+                      type="text"
+                      value={t.title}
+                      onChange={(e) => {
+                        const updated = [...courseData.syllabus]
+                        updated[index] = { ...updated[index], title: e.target.value }
+                        setCourseData(prev => ({ ...prev, syllabus: updated }))
+                      }}
+                      className="flex-1 p-2 border rounded"
+                      placeholder="Topic title"
+                    />
+                  </div>
+                  <textarea
+                    value={t.description || ''}
+                    onChange={(e) => {
+                      const updated = [...courseData.syllabus]
+                      updated[index] = { ...updated[index], description: e.target.value }
+                      setCourseData(prev => ({ ...prev, syllabus: updated }))
+                    }}
+                    className="w-full p-2 border rounded"
+                    placeholder="Description"
+                    rows="2"
+                  />
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={() => setCourseData(prev => ({
+                        ...prev,
+                        syllabus: [...prev.syllabus.slice(0, index + 1), { week: prev.syllabus.length + 1, title: '', description: '' }, ...prev.syllabus.slice(index + 1)]
+                      }))}
+                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Add Below
+                    </button>
+                    <button
+                      onClick={() => {
+                        const updated = courseData.syllabus.filter((_, i) => i !== index)
+                        setCourseData(prev => ({ ...prev, syllabus: updated }))
+                      }}
+                      className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -237,7 +421,7 @@ function CourseContentManager({ course, onBack }) {
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
-                  assignments: [...prev.assignments, { id: Date.now(), title: 'New Assignment', dueDate: 'TBD', status: 'Pending' }]
+                  assignments: [...prev.assignments, { title: '', dueDate: '', status: 'Pending' }]
                 }))}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
               >
@@ -245,15 +429,94 @@ function CourseContentManager({ course, onBack }) {
               </button>
             </div>
             <div className="space-y-3">
-              {courseData.assignments.map((a) => (
-                <div key={a.id} className="border rounded-lg p-4">
-                  <div className="font-medium">{a.title}</div>
-                  <div className="text-sm text-gray-600">Due: {a.dueDate}</div>
-                  <span className={`inline-block px-2 py-1 rounded text-xs ${a.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>{a.status}</span>
+              {courseData.assignments.map((a, index) => (
+                <div key={a._id || index} className="border rounded-lg p-4">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Assignment Title</label>
+                      <input
+                        type="text"
+                        value={a.title}
+                        onChange={(e) => {
+                          const updated = [...courseData.assignments]
+                          updated[index] = { ...updated[index], title: e.target.value }
+                          setCourseData(prev => ({ ...prev, assignments: updated }))
+                        }}
+                        className="w-full p-2 border rounded"
+                        placeholder="Enter assignment title"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Description</label>
+                      <textarea
+                        value={a.description || ''}
+                        onChange={(e) => {
+                          const updated = [...courseData.assignments]
+                          updated[index] = { ...updated[index], description: e.target.value }
+                          setCourseData(prev => ({ ...prev, assignments: updated }))
+                        }}
+                        className="w-full p-2 border rounded"
+                        placeholder="Enter assignment description"
+                        rows="3"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Due Date (dd-mm-yyyy)</label>
+                      <input
+                        type="date"
+                        value={a.dueDate}
+                        onChange={(e) => {
+                          const updated = [...courseData.assignments]
+                          updated[index] = { ...updated[index], dueDate: e.target.value }
+                          setCourseData(prev => ({ ...prev, assignments: updated }))
+                        }}
+                        className="w-full p-2 border rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Status</label>
+                      <select
+                        value={a.status}
+                        onChange={(e) => {
+                          const updated = [...courseData.assignments]
+                          updated[index] = { ...updated[index], status: e.target.value }
+                          setCourseData(prev => ({ ...prev, assignments: updated }))
+                        }}
+                        className="w-full p-2 border rounded"
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Active">Active</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Overdue">Overdue</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => setCourseData(prev => ({
+                        ...prev,
+                        assignments: [...prev.assignments.slice(0, index + 1), { title: '', description: '', dueDate: '', status: 'Pending' }, ...prev.assignments.slice(index + 1)]
+                      }))}
+                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Add Below
+                    </button>
+                    <button
+                      onClick={() => {
+                        const updated = courseData.assignments.filter((_, i) => i !== index)
+                        setCourseData(prev => ({ ...prev, assignments: updated }))
+                      }}
+                      className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
+            )}
+          </>
         )}
       </div>
     </div>
