@@ -587,7 +587,8 @@ function CourseContentManager({ course, onBack }) {
             <span>Loading content...</span>
           </div>
         ) : (
-        {activeTab === 'meetings' && (
+          <>
+            {activeTab === 'meetings' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Live Meetings</h2>
@@ -686,7 +687,8 @@ function CourseContentManager({ course, onBack }) {
               ))}
             </div>
           </div>
-        )}
+            )}
+          </>
         )}
       </div>
     </div>
@@ -705,20 +707,28 @@ function CourseModal({ course, onSave, onClose }) {
     discountPercentage: course?.discountPercentage || '',
     backgroundColor: course?.backgroundColor || '#e0ffff',
     highlights: course?.highlights?.map(h => h.text || h) || [''],
-    schedules: course?.schedules?.map(s => ({ day: s.day || '', time: s.time || '' })) || [{ day: '', time: '' }],
+    schedules: course?.schedules?.map(s => `${s.day || ''} ${s.time || ''}`.trim()) || [''],
     faqs: course?.faqs?.map(f => ({ question: f.question || '', answer: f.answer || '' })) || [{ question: '', answer: '' }]
   })
+
+  // Auto-calculate discount percentage when price or discounted price changes
+  useEffect(() => {
+    if (formData.price > 0 && formData.discountedPrice > 0) {
+      const discount = Math.round(((formData.price - formData.discountedPrice) / formData.price) * 100)
+      setFormData(prev => ({ ...prev, discountPercentage: discount }))
+    }
+  }, [formData.price, formData.discountedPrice])
   const [loading, setLoading] = useState(false)
 
-  const updateSchedule = (index, key, value) => {
+  const updateSchedule = (index, value) => {
     setFormData(prev => ({
       ...prev,
-      schedules: prev.schedules.map((s, i) => (i === index ? { ...s, [key]: value } : s))
+      schedules: prev.schedules.map((s, i) => (i === index ? value : s))
     }))
   }
 
   const addSchedule = () => {
-    setFormData(prev => ({ ...prev, schedules: [...prev.schedules, { day: '', time: '' }] }))
+    setFormData(prev => ({ ...prev, schedules: [...prev.schedules, ''] }))
   }
 
   const removeSchedule = (index) => {
@@ -820,12 +830,12 @@ function CourseModal({ course, onSave, onClose }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Discount %</label>
+              <label className="block text-sm font-medium mb-1">Discount % (Auto)</label>
               <input
                 type="number"
                 value={formData.discountPercentage}
-                onChange={(e) => setFormData(prev => ({ ...prev, discountPercentage: e.target.value }))}
-                className="w-full border rounded px-3 py-2"
+                readOnly
+                className="w-full border rounded px-3 py-2 bg-gray-100"
               />
             </div>
             <div>
@@ -865,26 +875,12 @@ function CourseModal({ course, onSave, onClose }) {
             </div>
             {formData.schedules.map((schedule, index) => (
               <div key={index} className="flex gap-2 mb-2">
-                <select
-                  value={schedule.day}
-                  onChange={(e) => updateSchedule(index, 'day', e.target.value)}
-                  className="flex-1 border rounded px-3 py-2"
-                >
-                  <option value="">Select Day</option>
-                  <option value="monday">Monday</option>
-                  <option value="tuesday">Tuesday</option>
-                  <option value="wednesday">Wednesday</option>
-                  <option value="thursday">Thursday</option>
-                  <option value="friday">Friday</option>
-                  <option value="saturday">Saturday</option>
-                  <option value="sunday">Sunday</option>
-                </select>
                 <input
                   type="text"
-                  value={schedule.time}
-                  onChange={(e) => updateSchedule(index, 'time', e.target.value)}
+                  value={schedule}
+                  onChange={(e) => updateSchedule(index, e.target.value)}
                   className="flex-1 border rounded px-3 py-2"
-                  placeholder="Time (e.g., 8 pm)"
+                  placeholder="e.g., Monday 8 PM"
                 />
                 <button type="button" onClick={() => removeSchedule(index)} className="text-red-500 hover:text-red-700 px-2">✕</button>
               </div>
@@ -896,9 +892,9 @@ function CourseModal({ course, onSave, onClose }) {
                 <div className="p-4">
                   <h3 className="text-lg font-bold uppercase text-center">{formData.title || 'MATHS REASONING'}</h3>
                   <div className="flex justify-center my-2">
-                    {formData.schedules.length > 0 && formData.schedules[0].day && formData.schedules[0].time ? (
+                    {formData.schedules.length > 0 && formData.schedules[0].trim() ? (
                       <span className="bg-white rounded-full px-4 py-1 text-sm">
-                        {formData.schedules[0].day} {formData.schedules[0].time}
+                        {formData.schedules[0]}
                       </span>
                     ) : (
                       <span className="bg-white rounded-full px-4 py-1 text-sm">monday 8 pm</span>

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { FaCheckCircle, FaClock, FaUsers, FaPlay, FaChalkboardTeacher, FaCertificate, FaBookOpen, FaPercent } from 'react-icons/fa'
 import { useCourses } from '../../components/CourseContext'
 import { useAuth } from '../../components/AuthContext'
+import StripeCheckout from '../../components/StripeCheckout'
 import axios from 'axios'
 
 export default function EnrollmentPage() {
@@ -16,6 +17,7 @@ export default function EnrollmentPage() {
   const [enrollLoading, setEnrollLoading] = useState(false)
   const [showScheduleModal, setShowScheduleModal] = useState(false)
   const [selectedSchedule, setSelectedSchedule] = useState(null)
+  const [showPayment, setShowPayment] = useState(false)
 
   useEffect(() => {
     if (courses.length > 0) {
@@ -39,25 +41,34 @@ export default function EnrollmentPage() {
       return
     }
 
-    try {
-      setEnrollLoading(true)
-      
-      // Create enrollment
-      const response = await axios.post('/api/enrollment', {
-        courseId,
-        scheduleId
-      })
-      
-      if (response.data.success) {
-        alert('Enrollment successful!')
-        router.push('/dashboard/courses')
+    if (course.discountedPrice > 0 || course.originalPrice > 0) {
+      setShowPayment(true)
+    } else {
+      // Free course enrollment
+      try {
+        setEnrollLoading(true)
+        const response = await axios.post('/api/enrollment', {
+          courseId,
+          scheduleId
+        })
+        
+        if (response.data.success) {
+          alert('Enrollment successful!')
+          router.push('/dashboard/courses')
+        }
+      } catch (error) {
+        console.error('Enrollment error:', error)
+        alert('Failed to enroll. Please try again.')
+      } finally {
+        setEnrollLoading(false)
       }
-    } catch (error) {
-      console.error('Enrollment error:', error)
-      alert('Failed to enroll. Please try again.')
-    } finally {
-      setEnrollLoading(false)
     }
+  }
+
+  const handlePaymentSuccess = () => {
+    setShowPayment(false)
+    alert('Payment successful! You are now enrolled.')
+    router.push('/dashboard/courses')
   }
 
   const handleScheduleSelection = () => {
@@ -405,6 +416,26 @@ export default function EnrollmentPage() {
           </button>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {showPayment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-bold mb-4">Complete Payment</h3>
+            <div className="mb-4">
+              <p className="text-gray-600">Course: {course.title}</p>
+              <p className="text-lg font-bold text-green-600">
+                ${course.discountedPrice || course.originalPrice}
+              </p>
+            </div>
+            <StripeCheckout
+              course={course}
+              onSuccess={handlePaymentSuccess}
+              onCancel={() => setShowPayment(false)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Schedule Selection Modal */}
       {showScheduleModal && (

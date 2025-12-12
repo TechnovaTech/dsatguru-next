@@ -61,7 +61,7 @@ export const CourseProvider = ({ children }) => {
         description: course.description,
         type: course.type,
         bannerImageUrl: course.bannerImageUrl,
-        batch: course.schedules?.map((s) => `${s.day} ${s.time}`) || ['Schedule TBD'],
+        batch: course.schedules?.map((s) => typeof s === 'string' ? s : `${s.day} ${s.time}`) || ['Schedule TBD'],
         originalPrice: course.price,
         discountedPrice: course.discountedPrice !== null ? course.discountedPrice : course.price,
         discountPercentage: course.discountPercentage,
@@ -73,13 +73,24 @@ export const CourseProvider = ({ children }) => {
           type: 'included',
           sequenceOrder: h.sequenceOrder
         })) || [],
-        courseSchedules: course.schedules?.map(s => ({
-          id: s.id,
-          day: s.day,
-          time: s.time,
-          batchTag: `${s.day} ${s.time}`,
-          labels: [`${s.day} ${s.time}`]
-        })) || [],
+        courseSchedules: course.schedules?.map((s, idx) => {
+          if (typeof s === 'string') {
+            return {
+              id: idx,
+              day: s.split(' ')[0] || '',
+              time: s.split(' ').slice(1).join(' ') || '',
+              batchTag: s,
+              labels: [s]
+            }
+          }
+          return {
+            id: s.id,
+            day: s.day,
+            time: s.time,
+            batchTag: `${s.day} ${s.time}`,
+            labels: [`${s.day} ${s.time}`]
+          }
+        }) || [],
         enrollmentNote: '',
         icon: icons[index % icons.length],
       }))

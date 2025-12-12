@@ -3,7 +3,6 @@ import './globals.css'
 import { AuthProvider } from './components/AuthContext'
 import { CourseProvider } from './components/CourseContext'
 import PublicLayout from './components/PublicLayout'
-import DashboardLayout from './components/DashboardLayout'
 import { usePathname } from 'next/navigation'
 
 export default function RootLayout({ children }) {
@@ -20,7 +19,7 @@ export default function RootLayout({ children }) {
             {isAdmin ? (
               children
             ) : isDashboard ? (
-              <DashboardLayout>{children}</DashboardLayout>
+              children
             ) : (
               <PublicLayout>{children}</PublicLayout>
             )}
