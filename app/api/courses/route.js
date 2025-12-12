@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../lib/db'
 import Course from '../../../lib/models/Course'
-import { verifyToken, getTokenFromRequest } from '../../../lib/auth'
+import jwt from 'jsonwebtoken'
 
 export async function GET(request) {
   try {
@@ -58,9 +58,12 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
+    const token = request.headers.get('authorization')?.replace('Bearer ', '')
+    if (!token) {
+      return NextResponse.json({ error: 'No token provided' }, { status: 401 })
+    }
     
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
     if (!decoded || decoded.role !== 'Admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

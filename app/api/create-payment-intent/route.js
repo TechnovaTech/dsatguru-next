@@ -12,22 +12,32 @@ export async function POST(request) {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    const { courseId, amount } = await request.json()
+    const { courseId, amount, courseTitle } = await request.json()
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
-      currency: 'usd',
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: courseTitle,
+          },
+          unit_amount: Math.round(amount * 100),
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `${process.env.NEXT_PUBLIC_API_URL}/dashboard/courses?success=true&courseId=${courseId}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_API_URL}/dashboard/courses?canceled=true`,
       metadata: {
         courseId,
         userId: decoded.userId
       }
     })
 
-    return NextResponse.json({
-      clientSecret: paymentIntent.client_secret
-    })
+    return NextResponse.json({ url: session.url })
   } catch (error) {
-    console.error('Payment intent creation failed:', error)
+    console.error('Checkout session creation failed:', error)
     return NextResponse.json({ error: 'Payment failed' }, { status: 500 })
   }
 }

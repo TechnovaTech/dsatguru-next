@@ -1,33 +1,37 @@
 import { NextResponse } from 'next/server'
-import { connectDB } from '@/lib/mongodb'
-import jwt from 'jsonwebtoken'
+import { connectDB } from '../../../lib/db'
+import { CourseEnrollment } from '../../../lib/models/Course'
+import { getTokenFromRequest, verifyToken } from '../../../lib/auth'
 
 export async function POST(request) {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token) {
-      return NextResponse.json({ error: 'No token provided' }, { status: 401 })
+    await connectDB()
+    const token = getTokenFromRequest(request)
+    const decoded = verifyToken(token)
+    if (!decoded) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const { courseId } = await request.json()
+    if (!courseId) {
+      return NextResponse.json({ error: 'courseId is required' }, { status: 400 })
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    const { courseId, paymentIntentId } = await request.json()
+    const existing = await CourseEnrollment.findOne({
+      userId: decoded.userId,
+      courseId
+    })
+    if (existing) {
+      return NextResponse.json({ success: true, enrollment: existing })
+    }
 
-    const db = await connectDB()
-    
-    // Create enrollment record
-    const enrollment = {
+    const created = await CourseEnrollment.create({
       userId: decoded.userId,
       courseId,
-      paymentIntentId,
-      enrolledAt: new Date(),
-      status: 'active'
-    }
+      enrolledAt: new Date()
+    })
 
-    await db.collection('enrollments').insertOne(enrollment)
-
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, enrollment: created })
   } catch (error) {
-    console.error('Enrollment failed:', error)
     return NextResponse.json({ error: 'Enrollment failed' }, { status: 500 })
   }
 }

@@ -3,32 +3,25 @@ import { useState, useEffect } from 'react'
 import { FiCreditCard, FiDownload, FiCheck, FiClock, FiX } from 'react-icons/fi'
 
 export default function PaymentsPage() {
-  const [payments, setPayments] = useState([
-    {
-      id: '1',
-      courseTitle: 'DSAT Math Mastery',
-      amount: 199,
-      status: 'Succeeded',
-      date: '2024-01-15',
-      receiptUrl: '#'
-    },
-    {
-      id: '2',
-      courseTitle: 'DSAT English Excellence',
-      amount: 149,
-      status: 'Succeeded',
-      date: '2024-01-10',
-      receiptUrl: '#'
-    },
-    {
-      id: '3',
-      courseTitle: 'PSAT Prep Complete',
-      amount: 99,
-      status: 'Pending',
-      date: '2024-01-20',
-      receiptUrl: null
+  const [payments, setPayments] = useState([])
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+        const res = await fetch('/api/payments', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+        if (res.ok) {
+          const json = await res.json()
+          setPayments(json.payments || [])
+        }
+      } finally {
+        setLoading(false)
+      }
     }
-  ])
+    fetchPayments()
+  }, [])
 
   const getStatusIcon = (status) => {
     switch (status) {

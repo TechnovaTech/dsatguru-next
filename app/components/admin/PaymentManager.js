@@ -19,12 +19,13 @@ export default function PaymentManager() {
           const data = await res.json()
           setPayments(data.map(p => ({
             id: p._id,
-            studentName: '',
-            courseName: '',
+            studentName: p.userId ? `User ${p.userId.slice(-6)}` : 'Unknown',
+            courseName: p.courseId ? `Course ${p.courseId.slice(-6)}` : p.description,
             amount: p.amount,
             status: p.status,
             method: p.paymentGateway,
-            createdAt: p.createdAt
+            createdAt: p.createdAt,
+            currency: p.currency || 'USD'
           })))
           const totals = data.reduce((acc, p) => {
             acc.totalRevenue += Number(p.amount || 0)
@@ -185,7 +186,7 @@ export default function PaymentManager() {
                   {payment.courseName}
                 </td>
                 <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                  ${payment.amount}
+                  ${payment.amount} {payment.currency}
                 </td>
                 <td className="px-6 py-4 text-sm">
                   <span className={`px-2 py-1 rounded text-xs ${getStatusColor(payment.status)}`}>
