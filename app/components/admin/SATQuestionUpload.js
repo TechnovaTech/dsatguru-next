@@ -334,6 +334,17 @@ export default function SATQuestionUpload() {
     setBulkUpload(prev => ({ ...prev, images: validImages, imagePreviews: previews, mapping }))
   }
 
+  const removeImageAt = (index) => {
+    const prevPreviews = bulkUpload.imagePreviews || []
+    const prevImages = bulkUpload.images || []
+    const toRemove = prevPreviews[index]
+    if (toRemove?.url) { try { URL.revokeObjectURL(toRemove.url) } catch {} }
+    const newPreviews = prevPreviews.filter((_, i) => i !== index)
+    const newImages = prevImages.filter((_, i) => i !== index)
+    const mapping = computeImageMapping(bulkUpload.csvRecords, newImages)
+    setBulkUpload(prev => ({ ...prev, images: newImages, imagePreviews: newPreviews, mapping }))
+  }
+
   const computeImageMapping = (records, images) => {
     if (!records || records.length === 0) return null
     const fileMap = new Map()
@@ -573,6 +584,14 @@ export default function SATQuestionUpload() {
                           {bulkUpload.imagePreviews.map((preview, index) => (
                             <div key={index} className="relative">
                               <img src={preview.url} alt={preview.name} className="w-full h-20 object-cover rounded-md border" />
+                              <button
+                                type="button"
+                                onClick={() => removeImageAt(index)}
+                                className="absolute top-1 right-1 bg-white/90 hover:bg-white text-red-600 hover:text-red-700 rounded-full p-1 shadow"
+                                aria-label="Remove image"
+                              >
+                                <FiX className="w-3 h-3" />
+                              </button>
                               <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white text-xs p-1 rounded-b-md truncate">
                                 {preview.name}
                               </div>
