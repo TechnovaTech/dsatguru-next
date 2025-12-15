@@ -11,7 +11,8 @@ export default function TestManagement() {
   const [formData, setFormData] = useState({
     title: '',
     isActive: true,
-    sections: { math: true, rw: true }
+    sections: { math: true, rw: true },
+    questionBankId: ''
   })
 
   useEffect(() => {
@@ -78,7 +79,8 @@ export default function TestManagement() {
     setFormData({
       title: '',
       isActive: true,
-      sections: { math: true, rw: true }
+      sections: { math: true, rw: true },
+      questionBankId: ''
     })
   }
 
@@ -87,7 +89,8 @@ export default function TestManagement() {
     setFormData({
       title: test.title,
       isActive: test.isActive,
-      sections: test.sections || { math: true, rw: true }
+      sections: test.sections || { math: true, rw: true },
+      questionBankId: test.questionBankId || ''
     })
     setShowModal(true)
   }
@@ -186,7 +189,13 @@ export default function TestManagement() {
                 </button>
               </div>
             </div>
-            
+            {test.questionBankId && (
+              <div className="mb-3">
+                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                  Question Bank: {questionBanks.find(q => String(q._id) === String(test.questionBankId))?.title || 'Selected'}
+                </span>
+              </div>
+            )}
             <p className="text-gray-600 text-sm mb-4">{test.description}</p>
             
             <div className="space-y-3 text-sm">
@@ -252,6 +261,22 @@ export default function TestManagement() {
                     placeholder="e.g., DSAT Mock Test 1"
                     required
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Question Bank</label>
+                  <select
+                    value={formData.questionBankId}
+                    onChange={(e) => setFormData({ ...formData, questionBankId: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    required
+                  >
+                    <option value="">Select Question Bank</option>
+                    {questionBanks.map((bank) => (
+                      <option key={bank._id} value={bank._id}>
+                        {bank.title}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <label className="flex items-center gap-2 border rounded-lg px-3 py-2">

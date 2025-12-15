@@ -112,7 +112,10 @@ export default function QuestionBanksPage() {
                 </div>
               </div>
               {isEnrolled ? (
-                <button className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                <button
+                  onClick={() => router.push(`/dashboard/practice/create?bankId=${bank.id}`)}
+                  className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+                >
                   Start Practice
                 </button>
               ) : (
