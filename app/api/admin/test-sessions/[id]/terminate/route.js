@@ -11,10 +11,9 @@ export async function POST(request, { params }) {
     if (!decoded || decoded.role !== 'Admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const updated = await TestSession.findByIdAndUpdate(params.id, { status: 'Completed', endTime: new Date() }, { new: true })
+    const updated = await TestSession.findByIdAndUpdate(params.id, { status: 'Completed', state: 'COMPLETED', endTime: new Date() }, { new: true })
     return NextResponse.json(updated)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to terminate session' }, { status: 500 })
   }
 }
-
