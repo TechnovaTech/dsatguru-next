@@ -38,6 +38,8 @@ export async function GET(request) {
       const c = cid ? courseMap.get(String(cid)) : null
       const charge = intent.charges?.data?.[0]
       const receiptUrl = charge?.receipt_url || null
+      const billingName = charge?.billing_details?.name || ''
+      const billingEmail = charge?.billing_details?.email || ''
       return {
         _id: intent.id,
         amount: Number((intent.amount / 100).toFixed(2)),
@@ -48,8 +50,8 @@ export async function GET(request) {
         userId: uid,
         currency: intent.currency ? intent.currency.toUpperCase() : 'USD',
         description: intent.description || (c ? (c.type === 'question_bank' ? 'Question Bank Purchase' : 'Course Purchase') : 'Purchase'),
-        studentName: u?.name || '',
-        studentEmail: u?.email || '',
+        studentName: u?.name || billingName || '',
+        studentEmail: u?.email || billingEmail || '',
         courseName: c?.title || '',
         courseType: c?.type || '',
         receiptUrl

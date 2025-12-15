@@ -3,6 +3,7 @@ import Stripe from 'stripe'
 import jwt from 'jsonwebtoken'
 import { connectDB } from '../../../lib/db'
 import Course from '../../../lib/models/Course'
+import User from '../../../lib/models/User'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
@@ -22,6 +23,7 @@ export async function POST(request) {
     }
     const title = courseTitle || course?.title || 'Course'
     const type = course?.type || 'course'
+    const userDoc = await User.findById(decoded.userId).select('name email')
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -42,7 +44,9 @@ export async function POST(request) {
         courseId,
         userId: decoded.userId,
         courseTitle: title,
-        courseType: type
+        courseType: type,
+        userName: userDoc?.name || '',
+        userEmail: userDoc?.email || ''
       }
     })
 
