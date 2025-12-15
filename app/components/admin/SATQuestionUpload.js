@@ -33,7 +33,7 @@ export default function SATQuestionUpload() {
     questionParagraph: '',
     tags: ''
   })
-  const [bulkUpload, setBulkUpload] = useState({ csvRecords: [], images: [], progress: 0 })
+  const [bulkUpload, setBulkUpload] = useState({ csvRecords: [], images: [], imagePreviews: [], mapping: null, progress: 0 })
   const mathSubtopics = {
     'algebra': {
       label: 'Algebra',
@@ -113,14 +113,21 @@ export default function SATQuestionUpload() {
     if (!file || !selectedQuestionBank) return
 
     setUploading(true)
-    setBulkUpload(prev => ({ ...prev, progress: 20 }))
+    setBulkUpload(prev => ({ ...prev, progress: 10 }))
     const formData = new FormData()
     formData.append('file', file)
     formData.append('questionBankId', selectedQuestionBank)
+    ;(bulkUpload.images || []).forEach(img => formData.append('images', img))
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    let progressInterval = null
+    progressInterval = setInterval(() => {
+      setBulkUpload(prev => ({ ...prev, progress: Math.min(prev.progress + 10, 85) }))
+    }, 200)
 
     try {
       const response = await fetch('/api/admin/questions/bulk-upload', {
         method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData
       })
 
@@ -129,7 +136,7 @@ export default function SATQuestionUpload() {
         alert(`Successfully uploaded ${result.count} questions`)
         setFile(null)
         fetchUploadHistory()
-        setBulkUpload(prev => ({ ...prev, progress: 100, csvRecords: [] }))
+        setBulkUpload(prev => ({ ...prev, progress: 100, csvRecords: [], images: [], imagePreviews: [], mapping: null }))
       } else {
         const error = await response.json()
         alert(`Upload failed: ${error.message}`)
@@ -138,6 +145,7 @@ export default function SATQuestionUpload() {
       console.error('Upload error:', error)
       alert('Upload failed')
     } finally {
+      if (progressInterval) clearInterval(progressInterval)
       setUploading(false)
       setTimeout(() => setBulkUpload(prev => ({ ...prev, progress: 0 })), 600)
     }
@@ -218,18 +226,20 @@ export default function SATQuestionUpload() {
     }
   }
 
-  const downloadTemplate = () => {
-    const csvContent = `Question Text,Option A,Option B,Option C,Option D,Correct Answer (0-3),Explanation,Difficulty,Category,Subcategory
-"What is 2 + 2?","2","3","4","5",2,"Basic addition","Easy","Math","Arithmetic"
-"Which planet is closest to the Sun?","Venus","Mercury","Earth","Mars",1,"Mercury is the innermost planet","Medium","Science","Astronomy"`
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'question_template.csv'
-    a.click()
-    window.URL.revokeObjectURL(url)
+  const downloadTemplate = async () => {
+    try {
+      const res = await fetch('/api/questions/template')
+      if (!res.ok) throw new Error('Failed to download template')
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'bulk_question_template.csv'
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      alert('Failed to download template')
+    }
   }
 
   const handleCSVFileChange = async (e) => {
@@ -239,20 +249,106 @@ export default function SATQuestionUpload() {
     const reader = new FileReader()
     reader.onload = () => {
       const text = reader.result?.toString() || ''
-      const lines = text.split(/\r?\n/).filter(l => l.trim().length)
-      const header = lines[0]?.split(',') || []
-      const records = lines.slice(1).map(line => {
-        const cols = line.split(',')
-        return header.reduce((acc, key, idx) => { acc[key.trim()] = (cols[idx] || '').trim(); return acc }, {})
-      })
-      setBulkUpload(prev => ({ ...prev, csvRecords: records }))
+      const rows = []
+      let i = 0
+      while (i < text.length) {
+        const row = []
+        while (i < text.length) {
+          let field = ''
+          let inQuotes = false
+          while (i < text.length && (text[i] === ' ' || text[i] === '\t')) i++
+          if (i < text.length && text[i] === '"') {
+            inQuotes = true
+            i++
+          }
+          while (i < text.length) {
+            const char = text[i]
+            if (inQuotes) {
+              if (char === '"') {
+                if (i + 1 < text.length && text[i + 1] === '"') {
+                  field += '"'
+                  i += 2
+                  continue
+                } else {
+                  inQuotes = false
+                  i++
+                  break
+                }
+              } else {
+                field += char
+                i++
+              }
+            } else {
+              if (char === ',') {
+                i++
+                break
+              } else if (char === '\n' || char === '\r') {
+                break
+              } else {
+                field += char
+                i++
+              }
+            }
+          }
+          row.push(field.trim())
+          if (i < text.length && text[i] === ',') {
+            i++
+          } else {
+            break
+          }
+        }
+        if (row.length > 0) rows.push(row)
+        while (i < text.length && (text[i] === '\n' || text[i] === '\r')) i++
+      }
+      if (rows.length === 0) {
+        setBulkUpload(prev => ({ ...prev, csvRecords: [], mapping: null }))
+        return
+      }
+      const header = rows[0].map(h => (h || '').trim())
+      const idxImage = header.findIndex(h => h.toLowerCase() === 'imagefilename')
+      const idxTitle = header.findIndex(h => h.toLowerCase() === 'title')
+      const idxContent = header.findIndex(h => h.toLowerCase() === 'content')
+      const records = []
+      for (let r = 1; r < rows.length; r++) {
+        const cols = rows[r]
+        if (!cols || cols.length === 0) continue
+        const imageName = (idxImage >= 0 ? (cols[idxImage] || '').trim() : '')
+        const title = (idxTitle >= 0 ? (cols[idxTitle] || '').trim() : '')
+        const content = (idxContent >= 0 ? (cols[idxContent] || '').trim() : '')
+        const labelSource = title || content
+        const label = labelSource ? (labelSource.length > 80 ? labelSource.slice(0, 77) + '...' : labelSource) : `Row ${r}`
+        records.push({ row: r, imageFileName: imageName, label })
+      }
+      const mapping = computeImageMapping(records, bulkUpload.images)
+      setBulkUpload(prev => ({ ...prev, csvRecords: records, mapping }))
     }
     reader.readAsText(f)
   }
 
   const handleImagesChange = (e) => {
     const files = Array.from(e.target.files || [])
-    setBulkUpload(prev => ({ ...prev, images: files }))
+    const validImages = files.filter(f => f.type && f.type.startsWith('image/'))
+    const previews = validImages.map(file => ({ file, url: URL.createObjectURL(file), name: file.name }))
+    ;(bulkUpload.imagePreviews || []).forEach(p => { try { URL.revokeObjectURL(p.url) } catch {} })
+    const mapping = computeImageMapping(bulkUpload.csvRecords, validImages)
+    setBulkUpload(prev => ({ ...prev, images: validImages, imagePreviews: previews, mapping }))
+  }
+
+  const computeImageMapping = (records, images) => {
+    if (!records || records.length === 0) return null
+    const fileMap = new Map()
+    ;(images || []).forEach(f => fileMap.set((f.name || '').toLowerCase(), f.name))
+    const entries = records
+      .filter(rec => rec.imageFileName !== '')
+      .map(rec => {
+        const key = (rec.imageFileName || '').toLowerCase()
+        const found = fileMap.get(key)
+        return { csvRow: rec.row, csvImageName: rec.imageFileName, label: rec.label, foundImage: found || null, status: found ? 'matched' : 'missing' }
+      })
+    const totalWithImages = entries.length
+    const matched = entries.filter(e => e.status === 'matched').length
+    const missing = totalWithImages - matched
+    return { entries, summary: { totalWithImages, matched, missing } }
   }
 
   const setModeAndView = (mode) => {
@@ -471,7 +567,19 @@ export default function SATQuestionUpload() {
                     <label htmlFor="images-upload" className="cursor-pointer inline-flex items-center px-4 py-2 bg-gray-800 text-white rounded-md"><FiImage className="mr-2" /> Upload Images</label>
                     <p className="text-xs text-gray-500 mt-2">Upload optional images referenced by filename in the CSV</p>
                     {bulkUpload.images.length > 0 && (
-                      <div className="mt-3 text-sm text-gray-700">{bulkUpload.images.length} image(s) selected</div>
+                      <div className="mt-4">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Images:</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                          {bulkUpload.imagePreviews.map((preview, index) => (
+                            <div key={index} className="relative">
+                              <img src={preview.url} alt={preview.name} className="w-full h-20 object-cover rounded-md border" />
+                              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white text-xs p-1 rounded-b-md truncate">
+                                {preview.name}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -480,32 +588,80 @@ export default function SATQuestionUpload() {
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-4">CSV Preview</h3>
                     <p className="text-sm text-gray-600 mb-4">Found {bulkUpload.csvRecords.length} question(s) in your CSV file.</p>
-                    <div className="overflow-x-auto border rounded-md">
+                    {bulkUpload.mapping && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">Image Mapping Summary:</h4>
+                        <div className="bg-white rounded border p-3">
+                          <div className="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <span className="font-medium">Total with Images:</span>
+                              <span className="ml-2">{bulkUpload.mapping.summary.totalWithImages}</span>
+                            </div>
+                            <div className="text-green-600">
+                              <span className="font-medium">Matched:</span>
+                              <span className="ml-2">{bulkUpload.mapping.summary.matched}</span>
+                            </div>
+                            <div className="text-red-600">
+                              <span className="font-medium">Missing:</span>
+                              <span className="ml-2">{bulkUpload.mapping.summary.missing}</span>
+                            </div>
+                          </div>
+                          {bulkUpload.mapping.summary.missing > 0 && (
+                            <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded">
+                              <p className="text-sm text-amber-800">Some questions reference images that were not found. These questions will be created without images.</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    <div className="max-h-64 overflow-y-auto border rounded-md">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
-                            {Object.keys(bulkUpload.csvRecords[0] || {}).map((h) => (
-                              <th key={h} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>
-                            ))}
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Row</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Question Preview</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200">
-                          {bulkUpload.csvRecords.slice(0, 5).map((row, idx) => (
-                            <tr key={idx}>
-                              {Object.values(row).map((v, i) => (
-                                <td key={i} className="px-3 py-2 text-sm text-gray-700">{v}</td>
-                              ))}
-                            </tr>
-                          ))}
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {bulkUpload.csvRecords.slice(0, 10).map((record, index) => {
+                            const mappingEntry = bulkUpload.mapping?.entries.find(e => e.csvRow === record.row)
+                            return (
+                              <tr key={index}>
+                                <td className="px-4 py-2 text-sm text-gray-900">{record.row}</td>
+                                <td className="px-4 py-2 text-sm text-gray-900">{record.label}</td>
+                                <td className="px-4 py-2 text-sm text-gray-500">{record.imageFileName || '-'}</td>
+                                <td className="px-4 py-2 text-sm">
+                                  {mappingEntry ? (
+                                    <span className={`inline-flex px-2 py-1 text-xs rounded-full ${mappingEntry.status === 'matched' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                      {mappingEntry.status === 'matched' ? 'Matched' : 'Missing'}
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400">No image</span>
+                                  )}
+                                </td>
+                              </tr>
+                            )
+                          })}
                         </tbody>
                       </table>
+                      {bulkUpload.csvRecords.length > 10 && (
+                        <p className="text-sm text-gray-500 mt-2 text-center">... and {bulkUpload.csvRecords.length - 10} more questions</p>
+                      )}
                     </div>
                   </div>
                 )}
 
-                {uploading && (
-                  <div className="w-full h-2 bg-gray-200 rounded">
-                    <div className="h-2 bg-blue-600 rounded" style={{ width: `${bulkUpload.progress}%` }}></div>
+                {bulkUpload.progress > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <FiUpload className="text-blue-600 mr-2" />
+                      <span className="text-sm font-medium text-blue-800">Uploading Questions...</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded h-2">
+                      <div className="h-2 bg-blue-600 rounded" style={{ width: `${bulkUpload.progress}%` }}></div>
+                    </div>
                   </div>
                 )}
 
