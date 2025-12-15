@@ -18,17 +18,56 @@ export default function SATQuestionUpload() {
   const [singleQuestion, setSingleQuestion] = useState({
     questionText: '',
     options: ['', '', '', ''],
-    correctAnswer: 0,
+    correctAnswer: 'A',
     explanation: '',
     difficulty: 'Medium',
-    category: 'Math',
-    subcategory: '',
     subject: 'Math',
     questionType: 'single',
     passageText: '',
-    questionImage: null
+    questionImage: null,
+    mathTopic: '',
+    mathSubtopic: '',
+    readingWritingTopic: '',
+    moduleType: 'Base',
+    title: '',
+    questionParagraph: '',
+    tags: ''
   })
   const [bulkUpload, setBulkUpload] = useState({ csvRecords: [], images: [], progress: 0 })
+  const mathSubtopics = {
+    'algebra': {
+      label: 'Algebra',
+      subtopics: {
+        'expression': 'Expression',
+        'linear-equations': 'Linear Equations',
+        'linear-system-equations': 'Linear System of Equations',
+        'linear-functions': 'Linear Functions',
+        'linear-inequalities': 'Linear Inequalities'
+      }
+    },
+    'advance-math': {
+      label: 'Advance Math',
+      subtopics: {
+        'polynomials': 'Polynomials',
+        'exponents-radicals': 'Exponents & Radicals',
+        'functions-notation': 'Functions & Function Notations',
+        'exponential-functions': 'Exponential Functions',
+        'quadratics': 'Quadratics'
+      }
+    },
+    'word-problem-data-analysis': {
+      label: 'Word Problem and Data Analysis',
+      subtopics: {}
+    },
+    'geometry': {
+      label: 'Geometry',
+      subtopics: {}
+    }
+  }
+  const readingWritingTopics = {
+    'reading': 'Reading',
+    'writing': 'Writing'
+  }
 
   useEffect(() => {
     if (initialMode) {
@@ -53,10 +92,16 @@ export default function SATQuestionUpload() {
 
   const fetchQuestionBanks = async () => {
     try {
-      const response = await fetch('/api/admin/question-banks')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const response = await fetch('/api/admin/courses', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
       if (response.ok) {
         const data = await response.json()
-        setQuestionBanks(data)
+        const mapped = Array.isArray(data?.courses)
+          ? data.courses.map(c => ({ _id: c.id, name: c.title }))
+          : []
+        setQuestionBanks(mapped)
       }
     } catch (error) {
       console.error('Error fetching question banks:', error)
@@ -103,13 +148,47 @@ export default function SATQuestionUpload() {
     if (!selectedQuestionBank) return
 
     try {
-      const response = await fetch('/api/admin/questions', {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const answerLetter = typeof singleQuestion.correctAnswer === 'number'
+        ? (['A', 'B', 'C', 'D'][singleQuestion.correctAnswer] || 'A')
+        : (String(singleQuestion.correctAnswer).toUpperCase() || 'A')
+      const topicTags =
+        singleQuestion.subject === 'Math'
+          ? [singleQuestion.mathTopic, singleQuestion.mathSubtopic].filter(Boolean)
+          : singleQuestion.subject === 'Reading and Writing'
+          ? [singleQuestion.readingWritingTopic].filter(Boolean)
+          : []
+      const freeTags = (singleQuestion.tags || '').split(',').map(t => t.trim()).filter(Boolean)
+      const tags = [...topicTags, ...freeTags]
+      let content = ''
+      if (singleQuestion.questionParagraph?.trim()) {
+        content += singleQuestion.questionParagraph.trim() + '\n\n'
+      }
+      if (singleQuestion.questionType === 'passage-based' && singleQuestion.passageText?.trim()) {
+        content += singleQuestion.passageText.trim() + '\n\n'
+      }
+      content += (singleQuestion.questionText || '').trim()
+      const payload = {
+        title: singleQuestion.title || '',
+        content,
+        explanation: singleQuestion.explanation,
+        subject: singleQuestion.subject,
+        difficulty: singleQuestion.difficulty,
+        type: 'MultipleChoice',
+        testType: singleQuestion.moduleType,
+        correctAnswer: answerLetter,
+        options: singleQuestion.options,
+        tags,
+        questionBankId: selectedQuestionBank,
+        questionParagraph: singleQuestion.questionParagraph || ''
+      }
+      const response = await fetch('/api/questions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...singleQuestion,
-          questionBankId: selectedQuestionBank
-        })
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(payload)
       })
 
       if (response.ok) {
@@ -117,11 +196,20 @@ export default function SATQuestionUpload() {
         setSingleQuestion({
           questionText: '',
           options: ['', '', '', ''],
-          correctAnswer: 0,
+          correctAnswer: 'A',
           explanation: '',
           difficulty: 'Medium',
-          category: 'Math',
-          subcategory: ''
+          subject: 'Math',
+          questionType: 'single',
+          passageText: '',
+          questionImage: null,
+          mathTopic: '',
+          mathSubtopic: '',
+          readingWritingTopic: '',
+          moduleType: 'Base',
+          title: '',
+          questionParagraph: '',
+          tags: ''
         })
       }
     } catch (error) {
@@ -427,34 +515,91 @@ export default function SATQuestionUpload() {
               </form>
             ) : (
               <form onSubmit={handleSingleQuestionSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Subject *</label>
                     <select
                       value={singleQuestion.subject}
                       onChange={(e) => {
                         const val = e.target.value
-                        setSingleQuestion({ ...singleQuestion, subject: val, category: val })
+                        setSingleQuestion({ ...singleQuestion, subject: val, mathTopic: '', mathSubtopic: '', readingWritingTopic: '' })
                       }}
                       className="w-full border border-gray-300 rounded-md px-3 py-2"
                     >
                       <option value="Math">Math</option>
-                      <option value="Reading">Reading and Writing</option>
+                      <option value="Reading and Writing">Reading and Writing</option>
                     </select>
                   </div>
+                </div>
+
+                {singleQuestion.subject === 'Math' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Math Topic</label>
+                      <select
+                        value={singleQuestion.mathTopic}
+                        onChange={(e) => {
+                          const v = e.target.value
+                          setSingleQuestion({ ...singleQuestion, mathTopic: v, mathSubtopic: '' })
+                        }}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      >
+                        <option value="">Select Math Topic</option>
+                        {Object.entries(mathSubtopics).map(([key, topic]) => (
+                          <option key={key} value={key}>{topic.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {singleQuestion.mathTopic && Object.keys(mathSubtopics[singleQuestion.mathTopic]?.subtopics || {}).length > 0 && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Math Subtopic</label>
+                        <select
+                          value={singleQuestion.mathSubtopic}
+                          onChange={(e) => setSingleQuestion({ ...singleQuestion, mathSubtopic: e.target.value })}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        >
+                          <option value="">Select Math Subtopic</option>
+                          {Object.entries(mathSubtopics[singleQuestion.mathTopic]?.subtopics || {}).map(([key, sub]) => (
+                            <option key={key} value={key}>{sub}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {singleQuestion.subject === 'Reading and Writing' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+                      <select
+                        value={singleQuestion.readingWritingTopic}
+                        onChange={(e) => setSingleQuestion({ ...singleQuestion, readingWritingTopic: e.target.value })}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      >
+                        <option value="">Select Topic</option>
+                        {Object.entries(readingWritingTopics).map(([key, label]) => (
+                          <option key={key} value={key}>{label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Question Type *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Module Type *</label>
                     <select
-                      value={singleQuestion.questionType}
-                      onChange={(e) => setSingleQuestion({ ...singleQuestion, questionType: e.target.value })}
+                      value={singleQuestion.moduleType}
+                      onChange={(e) => setSingleQuestion({ ...singleQuestion, moduleType: e.target.value })}
                       className="w-full border border-gray-300 rounded-md px-3 py-2"
                     >
-                      <option value="single">Single</option>
-                      <option value="passage-based">Passage-based</option>
+                      <option value="Base">Base Module</option>
+                      <option value="Adaptive">Adaptive Module</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty *</label>
                     <select
                       value={singleQuestion.difficulty}
                       onChange={(e) => setSingleQuestion({ ...singleQuestion, difficulty: e.target.value })}
@@ -465,6 +610,27 @@ export default function SATQuestionUpload() {
                       <option value="Hard">Hard</option>
                     </select>
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Question Type *</label>
+                    <select
+                      value={singleQuestion.questionType}
+                      onChange={(e) => setSingleQuestion({ ...singleQuestion, questionType: e.target.value })}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    >
+                      <option value="single">Single Question</option>
+                      <option value="passage-based">Passage-based</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Question Title (Optional)</label>
+                  <input
+                    type="text"
+                    value={singleQuestion.title}
+                    onChange={(e) => setSingleQuestion({ ...singleQuestion, title: e.target.value })}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  />
                 </div>
 
                 {singleQuestion.questionType === 'passage-based' && (
@@ -478,6 +644,16 @@ export default function SATQuestionUpload() {
                     />
                   </div>
                 )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Question Paragraph (Optional)</label>
+                  <textarea
+                    value={singleQuestion.questionParagraph}
+                    onChange={(e) => setSingleQuestion({ ...singleQuestion, questionParagraph: e.target.value })}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    rows={3}
+                  />
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Question Text</label>
@@ -514,39 +690,26 @@ export default function SATQuestionUpload() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Correct Answer</label>
                     <select
                       value={singleQuestion.correctAnswer}
-                      onChange={(e) => setSingleQuestion({ ...singleQuestion, correctAnswer: parseInt(e.target.value) })}
+                      onChange={(e) => setSingleQuestion({ ...singleQuestion, correctAnswer: e.target.value })}
                       className="w-full border border-gray-300 rounded-md px-3 py-2"
                     >
-                      <option value={0}>A</option>
-                      <option value={1}>B</option>
-                      <option value={2}>C</option>
-                      <option value={3}>D</option>
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="C">C</option>
+                      <option value="D">D</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <select
-                      value={singleQuestion.category}
-                      onChange={(e) => setSingleQuestion({ ...singleQuestion, category: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    >
-                      <option value="Math">Math</option>
-                      <option value="Reading">Reading</option>
-                      <option value="Writing">Writing</option>
-                      <option value="Science">Science</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Subcategory</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
                     <input
                       type="text"
-                      value={singleQuestion.subcategory}
-                      onChange={(e) => setSingleQuestion({ ...singleQuestion, subcategory: e.target.value })}
+                      value={singleQuestion.tags}
+                      onChange={(e) => setSingleQuestion({ ...singleQuestion, tags: e.target.value })}
                       className="w-full border border-gray-300 rounded-md px-3 py-2"
                     />
                   </div>
