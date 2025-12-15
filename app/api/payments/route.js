@@ -36,13 +36,16 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const raw = await Payment.find({ userId: decoded.userId })
-      .sort({ createdAt: -1 })
-      .populate({
-        path: 'enrollmentId',
-        model: 'CourseEnrollment',
-        populate: { path: 'courseId', model: 'Course' }
-      })
+    let raw = []
+    if (mongoose.Types.ObjectId.isValid(decoded.userId)) {
+      raw = await Payment.find({ userId: decoded.userId })
+        .sort({ createdAt: -1 })
+        .populate({
+          path: 'enrollmentId',
+          model: 'CourseEnrollment',
+          populate: { path: 'courseId', model: 'Course' }
+        })
+    }
 
     const dbPayments = raw.map(formatPaymentRecord)
 
