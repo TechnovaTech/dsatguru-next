@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import jwt from 'jsonwebtoken'
+import { connectDB } from '../../../lib/db'
+import Course from '../../../lib/models/Course'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
@@ -13,6 +15,13 @@ export async function POST(request) {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
     const { courseId, amount, courseTitle } = await request.json()
+    await connectDB()
+    let course = null
+    if (courseId) {
+      course = await Course.findById(courseId)
+    }
+    const title = courseTitle || course?.title || 'Course'
+    const type = course?.type || 'course'
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -20,18 +29,20 @@ export async function POST(request) {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: courseTitle,
+            name: title,
           },
           unit_amount: Math.round(amount * 100),
         },
         quantity: 1,
       }],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_API_URL}/dashboard/courses?success=true&courseId=${courseId}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_API_URL}/dashboard/courses?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_API_URL}${type === 'question_bank' ? '/dashboard/question-banks' : '/dashboard/courses'}?success=true&courseId=${courseId}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_API_URL}${type === 'question_bank' ? '/dashboard/question-banks' : '/dashboard/courses'}?canceled=true`,
       metadata: {
         courseId,
-        userId: decoded.userId
+        userId: decoded.userId,
+        courseTitle: title,
+        courseType: type
       }
     })
 

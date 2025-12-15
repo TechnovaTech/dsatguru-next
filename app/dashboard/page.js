@@ -32,14 +32,23 @@ export default function Dashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
-      
-      const [coursesRes, questionsRes, sessionsRes] = await Promise.all([
-        axios.get('/api/courses'),
+      const token = localStorage.getItem('token')
+      const [enrollmentsRes, questionsRes, sessionsRes] = await Promise.all([
+        axios.get('/api/enrollment', { headers: token ? { Authorization: `Bearer ${token}` } : {} }),
         axios.get('/api/questions'),
-        axios.get('/api/test-sessions')
+        axios.get('/api/test-sessions', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       ])
-      
-      setEnrolledCourses(coursesRes.data.courses || [])
+      const enrollments = enrollmentsRes.data.enrollments || enrollmentsRes.data.data || []
+      const enrolledOnlyCourses = enrollments
+        .map(e => e.courseId)
+        .filter(c => c && c.type === 'course')
+        .map(c => ({
+          id: c._id || c.id,
+          title: c.title,
+          description: c.description,
+          type: c.type
+        }))
+      setEnrolledCourses(enrolledOnlyCourses)
       setStats({
         totalAttempted: 245,
         correctAnswers: 189,

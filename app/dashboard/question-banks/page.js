@@ -1,13 +1,29 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import axios from 'axios'
+import { useAuth } from '../../components/AuthContext'
+import { useRouter } from 'next/navigation'
 
 export default function QuestionBanksPage() {
   const [questionBanks, setQuestionBanks] = useState([])
+  const [enrollments, setEnrollments] = useState([])
   const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
     fetchQuestionBanks()
+    fetchEnrollments()
+  }, [])
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('success') === 'true') {
+      const courseId = urlParams.get('courseId')
+      if (courseId) {
+        enrollAfterPayment(courseId)
+      }
+    }
   }, [])
 
   const fetchQuestionBanks = async () => {
@@ -18,6 +34,45 @@ export default function QuestionBanksPage() {
       console.error('Error fetching question banks:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchEnrollments = async () => {
+    try {
+      const res = await axios.get('/api/enrollment')
+      const list = res.data?.data || res.data?.enrollments || []
+      setEnrollments(list)
+    } catch (error) {
+      setEnrollments([])
+    }
+  }
+
+  const enrolledIds = useMemo(() => {
+    return new Set(
+      enrollments
+        .map(e => e.courseId?._id || e.courseId || e.id)
+        .filter(Boolean)
+        .map(id => id.toString())
+    )
+  }, [enrollments])
+
+  const handlePurchase = (bankId) => {
+    if (!user) {
+      router.push(`/login?returnTo=/enrollment/${bankId}`)
+      return
+    }
+    router.push(`/enrollment/${bankId}`)
+  }
+
+  const enrollAfterPayment = async (courseId) => {
+    try {
+      const token = localStorage.getItem('token')
+      await axios.post('/api/enroll', { courseId }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      fetchEnrollments()
+      window.history.replaceState({}, '', '/dashboard/question-banks')
+    } catch (error) {
     }
   }
 
@@ -37,28 +92,40 @@ export default function QuestionBanksPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {questionBanks.map((bank) => (
-          <div key={bank.id} className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">{bank.title}</h3>
-              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                {bank.subject}
-              </span>
-            </div>
-            <p className="text-gray-600 mb-4">{bank.description}</p>
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-sm text-gray-500">
-                <span className="font-medium">{bank.totalQuestions}</span> Questions
+        {questionBanks.map((bank) => {
+          const isEnrolled = enrolledIds.has(String(bank.id))
+          return (
+            <div key={bank.id} className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">{bank.title}</h3>
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                  {bank.subject}
+                </span>
               </div>
-              <div className="text-sm text-gray-500">
-                <span className="font-medium">{bank.activeQuestions}</span> Active
+              <p className="text-gray-600 mb-4">{bank.description}</p>
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-sm text-gray-500">
+                  <span className="font-medium">{bank.totalQuestions}</span> Questions
+                </div>
+                <div className="text-sm text-gray-500">
+                  <span className="font-medium">{bank.activeQuestions}</span> Active
+                </div>
               </div>
+              {isEnrolled ? (
+                <button className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                  Start Practice
+                </button>
+              ) : (
+                <button
+                  onClick={() => handlePurchase(bank.id)}
+                  className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+                >
+                  Purchase Access
+                </button>
+              )}
             </div>
-            <button className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
-              Start Practice
-            </button>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {questionBanks.length === 0 && (

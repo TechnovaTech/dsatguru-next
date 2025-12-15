@@ -24,7 +24,7 @@ export default function CoursesPage() {
       })
       const enrollments = enrollmentsRes.data.enrollments || enrollmentsRes.data.data || []
       
-      const allCourses = coursesRes.data.courses || coursesRes.data.data || []
+      const allCourses = (coursesRes.data.courses || coursesRes.data.data || []).filter(c => c.type === 'course')
       const enrolledCourseIds = enrollments.map(e => (e.courseId?._id || e.courseId))
       
       const enrolledCoursesWithData = allCourses.filter(course => 
