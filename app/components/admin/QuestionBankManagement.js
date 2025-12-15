@@ -1,8 +1,10 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { FiSearch, FiEye, FiArrowLeft, FiPlus } from 'react-icons/fi'
+import { useRouter } from 'next/navigation'
 
 export default function QuestionBankManagement() {
+  const router = useRouter()
   const [questionBanks, setQuestionBanks] = useState([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
@@ -67,6 +69,16 @@ export default function QuestionBankManagement() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <button
+              type="button"
+              onClick={() => router.replace('/admin/sat-question-upload')}
+              className="inline-flex items-center text-blue-600 hover:text-blue-800"
+            >
+              <FiArrowLeft className="mr-2" />
+              <span>Back to SAT Question Management</span>
+            </button>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Question Bank Management</h1>
           <div className="text-gray-600 text-sm">{loading ? 'Loading question banks...' : `${questionBanks.length} Question Banks`}</div>
         </div>

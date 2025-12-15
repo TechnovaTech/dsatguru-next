@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { FiUpload, FiFile, FiCheck, FiX, FiDownload, FiPlus, FiSearch, FiEdit, FiImage } from 'react-icons/fi'
+import { FiUpload, FiFile, FiCheck, FiX, FiDownload, FiPlus, FiSearch, FiEdit, FiImage, FiArrowLeft } from 'react-icons/fi'
 
 export default function SATQuestionUpload() {
   const router = useRouter()
@@ -513,6 +513,16 @@ export default function SATQuestionUpload() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <button
+              type="button"
+              onClick={() => { setView('landing'); router.replace('/admin/sat-question-upload') }}
+              className="inline-flex items-center text-blue-600 hover:text-blue-800"
+            >
+              <FiArrowLeft className="mr-2" />
+              <span>Back to SAT Question Management</span>
+            </button>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {uploadType === 'bulk' ? 'Bulk Question Upload' : 'Single Question Upload'}
           </h1>
