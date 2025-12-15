@@ -1,17 +1,67 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
+import User from '../../../../lib/models/User'
+import Course, { CourseEnrollment, QuestionBankEnrollment } from '../../../../lib/models/Course'
+import Question from '../../../../lib/models/Question'
+import TestSession from '../../../../lib/models/TestSession'
+import Payment from '../../../../lib/models/Payment'
+import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
 
-export async function GET() {
+export async function GET(request) {
   try {
+    await connectDB()
+
+    const token = getTokenFromRequest(request)
+    const decoded = verifyToken(token)
+    if (!decoded || decoded.role !== 'Admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const [studentsCount, tutorsCount, adminsCount, coursesCount, questionsCount, sessionsCount] = await Promise.all([
+      User.countDocuments({ role: 'Student' }),
+      User.countDocuments({ role: 'Tutor' }),
+      User.countDocuments({ role: 'Admin' }),
+      Course.countDocuments({}),
+      Question.countDocuments({}),
+      TestSession.countDocuments({})
+    ])
+
+    const [courseEnrollmentsCount, qbEnrollmentsCount] = await Promise.all([
+      CourseEnrollment.countDocuments({}),
+      QuestionBankEnrollment.countDocuments({})
+    ])
+    const totalEnrollments = courseEnrollmentsCount + qbEnrollmentsCount
+
+    const scoreAgg = await TestSession.aggregate([
+      { $match: { score: { $ne: null } } },
+      { $group: { _id: null, avgScore: { $avg: '$score' } } }
+    ])
+    const averageScore = scoreAgg?.[0]?.avgScore || 0
+
+    const responsesAgg = await TestSession.aggregate([
+      { $project: { responsesCount: { $size: { $ifNull: ['$responses', []] } } } },
+      { $group: { _id: null, totalResponses: { $sum: '$responsesCount' } } }
+    ])
+    const questionUsageCount = responsesAgg?.[0]?.totalResponses || 0
+
+    const revenueAgg = await Payment.aggregate([
+      { $match: { status: 'Succeeded' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ])
+    const totalRevenue = revenueAgg?.[0]?.total || 0
+
     return NextResponse.json({
       totals: {
-        students: 0,
-        tutors: 0,
-        admins: 0,
-        courses: 0,
-        questions: 0,
-        sessions: 0,
-        revenue: 0
+        students: studentsCount,
+        tutors: tutorsCount,
+        admins: adminsCount,
+        courses: coursesCount,
+        questions: questionsCount,
+        sessions: sessionsCount,
+        enrollments: totalEnrollments,
+        averageScore,
+        questionUsageCount,
+        revenue: totalRevenue
       }
     })
   } catch (error) {

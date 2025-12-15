@@ -12,9 +12,44 @@ export default function QuestionBankManagement() {
   const [selectedBank, setSelectedBank] = useState(null)
   const [questions, setQuestions] = useState([])
   const [qLoading, setQLoading] = useState(false)
-  const [filters, setFilters] = useState({ subject: '', testType: '', difficulty: '', type: '', tag: '', isActive: '' })
+  const [filters, setFilters] = useState({ subject: '', testType: '', difficulty: '', type: '', tag: '', isActive: '', mathTopic: '', mathSubtopic: '', readingWritingTopic: '' })
   const [preview, setPreview] = useState(null)
   const [editItem, setEditItem] = useState(null)
+
+  const mathSubtopics = {
+    'algebra': {
+      label: 'Algebra',
+      subtopics: {
+        'expression': 'Expression',
+        'linear-equations': 'Linear Equations',
+        'linear-system-equations': 'Linear System of Equations',
+        'linear-functions': 'Linear Functions',
+        'linear-inequalities': 'Linear Inequalities'
+      }
+    },
+    'advance-math': {
+      label: 'Advance Math',
+      subtopics: {
+        'polynomials': 'Polynomials',
+        'exponents-radicals': 'Exponents & Radicals',
+        'functions-notation': 'Functions & Function Notations',
+        'exponential-functions': 'Exponential Functions',
+        'quadratics': 'Quadratics'
+      }
+    },
+    'word-problem-data-analysis': {
+      label: 'Word Problem and Data Analysis',
+      subtopics: {}
+    },
+    'geometry': {
+      label: 'Geometry',
+      subtopics: {}
+    }
+  }
+  const readingWritingTopics = {
+    'reading': 'Reading',
+    'writing': 'Writing'
+  }
 
   useEffect(() => {
     const fetchBanks = async () => {
@@ -60,6 +95,17 @@ export default function QuestionBankManagement() {
 
   const handleFilterChange = (key, value) => {
     const next = { ...filters, [key]: value }
+    if (key === 'subject') {
+      next.mathTopic = ''
+      next.mathSubtopic = ''
+      next.readingWritingTopic = ''
+      next.tag = ''
+    }
+    if (next.subject === 'Math') {
+      next.tag = next.mathSubtopic || next.mathTopic || next.tag
+    } else if (next.subject === 'Reading and Writing') {
+      next.tag = next.readingWritingTopic || next.tag
+    }
     setFilters(next)
     if (selectedBank) fetchQuestions(selectedBank.id)
   }
@@ -87,11 +133,18 @@ export default function QuestionBankManagement() {
     if (!editItem) return
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
     const payload = {
+      title: editItem.title || '',
+      questionParagraph: editItem.questionParagraph || '',
+      content: editItem.content || '',
+      explanation: editItem.explanation || '',
       subject: editItem.subject,
       testType: editItem.testType,
       difficulty: editItem.difficulty,
       type: editItem.type,
-      tags: editItem.tags || []
+      correctAnswer: editItem.correctAnswer || 'A',
+      options: Array.isArray(editItem.options) ? editItem.options : ['', '', '', ''],
+      tags: editItem.tags || [],
+      points: typeof editItem.points === 'number' ? editItem.points : 1
     }
     await fetch(`/api/admin/questions/${editItem.id}`, {
       method: 'PUT',
@@ -131,6 +184,41 @@ export default function QuestionBankManagement() {
                   <option value="Reading and Writing">Reading and Writing</option>
                 </select>
               </div>
+              {filters.subject === 'Math' && (
+                <>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Math Topic</label>
+                    <select value={filters.mathTopic} onChange={(e) => handleFilterChange('mathTopic', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
+                      <option value="">All</option>
+                      {Object.entries(mathSubtopics).map(([key, topic]) => (
+                        <option key={key} value={key}>{topic.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {filters.mathTopic && Object.keys(mathSubtopics[filters.mathTopic]?.subtopics || {}).length > 0 && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Math Subtopic</label>
+                      <select value={filters.mathSubtopic} onChange={(e) => handleFilterChange('mathSubtopic', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
+                        <option value="">All</option>
+                        {Object.entries(mathSubtopics[filters.mathTopic]?.subtopics || {}).map(([key, sub]) => (
+                          <option key={key} value={key}>{sub}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </>
+              )}
+              {filters.subject === 'Reading and Writing' && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Topic</label>
+                  <select value={filters.readingWritingTopic} onChange={(e) => handleFilterChange('readingWritingTopic', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
+                    <option value="">All</option>
+                    {Object.entries(readingWritingTopics).map(([key, label]) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Module Type</label>
                 <select value={filters.testType} onChange={(e) => handleFilterChange('testType', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
@@ -159,7 +247,7 @@ export default function QuestionBankManagement() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Topic/Subtopic</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Custom Tag</label>
                 <input value={filters.tag} onChange={(e) => handleFilterChange('tag', e.target.value)} placeholder="e.g. algebra" className="w-full border rounded px-2 py-1 text-sm" />
               </div>
               <div>
@@ -236,7 +324,7 @@ export default function QuestionBankManagement() {
 
           {preview && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full">
+              <div className="bg-white rounded-lg shadow-lg max-w-[1200px] w-[90vw]">
                 <div className="p-4 border-b flex items-center justify-between">
                   <h3 className="text-lg font-semibold">Preview Question</h3>
                   <button className="text-gray-600 hover:text-gray-800" onClick={() => setPreview(null)}><FiX /></button>
@@ -265,12 +353,12 @@ export default function QuestionBankManagement() {
 
           {editItem && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-lg shadow-lg max-w-xl w-full">
+              <div className="bg-white rounded-lg shadow-lg max-w-[1500px] w-[95vw]">
                 <div className="p-4 border-b flex items-center justify-between">
                   <h3 className="text-lg font-semibold">Edit Question</h3>
                   <button className="text-gray-600 hover:text-gray-800" onClick={() => setEditItem(null)}><FiX /></button>
                 </div>
-                <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="p-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Subject</label>
                     <select value={editItem.subject} onChange={(e) => setEditItem({ ...editItem, subject: e.target.value })} className="w-full border rounded px-2 py-1 text-sm">
@@ -307,6 +395,82 @@ export default function QuestionBankManagement() {
                     <input
                       value={(editItem.tags || []).join(', ')}
                       onChange={(e) => setEditItem({ ...editItem, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}
+                      className="w-full border rounded px-2 py-1 text-sm"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Title</label>
+                    <input
+                      value={editItem.title || ''}
+                      onChange={(e) => setEditItem({ ...editItem, title: e.target.value })}
+                      className="w-full border rounded px-2 py-1 text-sm"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Question Paragraph</label>
+                    <textarea
+                      value={editItem.questionParagraph || ''}
+                      onChange={(e) => setEditItem({ ...editItem, questionParagraph: e.target.value })}
+                      rows={3}
+                      className="w-full border rounded px-2 py-1 text-sm"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Question Text</label>
+                    <textarea
+                      value={editItem.content || ''}
+                      onChange={(e) => setEditItem({ ...editItem, content: e.target.value })}
+                      rows={4}
+                      className="w-full border rounded px-2 py-1 text-sm"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Explanation</label>
+                    <textarea
+                      value={editItem.explanation || ''}
+                      onChange={(e) => setEditItem({ ...editItem, explanation: e.target.value })}
+                      rows={3}
+                      className="w-full border rounded px-2 py-1 text-sm"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-medium text-gray-700 mb-2">Options</label>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      {(Array.isArray(editItem.options) && editItem.options.length > 0 ? editItem.options : ['', '', '', '']).map((opt, idx) => (
+                        <div key={idx}>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Option {String.fromCharCode(65 + idx)}</label>
+                          <input
+                            value={opt || ''}
+                            onChange={(e) => {
+                              const next = Array.isArray(editItem.options) && editItem.options.length > 0 ? [...editItem.options] : ['', '', '', '']
+                              next[idx] = e.target.value
+                              setEditItem({ ...editItem, options: next })
+                            }}
+                            className="w-full border rounded px-2 py-1 text-sm"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Correct Answer</label>
+                    <select
+                      value={editItem.correctAnswer || 'A'}
+                      onChange={(e) => setEditItem({ ...editItem, correctAnswer: e.target.value })}
+                      className="w-full border rounded px-2 py-1 text-sm"
+                    >
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="C">C</option>
+                      <option value="D">D</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Points</label>
+                    <input
+                      type="number"
+                      value={typeof editItem.points === 'number' ? editItem.points : 1}
+                      onChange={(e) => setEditItem({ ...editItem, points: Number(e.target.value || 1) })}
                       className="w-full border rounded px-2 py-1 text-sm"
                     />
                   </div>

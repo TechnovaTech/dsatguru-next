@@ -10,15 +10,8 @@ export default function TestManagement() {
   const [questionBanks, setQuestionBanks] = useState([])
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
-    questionBankId: '',
-    duration: 180,
-    totalQuestions: 50,
-    passingScore: 70,
     isActive: true,
-    testType: 'Practice',
-    difficulty: 'Medium',
-    instructions: ''
+    sections: { math: true, rw: true }
   })
 
   useEffect(() => {
@@ -84,15 +77,8 @@ export default function TestManagement() {
   const resetForm = () => {
     setFormData({
       title: '',
-      description: '',
-      questionBankId: '',
-      duration: 180,
-      totalQuestions: 50,
-      passingScore: 70,
       isActive: true,
-      testType: 'Practice',
-      difficulty: 'Medium',
-      instructions: ''
+      sections: { math: true, rw: true }
     })
   }
 
@@ -100,15 +86,8 @@ export default function TestManagement() {
     setEditingTest(test)
     setFormData({
       title: test.title,
-      description: test.description,
-      questionBankId: test.questionBankId,
-      duration: test.duration,
-      totalQuestions: test.totalQuestions,
-      passingScore: test.passingScore,
       isActive: test.isActive,
-      testType: test.testType,
-      difficulty: test.difficulty,
-      instructions: test.instructions || ''
+      sections: test.sections || { math: true, rw: true }
     })
     setShowModal(true)
   }
@@ -210,34 +189,29 @@ export default function TestManagement() {
             
             <p className="text-gray-600 text-sm mb-4">{test.description}</p>
             
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <FiClock className="text-gray-400" />
-                <span>Duration: {test.duration} minutes</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FiFileText className="text-gray-400" />
-                <span>Questions: {test.totalQuestions}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FiSettings className="text-gray-400" />
-                <span>Passing Score: {test.passingScore}%</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                  test.testType === 'Mock' ? 'bg-purple-100 text-purple-800' :
-                  test.testType === 'Practice' ? 'bg-blue-100 text-blue-800' :
-                  'bg-green-100 text-green-800'
-                }`}>
-                  {test.testType}
-                </span>
-                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                  test.difficulty === 'Easy' ? 'bg-green-100 text-green-800' :
-                  test.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {test.difficulty}
-                </span>
+            <div className="space-y-3 text-sm">
+              <div className="font-semibold">Sections</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="border rounded p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium">Reading & Writing</span>
+                    <span className={`px-2 py-1 text-xs rounded ${test.sections?.rw ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
+                      {test.sections?.rw ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </div>
+                  <div className="text-gray-700">Base Module: 27 Q • 32 min</div>
+                  <div className="text-gray-700">Adaptive Module: 27 Q • 32 min</div>
+                </div>
+                <div className="border rounded p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium">Math</span>
+                    <span className={`px-2 py-1 text-xs rounded ${test.sections?.math ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
+                      {test.sections?.math ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </div>
+                  <div className="text-gray-700">Base Module: 22 Q • 35 min</div>
+                  <div className="text-gray-700">Adaptive Module: 22 Q • 35 min</div>
+                </div>
               </div>
             </div>
 
@@ -261,120 +235,42 @@ export default function TestManagement() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto m-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-xl max-h-screen overflow-y-auto m-4">
             <h2 className="text-xl font-bold mb-4">
               {editingTest ? 'Edit Test' : 'Create New Test'}
             </h2>
             
             <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Test Name</label>
                   <input
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="e.g., DSAT Mock Test 1"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Question Bank</label>
-                  <select
-                    value={formData.questionBankId}
-                    onChange={(e) => setFormData({...formData, questionBankId: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    required
-                  >
-                    <option value="">Select question bank...</option>
-                    {questionBanks.map((bank) => (
-                      <option key={bank._id} value={bank._id}>
-                        {bank.name} ({bank.category})
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className="flex items-center gap-2 border rounded-lg px-3 py-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.sections.rw}
+                      onChange={(e) => setFormData({ ...formData, sections: { ...formData.sections, rw: e.target.checked } })}
+                    />
+                    <span>Enable Reading & Writing</span>
+                  </label>
+                  <label className="flex items-center gap-2 border rounded-lg px-3 py-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.sections.math}
+                      onChange={(e) => setFormData({ ...formData, sections: { ...formData.sections, math: e.target.checked } })}
+                    />
+                    <span>Enable Math</span>
+                  </label>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
-                  <input
-                    type="number"
-                    value={formData.duration}
-                    onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value)})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Total Questions</label>
-                  <input
-                    type="number"
-                    value={formData.totalQuestions}
-                    onChange={(e) => setFormData({...formData, totalQuestions: parseInt(e.target.value)})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Passing Score (%)</label>
-                  <input
-                    type="number"
-                    value={formData.passingScore}
-                    onChange={(e) => setFormData({...formData, passingScore: parseInt(e.target.value)})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    min="0"
-                    max="100"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Test Type</label>
-                  <select
-                    value={formData.testType}
-                    onChange={(e) => setFormData({...formData, testType: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  >
-                    <option value="Practice">Practice</option>
-                    <option value="Mock">Mock Test</option>
-                    <option value="Assessment">Assessment</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
-                  <select
-                    value={formData.difficulty}
-                    onChange={(e) => setFormData({...formData, difficulty: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  >
-                    <option value="Easy">Easy</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Hard">Hard</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  rows="3"
-                  required
-                />
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Instructions</label>
-                <textarea
-                  value={formData.instructions}
-                  onChange={(e) => setFormData({...formData, instructions: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  rows="3"
-                  placeholder="Test instructions for students..."
-                />
-              </div>
-
-              <div className="mb-6">
                 <label className="flex items-center">
                   <input
                     type="checkbox"
@@ -384,6 +280,32 @@ export default function TestManagement() {
                   />
                   <span className="text-sm font-medium text-gray-700">Active Test</span>
                 </label>
+              </div>
+
+              <div className="mb-6">
+                <div className="text-sm font-semibold mb-2">Test Structure (read-only)</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="border rounded p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">Reading & Writing</span>
+                      <span className={`px-2 py-1 text-xs rounded ${formData.sections.rw ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
+                        {formData.sections.rw ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </div>
+                    <div className="text-gray-700">Base Module: 27 Q • 32 min</div>
+                    <div className="text-gray-700">Adaptive Module: 27 Q • 32 min</div>
+                  </div>
+                  <div className="border rounded p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">Math</span>
+                      <span className={`px-2 py-1 text-xs rounded ${formData.sections.math ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
+                        {formData.sections.math ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </div>
+                    <div className="text-gray-700">Base Module: 22 Q • 35 min</div>
+                    <div className="text-gray-700">Adaptive Module: 22 Q • 35 min</div>
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end space-x-3">
