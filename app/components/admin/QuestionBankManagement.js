@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { FiSearch, FiEye, FiArrowLeft, FiPlus } from 'react-icons/fi'
+import { FiSearch, FiEye, FiArrowLeft, FiPlus, FiEdit, FiX, FiCheck, FiEye as FiPreview, FiTrash } from 'react-icons/fi'
 import { useRouter } from 'next/navigation'
 
 export default function QuestionBankManagement() {
@@ -10,6 +10,11 @@ export default function QuestionBankManagement() {
   const [search, setSearch] = useState('')
   const [currentView, setCurrentView] = useState('banks')
   const [selectedBank, setSelectedBank] = useState(null)
+  const [questions, setQuestions] = useState([])
+  const [qLoading, setQLoading] = useState(false)
+  const [filters, setFilters] = useState({ subject: '', testType: '', difficulty: '', type: '', tag: '', isActive: '' })
+  const [preview, setPreview] = useState(null)
+  const [editItem, setEditItem] = useState(null)
 
   useEffect(() => {
     const fetchBanks = async () => {
@@ -28,6 +33,78 @@ export default function QuestionBankManagement() {
 
   const filteredBanks = questionBanks.filter(b => (b.title || '').toLowerCase().includes(search.toLowerCase()))
 
+  const fetchQuestions = async (bankId) => {
+    try {
+      setQLoading(true)
+      const params = new URLSearchParams()
+      if (bankId) params.set('bankId', bankId)
+      if (filters.subject) params.set('subject', filters.subject)
+      if (filters.testType) params.set('testType', filters.testType)
+      if (filters.difficulty) params.set('difficulty', filters.difficulty)
+      if (filters.type) params.set('type', filters.type)
+      if (filters.tag) params.set('tag', filters.tag)
+      if (filters.isActive !== '') params.set('isActive', String(filters.isActive === 'true'))
+      const res = await fetch(`/api/questions?${params.toString()}`)
+      const json = await res.json()
+      setQuestions(json.data || [])
+    } finally {
+      setQLoading(false)
+    }
+  }
+
+  const setBankAndView = (bank) => {
+    setSelectedBank(bank)
+    setCurrentView('questions')
+    fetchQuestions(bank.id)
+  }
+
+  const handleFilterChange = (key, value) => {
+    const next = { ...filters, [key]: value }
+    setFilters(next)
+    if (selectedBank) fetchQuestions(selectedBank.id)
+  }
+
+  const toggleActive = async (q) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    await fetch(`/api/admin/questions/${q.id}`, {
+      method: 'PATCH',
+      headers: token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isActive: !q.isActive })
+    })
+    fetchQuestions(selectedBank.id)
+  }
+
+  const softDelete = async (q) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    await fetch(`/api/admin/questions/${q.id}`, {
+      method: 'DELETE',
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+    fetchQuestions(selectedBank.id)
+  }
+
+  const saveEdit = async () => {
+    if (!editItem) return
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    const payload = {
+      subject: editItem.subject,
+      testType: editItem.testType,
+      difficulty: editItem.difficulty,
+      type: editItem.type,
+      tags: editItem.tags || []
+    }
+    await fetch(`/api/admin/questions/${editItem.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify(payload)
+    })
+    setEditItem(null)
+    fetchQuestions(selectedBank.id)
+  }
+
   if (currentView === 'questions' && selectedBank) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -44,22 +121,203 @@ export default function QuestionBankManagement() {
             <p className="text-gray-600">Manage questions for this question bank</p>
           </div>
 
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-sm text-gray-600">Total Questions: {selectedBank.totalQuestions} · Active: {selectedBank.activeQuestions} · Draft: {selectedBank.draftQuestions}</div>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
-              <FiPlus size={16} />
-              <span>Add New Question</span>
-            </button>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm">
-            <div className="p-6">
-              <div className="text-center py-8">
-                <p className="text-gray-500">No questions found in this question bank.</p>
-                <p className="text-sm text-gray-400 mt-2">Questions uploaded through SAT Question Upload will appear here.</p>
+          <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Subject</label>
+                <select value={filters.subject} onChange={(e) => handleFilterChange('subject', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
+                  <option value="">All</option>
+                  <option value="Math">Math</option>
+                  <option value="Reading and Writing">Reading and Writing</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Module Type</label>
+                <select value={filters.testType} onChange={(e) => handleFilterChange('testType', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
+                  <option value="">All</option>
+                  <option value="Base">Base</option>
+                  <option value="Adaptive">Adaptive</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Difficulty</label>
+                <select value={filters.difficulty} onChange={(e) => handleFilterChange('difficulty', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
+                  <option value="">All</option>
+                  <option value="Easy">Easy</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hard">Hard</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Question Type</label>
+                <select value={filters.type} onChange={(e) => handleFilterChange('type', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
+                  <option value="">All</option>
+                  <option value="MultipleChoice">MultipleChoice</option>
+                  <option value="TrueFalse">TrueFalse</option>
+                  <option value="ShortAnswer">ShortAnswer</option>
+                  <option value="Essay">Essay</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Topic/Subtopic</label>
+                <input value={filters.tag} onChange={(e) => handleFilterChange('tag', e.target.value)} placeholder="e.g. algebra" className="w-full border rounded px-2 py-1 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
+                <select value={filters.isActive} onChange={(e) => handleFilterChange('isActive', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
+                  <option value="">All</option>
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
               </div>
             </div>
           </div>
+
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="p-6 border-b flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Manage Questions</h2>
+              <div className="text-sm text-gray-500">{qLoading ? 'Loading...' : `${questions.length} result(s)`}</div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Question ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Module Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Difficulty</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Question Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Topic/Subtopic</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {questions.map(q => (
+                    <tr key={q.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-900">{q.id}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{q.subject}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{q.testType}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{q.difficulty}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{q.type}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{(q.tags || []).join(', ')}</td>
+                      <td className="px-6 py-4 text-sm">
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${q.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {q.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <button className="inline-flex items-center px-2 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded" onClick={() => setEditItem({ ...q })}>
+                            <FiEdit className="mr-1" /> Edit
+                          </button>
+                          <button className="inline-flex items-center px-2 py-1 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded" onClick={() => setPreview(q)}>
+                            <FiPreview className="mr-1" /> Preview
+                          </button>
+                          <button className="inline-flex items-center px-2 py-1 text-amber-600 hover:text-amber-800 hover:bg-amber-100 rounded" onClick={() => toggleActive(q)}>
+                            {q.isActive ? <><FiX className="mr-1" /> Disable</> : <><FiCheck className="mr-1" /> Enable</>}
+                          </button>
+                          <button className="inline-flex items-center px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded" onClick={() => softDelete(q)}>
+                            <FiTrash className="mr-1" /> Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {questions.length === 0 && !qLoading && (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">No questions found for the selected filters.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {preview && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full">
+                <div className="p-4 border-b flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Preview Question</h3>
+                  <button className="text-gray-600 hover:text-gray-800" onClick={() => setPreview(null)}><FiX /></button>
+                </div>
+                <div className="p-4 space-y-4">
+                  {preview.questionParagraph && <div className="text-gray-700 whitespace-pre-line">{preview.questionParagraph}</div>}
+                  <div className="text-gray-900 whitespace-pre-line">{preview.content}</div>
+                  {Array.isArray(preview.options) && preview.options.length > 0 && (
+                    <div className="space-y-2">
+                      {preview.options.map((opt, i) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <span className="font-medium">{String.fromCharCode(65 + i)}.</span>
+                          <span>{opt}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="text-sm text-gray-600">Correct Answer: <span className="font-semibold">{preview.correctAnswer}</span></div>
+                </div>
+                <div className="p-4 border-t text-right">
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded" onClick={() => setPreview(null)}>Close</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {editItem && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg shadow-lg max-w-xl w-full">
+                <div className="p-4 border-b flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Edit Question</h3>
+                  <button className="text-gray-600 hover:text-gray-800" onClick={() => setEditItem(null)}><FiX /></button>
+                </div>
+                <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Subject</label>
+                    <select value={editItem.subject} onChange={(e) => setEditItem({ ...editItem, subject: e.target.value })} className="w-full border rounded px-2 py-1 text-sm">
+                      <option value="Math">Math</option>
+                      <option value="Reading and Writing">Reading and Writing</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Module Type</label>
+                    <select value={editItem.testType} onChange={(e) => setEditItem({ ...editItem, testType: e.target.value })} className="w-full border rounded px-2 py-1 text-sm">
+                      <option value="Base">Base</option>
+                      <option value="Adaptive">Adaptive</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Difficulty</label>
+                    <select value={editItem.difficulty} onChange={(e) => setEditItem({ ...editItem, difficulty: e.target.value })} className="w-full border rounded px-2 py-1 text-sm">
+                      <option value="Easy">Easy</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Hard">Hard</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Question Type</label>
+                    <select value={editItem.type} onChange={(e) => setEditItem({ ...editItem, type: e.target.value })} className="w-full border rounded px-2 py-1 text-sm">
+                      <option value="MultipleChoice">MultipleChoice</option>
+                      <option value="TrueFalse">TrueFalse</option>
+                      <option value="ShortAnswer">ShortAnswer</option>
+                      <option value="Essay">Essay</option>
+                    </select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
+                    <input
+                      value={(editItem.tags || []).join(', ')}
+                      onChange={(e) => setEditItem({ ...editItem, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}
+                      className="w-full border rounded px-2 py-1 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="p-4 border-t text-right flex gap-2 justify-end">
+                  <button className="px-4 py-2 bg-gray-200 text-gray-800 rounded" onClick={() => setEditItem(null)}>Cancel</button>
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded" onClick={saveEdit}>Save</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )
@@ -129,7 +387,7 @@ export default function QuestionBankManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(bank.createdAt).toLocaleDateString()}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded" onClick={() => { setSelectedBank(bank); setCurrentView('questions') }}>
+                      <button className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded" onClick={() => setBankAndView(bank)}>
                         <FiEye className="mr-1" /> View
                       </button>
                     </td>

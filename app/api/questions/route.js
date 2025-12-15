@@ -12,9 +12,12 @@ export async function GET(request) {
     const subject = searchParams.get('subject')
     const difficulty = searchParams.get('difficulty')
     const testType = searchParams.get('testType')
+    const type = searchParams.get('type')
     const search = searchParams.get('search')
     const isActive = searchParams.get('isActive')
     const questionBanks = searchParams.get('question-banks')
+    const bankId = searchParams.get('bankId')
+    const tag = searchParams.get('tag')
     
     // Handle question banks request
     if (questionBanks) {
@@ -50,7 +53,10 @@ export async function GET(request) {
     if (subject) filter.subject = { $regex: subject, $options: 'i' }
     if (difficulty) filter.difficulty = difficulty
     if (testType) filter.testType = testType
+    if (type) filter.type = type
     if (isActive !== null) filter.isActive = isActive === 'true'
+    if (bankId) filter.questionBankId = bankId
+    if (tag) filter.tags = { $regex: tag, $options: 'i' }
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -70,6 +76,7 @@ export async function GET(request) {
       subject: q.subject,
       difficulty: q.difficulty,
       testType: q.testType,
+      type: q.type,
       correctAnswer: q.correctAnswer,
       options: q.options ? JSON.parse(q.options) : [],
       tags: q.tags ? JSON.parse(q.tags) : [],
