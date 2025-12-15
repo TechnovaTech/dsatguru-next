@@ -93,14 +93,16 @@ export default function SATQuestionUpload() {
   const fetchQuestionBanks = async () => {
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      const response = await fetch('/api/admin/courses', {
+      const response = await fetch('/api/admin/question-banks', {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       })
       if (response.ok) {
         const data = await response.json()
-        const mapped = Array.isArray(data?.courses)
-          ? data.courses.map(c => ({ _id: c.id, name: c.title }))
-          : []
+        const mapped = Array.isArray(data)
+          ? data.map(b => ({ _id: b._id, name: b.title }))
+          : Array.isArray(data?.courses)
+            ? data.courses.map(c => ({ _id: c.id, name: c.title }))
+            : []
         setQuestionBanks(mapped)
       }
     } catch (error) {
