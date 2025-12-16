@@ -5,57 +5,40 @@ import User from '../../../../../lib/models/User'
 import { getTokenFromRequest, verifyToken, hashPassword } from '../../../../../lib/auth'
 
 function parseCsv(text) {
+  const lines = text.split(/\r?\n/).filter(line => line.trim())
   const rows = []
-  let i = 0
-  while (i < text.length) {
+  
+  for (const line of lines) {
     const row = []
-    while (i < text.length) {
-      let field = ''
-      let inQuotes = false
-      while (i < text.length && (text[i] === ' ' || text[i] === '\t')) i++
-      if (i < text.length && text[i] === '"') {
+    let current = ''
+    let inQuotes = false
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i]
+      
+      if (char === '"' && !inQuotes) {
         inQuotes = true
-        i++
-      }
-      while (i < text.length) {
-        const char = text[i]
-        if (inQuotes) {
-          if (char === '"') {
-            if (i + 1 < text.length && text[i + 1] === '"') {
-              field += '"'
-              i += 2
-              continue
-            } else {
-              inQuotes = false
-              i++
-              break
-            }
-          } else {
-            field += char
-            i++
-          }
+      } else if (char === '"' && inQuotes) {
+        if (line[i + 1] === '"') {
+          current += '"'
+          i++
         } else {
-          if (char === ',') {
-            i++
-            break
-          } else if (char === '\n' || char === '\r') {
-            break
-          } else {
-            field += char
-            i++
-          }
+          inQuotes = false
         }
-      }
-      row.push(field.trim())
-      if (i < text.length && text[i] === ',') {
-        i++
+      } else if (char === ',' && !inQuotes) {
+        row.push(current.trim())
+        current = ''
       } else {
-        break
+        current += char
       }
     }
-    if (row.length > 0) rows.push(row)
-    while (i < text.length && (text[i] === '\n' || text[i] === '\r')) i++
+    
+    row.push(current.trim())
+    if (row.some(cell => cell.length > 0)) {
+      rows.push(row)
+    }
   }
+  
   return rows
 }
 
@@ -63,6 +46,10 @@ export async function POST(request) {
   try {
     await connectDB()
     const token = getTokenFromRequest(request)
+    if (!token) {
+      return NextResponse.json({ error: 'No token provided' }, { status: 401 })
+    }
+    
     const decoded = verifyToken(token)
     if (!decoded || decoded.role !== 'Admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -73,30 +60,44 @@ export async function POST(request) {
     const questionBankId = form.get('questionBankId')
     const images = form.getAll('images') || []
 
-    if (!file || !questionBankId) {
-      return NextResponse.json({ error: 'Missing file or questionBankId' }, { status: 400 })
+    if (!file) {
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+    }
+    if (!questionBankId) {
+      return NextResponse.json({ error: 'No question bank selected' }, { status: 400 })
     }
 
     const csvText = await file.text()
+    console.log('CSV file size:', csvText.length)
+    console.log('First 200 chars:', csvText.substring(0, 200))
+    
+    if (!csvText || csvText.trim().length === 0) {
+      return NextResponse.json({ error: 'CSV file is empty' }, { status: 400 })
+    }
+    
     const rows = parseCsv(csvText)
+    console.log(`Parsed ${rows.length} rows from CSV`)
+    console.log('First row (header):', rows[0])
+    if (rows.length > 1) console.log('Second row sample:', rows[1])
+    
     if (!rows || rows.length < 2) {
-      return NextResponse.json({ error: 'CSV has no data' }, { status: 400 })
+      return NextResponse.json({ error: 'CSV must have header and at least one data row' }, { status: 400 })
     }
     const header = rows[0].map(h => (h || '').trim().toLowerCase())
     const idx = (name) => header.findIndex(h => h === name.toLowerCase())
     const idxTitle = idx('title')
-    const idxContent = idx('content')
+    const idxContent = idx('content') >= 0 ? idx('content') : idx('questiontext')
     const idxSubject = idx('subject')
     const idxDifficulty = idx('difficulty')
-    const idxTestType = idx('testtype')
+    const idxTestType = idx('testtype') >= 0 ? idx('testtype') : idx('moduletype')
     const idxCorrect = idx('correctanswer')
     const idxA = idx('optiona')
     const idxB = idx('optionb')
     const idxC = idx('optionc')
     const idxD = idx('optiond')
-    const idxParagraph = idx('questionparagraph')
+    const idxParagraph = idx('questionparagraph') >= 0 ? idx('questionparagraph') : idx('passagetext')
     const idxExplanation = idx('explanation')
-    const idxTags = idx('tags')
+    const idxTags = idx('tags') >= 0 ? idx('tags') : idx('topic')
     const idxImage = idx('imagefilename')
 
     // Map images by filename for quick lookup (we only persist name as imageUrl)
@@ -119,12 +120,23 @@ export async function POST(request) {
       })
     }
 
+    console.log('CSV header:', header)
+    console.log('Column indices:', { idxTitle, idxContent, idxSubject, idxDifficulty, idxTestType, idxCorrect, idxA, idxB, idxC, idxD })
+    
     const toCreate = []
     for (let r = 1; r < rows.length; r++) {
       const cols = rows[r]
       if (!cols || cols.length === 0) continue
-      const title = idxTitle >= 0 ? (cols[idxTitle] || '').trim() : ''
+      
       const content = idxContent >= 0 ? (cols[idxContent] || '').trim() : ''
+      console.log(`Row ${r} content:`, content)
+      
+      if (!content || content.trim().length === 0) {
+        console.warn(`Skipping row ${r}: empty content`)
+        continue
+      }
+      
+      const title = idxTitle >= 0 ? (cols[idxTitle] || '').trim() : ''
       const subject = idxSubject >= 0 ? (cols[idxSubject] || '').trim() : 'Math'
       const difficulty = idxDifficulty >= 0 ? (cols[idxDifficulty] || '').trim() : 'Medium'
       const testType = idxTestType >= 0 ? (cols[idxTestType] || '').trim() : 'Base'
@@ -143,7 +155,7 @@ export async function POST(request) {
       const tagsArr = tagsRaw
         ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean)
         : []
-
+      
       toCreate.push({
         title,
         content,
@@ -174,7 +186,11 @@ export async function POST(request) {
       count: created.length
     })
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to bulk upload questions' }, { status: 500 })
+    console.error('Bulk upload error:', error)
+    return NextResponse.json({ 
+      error: 'Failed to bulk upload questions', 
+      details: error.message 
+    }, { status: 500 })
   }
 }
 

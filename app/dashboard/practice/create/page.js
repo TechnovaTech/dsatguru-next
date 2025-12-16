@@ -62,6 +62,7 @@ export default function CreatePracticePage() {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       const payload = {
         questionBankId: bankId,
+        subject: config.subject,
         sessionType: config.mode === 'Timed' ? 'Adaptive' : 'Practice',
         status: 'InProgress',
         totalQuestions: config.questionCount,
@@ -77,7 +78,12 @@ export default function CreatePracticePage() {
       })
       if (res.ok) {
         const data = await res.json()
-        router.push('/dashboard/analytics')
+        const sessionId = data?.session?._id || data?.session?.id
+        if (sessionId) {
+          router.push(`/dashboard/sat-test/${sessionId}`)
+        } else {
+          router.push('/dashboard/analytics')
+        }
       }
     } catch (error) {
     } finally {

@@ -36,6 +36,9 @@ export async function POST(request) {
     
     const sessionData = await request.json()
     sessionData.userId = decoded.userId
+    const total = Number(sessionData.totalQuestions || 50)
+    sessionData.baseTarget = Math.max(1, Math.floor(total / 2))
+    sessionData.state = 'IN_PROGRESS_BASE'
     
     if (sessionData.testId) {
       const test = await Test.findById(sessionData.testId)
@@ -44,7 +47,7 @@ export async function POST(request) {
       }
       sessionData.questionBankId = test.questionBankId
       sessionData.sessionType = test.testType || 'Practice'
-      sessionData.totalQuestions = sessionData.totalQuestions || test.totalQuestions || 50
+      sessionData.totalQuestions = total || test.totalQuestions || 50
       sessionData.status = sessionData.status || 'InProgress'
     }
     

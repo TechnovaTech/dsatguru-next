@@ -141,11 +141,12 @@ export default function SATQuestionUpload() {
         setBulkUpload(prev => ({ ...prev, progress: 100, csvRecords: [], images: [], imagePreviews: [], mapping: null }))
       } else {
         const error = await response.json()
-        alert(`Upload failed: ${error.message}`)
+        console.error('Upload error response:', JSON.stringify(error, null, 2))
+        alert(`Upload failed: ${error.error || error.message || 'Unknown error'}`)
       }
     } catch (error) {
-      console.error('Upload error:', error)
-      alert('Upload failed')
+      console.error('Upload error:', error.message || error)
+      alert(`Upload failed: ${error.message || 'Network error'}`)
     } finally {
       if (progressInterval) clearInterval(progressInterval)
       setUploading(false)
@@ -237,9 +238,12 @@ export default function SATQuestionUpload() {
       const a = document.createElement('a')
       a.href = url
       a.download = 'bulk_question_template.csv'
+      document.body.appendChild(a)
       a.click()
+      document.body.removeChild(a)
       window.URL.revokeObjectURL(url)
     } catch (err) {
+      console.error('Template download error:', err)
       alert('Failed to download template')
     }
   }
@@ -251,56 +255,38 @@ export default function SATQuestionUpload() {
     const reader = new FileReader()
     reader.onload = () => {
       const text = reader.result?.toString() || ''
+      const lines = text.split(/\r?\n/).filter(line => line.trim())
       const rows = []
-      let i = 0
-      while (i < text.length) {
+      
+      for (const line of lines) {
         const row = []
-        while (i < text.length) {
-          let field = ''
-          let inQuotes = false
-          while (i < text.length && (text[i] === ' ' || text[i] === '\t')) i++
-          if (i < text.length && text[i] === '"') {
+        let current = ''
+        let inQuotes = false
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i]
+          
+          if (char === '"' && !inQuotes) {
             inQuotes = true
-            i++
-          }
-          while (i < text.length) {
-            const char = text[i]
-            if (inQuotes) {
-              if (char === '"') {
-                if (i + 1 < text.length && text[i + 1] === '"') {
-                  field += '"'
-                  i += 2
-                  continue
-                } else {
-                  inQuotes = false
-                  i++
-                  break
-                }
-              } else {
-                field += char
-                i++
-              }
+          } else if (char === '"' && inQuotes) {
+            if (line[i + 1] === '"') {
+              current += '"'
+              i++
             } else {
-              if (char === ',') {
-                i++
-                break
-              } else if (char === '\n' || char === '\r') {
-                break
-              } else {
-                field += char
-                i++
-              }
+              inQuotes = false
             }
-          }
-          row.push(field.trim())
-          if (i < text.length && text[i] === ',') {
-            i++
+          } else if (char === ',' && !inQuotes) {
+            row.push(current.trim())
+            current = ''
           } else {
-            break
+            current += char
           }
         }
-        if (row.length > 0) rows.push(row)
-        while (i < text.length && (text[i] === '\n' || text[i] === '\r')) i++
+        
+        row.push(current.trim())
+        if (row.some(cell => cell.length > 0)) {
+          rows.push(row)
+        }
       }
       if (rows.length === 0) {
         setBulkUpload(prev => ({ ...prev, csvRecords: [], mapping: null }))
@@ -645,41 +631,43 @@ export default function SATQuestionUpload() {
                         </div>
                       </div>
                     )}
-                    <div className="max-h-64 overflow-y-auto border rounded-md">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Row</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Question Preview</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {bulkUpload.csvRecords.slice(0, 10).map((record, index) => {
-                            const mappingEntry = bulkUpload.mapping?.entries.find(e => e.csvRow === record.row)
-                            return (
-                              <tr key={index}>
-                                <td className="px-4 py-2 text-sm text-gray-900">{record.row}</td>
-                                <td className="px-4 py-2 text-sm text-gray-900">{record.label}</td>
-                                <td className="px-4 py-2 text-sm text-gray-500">{record.imageFileName || '-'}</td>
-                                <td className="px-4 py-2 text-sm">
-                                  {mappingEntry ? (
-                                    <span className={`inline-flex px-2 py-1 text-xs rounded-full ${mappingEntry.status === 'matched' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                      {mappingEntry.status === 'matched' ? 'Matched' : 'Missing'}
-                                    </span>
-                                  ) : (
-                                    <span className="text-gray-400">No image</span>
-                                  )}
-                                </td>
-                              </tr>
-                            )
-                          })}
-                        </tbody>
-                      </table>
-                      {bulkUpload.csvRecords.length > 10 && (
-                        <p className="text-sm text-gray-500 mt-2 text-center">... and {bulkUpload.csvRecords.length - 10} more questions</p>
-                      )}
+                    <div className="border rounded-md">
+                      <div className="max-h-64 overflow-y-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50 sticky top-0">
+                            <tr>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Row</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Question Preview</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {bulkUpload.csvRecords.map((record, index) => {
+                              const mappingEntry = bulkUpload.mapping?.entries.find(e => e.csvRow === record.row)
+                              return (
+                                <tr key={index}>
+                                  <td className="px-4 py-2 text-sm text-gray-900">{record.row}</td>
+                                  <td className="px-4 py-2 text-sm text-gray-900">{record.label}</td>
+                                  <td className="px-4 py-2 text-sm text-gray-500">{record.imageFileName || '-'}</td>
+                                  <td className="px-4 py-2 text-sm">
+                                    {mappingEntry ? (
+                                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${mappingEntry.status === 'matched' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                        {mappingEntry.status === 'matched' ? 'Matched' : 'Missing'}
+                                      </span>
+                                    ) : (
+                                      <span className="text-gray-400">No image</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="px-4 py-2 bg-gray-50 border-t text-sm text-gray-600">
+                        Total: {bulkUpload.csvRecords.length} questions
+                      </div>
                     </div>
                   </div>
                 )}
