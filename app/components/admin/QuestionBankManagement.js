@@ -12,7 +12,7 @@ export default function QuestionBankManagement() {
   const [selectedBank, setSelectedBank] = useState(null)
   const [questions, setQuestions] = useState([])
   const [qLoading, setQLoading] = useState(false)
-  const [filters, setFilters] = useState({ subject: '', testType: '', difficulty: '', type: '', tag: '', isActive: '', mathTopic: '', mathSubtopic: '', readingWritingTopic: '' })
+  const [filters, setFilters] = useState({ subject: '', difficulty: '', type: '', tag: '', isActive: '', mathTopic: '', mathSubtopic: '', readingWritingTopic: '' })
   const [preview, setPreview] = useState(null)
   const [editItem, setEditItem] = useState(null)
 
@@ -74,7 +74,6 @@ export default function QuestionBankManagement() {
       const params = new URLSearchParams()
       if (bankId) params.set('bankId', bankId)
       if (filters.subject) params.set('subject', filters.subject)
-      if (filters.testType) params.set('testType', filters.testType)
       if (filters.difficulty) params.set('difficulty', filters.difficulty)
       if (filters.type) params.set('type', filters.type)
       if (filters.tag) params.set('tag', filters.tag)
@@ -140,7 +139,6 @@ export default function QuestionBankManagement() {
       shortExplanation: editItem.shortExplanation || '',
       longExplanation: editItem.longExplanation || '',
       subject: editItem.subject,
-      testType: editItem.testType,
       difficulty: editItem.difficulty,
       type: editItem.type,
       correctAnswer: editItem.correctAnswer || 'A',
@@ -222,14 +220,6 @@ export default function QuestionBankManagement() {
                 </div>
               )}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Module Type</label>
-                <select value={filters.testType} onChange={(e) => handleFilterChange('testType', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
-                  <option value="">All</option>
-                  <option value="Base">Base</option>
-                  <option value="Adaptive">Adaptive</option>
-                </select>
-              </div>
-              <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Difficulty</label>
                 <select value={filters.difficulty} onChange={(e) => handleFilterChange('difficulty', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
                   <option value="">All</option>
@@ -287,7 +277,6 @@ export default function QuestionBankManagement() {
                     <tr key={q.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm text-gray-900">{q.id}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{q.subject}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{q.testType}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{q.difficulty}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{q.type}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{(q.tags || []).join(', ')}</td>

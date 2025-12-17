@@ -89,7 +89,6 @@ export async function POST(request) {
     const idxContent = idx('content') >= 0 ? idx('content') : idx('questiontext')
     const idxSubject = idx('subject')
     const idxDifficulty = idx('difficulty')
-    const idxTestType = idx('testtype') >= 0 ? idx('testtype') : idx('moduletype')
     const idxCorrect = idx('correctanswer')
     const idxA = idx('optiona')
     const idxB = idx('optionb')
@@ -121,7 +120,7 @@ export async function POST(request) {
     }
 
     console.log('CSV header:', header)
-    console.log('Column indices:', { idxTitle, idxContent, idxSubject, idxDifficulty, idxTestType, idxCorrect, idxA, idxB, idxC, idxD })
+    console.log('Column indices:', { idxTitle, idxContent, idxSubject, idxDifficulty, idxCorrect, idxA, idxB, idxC, idxD })
     
     const toCreate = []
     for (let r = 1; r < rows.length; r++) {
@@ -139,7 +138,6 @@ export async function POST(request) {
       const title = idxTitle >= 0 ? (cols[idxTitle] || '').trim() : ''
       const subject = idxSubject >= 0 ? (cols[idxSubject] || '').trim() : 'Math'
       const difficulty = idxDifficulty >= 0 ? (cols[idxDifficulty] || '').trim() : 'Medium'
-      const testType = idxTestType >= 0 ? (cols[idxTestType] || '').trim() : 'Base'
       const correctAnswer = idxCorrect >= 0 ? (cols[idxCorrect] || '').trim().toUpperCase() : 'A'
       const optionA = idxA >= 0 ? (cols[idxA] || '').trim() : ''
       const optionB = idxB >= 0 ? (cols[idxB] || '').trim() : ''
@@ -165,7 +163,6 @@ export async function POST(request) {
         subject,
         difficulty,
         type: 'MultipleChoice',
-        testType,
         correctAnswer,
         options: JSON.stringify(optionsArr),
         tags: JSON.stringify(tagsArr),
