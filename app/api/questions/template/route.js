@@ -14,6 +14,8 @@ export async function GET() {
     'OptionD',
     'QuestionParagraph',
     'Explanation',
+    'ShortExplanation',
+    'LongExplanation',
     'Tags',
     'ImageFileName'
   ].join(',')
@@ -32,6 +34,8 @@ export async function GET() {
       'x = 6',
       '',
       'Subtract 3 to get 2x = 8, then divide by 2: x = 4',
+      'Brief: 2x=8 -> x=4',
+      'Step 1: Subtract 3 from both sides (2x = 8). Step 2: Divide by 2 (x = 4).',
       'algebra,linear-equations',
       ''
     ],

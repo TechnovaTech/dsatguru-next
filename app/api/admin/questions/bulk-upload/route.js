@@ -160,6 +160,8 @@ export async function POST(request) {
         title,
         content,
         explanation,
+        shortExplanation,
+        longExplanation,
         subject,
         difficulty,
         type: 'MultipleChoice',

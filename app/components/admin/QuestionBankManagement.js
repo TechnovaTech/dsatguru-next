@@ -137,6 +137,8 @@ export default function QuestionBankManagement() {
       questionParagraph: editItem.questionParagraph || '',
       content: editItem.content || '',
       explanation: editItem.explanation || '',
+      shortExplanation: editItem.shortExplanation || '',
+      longExplanation: editItem.longExplanation || '',
       subject: editItem.subject,
       testType: editItem.testType,
       difficulty: editItem.difficulty,
@@ -343,6 +345,24 @@ export default function QuestionBankManagement() {
                     </div>
                   )}
                   <div className="text-sm text-gray-600">Correct Answer: <span className="font-semibold">{preview.correctAnswer}</span></div>
+                  {preview.explanation && (
+                    <div className="mt-2 text-sm">
+                      <span className="font-medium text-gray-700">Explanation:</span>
+                      <p className="text-gray-600 whitespace-pre-line">{preview.explanation}</p>
+                    </div>
+                  )}
+                  {preview.shortExplanation && (
+                    <div className="mt-2 text-sm">
+                      <span className="font-medium text-gray-700">Short Explanation:</span>
+                      <p className="text-gray-600 whitespace-pre-line">{preview.shortExplanation}</p>
+                    </div>
+                  )}
+                  {preview.longExplanation && (
+                    <div className="mt-2 text-sm">
+                      <span className="font-medium text-gray-700">Long Explanation:</span>
+                      <p className="text-gray-600 whitespace-pre-line">{preview.longExplanation}</p>
+                    </div>
+                  )}
                 </div>
                 <div className="p-4 border-t text-right">
                   <button className="px-4 py-2 bg-blue-600 text-white rounded" onClick={() => setPreview(null)}>Close</button>
@@ -430,6 +450,24 @@ export default function QuestionBankManagement() {
                       value={editItem.explanation || ''}
                       onChange={(e) => setEditItem({ ...editItem, explanation: e.target.value })}
                       rows={3}
+                      className="w-full border rounded px-2 py-1 text-sm"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Short Explanation</label>
+                    <textarea
+                      value={editItem.shortExplanation || ''}
+                      onChange={(e) => setEditItem({ ...editItem, shortExplanation: e.target.value })}
+                      rows={2}
+                      className="w-full border rounded px-2 py-1 text-sm"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Long Explanation</label>
+                    <textarea
+                      value={editItem.longExplanation || ''}
+                      onChange={(e) => setEditItem({ ...editItem, longExplanation: e.target.value })}
+                      rows={4}
                       className="w-full border rounded px-2 py-1 text-sm"
                     />
                   </div>
