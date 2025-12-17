@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useAuth } from './AuthContext'
 import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign } from 'react-icons/fi'
 
@@ -44,7 +45,7 @@ export default function DashboardLayout({ children }) {
       >
         <div>
           <div className="flex items-center justify-between gap-3 mb-8">
-            <a href="/" className="text-2xl font-bold text-blue-700 tracking-wide">DSATGURU</a>
+            <Link href="/" className="text-2xl font-bold text-blue-700 tracking-wide">DSATGURU</Link>
             <button
               onClick={() => setIsOpen(false)}
               className="text-gray-600 hover:text-gray-800 md:hidden"

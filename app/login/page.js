@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FiArrowLeft, FiEye, FiEyeOff } from 'react-icons/fi'
 import { useAuth } from '../components/AuthContext'
@@ -86,12 +87,12 @@ export default function Login() {
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 relative">
         <div className="mb-4">
-          <a
+          <Link
             href="/"
             className="text-blue-600 flex items-center text-sm hover:underline mb-4"
           >
             <FiArrowLeft className="mr-1" /> Go Back to Home
-          </a>
+          </Link>
         </div>
         <h2 className="text-2xl font-bold text-center text-blue-700 mb-6">
           Login to DSATGURU
@@ -149,9 +150,9 @@ export default function Login() {
           </div>
 
           <div className="text-right text-sm">
-            <a href="/forgot-password" className="text-blue-600 hover:underline">
+            <Link href="/forgot-password" className="text-blue-600 hover:underline">
               Forgot Password?
-            </a>
+            </Link>
           </div>
 
           <button
@@ -165,7 +166,7 @@ export default function Login() {
           </button>
 
           <p className="text-sm text-center text-gray-600">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <a href="/register" className="cursor-pointer text-blue-600 hover:underline font-medium">
               Create one
             </a>

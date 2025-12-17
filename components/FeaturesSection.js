@@ -33,7 +33,7 @@ export default function FeaturesSection() {
               Elevate Your SAT Preparation
             </h3>
             <p className="max-w-xl text-base md:text-lg text-gray-700 mb-6">
-              DSATGURU's intuitive platform and interactive tools optimize study
+              DSATGURU&apos;s intuitive platform and interactive tools optimize study
               efficiency, ensuring a strategic and comprehensive approach to
               mastering the exam.
             </p>

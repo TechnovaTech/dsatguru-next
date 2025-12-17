@@ -54,7 +54,7 @@ export default function About() {
               test-prep experts who understand the challenges students face
               when preparing for standardized tests. We know that every
               student is unique, with different strengths, weaknesses, and
-              learning styles. That's why we've created a comprehensive suite
+              learning styles. That&apos;s why we&apos;ve created a comprehensive suite
               of prep options designed to meet the needs of every learner,
               from beginners to advanced test-takers.
             </p>
@@ -74,7 +74,7 @@ export default function About() {
               We specialize in delivering realistic, adaptive DSAT/PSAT
               practice tests and live online courses that mirror the actual
               exam. Our materials are crafted to target knowledge gaps, build
-              confidence, and boost scores. With DSATGURU, you'll gain access
+              confidence, and boost scores. With DSATGURU, you&apos;ll gain access
               to:
             </p>
             <ul className="space-y-2 text-sm text-gray-700">
@@ -116,7 +116,7 @@ export default function About() {
           </h4>
           <p className="text-sm md:text-base text-gray-700 max-w-3xl mx-auto">
             We are so confident in the quality of our content and teaching
-            methods that we guarantee* results. Whether you're aiming for a
+            methods that we guarantee* results. Whether you&apos;re aiming for a
             200+ point increase* or a score of 1420+*, we stand by our
             promise.
           </p>

@@ -41,7 +41,7 @@ export default function TestimonialsSection() {
             className="bg-white border border-gray-200 rounded-xl shadow p-6 text-left flex flex-col gap-4 relative"
           >
             <MdFormatQuote className="absolute top-4 right-4 text-blue-200 text-3xl" />
-            <p className="text-sm text-gray-700 leading-relaxed italic">"{t.quote}"</p>
+            <p className="text-sm text-gray-700 leading-relaxed italic">&quot;{t.quote}&quot;</p>
             <div className="flex items-center gap-4 mt-4">
               <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
                 {t.initials}

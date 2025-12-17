@@ -421,7 +421,7 @@ export default function SATQuestionUpload() {
           <div className="mb-8 text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">SAT Question Management</h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Choose how you'd like to work with SAT questions. Upload individual questions, bulk upload from CSV files, or manage your existing question library.
+              Choose how you&apos;d like to work with SAT questions. Upload individual questions, bulk upload from CSV files, or manage your existing question library.
             </p>
           </div>
 

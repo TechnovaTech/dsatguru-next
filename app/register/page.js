@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { FiArrowLeft, FiEye, FiEyeOff } from 'react-icons/fi'
 import { useAuth } from '../components/AuthContext'
 import axios from 'axios'
@@ -92,12 +93,12 @@ export default function Register() {
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 relative">
         <div className="mb-4">
-          <a
+          <Link
             href="/"
             className="text-blue-600 flex items-center text-sm hover:underline mb-4"
           >
             <FiArrowLeft className="mr-1" /> Go Back to Home
-          </a>
+          </Link>
         </div>
         <h2 className="text-2xl font-bold text-center text-blue-700 mb-6">
           Create Your DSATGURU Account
@@ -238,12 +239,12 @@ export default function Register() {
 
           <p className="text-sm text-center text-gray-600">
             Already have an account?{' '}
-            <a
+            <Link
               href="/login"
               className="text-blue-600 hover:underline font-medium"
             >
               Login here
-            </a>
+            </Link>
           </p>
         </form>
       </div>

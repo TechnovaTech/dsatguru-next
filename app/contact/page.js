@@ -121,9 +121,9 @@ export default function Contact() {
             <h3 className="text-xl md:text-2xl font-bold text-gray-800">
               CONTACT US
             </h3>
-            <p className="text-sm text-gray-600 mt-1">We're Here to Help</p>
+            <p className="text-sm text-gray-600 mt-1">We&apos;re Here to Help</p>
             <p className="text-sm text-gray-600 mt-1">
-              Have questions? Reach out to us by email or call us and we'll be
+              Have questions? Reach out to us by email or call us and we&apos;ll be
               happy to assist you on your DSAT/PSAT journey.
             </p>
           </div>

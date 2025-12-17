@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useAuth } from './AuthContext'
 import { useCourses } from './CourseContext'
 import { FiMenu, FiX, FiHome, FiBookOpen, FiInfo, FiPhone, FiArrowUp } from 'react-icons/fi'
@@ -45,22 +46,22 @@ export default function Header() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <a
+          <Link
             href="/"
             onClick={scrollToTop}
             className="text-3xl font-extrabold text-blue-700 tracking-wide"
           >
             DSATGURU
-          </a>
+          </Link>
 
           <div className="hidden md:flex items-center space-x-10">
             <div className="flex space-x-8 items-center">
-              <a
+              <Link
                 href="/"
                 className="flex items-center gap-1 text-sm hover:text-blue-600 transition-colors duration-300 text-gray-700"
               >
                 <FiHome /> Home
-              </a>
+              </Link>
 
               <div
                 className="relative"
@@ -84,7 +85,7 @@ export default function Header() {
                         const color = colors[idx % colors.length]
                         return (
                           idx !== colors.length - 1 && course.slug && course.slug !== 'individual-tutoring' && (
-                            <a
+                            <Link
                               key={course.id}
                               href={`/enrollment/${course.courseId || course.id}`}
                               className={`flex items-center gap-3 p-4 ${color.bg} ${color.border} border rounded-lg ${color.text} hover:shadow-md transition-all truncate`}
@@ -96,7 +97,7 @@ export default function Header() {
                               >
                                 {course.title}
                               </span>
-                            </a>
+                            </Link>
                           )
                         )
                       })}
@@ -177,27 +178,27 @@ export default function Header() {
                     </button>
                   </div>
                   <div className="space-y-6">
-                    <a
+                    <Link
                       href="/"
                       onClick={closeMenu}
                       className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 font-medium border-b pb-2"
                     >
                       <FiHome /> Home
-                    </a>
-                    <a
+                    </Link>
+                    <Link
                       href="/about"
                       onClick={closeMenu}
                       className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 font-medium border-b pb-2"
                     >
                       <FiInfo /> About Us
-                    </a>
-                    <a
+                    </Link>
+                    <Link
                       href="/contact"
                       onClick={closeMenu}
                       className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 font-medium border-b pb-2"
                     >
                       <FiPhone /> Contact Us
-                    </a>
+                    </Link>
                   </div>
                 </div>
                 <div className="flex flex-col gap-4">

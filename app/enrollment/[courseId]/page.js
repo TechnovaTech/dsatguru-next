@@ -113,7 +113,7 @@ export default function EnrollmentPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Course Not Found</h2>
-          <p className="text-gray-600 mb-6">The course you're looking for doesn't exist.</p>
+          <p className="text-gray-600 mb-6">The course you&apos;re looking for doesn&apos;t exist.</p>
           <button
             onClick={() => router.push('/')}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
@@ -141,7 +141,7 @@ export default function EnrollmentPage() {
           <div className="w-full md:w-1/2 space-y-6 text-white text-center md:text-left">
             <div className="relative inline-block uppercase tracking-wider text-xs px-4 py-3 border-2 border-white/80 rounded-full overflow-hidden bg-white/10">
               <span className="relative z-10 text-white">
-                Let's Score Higher!
+                Let&apos;s Score Higher!
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
             </div>
@@ -391,7 +391,7 @@ export default function EnrollmentPage() {
                   What Students Say
                 </h3>
                 <p className="text-gray-700 text-sm md:text-base leading-relaxed text-center">
-                  "Our students have seen significant improvements in their scores after taking this course."
+                  &quot;Our students have seen significant improvements in their scores after taking this course.&quot;
                 </p>
                 <div className="border-t pt-4 mt-4">
                   <p className="text-sm text-blue-600 font-semibold text-center">

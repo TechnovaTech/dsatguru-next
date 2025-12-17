@@ -89,7 +89,7 @@ export default function Dashboard() {
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
         <h1 className="text-3xl font-bold mb-2">Welcome, {user?.name || 'Student'}!</h1>
-        <p className="text-blue-100 mb-4">"Success is the sum of small efforts repeated day in and day out."</p>
+        <p className="text-blue-100 mb-4">&quot;Success is the sum of small efforts repeated day in and day out.&quot;</p>
         <div className="flex flex-col sm:flex-row gap-3">
           <button className="bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors">
             Create Practice Test

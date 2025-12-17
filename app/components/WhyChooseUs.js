@@ -27,7 +27,7 @@ const highlightCards = [
   {
     icon: <MdScore size={28} className="text-blue-600" />,
     title: "Score Guarantee",
-    description: "We guarantee a 200+ point boost if you're below 1220 or a score above 1420+ for first-time test takers*.",
+    description: "We guarantee a 200+ point boost if you&apos;re below 1220 or a score above 1420+ for first-time test takers*.",
   },
   {
     icon: <MdViewInAr size={28} className="text-purple-600" />,
@@ -37,7 +37,7 @@ const highlightCards = [
   {
     icon: <MdVerified size={28} className="text-green-600" />,
     title: "Focused Topic Coverage",
-    description: "We tailor our prep to exactly what's needed on the Digital SAT—nothing more, nothing less.",
+    description: "We tailor our prep to exactly what&apos;s needed on the Digital SAT—nothing more, nothing less.",
   },
   {
     icon: <MdLiveTv size={28} className="text-rose-600" />,
@@ -301,7 +301,7 @@ export default function WhyChooseUs({ landingPlanRef }) {
           }}
           className="inline-flex cursor-pointer items-center gap-2 bg-white text-blue-600 font-bold px-6 py-3 rounded-full shadow hover:shadow-xl transition"
         >
-          Let's Start <MdArrowForward className="text-lg animate-pulse" />
+          Let&apos;s Start <MdArrowForward className="text-lg animate-pulse" />
         </motion.button>
         <p className="text-xs text-white/80 mt-6 max-w-md mx-auto">
           *Score improvement guarantee applies to students who complete the
