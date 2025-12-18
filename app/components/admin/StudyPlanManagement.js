@@ -39,10 +39,16 @@ export default function StudyPlanManagement() {
 
   const fetchCourses = async () => {
     try {
-      const response = await fetch('/api/admin/courses')
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/admin/courses', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
       if (response.ok) {
         const data = await response.json()
-        setCourses(data)
+        setCourses(data.courses || data || [])
       }
     } catch (error) {
       console.error('Error fetching courses:', error)
@@ -261,7 +267,7 @@ export default function StudyPlanManagement() {
                   >
                     <option value="">Select a course...</option>
                     {courses.map((course) => (
-                      <option key={course._id} value={course._id}>
+                      <option key={course._id || course.id} value={course._id || course.id}>
                         {course.title}
                       </option>
                     ))}
