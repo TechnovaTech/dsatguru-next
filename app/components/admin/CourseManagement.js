@@ -340,16 +340,6 @@ export default function CourseManagement() {
                       <FiVideo />
                     </button>
                     <button
-                      onClick={() => {
-                        setSelectedCourse(course)
-                        setShowAnalytics(true)
-                      }}
-                      className="text-purple-600 hover:text-purple-900"
-                      title="View Analytics"
-                    >
-                      <FiBarChart />
-                    </button>
-                    <button
                       onClick={() => handleDelete(course.id)}
                       className="text-red-600 hover:text-red-900"
                       title="Delete Course"

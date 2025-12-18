@@ -67,7 +67,13 @@ export async function PUT(request, { params }) {
     const updateData = {
       ...body,
       highlights: body.highlights?.filter(h => h.trim() !== '').map((text, index) => ({ text, sequenceOrder: index })) || [],
-      schedules: body.schedules?.filter(s => s.day && s.time) || [],
+      schedules: body.schedules?.filter(s => s.trim() !== '').map(schedule => {
+        const parts = schedule.trim().split(' ')
+        return {
+          day: parts[0] || '',
+          time: parts.slice(1).join(' ') || ''
+        }
+      }) || [],
       faqs: body.faqs?.filter(f => f.question && f.answer) || []
     }
     
