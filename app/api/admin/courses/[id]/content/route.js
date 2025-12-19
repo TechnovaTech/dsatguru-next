@@ -22,6 +22,8 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 })
     }
 
+    console.log('Retrieved course materials:', JSON.stringify(course.materials, null, 2))
+
     return NextResponse.json({
       content: {
         meetings: course.meetings || [],
@@ -51,6 +53,10 @@ export async function PUT(request, { params }) {
     const { content } = await request.json()
     
     await connectDB()
+    
+    // Log the incoming content for debugging
+    console.log('Saving course content:', JSON.stringify(content, null, 2))
+    
     const course = await Course.findByIdAndUpdate(
       params.id,
       {
@@ -61,6 +67,8 @@ export async function PUT(request, { params }) {
       },
       { new: true }
     )
+    
+    console.log('Saved course materials:', JSON.stringify(course.materials, null, 2))
 
     if (!course) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 })

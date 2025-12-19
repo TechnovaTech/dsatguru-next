@@ -138,10 +138,33 @@ function CourseContentManager({ course, onBack }) {
       })
       if (response.ok) {
         const data = await response.json()
-        setCourseData(data.content)
+        setCourseData({
+          meetings: data.content?.meetings || [],
+          materials: data.content?.materials || [],
+          materialCategories: data.content?.materialCategories || [],
+          syllabus: data.content?.syllabus || [],
+          assignments: data.content?.assignments || []
+        })
+      } else {
+        // Initialize with empty arrays if API fails
+        setCourseData({
+          meetings: [],
+          materials: [],
+          materialCategories: [],
+          syllabus: [],
+          assignments: []
+        })
       }
     } catch (error) {
       console.error('Error fetching content:', error)
+      // Initialize with empty arrays on error
+      setCourseData({
+        meetings: [],
+        materials: [],
+        materialCategories: [],
+        syllabus: [],
+        assignments: []
+      })
     } finally {
       setLoading(false)
     }
@@ -443,35 +466,42 @@ function CourseContentManager({ course, onBack }) {
             
             {/* Materials List */}
             <div className="space-y-4">
-              {courseData.materials.map((mat, index) => (
-                <div key={mat._id || index} className="border rounded-lg p-4 bg-white">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-semibold text-lg">{mat.mainName || mat.title}</h3>
-                      <p className="text-sm text-gray-600">
-                        {mat.subMaterials ? `${mat.subMaterials.length} sub-materials` : 'Single material'}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setViewingMaterial(mat)}
-                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => {
-                          const updated = courseData.materials.filter((_, i) => i !== index)
-                          setCourseData(prev => ({ ...prev, materials: updated }))
-                        }}
-                        className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-                      >
-                        Remove
-                      </button>
+              {courseData.materials.map((mat, index) => {
+                // Handle both old and new material formats
+                const materialName = mat.mainName || mat.title || 'Untitled Material'
+                const subMaterialsCount = mat.subMaterials?.length || 0
+                const hasSubMaterials = mat.hasSubMaterials || (mat.subMaterials && mat.subMaterials.length > 0)
+                
+                return (
+                  <div key={mat._id || index} className="border rounded-lg p-4 bg-white">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-semibold text-lg">{materialName}</h3>
+                        <p className="text-sm text-gray-600">
+                          {hasSubMaterials ? `${subMaterialsCount} sub-materials` : 'Single material'}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setViewingMaterial(mat)}
+                          className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                        >
+                          View
+                        </button>
+                        <button
+                          onClick={() => {
+                            const updated = courseData.materials.filter((_, i) => i !== index)
+                            setCourseData(prev => ({ ...prev, materials: updated }))
+                          }}
+                          className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
@@ -905,10 +935,30 @@ function CourseContentManager({ course, onBack }) {
                   }]
                 }
                 
-                setCourseData(prev => ({
-                  ...prev,
-                  materials: [...prev.materials, newMaterial]
-                }))
+                const updatedCourseData = {
+                  ...courseData,
+                  materials: [...courseData.materials, newMaterial]
+                }
+                
+                setCourseData(updatedCourseData)
+                
+                // Auto-save to database
+                console.log('Saving material data:', JSON.stringify(updatedCourseData, null, 2))
+                const token = localStorage.getItem('token')
+                const saveResponse = await fetch(`/api/admin/courses/${course.id}/content`, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                  },
+                  body: JSON.stringify({ content: updatedCourseData })
+                })
+                
+                console.log('Save response status:', saveResponse.status)
+                
+                if (!saveResponse.ok) {
+                  throw new Error('Failed to save to database')
+                }
                 
                 setShowMaterialModal(false)
                 setMaterialForm({
@@ -916,7 +966,7 @@ function CourseContentManager({ course, onBack }) {
                   hasSubMaterials: false,
                   subMaterials: [{ name: '', file: null, link: '', type: 'pdf', uploadMethod: 'link' }]
                 })
-                alert('Material added successfully!')
+                alert('Material added and saved successfully!')
               } catch (error) {
                 console.error('Error:', error)
                 alert('Failed to add material: ' + error.message)
@@ -1107,7 +1157,7 @@ function CourseContentManager({ course, onBack }) {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">{viewingMaterial.mainName || viewingMaterial.title}</h2>
+              <h2 className="text-xl font-bold">{viewingMaterial.mainName || viewingMaterial.title || 'Material Details'}</h2>
               <button
                 onClick={() => setViewingMaterial(null)}
                 className="text-gray-500 hover:text-gray-700"
@@ -1117,22 +1167,50 @@ function CourseContentManager({ course, onBack }) {
             </div>
             
             <div className="space-y-3">
-              {(viewingMaterial.subMaterials || [{ name: viewingMaterial.title, link: viewingMaterial.link, type: viewingMaterial.type }]).map((sub, index) => (
-                <div key={index} className="border rounded p-3 flex justify-between items-center">
-                  <div>
-                    <h4 className="font-medium">{sub.name}</h4>
-                    <p className="text-sm text-gray-600 capitalize">{sub.type} file</p>
+              {(() => {
+                // Handle both old and new material formats
+                let materialsToShow = []
+                
+                if (viewingMaterial.subMaterials && viewingMaterial.subMaterials.length > 0) {
+                  // New format with sub-materials
+                  materialsToShow = viewingMaterial.subMaterials
+                } else if (viewingMaterial.title && viewingMaterial.link) {
+                  // Old format - single material
+                  materialsToShow = [{
+                    name: viewingMaterial.title,
+                    link: viewingMaterial.link,
+                    type: viewingMaterial.type || 'pdf'
+                  }]
+                } else {
+                  // Fallback
+                  materialsToShow = [{
+                    name: viewingMaterial.mainName || 'Untitled',
+                    link: '#',
+                    type: 'pdf'
+                  }]
+                }
+                
+                return materialsToShow.map((sub, index) => (
+                  <div key={index} className="border rounded p-3 flex justify-between items-center">
+                    <div>
+                      <h4 className="font-medium">{sub.name || 'Untitled'}</h4>
+                      <p className="text-sm text-gray-600 capitalize">{sub.type || 'pdf'} file</p>
+                    </div>
+                    {sub.link && sub.link !== '#' ? (
+                      <a
+                        href={sub.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center gap-1"
+                      >
+                        <FiDownload size={14} /> Download
+                      </a>
+                    ) : (
+                      <span className="text-gray-400 text-sm">No link available</span>
+                    )}
                   </div>
-                  <a
-                    href={sub.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center gap-1"
-                  >
-                    <FiDownload size={14} /> Download
-                  </a>
-                </div>
-              ))}
+                ))
+              })()}
             </div>
           </div>
         </div>
