@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft } from 'react-icons/fi'
+import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers } from 'react-icons/fi'
 
 export default function ManageCourses() {
   const [courses, setCourses] = useState([])
@@ -100,12 +100,17 @@ function CourseContentManager({ course, onBack }) {
     syllabus: [],
     assignments: []
   })
+  const [enrolledUsers, setEnrolledUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [loadingUsers, setLoadingUsers] = useState(false)
 
   useEffect(() => {
     fetchContent()
-  }, [course.id])
+    if (activeTab === 'users') {
+      fetchEnrolledUsers()
+    }
+  }, [course.id, activeTab])
 
   const fetchContent = async () => {
     try {
@@ -121,6 +126,24 @@ function CourseContentManager({ course, onBack }) {
       console.error('Error fetching content:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchEnrolledUsers = async () => {
+    try {
+      setLoadingUsers(true)
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/admin/courses/${course.id}/enrollments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setEnrolledUsers(data.enrollments || [])
+      }
+    } catch (error) {
+      console.error('Error fetching enrolled users:', error)
+    } finally {
+      setLoadingUsers(false)
     }
   }
 
@@ -172,7 +195,8 @@ function CourseContentManager({ course, onBack }) {
             { id: 'meetings', label: 'Live Meetings', icon: <FiVideo size={16} /> },
             { id: 'materials', label: 'Study Materials', icon: <FiDownload size={16} /> },
             { id: 'syllabus', label: 'Course Timeline', icon: <FiCalendar size={16} /> },
-            { id: 'assignments', label: 'Assignments', icon: <FiFileText size={16} /> }
+            { id: 'assignments', label: 'Assignments', icon: <FiFileText size={16} /> },
+            { id: 'users', label: 'Enrolled Users', icon: <FiUsers size={16} /> }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -514,6 +538,65 @@ function CourseContentManager({ course, onBack }) {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'users' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Enrolled Users</h2>
+              <div className="text-sm text-gray-600">
+                Total: {enrolledUsers.length} students
+              </div>
+            </div>
+            {loadingUsers ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mr-3"></div>
+                <span>Loading enrolled users...</span>
+              </div>
+            ) : enrolledUsers.length > 0 ? (
+              <div className="bg-white rounded-lg border overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Enrolled Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {enrolledUsers.map((enrollment, index) => (
+                      <tr key={enrollment._id || index} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                          {enrollment.userId?.name || enrollment.userName || 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {enrollment.userId?.email || enrollment.userEmail || 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            enrollment.userId?.isActive !== false 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {enrollment.userId?.isActive !== false ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <FiUsers size={48} className="mx-auto mb-4 text-gray-300" />
+                <p>No students enrolled in this course yet.</p>
+              </div>
+            )}
           </div>
             )}
           </>
