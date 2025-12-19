@@ -46,7 +46,9 @@ export default function AdminLayout({ children }) {
     <div className="min-h-screen bg-gray-100 flex">
       <div className="w-64 h-screen bg-white shadow-lg overflow-y-auto">
         <div className="p-6 border-b">
-          <h1 className="text-xl font-bold text-blue-600">DSATGURU Admin</h1>
+          <a href="https://dsatguru.com" className="block">
+            <h1 className="text-xl font-bold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer">DSATGURU Admin</h1>
+          </a>
           <p className="text-sm text-gray-600">Welcome, {user?.name}</p>
         </div>
         <nav className="p-4">
