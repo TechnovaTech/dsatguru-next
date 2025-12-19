@@ -1199,8 +1199,7 @@ function CourseContentManager({ course, onBack }) {
                     {sub.link && sub.link !== '#' ? (
                       <a
                         href={sub.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        download
                         className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center gap-1"
                       >
                         <FiDownload size={14} /> Download
