@@ -1,11 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiEdit, FiToggleLeft, FiToggleRight, FiFilter } from 'react-icons/fi'
+import { FiEdit, FiToggleLeft, FiToggleRight, FiFilter, FiPlus, FiTrash2 } from 'react-icons/fi'
 
 export default function UserManagement() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('')
+  const [showModal, setShowModal] = useState(false)
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'Student' })
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -44,6 +46,52 @@ export default function UserManagement() {
     } catch {}
   }
 
+  const handleAddUser = async (e) => {
+    e.preventDefault()
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      })
+      if (res.ok) {
+        const newUser = await res.json()
+        setUsers(prev => [...prev, newUser])
+        setShowModal(false)
+        setFormData({ name: '', email: '', password: '', role: 'Student' })
+        alert('User created successfully!')
+      } else {
+        const error = await res.json()
+        alert(error.error || 'Failed to create user')
+      }
+    } catch (error) {
+      alert('Failed to create user')
+    }
+  }
+
+  const handleDeleteUser = async (id) => {
+    if (!confirm('Are you sure you want to delete this user?')) return
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.ok) {
+        setUsers(prev => prev.filter(u => (u._id || u.id) !== id))
+        alert('User deleted successfully!')
+      } else {
+        alert('Failed to delete user')
+      }
+    } catch (error) {
+      alert('Failed to delete user')
+    }
+  }
+
   const filteredUsers = users.filter(user => {
     if (filter && user.role !== filter) return false
     return true
@@ -65,6 +113,12 @@ export default function UserManagement() {
             <option value="Tutor">Tutors</option>
             <option value="Admin">Admins</option>
           </select>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-700"
+          >
+            <FiPlus /> Add User
+          </button>
         </div>
         </div>
 
@@ -108,8 +162,16 @@ export default function UserManagement() {
                     <button
                       onClick={() => handleToggleStatus(user._id || user.id)}
                       className="text-blue-600 hover:text-blue-900 mr-3"
+                      title="Toggle Status"
                     >
                       {user.isActive ? <FiToggleRight /> : <FiToggleLeft />}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUser(user._id || user.id)}
+                      className="text-red-600 hover:text-red-900"
+                      title="Delete User"
+                    >
+                      <FiTrash2 />
                     </button>
                   </td>
                 </tr>
@@ -117,6 +179,80 @@ export default function UserManagement() {
             </tbody>
           </table>
         </div>
+
+        {/* Add User Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4">Add New User</h2>
+              <form onSubmit={handleAddUser}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Name</label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      className="w-full border rounded px-3 py-2"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className="w-full border rounded px-3 py-2"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Password</label>
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      className="w-full border rounded px-3 py-2"
+                      required
+                      minLength="6"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Role</label>
+                    <select
+                      value={formData.role}
+                      onChange={(e) => setFormData({...formData, role: e.target.value})}
+                      className="w-full border rounded px-3 py-2"
+                    >
+                      <option value="Student">Student</option>
+                      <option value="Tutor">Tutor</option>
+                      <option value="Admin">Admin</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowModal(false)
+                      setFormData({ name: '', email: '', password: '', role: 'Student' })
+                    }}
+                    className="flex-1 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Create User
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
