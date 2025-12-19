@@ -38,8 +38,9 @@ export async function POST(request) {
       }, { status: 500 })
     }
 
-    // Return the public URL
-    const fileUrl = `/uploads/materials/${filename}`
+    // Return the public URL - use absolute URL for live server
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    const fileUrl = `${baseUrl}/uploads/materials/${filename}`
     
     return NextResponse.json({ 
       success: true, 

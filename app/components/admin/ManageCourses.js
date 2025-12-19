@@ -468,7 +468,6 @@ function CourseContentManager({ course, onBack }) {
             <div className="space-y-4">
               {courseData.materials.map((mat, index) => {
                 // Handle both old and new material formats
-                console.log('Material data:', mat) // Debug log
                 const materialName = mat.mainName || mat.title || 'Untitled Material'
                 const subMaterialsCount = mat.subMaterials?.length || 0
                 const hasSubMaterials = mat.hasSubMaterials || (mat.subMaterials && mat.subMaterials.length > 0)
@@ -479,15 +478,12 @@ function CourseContentManager({ course, onBack }) {
                       <div>
                         <h3 className="font-semibold text-lg">{materialName}</h3>
                         <p className="text-sm text-gray-600">
-                          {subMaterialsCount > 0 ? `${subMaterialsCount} sub-materials` : 'Single material'}
+                          {hasSubMaterials ? `${subMaterialsCount} sub-materials` : 'Single material'}
                         </p>
                       </div>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => {
-                            console.log('Viewing material:', mat) // Debug log
-                            setViewingMaterial(mat)
-                          }}
+                          onClick={() => setViewingMaterial(mat)}
                           className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
                         >
                           View
@@ -505,7 +501,7 @@ function CourseContentManager({ course, onBack }) {
                     </div>
                   </div>
                 )
-              })
+              })}
             </div>
           </div>
         )}
