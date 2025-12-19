@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2 } from 'react-icons/fi'
+import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2, FiFolder, FiUpload, FiFile } from 'react-icons/fi'
 
 export default function ManageCourses() {
   const [courses, setCourses] = useState([])
@@ -97,6 +97,7 @@ function CourseContentManager({ course, onBack }) {
   const [courseData, setCourseData] = useState({
     meetings: [],
     materials: [],
+    materialCategories: [],
     syllabus: [],
     assignments: []
   })
@@ -107,6 +108,14 @@ function CourseContentManager({ course, onBack }) {
   const [showEnrollModal, setShowEnrollModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingEnrollment, setEditingEnrollment] = useState(null)
+  const [showMaterialModal, setShowMaterialModal] = useState(false)
+  const [materialForm, setMaterialForm] = useState({
+    mainName: '',
+    hasSubMaterials: false,
+    subMaterials: [{ name: '', file: null, link: '', type: 'pdf', uploadMethod: 'link' }]
+  })
+  const [uploading, setUploading] = useState(false)
+  const [viewingMaterial, setViewingMaterial] = useState(null)
   const [allUsers, setAllUsers] = useState([])
   const [enrollForm, setEnrollForm] = useState({
     userId: '',
@@ -425,59 +434,41 @@ function CourseContentManager({ course, onBack }) {
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Study Materials</h2>
               <button
-                onClick={() => setCourseData(prev => ({
-                  ...prev,
-                  materials: [...prev.materials, { title: '', link: '' }]
-                }))}
+                onClick={() => setShowMaterialModal(true)}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
               >
                 Add Material
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            {/* Materials List */}
+            <div className="space-y-4">
               {courseData.materials.map((mat, index) => (
-                <div key={mat._id || index} className="border rounded-lg p-4">
-                  <input
-                    type="text"
-                    value={mat.title}
-                    onChange={(e) => {
-                      const updated = [...courseData.materials]
-                      updated[index] = { ...updated[index], title: e.target.value }
-                      setCourseData(prev => ({ ...prev, materials: updated }))
-                    }}
-                    className="w-full mb-2 p-2 border rounded"
-                    placeholder="Material title"
-                  />
-                  <input
-                    type="url"
-                    value={mat.link}
-                    onChange={(e) => {
-                      const updated = [...courseData.materials]
-                      updated[index] = { ...updated[index], link: e.target.value }
-                      setCourseData(prev => ({ ...prev, materials: updated }))
-                    }}
-                    className="w-full mb-2 p-2 border rounded"
-                    placeholder="Download link"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setCourseData(prev => ({
-                        ...prev,
-                        materials: [...prev.materials.slice(0, index + 1), { title: '', link: '' }, ...prev.materials.slice(index + 1)]
-                      }))}
-                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Add Below
-                    </button>
-                    <button
-                      onClick={() => {
-                        const updated = courseData.materials.filter((_, i) => i !== index)
-                        setCourseData(prev => ({ ...prev, materials: updated }))
-                      }}
-                      className="bg-red-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Remove
-                    </button>
+                <div key={mat._id || index} className="border rounded-lg p-4 bg-white">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-semibold text-lg">{mat.mainName || mat.title}</h3>
+                      <p className="text-sm text-gray-600">
+                        {mat.subMaterials ? `${mat.subMaterials.length} sub-materials` : 'Single material'}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setViewingMaterial(mat)}
+                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() => {
+                          const updated = courseData.materials.filter((_, i) => i !== index)
+                          setCourseData(prev => ({ ...prev, materials: updated }))
+                        }}
+                        className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -861,6 +852,288 @@ function CourseContentManager({ course, onBack }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Material Modal */}
+      {showMaterialModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Add Study Material</h2>
+            <form onSubmit={async (e) => {
+              e.preventDefault()
+              setUploading(true)
+              
+              try {
+                const processedSubMaterials = []
+                
+                for (const sub of materialForm.subMaterials) {
+                  let finalLink = sub.link
+                  
+                  if (sub.uploadMethod === 'upload' && sub.file) {
+                    const formData = new FormData()
+                    formData.append('file', sub.file)
+                    
+                    const uploadResponse = await fetch('/api/upload/materials', {
+                      method: 'POST',
+                      body: formData
+                    })
+                    
+                    if (uploadResponse.ok) {
+                      const uploadResult = await uploadResponse.json()
+                      finalLink = uploadResult.url
+                    } else {
+                      throw new Error('File upload failed')
+                    }
+                  }
+                  
+                  processedSubMaterials.push({
+                    name: sub.name,
+                    link: finalLink,
+                    type: sub.type
+                  })
+                }
+                
+                const newMaterial = {
+                  mainName: materialForm.mainName,
+                  hasSubMaterials: materialForm.hasSubMaterials,
+                  subMaterials: materialForm.hasSubMaterials ? processedSubMaterials : [{
+                    name: materialForm.mainName,
+                    link: processedSubMaterials[0]?.link || '',
+                    type: processedSubMaterials[0]?.type || 'pdf'
+                  }]
+                }
+                
+                setCourseData(prev => ({
+                  ...prev,
+                  materials: [...prev.materials, newMaterial]
+                }))
+                
+                setShowMaterialModal(false)
+                setMaterialForm({
+                  mainName: '',
+                  hasSubMaterials: false,
+                  subMaterials: [{ name: '', file: null, link: '', type: 'pdf', uploadMethod: 'link' }]
+                })
+                alert('Material added successfully!')
+              } catch (error) {
+                console.error('Error:', error)
+                alert('Failed to add material: ' + error.message)
+              } finally {
+                setUploading(false)
+              }
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Main Material Name</label>
+                  <input
+                    type="text"
+                    value={materialForm.mainName}
+                    onChange={(e) => setMaterialForm({...materialForm, mainName: e.target.value})}
+                    className="w-full border rounded px-3 py-2"
+                    placeholder="e.g., Mathematics"
+                    required
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="hasSubMaterials"
+                    checked={materialForm.hasSubMaterials}
+                    onChange={(e) => setMaterialForm({
+                      ...materialForm, 
+                      hasSubMaterials: e.target.checked,
+                      subMaterials: e.target.checked ? [{ name: '', file: null, link: '', type: 'pdf', uploadMethod: 'link' }] : materialForm.subMaterials
+                    })}
+                  />
+                  <label htmlFor="hasSubMaterials" className="text-sm">Has sub-materials</label>
+                </div>
+                
+                <div className="space-y-3">
+                  <h3 className="font-medium">{materialForm.hasSubMaterials ? 'Sub-Materials' : 'Material Details'}</h3>
+                  {materialForm.subMaterials.map((sub, index) => (
+                    <div key={index} className="border rounded p-3 space-y-2">
+                      <input
+                        type="text"
+                        value={sub.name}
+                        onChange={(e) => {
+                          const updated = [...materialForm.subMaterials]
+                          updated[index] = { ...updated[index], name: e.target.value }
+                          setMaterialForm({...materialForm, subMaterials: updated})
+                        }}
+                        className="w-full border rounded px-3 py-2"
+                        placeholder={materialForm.hasSubMaterials ? `${materialForm.mainName} ${index + 1}` : 'Material name'}
+                        required
+                      />
+                      <select
+                        value={sub.type}
+                        onChange={(e) => {
+                          const updated = [...materialForm.subMaterials]
+                          updated[index] = { ...updated[index], type: e.target.value }
+                          setMaterialForm({...materialForm, subMaterials: updated})
+                        }}
+                        className="w-full border rounded px-3 py-2"
+                      >
+                        <option value="pdf">PDF</option>
+                        <option value="doc">Word Document</option>
+                        <option value="video">Video</option>
+                      </select>
+                      
+                      <div className="flex gap-2 mb-2">
+                        <label className="flex items-center gap-1">
+                          <input
+                            type="radio"
+                            name={`uploadMethod-${index}`}
+                            value="link"
+                            checked={sub.uploadMethod === 'link'}
+                            onChange={(e) => {
+                              const updated = [...materialForm.subMaterials]
+                              updated[index] = { ...updated[index], uploadMethod: e.target.value, file: null }
+                              setMaterialForm({...materialForm, subMaterials: updated})
+                            }}
+                          />
+                          <span className="text-sm">Link</span>
+                        </label>
+                        <label className="flex items-center gap-1">
+                          <input
+                            type="radio"
+                            name={`uploadMethod-${index}`}
+                            value="upload"
+                            checked={sub.uploadMethod === 'upload'}
+                            onChange={(e) => {
+                              const updated = [...materialForm.subMaterials]
+                              updated[index] = { ...updated[index], uploadMethod: e.target.value, link: '' }
+                              setMaterialForm({...materialForm, subMaterials: updated})
+                            }}
+                          />
+                          <span className="text-sm">Upload File</span>
+                        </label>
+                      </div>
+                      
+                      {sub.uploadMethod === 'link' ? (
+                        <input
+                          type="url"
+                          value={sub.link || ''}
+                          onChange={(e) => {
+                            const updated = [...materialForm.subMaterials]
+                            updated[index] = { ...updated[index], link: e.target.value }
+                            setMaterialForm({...materialForm, subMaterials: updated})
+                          }}
+                          className="w-full border rounded px-3 py-2"
+                          placeholder="Enter file URL"
+                          required
+                        />
+                      ) : (
+                        <div>
+                          <input
+                            type="file"
+                            accept={sub.type === 'pdf' ? '.pdf' : sub.type === 'doc' ? '.doc,.docx' : sub.type === 'video' ? '.mp4,.avi,.mov' : '*'}
+                            onChange={(e) => {
+                              const updated = [...materialForm.subMaterials]
+                              updated[index] = { ...updated[index], file: e.target.files[0] }
+                              setMaterialForm({...materialForm, subMaterials: updated})
+                            }}
+                            className="w-full border rounded px-3 py-2"
+                            required
+                          />
+                          {sub.file && (
+                            <p className="text-sm text-green-600 mt-1">Selected: {sub.file.name}</p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {materialForm.hasSubMaterials && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = materialForm.subMaterials.filter((_, i) => i !== index)
+                            setMaterialForm({...materialForm, subMaterials: updated})
+                          }}
+                          className="text-red-600 text-sm hover:text-red-800"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {materialForm.hasSubMaterials && (
+                    <button
+                      type="button"
+                      onClick={() => setMaterialForm({
+                        ...materialForm,
+                        subMaterials: [...materialForm.subMaterials, { name: '', file: null, link: '', type: 'pdf', uploadMethod: 'link' }]
+                      })}
+                      className="bg-green-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Add More Sub-Material
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMaterialModal(false)
+                    setMaterialForm({
+                      mainName: '',
+                      hasSubMaterials: false,
+                      subMaterials: [{ name: '', file: null, link: '', type: 'pdf', uploadMethod: 'link' }]
+                    })
+                  }}
+                  className="flex-1 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploading}
+                  className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {uploading ? 'Saving...' : 'Save Material'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      
+      {/* View Material Modal */}
+      {viewingMaterial && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">{viewingMaterial.mainName || viewingMaterial.title}</h2>
+              <button
+                onClick={() => setViewingMaterial(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {(viewingMaterial.subMaterials || [{ name: viewingMaterial.title, link: viewingMaterial.link, type: viewingMaterial.type }]).map((sub, index) => (
+                <div key={index} className="border rounded p-3 flex justify-between items-center">
+                  <div>
+                    <h4 className="font-medium">{sub.name}</h4>
+                    <p className="text-sm text-gray-600 capitalize">{sub.type} file</p>
+                  </div>
+                  <a
+                    href={sub.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center gap-1"
+                  >
+                    <FiDownload size={14} /> Download
+                  </a>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
