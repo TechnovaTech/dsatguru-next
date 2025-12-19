@@ -61,11 +61,15 @@ export async function POST(request, { params }) {
     if (accessType !== 'lifetime' && accessDuration) {
       const now = new Date()
       if (accessType === 'days') {
-        expiresAt = new Date(now.getTime() + (accessDuration * 24 * 60 * 60 * 1000))
+        expiresAt = new Date(now.getTime() + (parseInt(accessDuration) * 24 * 60 * 60 * 1000))
       } else if (accessType === 'months') {
-        expiresAt = new Date(now.setMonth(now.getMonth() + parseInt(accessDuration)))
+        const futureDate = new Date(now)
+        futureDate.setMonth(futureDate.getMonth() + parseInt(accessDuration))
+        expiresAt = futureDate
       } else if (accessType === 'years') {
-        expiresAt = new Date(now.setFullYear(now.getFullYear() + parseInt(accessDuration)))
+        const futureDate = new Date(now)
+        futureDate.setFullYear(futureDate.getFullYear() + parseInt(accessDuration))
+        expiresAt = futureDate
       }
     }
 

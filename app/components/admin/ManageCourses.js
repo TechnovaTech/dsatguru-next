@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers } from 'react-icons/fi'
+import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2 } from 'react-icons/fi'
 
 export default function ManageCourses() {
   const [courses, setCourses] = useState([])
@@ -105,6 +105,8 @@ function CourseContentManager({ course, onBack }) {
   const [saving, setSaving] = useState(false)
   const [loadingUsers, setLoadingUsers] = useState(false)
   const [showEnrollModal, setShowEnrollModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingEnrollment, setEditingEnrollment] = useState(null)
   const [allUsers, setAllUsers] = useState([])
   const [enrollForm, setEnrollForm] = useState({
     userId: '',
@@ -192,6 +194,81 @@ function CourseContentManager({ course, onBack }) {
       }
     } catch (error) {
       alert('Failed to enroll user')
+    }
+  }
+
+  const handleEditEnrollment = async (e) => {
+    e.preventDefault()
+    try {
+      const token = localStorage.getItem('token')
+      const updateData = {
+        accessType: enrollForm.accessType,
+        accessDuration: enrollForm.accessType !== 'lifetime' ? enrollForm.accessDuration : null
+      }
+      
+      const response = await fetch(`/api/admin/courses/${course.id}/enrollments/${editingEnrollment._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(updateData)
+      })
+      
+      if (response.ok) {
+        alert('Enrollment updated successfully!')
+        setShowEditModal(false)
+        setEditingEnrollment(null)
+        setEnrollForm({ userId: '', accessType: 'lifetime', accessDuration: '' })
+        fetchEnrolledUsers()
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to update enrollment')
+        console.error('Update error:', error)
+      }
+    } catch (error) {
+      console.error('Update error:', error)
+      alert('Failed to update enrollment')
+    }
+  }
+
+  const handleToggleEnrollmentStatus = async (enrollmentId, currentStatus) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/admin/courses/${course.id}/enrollments/${enrollmentId}/toggle`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ isActive: !currentStatus })
+      })
+      if (response.ok) {
+        fetchEnrolledUsers()
+      } else {
+        alert('Failed to toggle status')
+      }
+    } catch (error) {
+      alert('Failed to toggle status')
+    }
+  }
+
+  const handleDeleteEnrollment = async (enrollmentId) => {
+    if (!confirm('Are you sure you want to remove this enrollment?')) return
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/admin/courses/${course.id}/enrollments/${enrollmentId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.ok) {
+        alert('Enrollment removed successfully!')
+        fetchEnrolledUsers()
+      } else {
+        alert('Failed to remove enrollment')
+      }
+    } catch (error) {
+      alert('Failed to remove enrollment')
     }
   }
 
@@ -623,6 +700,7 @@ function CourseContentManager({ course, onBack }) {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Enrolled Date</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Access</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -651,6 +729,39 @@ function CourseContentManager({ course, onBack }) {
                           }`}>
                             {enrollment.userId?.isActive !== false ? 'Active' : 'Inactive'}
                           </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm font-medium">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingEnrollment(enrollment)
+                                setEnrollForm({
+                                  userId: enrollment.userId?._id || enrollment.userId,
+                                  accessType: enrollment.accessType || 'lifetime',
+                                  accessDuration: enrollment.accessDuration || ''
+                                })
+                                setShowEditModal(true)
+                              }}
+                              className="text-blue-600 hover:text-blue-900"
+                              title="Edit Enrollment"
+                            >
+                              <FiEdit />
+                            </button>
+                            <button
+                              onClick={() => handleToggleEnrollmentStatus(enrollment._id, enrollment.userId?.isActive !== false)}
+                              className="text-orange-600 hover:text-orange-900"
+                              title="Toggle Status"
+                            >
+                              {enrollment.userId?.isActive !== false ? <FiToggleRight /> : <FiToggleLeft />}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteEnrollment(enrollment._id)}
+                              className="text-red-600 hover:text-red-900"
+                              title="Delete Enrollment"
+                            >
+                              <FiTrash2 />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -747,6 +858,81 @@ function CourseContentManager({ course, onBack }) {
                   className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                   Enroll User
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Enrollment Modal */}
+      {showEditModal && editingEnrollment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Edit Enrollment</h2>
+            <form onSubmit={handleEditEnrollment}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">User</label>
+                  <input
+                    type="text"
+                    value={editingEnrollment.userId?.name || 'Unknown User'}
+                    className="w-full border rounded px-3 py-2 bg-gray-100"
+                    disabled
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Access Type</label>
+                  <select
+                    value={enrollForm.accessType}
+                    onChange={(e) => {
+                      setEnrollForm({...enrollForm, accessType: e.target.value, accessDuration: ''})
+                    }}
+                    className="w-full border rounded px-3 py-2"
+                  >
+                    <option value="lifetime">Lifetime</option>
+                    <option value="days">Days</option>
+                    <option value="months">Months</option>
+                    <option value="years">Years</option>
+                  </select>
+                </div>
+                {enrollForm.accessType !== 'lifetime' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Duration ({enrollForm.accessType === 'days' ? 'Max 31' : 
+                                enrollForm.accessType === 'months' ? 'Max 12' : 'Any number'})
+                    </label>
+                    <input
+                      type="number"
+                      value={enrollForm.accessDuration}
+                      onChange={(e) => setEnrollForm({...enrollForm, accessDuration: e.target.value})}
+                      className="w-full border rounded px-3 py-2"
+                      min="1"
+                      max={enrollForm.accessType === 'days' ? '31' : 
+                           enrollForm.accessType === 'months' ? '12' : undefined}
+                      required
+                      placeholder={`Enter number of ${enrollForm.accessType}`}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false)
+                    setEditingEnrollment(null)
+                    setEnrollForm({ userId: '', accessType: 'lifetime', accessDuration: '' })
+                  }}
+                  className="flex-1 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Update Enrollment
                 </button>
               </div>
             </form>
