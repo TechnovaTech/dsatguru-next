@@ -104,6 +104,13 @@ function CourseContentManager({ course, onBack }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [loadingUsers, setLoadingUsers] = useState(false)
+  const [showEnrollModal, setShowEnrollModal] = useState(false)
+  const [allUsers, setAllUsers] = useState([])
+  const [enrollForm, setEnrollForm] = useState({
+    userId: '',
+    accessType: 'lifetime',
+    accessDuration: ''
+  })
 
   useEffect(() => {
     fetchContent()
@@ -144,6 +151,47 @@ function CourseContentManager({ course, onBack }) {
       console.error('Error fetching enrolled users:', error)
     } finally {
       setLoadingUsers(false)
+    }
+  }
+
+  const fetchAllUsers = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/admin/users', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.ok) {
+        const users = await response.json()
+        setAllUsers(users.filter(u => u.role === 'Student'))
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    }
+  }
+
+  const handleAddEnrollment = async (e) => {
+    e.preventDefault()
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/admin/courses/${course.id}/enrollments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(enrollForm)
+      })
+      if (response.ok) {
+        alert('User enrolled successfully!')
+        setShowEnrollModal(false)
+        setEnrollForm({ userId: '', accessType: 'lifetime', accessDuration: '' })
+        fetchEnrolledUsers()
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to enroll user')
+      }
+    } catch (error) {
+      alert('Failed to enroll user')
     }
   }
 
@@ -545,8 +593,19 @@ function CourseContentManager({ course, onBack }) {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Enrolled Users</h2>
-              <div className="text-sm text-gray-600">
-                Total: {enrolledUsers.length} students
+              <div className="flex items-center gap-4">
+                <div className="text-sm text-gray-600">
+                  Total: {enrolledUsers.length} students
+                </div>
+                <button
+                  onClick={() => {
+                    setShowEnrollModal(true)
+                    fetchAllUsers()
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-700"
+                >
+                  <FiUsers size={16} /> Add Enrollment
+                </button>
               </div>
             </div>
             {loadingUsers ? (
@@ -562,6 +621,7 @@ function CourseContentManager({ course, onBack }) {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Enrolled Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Access</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                     </tr>
                   </thead>
@@ -576,6 +636,12 @@ function CourseContentManager({ course, onBack }) {
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
                           {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {enrollment.accessType === 'lifetime' ? 'Lifetime' : 
+                           enrollment.expiresAt ? 
+                           `Until ${new Date(enrollment.expiresAt).toLocaleDateString()}` : 
+                           `${enrollment.accessDuration || 0} ${enrollment.accessType || 'days'}`}
                         </td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -602,6 +668,91 @@ function CourseContentManager({ course, onBack }) {
           </>
         )}
       </div>
+
+      {/* Add Enrollment Modal */}
+      {showEnrollModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Add Course Enrollment</h2>
+            <form onSubmit={handleAddEnrollment}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Select User</label>
+                  <select
+                    value={enrollForm.userId}
+                    onChange={(e) => setEnrollForm({...enrollForm, userId: e.target.value})}
+                    className="w-full border rounded px-3 py-2"
+                    required
+                  >
+                    <option value="">Choose a student...</option>
+                    {allUsers.filter(user => 
+                      !enrolledUsers.some(enrollment => 
+                        (enrollment.userId?._id || enrollment.userId) === user._id
+                      )
+                    ).map((user) => (
+                      <option key={user._id} value={user._id}>
+                        {user.name} ({user.email})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Access Type</label>
+                  <select
+                    value={enrollForm.accessType}
+                    onChange={(e) => {
+                      setEnrollForm({...enrollForm, accessType: e.target.value, accessDuration: ''})
+                    }}
+                    className="w-full border rounded px-3 py-2"
+                  >
+                    <option value="lifetime">Lifetime</option>
+                    <option value="days">Days</option>
+                    <option value="months">Months</option>
+                    <option value="years">Years</option>
+                  </select>
+                </div>
+                {enrollForm.accessType !== 'lifetime' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Duration ({enrollForm.accessType === 'days' ? 'Max 31' : 
+                                enrollForm.accessType === 'months' ? 'Max 12' : 'Any number'})
+                    </label>
+                    <input
+                      type="number"
+                      value={enrollForm.accessDuration}
+                      onChange={(e) => setEnrollForm({...enrollForm, accessDuration: e.target.value})}
+                      className="w-full border rounded px-3 py-2"
+                      min="1"
+                      max={enrollForm.accessType === 'days' ? '31' : 
+                           enrollForm.accessType === 'months' ? '12' : undefined}
+                      required
+                      placeholder={`Enter number of ${enrollForm.accessType}`}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEnrollModal(false)
+                    setEnrollForm({ userId: '', accessType: 'lifetime', accessDuration: '' })
+                  }}
+                  className="flex-1 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Enroll User
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
