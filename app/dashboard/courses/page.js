@@ -142,7 +142,7 @@ export default function CoursesPage() {
   return (
     <div className="p-6 space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">My Courses</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">My Live Courses</h1>
         <p className="text-gray-600">Manage your enrolled courses and explore new ones</p>
       </div>
 
@@ -167,7 +167,7 @@ export default function CoursesPage() {
       )}
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">Available Courses</h2>
+        <h2 className="text-xl font-semibold mb-4">Available Live Courses</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => (
             <div key={course.id} className="bg-white rounded-lg shadow-md p-6">

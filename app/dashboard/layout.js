@@ -8,7 +8,7 @@ import { useState } from 'react'
 
 const navItems = [
   { name: "Dashboard", icon: <FiGrid />, path: "/dashboard" },
-  { name: "Courses", icon: <FiBook />, path: "/dashboard/courses" },
+  { name: "Live Courses", icon: <FiBook />, path: "/dashboard/courses" },
   { name: "Question Banks", icon: <FiDatabase />, path: "/dashboard/question-banks" },
   { name: "Study Plan", icon: <FiTarget />, path: "/dashboard/study-plan" },
   { name: "Analytics", icon: <FiBarChart />, path: "/dashboard/analytics" },
