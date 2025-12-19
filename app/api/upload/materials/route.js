@@ -19,7 +19,7 @@ export async function POST(request) {
     try {
       await mkdir(uploadsDir, { recursive: true })
     } catch (error) {
-      // Directory might already exist
+      console.log('Directory creation error (might already exist):', error.message)
     }
 
     // Generate unique filename
@@ -28,8 +28,15 @@ export async function POST(request) {
     const filename = `${timestamp}-${originalName}`
     const filepath = path.join(uploadsDir, filename)
 
-    // Write file
-    await writeFile(filepath, buffer)
+    // Write file with error handling
+    try {
+      await writeFile(filepath, buffer)
+    } catch (writeError) {
+      console.error('File write error:', writeError)
+      return NextResponse.json({ 
+        error: 'Failed to save file. Check directory permissions.' 
+      }, { status: 500 })
+    }
 
     // Return the public URL
     const fileUrl = `/uploads/materials/${filename}`
@@ -42,6 +49,8 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('Upload error:', error)
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
+    return NextResponse.json({ 
+      error: `Upload failed: ${error.message}` 
+    }, { status: 500 })
   }
 }
