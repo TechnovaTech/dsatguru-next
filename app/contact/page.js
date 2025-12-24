@@ -143,7 +143,7 @@ export default function Contact() {
             </div>
             <div>
               <h4 className="font-semibold text-gray-800">Call Us</h4>
-              <p className="text-sm text-gray-600">1-919-578-7724</p>
+              <p className="text-sm text-gray-600">1-329-239-8577</p>
             </div>
           </motion.div>
           <motion.div
