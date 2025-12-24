@@ -20,7 +20,7 @@ export const CourseProvider = ({ children }) => {
     icon: MdPerson,
     title: 'INDIVIDUAL TUTORING',
     subtitle: 'Personalized Support',
-    batch: ['CALL US\n1-919-578-7724'],
+    batch: ['CALL US\n1-329-239-8577'],
     included: [
       'Personalized learning plan',
       'One-on-one sessions',
