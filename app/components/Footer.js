@@ -61,8 +61,8 @@ export default function Footer() {
         </div>
         <div>
           <h5 className="font-semibold text-white mb-2">Contact Us</h5>
-          <a href="tel:1-919-578-7724" className="text-sm text-gray-300 flex gap-2 items-center mb-1">
-            <FaPhone /> 1-919-578-7724
+          <a href="tel:1-329-239-8577" className="text-sm text-gray-300 flex gap-2 items-center mb-1">
+            <FaPhone /> 1-329-239-8577
           </a>
           <a href="mailto:info@dsatguru.com" className="text-sm text-gray-300 flex gap-2 items-center">
             <FaMessage /> info@dsatguru.com
