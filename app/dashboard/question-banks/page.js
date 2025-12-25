@@ -92,6 +92,22 @@ export default function QuestionBanksPage() {
 
   return (
     <div className="p-6 space-y-8">
+      {/* Contact Banners */}
+      <a
+        href="https://wa.me/13292398577"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed left-0 top-[30%] bg-green-600 text-white px-3 py-2 rounded-r-md shadow z-50 hover:bg-green-700 [writing-mode:vertical-rl] [text-orientation:mixed] text-sm font-semibold"
+      >
+        Chat on WhatsApp
+      </a>
+      <a
+        href="tel:+13292398577"
+        className="fixed left-0 top-[50%] bg-red-600 text-white px-3 py-2 rounded-r-md shadow z-50 hover:bg-red-700 [writing-mode:vertical-rl] [text-orientation:mixed] text-sm font-semibold"
+      >
+        Call +1 329-239-8577
+      </a>
+      
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Question Banks</h1>
         <p className="text-gray-600">Practice with our comprehensive question collections</p>

@@ -106,7 +106,7 @@ export default function HeroSection({ landingPlanRef }) {
   return (
     <section className="relative w-full min-h-[70vh] h-auto overflow-hidden">
       <a
-        href="https://wa.me/19195787724"
+        href="https://wa.me/13292398577"
         target="_blank"
         rel="noopener noreferrer"
         className="absolute left-0 top-[30%] bg-green-600 text-white px-3 py-2 rounded-r-md shadow z-50 hover:bg-green-700 [writing-mode:vertical-rl] [text-orientation:mixed] text-sm font-semibold"
@@ -114,10 +114,10 @@ export default function HeroSection({ landingPlanRef }) {
         Chat on WhatsApp
       </a>
       <a
-        href="tel:+19195787724"
+        href="tel:+13292398577"
         className="absolute left-0 top-[65%] bg-red-600 text-white px-3 py-2 rounded-r-md shadow z-50 hover:bg-red-700 [writing-mode:vertical-rl] [text-orientation:mixed] text-sm font-semibold"
       >
-        Call +1 919-578-7724
+        Call +1 329-239-8577
       </a>
       <AnimatePresence initial={false} custom={direction} mode="sync">
         <motion.div
