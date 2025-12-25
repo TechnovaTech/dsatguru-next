@@ -293,10 +293,12 @@ export default function SATQuestionUpload() {
         setBulkUpload(prev => ({ ...prev, csvRecords: [], mapping: null }))
         return
       }
-      const header = rows[0].map(h => (h || '').trim())
-      const idxImage = header.findIndex(h => h.toLowerCase() === 'imagefilename')
-      const idxTitle = header.findIndex(h => h.toLowerCase() === 'title')
-      const idxContent = header.findIndex(h => h.toLowerCase() === 'content')
+      const header = rows[0].map(h => (h || '').trim().toLowerCase())
+      const idxImage = header.findIndex(h => h === 'imagefilename')
+      const idxTitle = header.findIndex(h => h === 'title')
+      const idxContent = header.findIndex(h => h === 'content')
+      const idxSubject = header.findIndex(h => h === 'subject')
+      const idxDifficulty = header.findIndex(h => h === 'difficulty')
       const records = []
       for (let r = 1; r < rows.length; r++) {
         const cols = rows[r]
@@ -304,8 +306,18 @@ export default function SATQuestionUpload() {
         const imageName = (idxImage >= 0 ? (cols[idxImage] || '').trim() : '')
         const title = (idxTitle >= 0 ? (cols[idxTitle] || '').trim() : '')
         const content = (idxContent >= 0 ? (cols[idxContent] || '').trim() : '')
-        const labelSource = title || content
-        const label = labelSource ? (labelSource.length > 80 ? labelSource.slice(0, 77) + '...' : labelSource) : `Row ${r}`
+        const subject = (idxSubject >= 0 ? (cols[idxSubject] || '').trim() : '')
+        const difficulty = (idxDifficulty >= 0 ? (cols[idxDifficulty] || '').trim() : '')
+        
+        // Create better preview label
+        let labelSource = content || title
+        if (labelSource && labelSource.length > 60) {
+          labelSource = labelSource.slice(0, 57) + '...'
+        }
+        const subjectPrefix = subject ? `[${subject}] ` : ''
+        const difficultyPrefix = difficulty ? `(${difficulty}) ` : ''
+        const label = labelSource ? `${subjectPrefix}${difficultyPrefix}${labelSource}` : `Row ${r}`
+        
         records.push({ row: r, imageFileName: imageName, label })
       }
       const mapping = computeImageMapping(records, bulkUpload.images)
@@ -649,7 +661,7 @@ export default function SATQuestionUpload() {
                               return (
                                 <tr key={index}>
                                   <td className="px-4 py-2 text-sm text-gray-900">{record.row}</td>
-                                  <td className="px-4 py-2 text-sm text-gray-900">{record.label}</td>
+                                  <td className="px-4 py-2 text-sm text-gray-900 max-w-xs truncate" title={record.label}>{record.label}</td>
                                   <td className="px-4 py-2 text-sm text-gray-500">{record.imageFileName || '-'}</td>
                                   <td className="px-4 py-2 text-sm">
                                     {mappingEntry ? (

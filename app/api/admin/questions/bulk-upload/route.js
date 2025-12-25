@@ -86,7 +86,7 @@ export async function POST(request) {
     const header = rows[0].map(h => (h || '').trim().toLowerCase())
     const idx = (name) => header.findIndex(h => h === name.toLowerCase())
     const idxTitle = idx('title')
-    const idxContent = idx('content') >= 0 ? idx('content') : idx('questiontext')
+    const idxContent = idx('content')
     const idxSubject = idx('subject')
     const idxDifficulty = idx('difficulty')
     const idxCorrect = idx('correctanswer')
@@ -94,9 +94,11 @@ export async function POST(request) {
     const idxB = idx('optionb')
     const idxC = idx('optionc')
     const idxD = idx('optiond')
-    const idxParagraph = idx('questionparagraph') >= 0 ? idx('questionparagraph') : idx('passagetext')
+    const idxParagraph = idx('questionparagraph')
     const idxExplanation = idx('explanation')
-    const idxTags = idx('tags') >= 0 ? idx('tags') : idx('topic')
+    const idxShortExpl = idx('shortexplanation')
+    const idxLongExpl = idx('longexplanation')
+    const idxTags = idx('tags')
     const idxImage = idx('imagefilename')
 
     // Map images by filename for quick lookup (we only persist name as imageUrl)
@@ -145,6 +147,8 @@ export async function POST(request) {
       const optionD = idxD >= 0 ? (cols[idxD] || '').trim() : ''
       const questionParagraph = idxParagraph >= 0 ? (cols[idxParagraph] || '').trim() : ''
       const explanation = idxExplanation >= 0 ? (cols[idxExplanation] || '').trim() : ''
+      const shortExplanation = idxShortExpl >= 0 ? (cols[idxShortExpl] || '').trim() : explanation
+      const longExplanation = idxLongExpl >= 0 ? (cols[idxLongExpl] || '').trim() : explanation
       const tagsRaw = idxTags >= 0 ? (cols[idxTags] || '').trim() : ''
       const imageFileName = idxImage >= 0 ? (cols[idxImage] || '').trim() : ''
       const imageUrl = imageFileName && imageNameSet.has(imageFileName.toLowerCase()) ? imageFileName : ''
@@ -163,10 +167,12 @@ export async function POST(request) {
         subject,
         difficulty,
         type: 'MultipleChoice',
+        testType: 'Base',
         correctAnswer,
         options: JSON.stringify(optionsArr),
         tags: JSON.stringify(tagsArr),
         points: 1,
+        isActive: true,
         imageUrl: imageUrl || undefined,
         questionParagraph,
         questionBankId,
@@ -178,12 +184,24 @@ export async function POST(request) {
       return NextResponse.json({ error: 'No questions parsed from CSV' }, { status: 400 })
     }
 
-    const created = await Question.insertMany(toCreate)
-    return NextResponse.json({
-      success: true,
-      message: 'Questions uploaded successfully',
-      count: created.length
-    })
+    console.log(`Attempting to create ${toCreate.length} questions`)
+    console.log('Sample question data:', JSON.stringify(toCreate[0], null, 2))
+    
+    try {
+      const created = await Question.insertMany(toCreate)
+      console.log(`Successfully created ${created.length} questions`)
+      return NextResponse.json({
+        success: true,
+        message: 'Questions uploaded successfully',
+        count: created.length
+      })
+    } catch (dbError) {
+      console.error('Database insertion error:', dbError)
+      return NextResponse.json({ 
+        error: 'Failed to save questions to database', 
+        details: dbError.message 
+      }, { status: 500 })
+    }
   } catch (error) {
     console.error('Bulk upload error:', error)
     return NextResponse.json({ 
