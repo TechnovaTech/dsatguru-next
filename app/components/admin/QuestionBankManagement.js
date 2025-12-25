@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { FiSearch, FiEye, FiArrowLeft, FiPlus, FiEdit, FiX, FiCheck, FiEye as FiPreview, FiTrash } from 'react-icons/fi'
+import { FiSearch, FiEye, FiArrowLeft, FiPlus, FiEdit, FiX, FiCheck, FiEye as FiPreview, FiTrash, FiSettings, FiUserPlus, FiUserMinus } from 'react-icons/fi'
 import { useRouter } from 'next/navigation'
 
 export default function QuestionBankManagement() {
@@ -15,6 +15,12 @@ export default function QuestionBankManagement() {
   const [filters, setFilters] = useState({ subject: '', difficulty: '', type: '', tag: '', isActive: '', mathTopic: '', mathSubtopic: '', readingWritingTopic: '' })
   const [preview, setPreview] = useState(null)
   const [editItem, setEditItem] = useState(null)
+  const [showAccessModal, setShowAccessModal] = useState(false)
+  const [selectedBankForAccess, setSelectedBankForAccess] = useState(null)
+  const [users, setUsers] = useState([])
+  const [selectedUser, setSelectedUser] = useState('')
+  const [bankAccess, setBankAccess] = useState([])
+  const [accessLoading, setAccessLoading] = useState(false)
 
   const mathSubtopics = {
     'algebra': {
@@ -84,6 +90,95 @@ export default function QuestionBankManagement() {
     } finally {
       setQLoading(false)
     }
+  }
+
+  const fetchUsers = async () => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const res = await fetch('/api/admin/users', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
+      const json = await res.json()
+      setUsers(Array.isArray(json) ? json : json.users || [])
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    }
+  }
+
+  const fetchBankAccess = async (bankId) => {
+    try {
+      setAccessLoading(true)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const res = await fetch(`/api/admin/question-banks/${bankId}/access`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
+      const json = await res.json()
+      setBankAccess(json.access || [])
+    } catch (error) {
+      console.error('Error fetching bank access:', error)
+    } finally {
+      setAccessLoading(false)
+    }
+  }
+
+  const grantAccess = async () => {
+    if (!selectedUser || !selectedBankForAccess) return
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      await fetch(`/api/admin/question-banks/${selectedBankForAccess.id}/access`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ userId: selectedUser })
+      })
+      setSelectedUser('')
+      fetchBankAccess(selectedBankForAccess.id)
+      alert('Access granted successfully')
+    } catch (error) {
+      console.error('Error granting access:', error)
+      alert('Failed to grant access')
+    }
+  }
+
+  const revokeAccess = async (userId) => {
+    if (!selectedBankForAccess) return
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      await fetch(`/api/admin/question-banks/${selectedBankForAccess.id}/access/${userId}`, {
+        method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
+      fetchBankAccess(selectedBankForAccess.id)
+      alert('Access revoked successfully')
+    } catch (error) {
+      console.error('Error revoking access:', error)
+      alert('Failed to revoke access')
+    }
+  }
+
+  const deleteQuestionBank = async (bankId) => {
+    if (!confirm('Are you sure you want to delete this question bank? This action cannot be undone.')) return
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      await fetch(`/api/admin/question-banks/${bankId}`, {
+        method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
+      setQuestionBanks(prev => prev.filter(b => b.id !== bankId))
+      alert('Question bank deleted successfully')
+    } catch (error) {
+      console.error('Error deleting question bank:', error)
+      alert('Failed to delete question bank')
+    }
+  }
+
+  const openAccessModal = (bank) => {
+    setSelectedBankForAccess(bank)
+    setShowAccessModal(true)
+    fetchUsers()
+    fetchBankAccess(bank.id)
   }
 
   const setBankAndView = (bank) => {
@@ -578,9 +673,17 @@ export default function QuestionBankManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(bank.createdAt).toLocaleDateString()}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded" onClick={() => setBankAndView(bank)}>
-                        <FiEye className="mr-1" /> View
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded" onClick={() => setBankAndView(bank)}>
+                          <FiEye className="mr-1" /> View
+                        </button>
+                        <button className="inline-flex items-center px-3 py-1 text-green-600 hover:text-green-800 hover:bg-green-100 rounded" onClick={() => openAccessModal(bank)}>
+                          <FiSettings className="mr-1" /> Manage Access
+                        </button>
+                        <button className="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded" onClick={() => deleteQuestionBank(bank.id)}>
+                          <FiTrash className="mr-1" /> Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -593,6 +696,143 @@ export default function QuestionBankManagement() {
             </table>
           </div>
         </div>
+
+        {/* Access Management Modal */}
+        {showAccessModal && selectedBankForAccess && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b flex items-center justify-between">
+                <h3 className="text-xl font-semibold">Manage Access - {selectedBankForAccess.title}</h3>
+                <button className="text-gray-600 hover:text-gray-800" onClick={() => setShowAccessModal(false)}>
+                  <FiX size={24} />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                {/* Grant Access Section */}
+                <div className="mb-8">
+                  <h4 className="text-lg font-medium mb-4 flex items-center">
+                    <FiUserPlus className="mr-2 text-green-600" />
+                    Grant Access to User
+                  </h4>
+                  <div className="flex gap-4 items-end">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Select User</label>
+                      <select
+                        value={selectedUser}
+                        onChange={(e) => setSelectedUser(e.target.value)}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Choose a user...</option>
+                        {users.filter(user => !bankAccess.some(access => access.userId === user._id)).map(user => (
+                          <option key={user._id} value={user._id}>
+                            {user.name} ({user.email}) - {user.role}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <button
+                      onClick={grantAccess}
+                      disabled={!selectedUser}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center"
+                    >
+                      <FiUserPlus className="mr-2" />
+                      Grant Access
+                    </button>
+                  </div>
+                </div>
+
+                {/* Current Access List */}
+                <div>
+                  <h4 className="text-lg font-medium mb-4 flex items-center">
+                    <FiEye className="mr-2 text-blue-600" />
+                    Users with Access ({bankAccess.length})
+                  </h4>
+                  
+                  {accessLoading ? (
+                    <div className="text-center py-8">
+                      <div className="text-gray-500">Loading access list...</div>
+                    </div>
+                  ) : bankAccess.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      No users have access to this question bank yet.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Access Type</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Granted Date</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {bankAccess.map(access => (
+                            <tr key={access.userId} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {access.userName || 'Unknown User'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {access.userEmail || 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                  access.userRole === 'Admin' ? 'bg-red-100 text-red-800' :
+                                  access.userRole === 'Tutor' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-green-100 text-green-800'
+                                }`}>
+                                  {access.userRole || 'Student'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                  access.accessType === 'stripe' ? 'bg-purple-100 text-purple-800' :
+                                  'bg-orange-100 text-orange-800'
+                                }`}>
+                                  {access.accessType === 'stripe' ? 'Stripe Payment' : 'Admin Granted'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {new Date(access.grantedAt).toLocaleDateString()}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                {access.accessType !== 'stripe' && (
+                                  <button
+                                    onClick={() => revokeAccess(access.userId)}
+                                    className="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
+                                  >
+                                    <FiUserMinus className="mr-1" />
+                                    Revoke
+                                  </button>
+                                )}
+                                {access.accessType === 'stripe' && (
+                                  <span className="text-xs text-gray-500">Paid Access</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="p-6 border-t bg-gray-50 text-right">
+                <button
+                  onClick={() => setShowAccessModal(false)}
+                  className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
