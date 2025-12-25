@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiPlus, FiTrash2, FiSave } from 'react-icons/fi'
+import { FiPlus, FiTrash2, FiSave, FiMove } from 'react-icons/fi'
 import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa'
 
 export default function ComparisonManagement() {
@@ -14,6 +14,7 @@ export default function ComparisonManagement() {
     ]
   })
   const [loading, setLoading] = useState(false)
+  const [draggedIndex, setDraggedIndex] = useState(null)
 
   useEffect(() => {
     fetchComparison()
@@ -107,6 +108,7 @@ export default function ComparisonManagement() {
   }
 
   const updateProviderValue = (providerIndex, valueIndex, value) => {
+    console.log('updateProviderValue called:', { providerIndex, valueIndex, value, type: typeof value })
     setComparison(prev => ({
       ...prev,
       providers: prev.providers.map((provider, i) => {
@@ -116,6 +118,7 @@ export default function ComparisonManagement() {
             newValues.push('')
           }
           newValues[valueIndex] = value
+          console.log('Updated provider values:', newValues)
           return { ...provider, values: newValues }
         }
         return provider
@@ -139,6 +142,44 @@ export default function ComparisonManagement() {
       ...prev,
       providers: prev.providers.filter((_, i) => i !== index)
     }))
+  }
+
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === dropIndex) return
+
+    setComparison(prev => {
+      const newFeatures = [...prev.features]
+      const draggedFeature = newFeatures[draggedIndex]
+      
+      // Remove dragged feature
+      newFeatures.splice(draggedIndex, 1)
+      // Insert at new position
+      newFeatures.splice(dropIndex, 0, draggedFeature)
+      
+      // Reorder provider values to match new feature order
+      const newProviders = prev.providers.map(provider => {
+        const newValues = [...(provider.values || [])]
+        const draggedValue = newValues[draggedIndex]
+        newValues.splice(draggedIndex, 1)
+        newValues.splice(dropIndex, 0, draggedValue)
+        return { ...provider, values: newValues }
+      })
+      
+      return { ...prev, features: newFeatures, providers: newProviders }
+    })
+    
+    setDraggedIndex(null)
   }
 
   return (
@@ -202,7 +243,17 @@ export default function ComparisonManagement() {
           </div>
           <div className="space-y-3">
             {comparison.features.map((feature, index) => (
-              <div key={index} className="flex items-center gap-3">
+              <div 
+                key={index} 
+                className={`flex items-center gap-3 p-2 rounded ${draggedIndex === index ? 'bg-blue-100' : 'bg-white'} border`}
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, index)}
+              >
+                <div className="cursor-move text-gray-400 hover:text-gray-600">
+                  <FiMove />
+                </div>
                 <input
                   type="text"
                   value={feature}
@@ -265,13 +316,21 @@ export default function ComparisonManagement() {
                       <label className="text-xs text-gray-600 mb-1">{feature}</label>
                       <div className="flex items-center gap-2">
                         <select
-                          value={typeof value === 'boolean' ? (value ? 'true' : 'false') : 'text'}
+                          key={`${providerIndex}-${valueIndex}-${value}`}
+                          value={value === true ? 'true' : value === false ? 'false' : 'text'}
                           onChange={(e) => {
+                            const selectedValue = e.target.value
                             let newValue
-                            if (e.target.value === 'true') newValue = true
-                            else if (e.target.value === 'false') newValue = false
-                            else newValue = value || ''
-                            console.log('Updating value:', { providerIndex, valueIndex, newValue })
+                            
+                            if (selectedValue === 'true') {
+                              newValue = true
+                            } else if (selectedValue === 'false') {
+                              newValue = false
+                            } else {
+                              newValue = ''
+                            }
+                            
+                            console.log('Dropdown selection:', { selectedValue, newValue, currentValue: value })
                             updateProviderValue(providerIndex, valueIndex, newValue)
                           }}
                           className="border border-gray-300 rounded px-2 py-1 text-sm w-24"
@@ -280,10 +339,10 @@ export default function ComparisonManagement() {
                           <option value="true">✅ Yes</option>
                           <option value="false">❌ No</option>
                         </select>
-                        {typeof value !== 'boolean' && (
+                        {value !== true && value !== false && (
                           <input
                             type="text"
-                            value={value}
+                            value={value || ''}
                             onChange={(e) => updateProviderValue(providerIndex, valueIndex, e.target.value)}
                             className="flex-1 border border-gray-300 rounded-md px-2 py-1 text-sm"
                             placeholder="Enter value"
@@ -337,8 +396,10 @@ export default function ComparisonManagement() {
                             provider.highlight ? 'bg-blue-50 font-semibold' : ''
                           }`}
                         >
-                          {typeof value === 'boolean' ? (
-                            value ? <FaCheckCircle className="text-green-500 mx-auto" /> : <FaTimesCircle className="text-red-400 mx-auto" />
+                          {value === true ? (
+                            <FaCheckCircle className="text-green-500 mx-auto" />
+                          ) : value === false ? (
+                            <FaTimesCircle className="text-red-400 mx-auto" />
                           ) : value ? (
                             <span className="text-sm">{value}</span>
                           ) : (
