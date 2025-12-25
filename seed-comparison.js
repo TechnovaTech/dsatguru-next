@@ -34,12 +34,12 @@ const seedData = {
     {
       name: 'PrepScholar',
       highlight: false,
-      values: ['$397', '12 months', false, false, false, false, '', false, false, false, false]
+      values: ['$397', '12 months', false, false, false, false, false, false, false, false, false]
     },
     {
       name: 'Testive',
       highlight: false,
-      values: ['$1596', '4 months', false, false, false, false, '', false, false, false, false]
+      values: ['$1596', '4 months', false, false, false, false, false, false, false, false, false]
     }
   ],
   isActive: true

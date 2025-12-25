@@ -21,13 +21,16 @@ export default function ComparisonManagement() {
 
   const fetchComparison = async () => {
     try {
-      const token = localStorage.getItem('token')
-      const res = await fetch('/api/admin/comparison', {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      })
+      console.log('Fetching comparison data...')
+      const res = await fetch('/api/admin/comparison')
       const data = await res.json()
+      console.log('Fetch result:', data)
+      
       if (data.success && data.data) {
+        console.log('Setting comparison data:', data.data)
         setComparison(data.data)
+      } else {
+        console.log('No data found, using default')
       }
     } catch (error) {
       console.error('Error fetching comparison:', error)
@@ -37,23 +40,29 @@ export default function ComparisonManagement() {
   const saveComparison = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('token')
+      console.log('Saving comparison:', comparison)
+      
       const res = await fetch('/api/admin/comparison', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(comparison)
       })
       
-      if (res.ok) {
+      const result = await res.json()
+      console.log('Save result:', result)
+      
+      if (res.ok && result.success) {
         alert('Comparison saved successfully!')
+        fetchComparison() // Refresh data
       } else {
-        alert('Failed to save comparison')
+        console.error('Save failed:', result)
+        alert('Failed to save: ' + (result.error || 'Unknown error'))
       }
     } catch (error) {
-      alert('Error saving comparison')
+      console.error('Save error:', error)
+      alert('Error saving comparison: ' + error.message)
     } finally {
       setLoading(false)
     }
@@ -262,6 +271,7 @@ export default function ComparisonManagement() {
                             if (e.target.value === 'true') newValue = true
                             else if (e.target.value === 'false') newValue = false
                             else newValue = value || ''
+                            console.log('Updating value:', { providerIndex, valueIndex, newValue })
                             updateProviderValue(providerIndex, valueIndex, newValue)
                           }}
                           className="border border-gray-300 rounded px-2 py-1 text-sm w-24"

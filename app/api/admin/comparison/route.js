@@ -25,12 +25,18 @@ export async function POST(request) {
     const data = await request.json()
     console.log('Saving comparison data:', data)
     
-    // Deactivate existing comparison
-    await Comparison.updateMany({}, { isActive: false })
-    
-    // Create new comparison
-    const comparison = await Comparison.create({ ...data, isActive: true })
-    console.log('Saved comparison:', comparison)
+    let comparison
+    if (data._id) {
+      // Update existing
+      const { _id, ...updateData } = data
+      comparison = await Comparison.findByIdAndUpdate(_id, updateData, { new: true })
+      console.log('Updated existing comparison:', comparison)
+    } else {
+      // Create new (deactivate existing first)
+      await Comparison.updateMany({}, { isActive: false })
+      comparison = await Comparison.create({ ...data, isActive: true })
+      console.log('Created new comparison:', comparison)
+    }
     
     return NextResponse.json({ success: true, data: comparison })
   } catch (error) {
