@@ -19,6 +19,8 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [dropdownHover, setDropdownHover] = useState(false)
+  const [questionBankHover, setQuestionBankHover] = useState(false)
+  const [questionBanks, setQuestionBanks] = useState([])
 
   const toggleMenu = () => setIsOpen(!isOpen)
   const closeMenu = () => setIsOpen(false)
@@ -30,7 +32,32 @@ export default function Header() {
       setShowScrollTop(y > 300)
     }
 
+    const fetchQuestionBanks = async () => {
+      try {
+        const res = await fetch('/api/courses')
+        const data = await res.json()
+        console.log('All fetched data:', data)
+        
+        if (data.courses || data.data) {
+          const allCourses = data.courses || data.data
+          console.log('All courses:', allCourses)
+          
+          // Filter for question banks
+          const qBanks = allCourses.filter(course => {
+            console.log('Course type:', course.type, 'Title:', course.title)
+            return course.type === 'question_bank'
+          })
+          
+          console.log('Filtered question banks:', qBanks)
+          setQuestionBanks(qBanks)
+        }
+      } catch (error) {
+        console.error('Error fetching question banks:', error)
+      }
+    }
+
     window.addEventListener('scroll', handleScroll)
+    fetchQuestionBanks()
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -101,6 +128,51 @@ export default function Header() {
                           )
                         )
                       })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div
+                className="relative"
+                onMouseEnter={() => setQuestionBankHover(true)}
+                onMouseLeave={() => setQuestionBankHover(false)}
+              >
+                <button
+                  className="flex items-center gap-1 text-sm hover:text-blue-600 transition-colors duration-300 text-gray-700"
+                >
+                  <FiBookOpen /> Question Banks
+                </button>
+                <AnimatePresence>
+                  {questionBankHover && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-full left-1/2 transform -translate-x-1/2 mt-3 w-80 p-2 grid gap-2 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto"
+                    >
+                      {questionBanks.length > 0 ? questionBanks.map((qBank, idx) => {
+                        const color = colors[idx % colors.length]
+                        return (
+                          <Link
+                            key={qBank.id}
+                            href={`/question-bank/${qBank.id}`}
+                            className={`flex items-center gap-3 p-4 ${color.bg} ${color.border} border rounded-lg ${color.text} hover:shadow-md transition-all truncate`}
+                          >
+                            <FiBookOpen size={20} />
+                            <span
+                              className="text-sm font-semibold truncate w-full"
+                              title={qBank.title}
+                            >
+                              {qBank.title}
+                            </span>
+                          </Link>
+                        )
+                      }) : (
+                        <div className="p-4 text-center text-gray-500 text-sm">
+                          No question banks available
+                        </div>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
