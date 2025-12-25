@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../lib/db'
-import { CourseEnrollment } from '../../../lib/models/Course'
+import { CourseEnrollment, QuestionBankEnrollment } from '../../../lib/models/Course'
 import { getTokenFromRequest, verifyToken } from '../../../lib/auth'
 
 export async function GET(request) {
@@ -11,10 +11,32 @@ export async function GET(request) {
     if (!decoded) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const enrollments = await CourseEnrollment.find({ userId: decoded.userId })
+    
+    // Get both course enrollments and question bank enrollments
+    const courseEnrollments = await CourseEnrollment.find({ userId: decoded.userId })
       .populate('courseId')
       .sort({ enrolledAt: -1 })
-    return NextResponse.json({ success: true, data: enrollments, enrollments })
+    
+    const questionBankEnrollments = await QuestionBankEnrollment.find({ userId: decoded.userId })
+      .populate('questionBankId')
+      .sort({ enrolledAt: -1 })
+    
+    // Combine both types of enrollments
+    const allEnrollments = [
+      ...courseEnrollments.map(e => ({
+        ...e.toObject(),
+        courseId: e.courseId,
+        type: 'course'
+      })),
+      ...questionBankEnrollments.map(e => ({
+        ...e.toObject(),
+        courseId: e.questionBankId, // Map questionBankId to courseId for compatibility
+        type: 'questionBank',
+        accessType: e.accessType
+      }))
+    ]
+    
+    return NextResponse.json({ success: true, data: allEnrollments, enrollments: allEnrollments })
   } catch (error) {
     console.error('Error fetching enrollments:', error)
     return NextResponse.json({ error: 'Failed to fetch enrollments' }, { status: 500 })

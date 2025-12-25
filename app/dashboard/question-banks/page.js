@@ -48,12 +48,18 @@ export default function QuestionBanksPage() {
   }
 
   const enrolledIds = useMemo(() => {
-    return new Set(
-      enrollments
-        .map(e => e.courseId?._id || e.courseId || e.id)
-        .filter(Boolean)
-        .map(id => id.toString())
-    )
+    const enrollmentMap = new Map()
+    enrollments.forEach(e => {
+      const id = (e.courseId?._id || e.courseId || e.id)?.toString()
+      if (id) {
+        enrollmentMap.set(id, {
+          hasAccess: true,
+          accessType: e.accessType || 'stripe',
+          type: e.type || 'course'
+        })
+      }
+    })
+    return enrollmentMap
   }, [enrollments])
 
   const handlePurchase = (bankId) => {
@@ -93,14 +99,28 @@ export default function QuestionBanksPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {questionBanks.map((bank) => {
-          const isEnrolled = enrolledIds.has(String(bank.id))
+          const enrollment = enrolledIds.get(String(bank.id))
+          const isEnrolled = enrollment?.hasAccess || false
+          const accessType = enrollment?.accessType
+          
           return (
             <div key={bank.id} className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">{bank.title}</h3>
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                  {bank.subject}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                    {bank.subject}
+                  </span>
+                  {isEnrolled && (
+                    <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                      accessType === 'admin' 
+                        ? 'bg-orange-100 text-orange-800' 
+                        : 'bg-purple-100 text-purple-800'
+                    }`}>
+                      {accessType === 'admin' ? 'Admin Access' : 'Paid Access'}
+                    </span>
+                  )}
+                </div>
               </div>
               <p className="text-gray-600 mb-4">{bank.description}</p>
               <div className="flex justify-between items-center mb-4">
