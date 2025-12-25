@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "node scripts/seed.js",
-    "seed:admin": "node scripts/seed-admin.js"
+    "seed:admin": "node scripts/seed-admin.js",
+    "seed:comparison": "node scripts/seed-comparison.js"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^2.9.0",
