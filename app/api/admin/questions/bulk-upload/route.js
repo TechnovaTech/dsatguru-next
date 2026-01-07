@@ -104,28 +104,33 @@ export async function POST(request) {
     }
 
     const csvText = await file.text()
-    console.log('CSV file size:', csvText.length)
-    console.log('First 200 chars:', csvText.substring(0, 200))
-    
-    if (!csvText || csvText.trim().length === 0) {
-      return NextResponse.json({ error: 'CSV file is empty' }, { status: 400 })
-    }
+    console.log('File name:', file.name)
+    console.log('File size:', file.size)
     
     let rows
     if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
       // Handle Excel file
+      console.log('Parsing as Excel file')
       const buffer = await file.arrayBuffer()
       rows = await parseExcel(Buffer.from(buffer))
+      console.log('Excel parsed, rows:', rows.length)
+      if (rows.length > 0) console.log('First Excel row:', rows[0])
+      if (rows.length > 1) console.log('Second Excel row:', rows[1])
     } else {
       // Handle CSV file
+      console.log('Parsing as CSV file')
+      if (!csvText || csvText.trim().length === 0) {
+        return NextResponse.json({ error: 'CSV file is empty' }, { status: 400 })
+      }
       rows = parseCsv(csvText)
     }
-    console.log(`Parsed ${rows.length} rows from CSV`)
-    console.log('First row (header):', rows[0])
+    console.log(`Parsed ${rows.length} rows`)
+    if (rows.length > 0) console.log('First row (header):', rows[0])
     if (rows.length > 1) console.log('Second row sample:', rows[1])
     
     if (!rows || rows.length < 2) {
-      return NextResponse.json({ error: 'CSV must have header and at least one data row' }, { status: 400 })
+      console.error('Not enough rows. Total rows:', rows.length)
+      return NextResponse.json({ error: 'File must have header and at least one data row' }, { status: 400 })
     }
     const header = rows[0].map(h => (h || '').trim().toLowerCase())
     const idx = (name) => header.findIndex(h => h === name.toLowerCase())
