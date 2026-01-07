@@ -4,6 +4,7 @@ import Question from '../../../../../lib/models/Question'
 import Course from '../../../../../lib/models/Course'
 import User from '../../../../../lib/models/User'
 import { getTokenFromRequest, verifyToken, hashPassword } from '../../../../../lib/auth'
+import * as XLSX from 'xlsx'
 
 function generateQuestionId(bankTitle, bankType, difficulty, rowNumber) {
   // Extract first 3 letters from bank title
@@ -16,6 +17,14 @@ function generateQuestionId(bankTitle, bankType, difficulty, rowNumber) {
   const diffCode = difficulty === 'Easy' ? 'ES' : difficulty === 'Hard' ? 'HD' : 'MD'
   
   return `${bankShort}${typeCode}-${diffCode}-${rowNumber}`
+}
+
+function parseExcel(buffer) {
+  const workbook = XLSX.read(buffer, { type: 'buffer' })
+  const sheetName = workbook.SheetNames[0]
+  const worksheet = workbook.Sheets[sheetName]
+  const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' })
+  return data
 }
 
 function parseCsv(text) {
@@ -95,7 +104,15 @@ export async function POST(request) {
       return NextResponse.json({ error: 'CSV file is empty' }, { status: 400 })
     }
     
-    const rows = parseCsv(csvText)
+    let rows
+    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+      // Handle Excel file
+      const buffer = await file.arrayBuffer()
+      rows = parseExcel(Buffer.from(buffer))
+    } else {
+      // Handle CSV file
+      rows = parseCsv(csvText)
+    }
     console.log(`Parsed ${rows.length} rows from CSV`)
     console.log('First row (header):', rows[0])
     if (rows.length > 1) console.log('Second row sample:', rows[1])

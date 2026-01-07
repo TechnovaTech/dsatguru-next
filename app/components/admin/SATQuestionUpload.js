@@ -564,15 +564,15 @@ export default function SATQuestionUpload() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">CSV File *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">CSV/Excel File *</label>
                   <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
                     <label className="cursor-pointer">
                       <span className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md">
-                        <FiUpload className="mr-2" /> Upload CSV
+                        <FiUpload className="mr-2" /> Upload CSV/Excel
                       </span>
-                      <input type="file" accept=".csv" onChange={handleCSVFileChange} className="hidden" />
+                      <input type="file" accept=".csv,.xlsx,.xls" onChange={handleCSVFileChange} className="hidden" />
                     </label>
-                    <p className="text-xs text-gray-500 mt-2">CSV files only. Maximum file size: 10MB</p>
+                    <p className="text-xs text-gray-500 mt-2">CSV or Excel files only. Maximum file size: 10MB</p>
                     {file && (
                       <div className="mt-3 flex items-center justify-center gap-2 text-sm text-gray-600">
                         <FiFile />
