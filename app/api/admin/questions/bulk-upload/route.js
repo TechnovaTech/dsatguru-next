@@ -4,7 +4,7 @@ import Question from '../../../../../lib/models/Question'
 import Course from '../../../../../lib/models/Course'
 import User from '../../../../../lib/models/User'
 import { getTokenFromRequest, verifyToken, hashPassword } from '../../../../../lib/auth'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 function generateQuestionId(bankTitle, bankType, difficulty, rowNumber) {
   // Extract first 3 letters from bank title
@@ -19,12 +19,15 @@ function generateQuestionId(bankTitle, bankType, difficulty, rowNumber) {
   return `${bankShort}${typeCode}-${diffCode}-${rowNumber}`
 }
 
-function parseExcel(buffer) {
-  const workbook = XLSX.read(buffer, { type: 'buffer' })
-  const sheetName = workbook.SheetNames[0]
-  const worksheet = workbook.Sheets[sheetName]
-  const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' })
-  return data
+async function parseExcel(buffer) {
+  const workbook = new ExcelJS.Workbook()
+  await workbook.xlsx.load(buffer)
+  const worksheet = workbook.worksheets[0]
+  const rows = []
+  worksheet.eachRow((row) => {
+    rows.push(row.values.slice(1)) // Remove first empty element
+  })
+  return rows
 }
 
 function parseCsv(text) {
@@ -108,7 +111,7 @@ export async function POST(request) {
     if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
       // Handle Excel file
       const buffer = await file.arrayBuffer()
-      rows = parseExcel(Buffer.from(buffer))
+      rows = await parseExcel(Buffer.from(buffer))
     } else {
       // Handle CSV file
       rows = parseCsv(csvText)
