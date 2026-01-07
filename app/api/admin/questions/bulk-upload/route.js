@@ -6,14 +6,6 @@ import User from '../../../../../lib/models/User'
 import { getTokenFromRequest, verifyToken, hashPassword } from '../../../../../lib/auth'
 import ExcelJS from 'exceljs'
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '50mb',
-    },
-  },
-}
-
 function generateQuestionId(bankTitle, bankType, difficulty, rowNumber) {
   // Extract first 3 letters from bank title
   const bankShort = bankTitle.replace(/[^a-zA-Z]/g, '').substring(0, 3).toUpperCase()
