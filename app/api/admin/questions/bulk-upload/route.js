@@ -24,8 +24,12 @@ async function parseExcel(buffer) {
   await workbook.xlsx.load(buffer)
   const worksheet = workbook.worksheets[0]
   const rows = []
-  worksheet.eachRow((row) => {
-    rows.push(row.values.slice(1)) // Remove first empty element
+  worksheet.eachRow((row, rowNumber) => {
+    const values = []
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      values.push(cell.value ? String(cell.value) : '')
+    })
+    rows.push(values)
   })
   return rows
 }
