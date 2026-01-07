@@ -399,6 +399,7 @@ const CourseModal = ({ course, onSave, onClose }) => {
     title: course?.title || "",
     description: course?.description || "",
     type: course?.type || "course", // Default type is course
+    questionBankType: course?.questionBankType || "Reading and Writing", // Default question bank type
     overview: course?.overview || "",
     courseDetails: course?.courseDetails || "",
     bannerImageUrl: course?.bannerImageUrl || "",
@@ -424,6 +425,7 @@ const CourseModal = ({ course, onSave, onClose }) => {
       title: formData.title,
       description: formData.description,
       type: formData.type,
+      questionBankType: formData.questionBankType,
       overview: optionalFields.showOverview ? formData.overview : "",
       courseDetails: optionalFields.showCourseDetails ? formData.courseDetails : "",
       bannerImageUrl: optionalFields.showBannerImage ? formData.bannerImageUrl : "",
@@ -543,6 +545,45 @@ const CourseModal = ({ course, onSave, onClose }) => {
               </select>
             </div>
           </div>
+
+          {/* Question Bank Type - Only show when Question Bank is selected */}
+          {formData.type === 'question_bank' && (
+            <div className="border-4 border-red-500 rounded-lg p-6 bg-yellow-100">
+              <label className="block text-lg font-bold mb-3 text-red-900">⚠️ QUESTION BANK TYPE (SELECT ONE) ⚠️</label>
+              <div className="space-y-3">
+                <div className="flex items-center bg-white p-3 rounded border-2 border-blue-500">
+                  <input
+                    type="checkbox"
+                    id="rw-type"
+                    checked={formData.questionBankType === 'Reading and Writing'}
+                    onChange={(e) => {
+                      console.log('R/W checkbox clicked:', e.target.checked);
+                      if (e.target.checked) {
+                        setFormData({ ...formData, questionBankType: 'Reading and Writing' })
+                      }
+                    }}
+                    className="mr-3 w-6 h-6"
+                  />
+                  <label htmlFor="rw-type" className="text-base font-bold text-gray-900 cursor-pointer">📚 Reading and Writing (R/W)</label>
+                </div>
+                <div className="flex items-center bg-white p-3 rounded border-2 border-green-500">
+                  <input
+                    type="checkbox"
+                    id="math-type"
+                    checked={formData.questionBankType === 'Mathematics'}
+                    onChange={(e) => {
+                      console.log('Math checkbox clicked:', e.target.checked);
+                      if (e.target.checked) {
+                        setFormData({ ...formData, questionBankType: 'Mathematics' })
+                      }
+                    }}
+                    className="mr-3 w-6 h-6"
+                  />
+                  <label htmlFor="math-type" className="text-base font-bold text-gray-900 cursor-pointer">🔢 Mathematics</label>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>

@@ -691,6 +691,7 @@ function CourseModal({ course, onSave, onClose }) {
     title: course?.title || '',
     description: course?.description || '',
     type: course?.type || 'course',
+    questionBankType: course?.questionBankType || 'Reading and Writing',
     bannerImageUrl: course?.bannerImageUrl || '',
     price: course?.price || 0,
     discountedPrice: course?.discountedPrice || '',
@@ -760,7 +761,11 @@ function CourseModal({ course, onSave, onClose }) {
     setLoading(true)
     
     try {
-      await onSave(formData)
+      const dataToSave = {
+        ...formData,
+        questionBankType: formData.type === 'question_bank' ? formData.questionBankType : undefined
+      }
+      await onSave(dataToSave)
     } catch (error) {
       console.error('Error saving course:', error)
     } finally {
@@ -798,6 +803,42 @@ function CourseModal({ course, onSave, onClose }) {
                 <option value="question_bank">Question Bank</option>
               </select>
             </div>
+          </div>
+
+          {/* Question Bank Type - ONLY show when question_bank is selected */}
+          {formData.type === 'question_bank' && (
+            <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Question Bank Type *</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center bg-white p-3 rounded-lg border-2 border-gray-200 hover:border-blue-400 transition-colors cursor-pointer">
+                  <input
+                    type="radio"
+                    id="rw-type"
+                    name="questionBankType"
+                    value="Reading and Writing"
+                    checked={formData.questionBankType === 'Reading and Writing'}
+                    onChange={(e) => setFormData(prev => ({ ...prev, questionBankType: e.target.value }))}
+                    className="mr-3 w-4 h-4 text-blue-600"
+                  />
+                  <label htmlFor="rw-type" className="text-sm font-medium text-gray-700 cursor-pointer">Reading and Writing</label>
+                </div>
+                <div className="flex items-center bg-white p-3 rounded-lg border-2 border-gray-200 hover:border-blue-400 transition-colors cursor-pointer">
+                  <input
+                    type="radio"
+                    id="math-type"
+                    name="questionBankType"
+                    value="Mathematics"
+                    checked={formData.questionBankType === 'Mathematics'}
+                    onChange={(e) => setFormData(prev => ({ ...prev, questionBankType: e.target.value }))}
+                    className="mr-3 w-4 h-4 text-blue-600"
+                  />
+                  <label htmlFor="math-type" className="text-sm font-medium text-gray-700 cursor-pointer">Mathematics</label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium mb-1">Description</label>
               <textarea

@@ -54,6 +54,7 @@ export async function GET(request) {
           title: course.title,
           description: course.description,
           type: course.type,
+          questionBankType: course.questionBankType,
           price: course.price,
           discountedPrice: course.discountedPrice,
           discountPercentage: course.discountPercentage,
