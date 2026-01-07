@@ -403,7 +403,8 @@ export default function QuestionBankManagement() {
                         </div>
                       </td>
                     </tr>
-                  )}))}
+                  )
+                  })}
                   {questions.length === 0 && !qLoading && (
                     <tr>
                       <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">No questions found for the selected filters.</td>
