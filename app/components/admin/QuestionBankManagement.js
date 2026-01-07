@@ -370,7 +370,7 @@ export default function QuestionBankManagement() {
                 <tbody className="divide-y divide-gray-200">
                   {questions.map(q => (
                     <tr key={q.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-900">{q.id}</td>
+                      <td className="px-6 py-4 text-sm font-mono text-gray-900">{q.questionId || q.id}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{q.subject}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{q.difficulty}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{q.type}</td>

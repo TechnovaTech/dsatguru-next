@@ -1,8 +1,22 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import Question from '../../../../../lib/models/Question'
+import Course from '../../../../../lib/models/Course'
 import User from '../../../../../lib/models/User'
 import { getTokenFromRequest, verifyToken, hashPassword } from '../../../../../lib/auth'
+
+function generateQuestionId(bankTitle, bankType, difficulty, rowNumber) {
+  // Extract first 3 letters from bank title
+  const bankShort = bankTitle.replace(/[^a-zA-Z]/g, '').substring(0, 3).toUpperCase()
+  
+  // Type code
+  const typeCode = bankType === 'Mathematics' ? 'MATH' : 'RW'
+  
+  // Difficulty code
+  const diffCode = difficulty === 'Easy' ? 'ES' : difficulty === 'Hard' ? 'HD' : 'MD'
+  
+  return `${bankShort}${typeCode}-${diffCode}-${rowNumber}`
+}
 
 function parseCsv(text) {
   const lines = text.split(/\r?\n/).filter(line => line.trim())
@@ -65,6 +79,12 @@ export async function POST(request) {
     }
     if (!questionBankId) {
       return NextResponse.json({ error: 'No question bank selected' }, { status: 400 })
+    }
+
+    // Fetch question bank details
+    const questionBank = await Course.findById(questionBankId)
+    if (!questionBank) {
+      return NextResponse.json({ error: 'Question bank not found' }, { status: 404 })
     }
 
     const csvText = await file.text()
@@ -158,7 +178,16 @@ export async function POST(request) {
         ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean)
         : []
       
+      // Generate custom question ID
+      const questionId = generateQuestionId(
+        questionBank.title,
+        questionBank.questionBankType || 'Reading and Writing',
+        difficulty,
+        r
+      )
+      
       toCreate.push({
+        questionId,
         title,
         content,
         explanation,

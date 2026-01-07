@@ -70,6 +70,7 @@ export async function GET(request) {
     
     const questionsData = questions.map(q => ({
       id: q._id,
+      questionId: q.questionId,
       title: q.title,
       questionParagraph: q.questionParagraph,
       content: q.content,
