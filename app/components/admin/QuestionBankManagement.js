@@ -368,18 +368,24 @@ export default function QuestionBankManagement() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {questions.map((q, index) => (
-                    <tr key={q.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-900">{index + 1}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{q.subject}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{q.difficulty}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{q.type}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{(q.tags || []).join(', ')}</td>
-                      <td className="px-6 py-4 text-sm">
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${q.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {q.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
+                  {questions.map((q, index) => {
+                    // Extract serial number from questionId (e.g., "TRIMATH-ES-1" -> "1")
+                    const serialNumber = q.questionId ? q.questionId.split('-').pop() : (index + 1)
+                    return (
+                      <tr key={q.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm">
+                          <div className="font-mono text-gray-900">{q.questionId || `Q-${index + 1}`}</div>
+                          <div className="text-xs text-gray-500">#{serialNumber}</div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{q.subject}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{q.difficulty}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{q.type}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{(q.tags || []).join(', ')}</td>
+                        <td className="px-6 py-4 text-sm">
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${q.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {q.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
                       <td className="px-6 py-4 text-sm">
                         <div className="flex items-center gap-2">
                           <button className="inline-flex items-center px-2 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded" onClick={() => setEditItem({ ...q })}>
@@ -397,7 +403,7 @@ export default function QuestionBankManagement() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )}))}
                   {questions.length === 0 && !qLoading && (
                     <tr>
                       <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">No questions found for the selected filters.</td>
