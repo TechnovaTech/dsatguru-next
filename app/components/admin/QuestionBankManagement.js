@@ -653,6 +653,7 @@ export default function QuestionBankManagement() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Active</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Draft</th>
@@ -665,6 +666,11 @@ export default function QuestionBankManagement() {
                 {filteredBanks.map(bank => (
                   <tr key={bank.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{bank.title}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${bank.questionBankType === 'Mathematics' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
+                        {bank.questionBankType || 'Reading and Writing'}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{bank.totalQuestions}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{bank.activeQuestions}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{bank.draftQuestions}</td>
@@ -689,7 +695,7 @@ export default function QuestionBankManagement() {
                 ))}
                 {filteredBanks.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">{loading ? 'Loading...' : 'No question banks found'}</td>
+                    <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">{loading ? 'Loading...' : 'No question banks found'}</td>
                   </tr>
                 )}
               </tbody>
