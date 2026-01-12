@@ -349,7 +349,11 @@ export default function SATQuestionUpload() {
   const computeImageMapping = (records, images) => {
     if (!records || records.length === 0) return null
     const fileMap = new Map()
-    ;(images || []).forEach(f => fileMap.set((f.name || '').toLowerCase(), f.name))
+    ;(images || []).forEach(f => {
+      if (f && f.name) {
+        fileMap.set((f.name || '').toLowerCase(), f.name)
+      }
+    })
     const entries = records
       .filter(rec => rec.imageFileName !== '')
       .map(rec => {

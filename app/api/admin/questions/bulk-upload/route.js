@@ -5,31 +5,56 @@ import Course from '../../../../../lib/models/Course'
 import User from '../../../../../lib/models/User'
 import { getTokenFromRequest, verifyToken, hashPassword } from '../../../../../lib/auth'
 import ExcelJS from 'exceljs'
+import { writeFile, mkdir } from 'fs/promises'
+import path from 'path'
 
-function generateQuestionId(bankTitle, bankType, difficulty, rowNumber) {
-  // Extract first 3 letters from bank title
-  const bankShort = bankTitle.replace(/[^a-zA-Z]/g, '').substring(0, 3).toUpperCase()
+function generateQuestionId(subject, tag, difficulty, rowNumber) {
+  // Subject code - single letter
+  const subjectCode = subject === 'Math' ? 'M' : 'R'
   
-  // Type code
-  const typeCode = bankType === 'Mathematics' ? 'MATH' : 'RW'
+  // Tag/Topic code - first 2 letters only
+  const tagCode = tag ? tag.replace(/[^a-zA-Z]/g, '').substring(0, 2).toUpperCase() : 'GN'
   
-  // Difficulty code
-  const diffCode = difficulty === 'Easy' ? 'ES' : difficulty === 'Hard' ? 'HD' : 'MD'
+  // Difficulty code - single letter
+  const diffCode = difficulty === 'Easy' ? 'E' : difficulty === 'Hard' ? 'H' : 'M'
   
-  return `${bankShort}${typeCode}-${diffCode}-${rowNumber}`
+  return `${subjectCode}${tagCode}-${diffCode}-${rowNumber}`
 }
 
 async function parseExcel(buffer) {
   const workbook = new ExcelJS.Workbook()
   await workbook.xlsx.load(buffer)
+  
+  // Get first worksheet (ignore sheet name issues)
   const worksheet = workbook.worksheets[0]
+  if (!worksheet) {
+    throw new Error('No worksheet found in Excel file')
+  }
+  
   const rows = []
   worksheet.eachRow((row, rowNumber) => {
     const values = []
-    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-      values.push(cell.value ? String(cell.value) : '')
+    let hasContent = false
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      // Handle different cell types
+      let value = ''
+      if (cell.value !== null && cell.value !== undefined) {
+        if (typeof cell.value === 'object' && cell.value.richText) {
+          // Handle rich text
+          value = cell.value.richText.map(t => t.text).join('')
+        } else if (typeof cell.value === 'object' && cell.value.text) {
+          value = cell.value.text
+        } else {
+          value = String(cell.value)
+        }
+        if (value.trim()) hasContent = true
+      }
+      values.push(value)
     })
-    rows.push(values)
+    // Only add rows that have some content
+    if (hasContent || rowNumber === 1) {
+      rows.push(values)
+    }
   })
   return rows
 }
@@ -111,11 +136,26 @@ export async function POST(request) {
     if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
       // Handle Excel file
       console.log('Parsing as Excel file')
-      const buffer = await file.arrayBuffer()
-      rows = await parseExcel(Buffer.from(buffer))
-      console.log('Excel parsed, rows:', rows.length)
-      if (rows.length > 0) console.log('First Excel row:', rows[0])
-      if (rows.length > 1) console.log('Second Excel row:', rows[1])
+      try {
+        const buffer = await file.arrayBuffer()
+        rows = await parseExcel(Buffer.from(buffer))
+        console.log('Excel parsed, rows:', rows.length)
+        if (rows.length > 0) console.log('First Excel row:', rows[0])
+        if (rows.length > 1) console.log('Second Excel row:', rows[1])
+      } catch (excelError) {
+        console.error('Excel parsing failed:', excelError.message)
+        // Try CSV parsing as fallback
+        console.log('Attempting CSV fallback parsing...')
+        try {
+          rows = parseCsv(csvText)
+          console.log('CSV fallback successful, rows:', rows.length)
+        } catch (csvError) {
+          return NextResponse.json({ 
+            error: 'Failed to parse file. Please ensure it is a valid Excel (.xlsx) or CSV file.', 
+            details: `Excel error: ${excelError.message}. CSV fallback also failed.` 
+          }, { status: 400 })
+        }
+      }
     } else {
       // Handle CSV file
       console.log('Parsing as CSV file')
@@ -135,30 +175,41 @@ export async function POST(request) {
     const header = rows[0].map(h => (h || '').trim().toLowerCase())
     const idx = (name) => header.findIndex(h => h === name.toLowerCase())
     
-    // Try multiple column name variations
-    const idxTitle = idx('title')
-    const idxContent = idx('content') >= 0 ? idx('content') : header.findIndex(h => h.includes('ques'))
-    const idxSubject = idx('subject')
+    // Match exact column names from Excel file
+    const idxContent = idx('question')
+    const idxA = idx('option a')
+    const idxB = idx('option b')
+    const idxC = idx('option c')
+    const idxD = idx('option d')
+    const idxCorrect = idx('correct answer')
+    const idxShortExpl = idx('short explanation')
+    const idxLongExpl = idx('long explanation')
     const idxDifficulty = idx('difficulty')
-    const idxCorrect = idx('correctanswer') >= 0 ? idx('correctanswer') : idx('correct answer')
-    const idxA = idx('optiona') >= 0 ? idx('optiona') : idx('option a')
-    const idxB = idx('optionb') >= 0 ? idx('optionb') : idx('option b')
-    const idxC = idx('optionc') >= 0 ? idx('optionc') : idx('option c')
-    const idxD = idx('optiond') >= 0 ? idx('optiond') : idx('option d')
-    const idxParagraph = idx('questionparagraph')
-    const idxExplanation = idx('explanation') >= 0 ? idx('explanation') : idx('short explanation')
-    const idxShortExpl = idx('shortexplanation') >= 0 ? idx('shortexplanation') : idx('short explanation')
-    const idxLongExpl = idx('longexplanation')
-    const idxTags = idx('tags')
-    const idxImage = idx('imagefilename')
+    const idxTags = idx('tag')
+    const idxSubject = idx('subject')
 
-    // Map images by filename for quick lookup (we only persist name as imageUrl)
-    const imageNameSet = new Set(
-      (images || [])
-        .map(img => img?.name)
-        .filter(Boolean)
-        .map(n => n.toLowerCase())
-    )
+    // Save uploaded images to public/uploads/questions/
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'questions')
+    try {
+      await mkdir(uploadDir, { recursive: true })
+    } catch (err) {
+      console.log('Upload directory exists or created')
+    }
+
+    const imageNameMap = new Map()
+    for (const img of images) {
+      if (!img || !img.name) continue
+      try {
+        const buffer = Buffer.from(await img.arrayBuffer())
+        const filename = `${Date.now()}-${img.name}`
+        const filepath = path.join(uploadDir, filename)
+        await writeFile(filepath, buffer)
+        imageNameMap.set(img.name.toLowerCase(), `/uploads/questions/${filename}`)
+        console.log(`Saved image: ${filename}`)
+      } catch (err) {
+        console.error(`Failed to save image ${img.name}:`, err)
+      }
+    }
 
     // Ensure admin user exists
     let adminUser = await User.findOne({ role: 'Admin' })
@@ -173,7 +224,14 @@ export async function POST(request) {
     }
 
     console.log('CSV header:', header)
-    console.log('Column indices:', { idxTitle, idxContent, idxSubject, idxDifficulty, idxCorrect, idxA, idxB, idxC, idxD })
+    console.log('Column indices:', { idxContent, idxSubject, idxDifficulty, idxCorrect, idxA, idxB, idxC, idxD })
+    
+    if (idxContent < 0) {
+      return NextResponse.json({ 
+        error: 'Question column not found. Please ensure your file has a "Question" column.', 
+        details: `Available columns: ${header.join(', ')}` 
+      }, { status: 400 })
+    }
     
     const toCreate = []
     for (let r = 1; r < rows.length; r++) {
@@ -188,40 +246,38 @@ export async function POST(request) {
         continue
       }
       
-      const title = idxTitle >= 0 ? (cols[idxTitle] || '').trim() : ''
       const subject = idxSubject >= 0 ? (cols[idxSubject] || '').trim() : 'Math'
-      const difficulty = idxDifficulty >= 0 ? (cols[idxDifficulty] || '').trim() : 'Medium'
+      let difficulty = idxDifficulty >= 0 ? (cols[idxDifficulty] || '').trim() : 'Medium'
+      if (!difficulty || !['Easy', 'Medium', 'Hard'].includes(difficulty)) {
+        difficulty = 'Medium'
+      }
       const correctAnswer = idxCorrect >= 0 ? (cols[idxCorrect] || '').trim().toUpperCase() : 'A'
       const optionA = idxA >= 0 ? (cols[idxA] || '').trim() : ''
       const optionB = idxB >= 0 ? (cols[idxB] || '').trim() : ''
       const optionC = idxC >= 0 ? (cols[idxC] || '').trim() : ''
       const optionD = idxD >= 0 ? (cols[idxD] || '').trim() : ''
-      const questionParagraph = idxParagraph >= 0 ? (cols[idxParagraph] || '').trim() : ''
-      const explanation = idxExplanation >= 0 ? (cols[idxExplanation] || '').trim() : ''
-      const shortExplanation = idxShortExpl >= 0 ? (cols[idxShortExpl] || '').trim() : explanation
-      const longExplanation = idxLongExpl >= 0 ? (cols[idxLongExpl] || '').trim() : explanation
+      const shortExplanation = idxShortExpl >= 0 ? (cols[idxShortExpl] || '').trim() : ''
+      const longExplanation = idxLongExpl >= 0 ? (cols[idxLongExpl] || '').trim() : ''
       const tagsRaw = idxTags >= 0 ? (cols[idxTags] || '').trim() : ''
-      const imageFileName = idxImage >= 0 ? (cols[idxImage] || '').trim() : ''
-      const imageUrl = imageFileName && imageNameSet.has(imageFileName.toLowerCase()) ? imageFileName : ''
 
       const optionsArr = [optionA, optionB, optionC, optionD]
       const tagsArr = tagsRaw
         ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean)
         : []
       
-      // Generate custom question ID
+      // Generate custom question ID based on Subject, Tag, Difficulty, Row Number
       const questionId = generateQuestionId(
-        questionBank.title,
-        questionBank.questionBankType || 'Reading and Writing',
+        subject,
+        tagsArr[0] || 'General',
         difficulty,
         r
       )
       
       toCreate.push({
         questionId,
-        title,
+        title: content.substring(0, 100),
         content,
-        explanation,
+        explanation: shortExplanation || longExplanation,
         shortExplanation,
         longExplanation,
         subject,
@@ -233,15 +289,16 @@ export async function POST(request) {
         tags: JSON.stringify(tagsArr),
         points: 1,
         isActive: true,
-        imageUrl: imageUrl || undefined,
-        questionParagraph,
         questionBankId,
         createdBy: adminUser._id
       })
     }
 
     if (toCreate.length === 0) {
-      return NextResponse.json({ error: 'No questions parsed from CSV' }, { status: 400 })
+      return NextResponse.json({ 
+        error: 'No valid questions found in file', 
+        details: `Parsed ${rows.length - 1} rows but all were empty or missing required content. Please check your file format.` 
+      }, { status: 400 })
     }
 
     console.log(`Attempting to create ${toCreate.length} questions`)

@@ -21,6 +21,8 @@ export default function QuestionBankManagement() {
   const [selectedUser, setSelectedUser] = useState('')
   const [bankAccess, setBankAccess] = useState([])
   const [accessLoading, setAccessLoading] = useState(false)
+  const [selectedQuestions, setSelectedQuestions] = useState([])
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const mathSubtopics = {
     'algebra': {
@@ -215,12 +217,57 @@ export default function QuestionBankManagement() {
   }
 
   const softDelete = async (q) => {
+    if (!confirm('Are you sure you want to delete this question?')) return
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-    await fetch(`/api/admin/questions/${q.id}`, {
+    await fetch(`/api/questions/${q.id}`, {
       method: 'DELETE',
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     })
     fetchQuestions(selectedBank.id)
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedQuestions.length === 0) {
+      alert('Please select questions to delete')
+      return
+    }
+    if (!confirm(`Are you sure you want to delete ${selectedQuestions.length} question(s)?`)) return
+    try {
+      setIsDeleting(true)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      await fetch('/api/questions/bulk-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ questionIds: selectedQuestions })
+      })
+      setSelectedQuestions([])
+      fetchQuestions(selectedBank.id)
+      alert(`${selectedQuestions.length} question(s) deleted successfully`)
+    } catch (error) {
+      console.error('Bulk delete failed:', error)
+      alert('Failed to delete questions')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedQuestions(questions.map(q => q.id))
+    } else {
+      setSelectedQuestions([])
+    }
+  }
+
+  const handleSelectQuestion = (questionId) => {
+    setSelectedQuestions(prev => 
+      prev.includes(questionId) 
+        ? prev.filter(id => id !== questionId)
+        : [...prev, questionId]
+    )
   }
 
   const saveEdit = async () => {
@@ -351,15 +398,34 @@ export default function QuestionBankManagement() {
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-6 border-b flex items-center justify-between">
               <h2 className="text-lg font-semibold">Manage Questions</h2>
-              <div className="text-sm text-gray-500">{qLoading ? 'Loading...' : `${questions.length} result(s)`}</div>
+              <div className="flex items-center gap-3">
+                {selectedQuestions.length > 0 && (
+                  <button
+                    onClick={handleBulkDelete}
+                    disabled={isDeleting}
+                    className="inline-flex items-center px-4 py-2 border border-red-300 rounded text-red-700 bg-white hover:bg-red-50 disabled:opacity-50"
+                  >
+                    <FiTrash className="mr-2" />
+                    Delete Selected ({selectedQuestions.length})
+                  </button>
+                )}
+                <div className="text-sm text-gray-500">{qLoading ? 'Loading...' : `${questions.length} result(s)`}</div>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-6 py-3 text-left">
+                      <input
+                        type="checkbox"
+                        checked={selectedQuestions.length === questions.length && questions.length > 0}
+                        onChange={handleSelectAll}
+                        className="rounded border-gray-300"
+                      />
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Question ID</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Module Type</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Difficulty</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Question Type</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Topic/Subtopic</th>
@@ -373,14 +439,31 @@ export default function QuestionBankManagement() {
                     const serialNumber = q.questionId ? q.questionId.split('-').pop() : (index + 1)
                     return (
                       <tr key={q.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedQuestions.includes(q.id)}
+                            onChange={() => handleSelectQuestion(q.id)}
+                            className="rounded border-gray-300"
+                          />
+                        </td>
                         <td className="px-6 py-4 text-sm">
                           <div className="font-mono text-gray-900">{q.questionId || `Q-${index + 1}`}</div>
                           <div className="text-xs text-gray-500">#{serialNumber}</div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">{q.subject}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{q.difficulty}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{q.type}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{(q.tags || []).join(', ')}</td>
+                        <td className="px-6 py-4 text-sm">
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                            q.difficulty === 'Easy' ? 'bg-green-100 text-green-800' :
+                            q.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                            q.difficulty === 'Hard' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {q.difficulty}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{q.type || 'MultipleChoice'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{(q.tags || []).join(', ') || '-'}</td>
                         <td className="px-6 py-4 text-sm">
                           <span className={`px-2 py-1 text-xs font-semibold rounded-full ${q.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                             {q.isActive ? 'Active' : 'Inactive'}
@@ -407,7 +490,7 @@ export default function QuestionBankManagement() {
                   })}
                   {questions.length === 0 && !qLoading && (
                     <tr>
-                      <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">No questions found for the selected filters.</td>
+                      <td colSpan={9} className="px-6 py-4 text-center text-sm text-gray-500">No questions found for the selected filters.</td>
                     </tr>
                   )}
                 </tbody>
