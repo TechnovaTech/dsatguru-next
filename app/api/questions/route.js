@@ -68,34 +68,33 @@ export async function GET(request) {
       .populate('createdBy', 'name')
       .sort({ createdAt: -1 })
     
-    const questionsData = questions.map(q => ({
-      id: q._id,
-      questionId: q.questionId,
-      title: q.title,
-      questionParagraph: q.questionParagraph,
-      content: q.content,
-      explanation: q.explanation,
-      shortExplanation: q.shortExplanation,
-      longExplanation: q.longExplanation,
-      subject: q.subject,
-      difficulty: q.difficulty,
-      testType: q.testType,
-      type: q.type,
-      correctAnswer: q.correctAnswer,
-      options: q.options ? JSON.parse(q.options) : [],
-      tags: q.tags ? JSON.parse(q.tags) : [],
-      points: q.points,
-      imageUrl: q.imageUrl,
-      createdBy: q.createdBy?.name || 'Unknown',
-      createdAt: q.createdAt,
-      isActive: q.isActive
-    }))
-    
-    return NextResponse.json({ 
-      success: true, 
-      data: questionsData,
-      questions: questionsData 
+    const questionsData = questions.map(q => {
+      const options = q.options ? JSON.parse(q.options) : []
+      return {
+        _id: q._id,
+        id: q._id,
+        questionId: q.questionId,
+        question: q.content || q.title,
+        subject: q.subject,
+        difficulty: q.difficulty,
+        type: q.type,
+        correctAnswer: q.correctAnswer,
+        optionA: options[0] || '',
+        optionB: options[1] || '',
+        optionC: options[2] || '',
+        optionD: options[3] || '',
+        explanation: q.explanation,
+        shortExplanation: q.shortExplanation,
+        longExplanation: q.longExplanation,
+        imageUrl: q.imageUrl,
+        tags: q.tags ? JSON.parse(q.tags) : [],
+        points: q.points,
+        isActive: q.isActive,
+        createdAt: q.createdAt
+      }
     })
+    
+    return NextResponse.json(questionsData)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch questions' }, { status: 500 })
   }

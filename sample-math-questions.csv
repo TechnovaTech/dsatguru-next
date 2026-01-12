@@ -1,0 +1,51 @@
+S.No,Subject,Tag,Difficulty,Question,Option A,Option B,Option C,Option D,Correct Answer,Short Explanation,Long Explanation
+1,Math,Linear Equations (1 variable),Easy,Solve for x: 2x + 5 = 13,2,3,4,5,C,Subtract 5 then divide by 2,Subtract 5 from both sides: 2x = 8. Divide by 2: x = 4
+2,Math,Linear Equations (1 variable),Easy,If 3x - 7 = 8 what is x?,3,4,5,6,C,Add 7 then divide by 3,Add 7 to both sides: 3x = 15. Divide by 3: x = 5
+3,Math,Linear Equations (1 variable),Medium,Solve: 4(x - 2) = 20,5,6,7,8,C,Distribute then solve,4x - 8 = 20. Add 8: 4x = 28. Divide by 4: x = 7
+4,Math,Linear Equations (1 variable),Medium,If 5x + 3 = 2x + 18 what is x?,3,4,5,6,C,Combine like terms,Subtract 2x: 3x + 3 = 18. Subtract 3: 3x = 15. Divide by 3: x = 5
+5,Math,Linear Equations (1 variable),Hard,Solve: 2(3x - 4) = 3(x + 2),4,5,6,7,A,Distribute both sides,6x - 8 = 3x + 6. Subtract 3x: 3x - 8 = 6. Add 8: 3x = 14. x = 14/3 ≈ 4.67
+6,Math,Linear Equations (1 variable),Hard,If (x + 5)/3 = 7 what is x?,14,15,16,17,C,Multiply by 3 then subtract 5,Multiply both sides by 3: x + 5 = 21. Subtract 5: x = 16
+7,Math,Linear Equations (1 variable),Easy,Solve: x + 9 = 15,4,5,6,7,C,Subtract 9,Subtract 9 from both sides: x = 6
+8,Math,Linear Equations (1 variable),Medium,If 7x - 12 = 2x + 13 what is x?,3,4,5,6,C,Combine like terms,Subtract 2x: 5x - 12 = 13. Add 12: 5x = 25. Divide by 5: x = 5
+9,Math,Linear Equations (1 variable),Hard,Solve: 3(2x + 1) - 4x = 17,5,6,7,8,C,Distribute and simplify,6x + 3 - 4x = 17. Combine: 2x + 3 = 17. Subtract 3: 2x = 14. x = 7
+10,Math,Linear Equations (1 variable),Medium,If 6x = 42 what is x?,5,6,7,8,C,Divide by 6,Divide both sides by 6: x = 7
+11,Math,Linear Functions,Easy,What is the slope of y = 3x + 2?,1,2,3,4,C,Slope is coefficient of x,In y = mx + b form slope m = 3
+12,Math,Linear Functions,Easy,Find y-intercept of y = 2x - 5,-7,-6,-5,-4,C,Y-intercept is constant term,In y = mx + b form y-intercept b = -5
+13,Math,Linear Functions,Medium,What is slope between (2,3) and (6,11)?,1,2,3,4,B,Use slope formula,m = (11-3)/(6-2) = 8/4 = 2
+14,Math,Linear Functions,Medium,Line passes through (0,4) with slope 3. What is equation?,y=3x+1,y=3x+4,y=4x+3,y=x+7,B,Use y = mx + b,Slope m=3 and y-intercept b=4 so y=3x+4
+15,Math,Linear Functions,Hard,Find x-intercept of 2x + 3y = 12,4,5,6,7,C,Set y=0 and solve,2x + 3(0) = 12. 2x = 12. x = 6
+16,Math,Linear Functions,Hard,Lines y=2x+1 and y=-x+7 intersect at what x?,1,2,3,4,B,Set equations equal,2x+1=-x+7. 3x=6. x=2
+17,Math,Linear Functions,Easy,What is slope of horizontal line?,0,1,-1,undefined,A,Horizontal lines have slope 0,No vertical change means slope = 0
+18,Math,Linear Functions,Medium,Parallel lines have what relationship?,Same slope,Same y-intercept,Perpendicular,Different slopes,A,Parallel means same slope,Parallel lines never intersect and have equal slopes
+19,Math,Linear Functions,Hard,Perpendicular to y=2x+1 has slope?,-2,-1/2,1/2,2,B,Negative reciprocal,Perpendicular slope is negative reciprocal: -1/2
+20,Math,Linear Functions,Medium,If f(x)=4x-3 what is f(5)?,15,16,17,18,C,Substitute x=5,f(5) = 4(5) - 3 = 20 - 3 = 17
+21,Math,Quadratic Functions,Easy,Expand (x+3)²,x²+6x+9,x²+3x+9,x²+9,x²+6x+3,A,Use (a+b)²=a²+2ab+b²,(x+3)² = x² + 2(3)x + 9 = x²+6x+9
+22,Math,Quadratic Functions,Easy,Factor x²+5x+6,(x+2)(x+3),(x+1)(x+6),(x+2)(x+4),(x+1)(x+5),A,Find factors of 6 that add to 5,Numbers 2 and 3 multiply to 6 and add to 5
+23,Math,Quadratic Functions,Medium,Solve x²-4=0,-2 only,2 only,±2,±4,C,Factor as difference of squares,x²-4 = (x+2)(x-2) = 0 so x = ±2
+24,Math,Quadratic Functions,Medium,Vertex of y=x²-6x+5 is at x=?,2,3,4,5,B,Use x=-b/2a,x = -(-6)/(2·1) = 6/2 = 3
+25,Math,Quadratic Functions,Hard,Solve x²+4x-5=0 using factoring,-5 or 1,-1 or 5,5 or -1,-5 or -1,A,Factor to (x+5)(x-1),x²+4x-5 = (x+5)(x-1) = 0 so x=-5 or x=1
+26,Math,Quadratic Functions,Hard,Discriminant of x²+2x+5 is?,-16,-12,12,16,A,Use b²-4ac,b²-4ac = 4-4(1)(5) = 4-20 = -16
+27,Math,Quadratic Functions,Easy,What is axis of symmetry for y=(x-4)²?,x=0,x=2,x=4,x=8,C,Vertex form shows h,In y=(x-h)² vertex is at x=h=4
+28,Math,Quadratic Functions,Medium,Maximum value of y=-x²+6x-5?,3,4,5,6,B,Find vertex y-coordinate,Vertex at x=3: y=-(3)²+6(3)-5=-9+18-5=4
+29,Math,Quadratic Functions,Hard,Roots of x²-7x+12=0 are?,2 and 5,3 and 4,2 and 6,1 and 12,B,Factor the quadratic,x²-7x+12 = (x-3)(x-4) = 0 so x=3 or x=4
+30,Math,Quadratic Functions,Medium,Complete square: x²+8x+___?,4,8,12,16,D,Take half of b then square,(8/2)² = 4² = 16
+31,Math,Ratios/Rates/Proportions,Easy,If 3:5 = x:15 what is x?,6,7,8,9,D,Cross multiply,3/5 = x/15. 5x = 45. x = 9
+32,Math,Ratios/Rates/Proportions,Easy,Car travels 120 miles in 2 hours. What is rate?,50 mph,55 mph,60 mph,65 mph,C,Divide distance by time,120 ÷ 2 = 60 mph
+33,Math,Ratios/Rates/Proportions,Medium,Recipe needs 2 cups flour for 12 cookies. How much for 30?,4 cups,5 cups,6 cups,7 cups,B,Set up proportion,2/12 = x/30. 12x = 60. x = 5
+34,Math,Ratios/Rates/Proportions,Medium,Ratio of boys to girls is 3:4. If 21 boys how many girls?,24,26,28,30,C,Use ratio,3/4 = 21/x. 3x = 84. x = 28
+35,Math,Ratios/Rates/Proportions,Hard,Speed of 75 km/h equals how many m/s?,18.75,20.83,22.5,25,B,Convert units,75 km/h × 1000m/km ÷ 3600s/h = 20.83 m/s
+36,Math,Ratios/Rates/Proportions,Hard,If a:b = 2:3 and b:c = 4:5 what is a:c?,8:15,2:5,3:5,4:15,A,Chain ratios,a:b:c = 8:12:15 so a:c = 8:15
+37,Math,Ratios/Rates/Proportions,Easy,What percent is 15 of 60?,20%,25%,30%,35%,B,Divide and multiply by 100,15/60 = 0.25 = 25%
+38,Math,Ratios/Rates/Proportions,Medium,Price increased from $40 to $50. What percent increase?,20%,25%,30%,35%,B,Find change over original,Change = 10. 10/40 = 0.25 = 25%
+39,Math,Ratios/Rates/Proportions,Hard,Population decreased 20% to 4800. What was original?,5000,5500,6000,6500,C,Work backwards,0.8x = 4800. x = 6000
+40,Math,Ratios/Rates/Proportions,Medium,Unit price: $12 for 4 pounds. Cost per pound?,$2,$2.50,$3,$3.50,C,Divide price by quantity,12 ÷ 4 = $3 per pound
+41,Math,Area & Volume,Easy,Area of rectangle 5 by 8?,35,40,45,50,B,Multiply length by width,A = 5 × 8 = 40
+42,Math,Area & Volume,Easy,Perimeter of square with side 6?,18,20,24,28,C,Multiply side by 4,P = 4 × 6 = 24
+43,Math,Area & Volume,Medium,Area of triangle base 10 height 6?,25,30,35,40,B,Use A = ½bh,A = ½(10)(6) = 30
+44,Math,Area & Volume,Medium,Volume of cube with edge 4?,48,56,64,72,C,Cube the edge length,V = 4³ = 64
+45,Math,Area & Volume,Hard,Area of circle radius 5?,25π,50π,75π,100π,A,Use A = πr²,A = π(5)² = 25π
+46,Math,Area & Volume,Hard,Volume of cylinder radius 3 height 10?,30π,60π,90π,120π,C,Use V = πr²h,V = π(3)²(10) = 90π
+47,Math,Area & Volume,Easy,Area of square with side 7?,42,45,49,56,C,Square the side,A = 7² = 49
+48,Math,Area & Volume,Medium,Surface area of cube edge 5?,100,125,150,175,C,Use SA = 6s²,SA = 6(5)² = 150
+49,Math,Area & Volume,Hard,Volume of rectangular prism 3×4×5?,50,55,60,65,C,Multiply dimensions,V = 3 × 4 × 5 = 60
+50,Math,Area & Volume,Medium,Circumference of circle radius 7?,7π,14π,21π,28π,B,Use C = 2πr,C = 2π(7) = 14π

@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiPlus, FiEdit, FiTrash2, FiPlay, FiPause, FiClock, FiUsers, FiFileText, FiSettings } from 'react-icons/fi'
+import { FiPlus, FiEdit, FiTrash2, FiPlay, FiPause, FiUsers, FiFileText } from 'react-icons/fi'
 
 export default function TestManagement() {
   const [tests, setTests] = useState([])
@@ -12,7 +12,34 @@ export default function TestManagement() {
     title: '',
     isActive: true,
     sections: { math: true, rw: true },
-    questionBankId: ''
+    questionBankIds: [],
+    configType: 'standard',
+    customConfig: {
+      rw: {
+        routing: { 
+          low: { min: 0, max: 11 },
+          medium: { min: 12, max: 20 },
+          high: { min: 21, max: 27 }
+        },
+        distribution: {
+          low: { easy: 50, medium: 30, hard: 20 },
+          medium: { easy: 20, medium: 45, hard: 35 },
+          high: { easy: 20, medium: 10, hard: 70 }
+        }
+      },
+      math: {
+        routing: { 
+          low: { min: 0, max: 9 },
+          medium: { min: 10, max: 16 },
+          high: { min: 17, max: 22 }
+        },
+        distribution: {
+          low: { easy: 50, medium: 30, hard: 20 },
+          medium: { easy: 20, medium: 45, hard: 35 },
+          high: { easy: 20, medium: 10, hard: 70 }
+        }
+      }
+    }
   })
 
   useEffect(() => {
@@ -80,7 +107,34 @@ export default function TestManagement() {
       title: '',
       isActive: true,
       sections: { math: true, rw: true },
-      questionBankId: ''
+      questionBankIds: [],
+      configType: 'standard',
+      customConfig: {
+        rw: {
+          routing: { 
+            low: { min: 0, max: 11 },
+            medium: { min: 12, max: 20 },
+            high: { min: 21, max: 27 }
+          },
+          distribution: {
+            low: { easy: 50, medium: 30, hard: 20 },
+            medium: { easy: 20, medium: 45, hard: 35 },
+            high: { easy: 20, medium: 10, hard: 70 }
+          }
+        },
+        math: {
+          routing: { 
+            low: { min: 0, max: 9 },
+            medium: { min: 10, max: 16 },
+            high: { min: 17, max: 22 }
+          },
+          distribution: {
+            low: { easy: 50, medium: 30, hard: 20 },
+            medium: { easy: 20, medium: 45, hard: 35 },
+            high: { easy: 20, medium: 10, hard: 70 }
+          }
+        }
+      }
     })
   }
 
@@ -90,7 +144,34 @@ export default function TestManagement() {
       title: test.title,
       isActive: test.isActive,
       sections: test.sections || { math: true, rw: true },
-      questionBankId: test.questionBankId || ''
+      questionBankIds: test.questionBankIds || [],
+      configType: test.configType || 'standard',
+      customConfig: test.customConfig || {
+        rw: {
+          routing: { 
+            low: { min: 0, max: 11 },
+            medium: { min: 12, max: 20 },
+            high: { min: 21, max: 27 }
+          },
+          distribution: {
+            low: { easy: 50, medium: 30, hard: 20 },
+            medium: { easy: 20, medium: 45, hard: 35 },
+            high: { easy: 20, medium: 10, hard: 70 }
+          }
+        },
+        math: {
+          routing: { 
+            low: { min: 0, max: 9 },
+            medium: { min: 10, max: 16 },
+            high: { min: 17, max: 22 }
+          },
+          distribution: {
+            low: { easy: 50, medium: 30, hard: 20 },
+            medium: { easy: 20, medium: 45, hard: 35 },
+            high: { easy: 20, medium: 10, hard: 70 }
+          }
+        }
+      }
     })
     setShowModal(true)
   }
@@ -189,11 +270,16 @@ export default function TestManagement() {
                 </button>
               </div>
             </div>
-            {test.questionBankId && (
-              <div className="mb-3">
-                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                  Question Bank: {questionBanks.find(q => String(q._id) === String(test.questionBankId))?.title || 'Selected'}
-                </span>
+            {test.questionBankIds && test.questionBankIds.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-1">
+                {test.questionBankIds.map(bankId => {
+                  const bank = questionBanks.find(q => String(q._id) === String(bankId))
+                  return bank ? (
+                    <span key={bankId} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                      {bank.title}
+                    </span>
+                  ) : null
+                })}
               </div>
             )}
             <p className="text-gray-600 text-sm mb-4">{test.description}</p>
@@ -244,7 +330,7 @@ export default function TestManagement() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg p-6 w-full max-w-xl max-h-screen overflow-y-auto m-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto m-4">
             <h2 className="text-xl font-bold mb-4">
               {editingTest ? 'Edit Test' : 'Create New Test'}
             </h2>
@@ -263,21 +349,288 @@ export default function TestManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Question Bank</label>
-                  <select
-                    value={formData.questionBankId}
-                    onChange={(e) => setFormData({ ...formData, questionBankId: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    required
-                  >
-                    <option value="">Select Question Bank</option>
-                    {questionBanks.map((bank) => (
-                      <option key={bank._id} value={bank._id}>
-                        {bank.title}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Question Banks</label>
+                  <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
+                    {questionBanks.length === 0 ? (
+                      <p className="text-sm text-gray-500">No question banks available</p>
+                    ) : (
+                      questionBanks.map((bank) => (
+                        <label key={bank._id} className="flex items-center gap-2 py-2 hover:bg-gray-50 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.questionBankIds.includes(bank._id)}
+                            onChange={(e) => {
+                              const newIds = e.target.checked
+                                ? [...formData.questionBankIds, bank._id]
+                                : formData.questionBankIds.filter(id => id !== bank._id)
+                              setFormData({ ...formData, questionBankIds: newIds })
+                            }}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-sm">{bank.title}</span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                  {formData.questionBankIds.length > 0 && (
+                    <p className="text-xs text-gray-600 mt-1">
+                      {formData.questionBankIds.length} bank(s) selected
+                    </p>
+                  )}
                 </div>
+
+                {/* Configuration Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Test Configuration</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className={`border-2 rounded-lg p-4 cursor-pointer transition ${
+                      formData.configType === 'standard' 
+                        ? 'border-blue-500 bg-blue-50' 
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="configType"
+                        value="standard"
+                        checked={formData.configType === 'standard'}
+                        onChange={(e) => setFormData({ ...formData, configType: e.target.value })}
+                        className="mr-2"
+                      />
+                      <span className="font-semibold">Standard SAT</span>
+                      <p className="text-xs text-gray-600 mt-1">Official College Board thresholds</p>
+                    </label>
+                    <label className={`border-2 rounded-lg p-4 cursor-pointer transition ${
+                      formData.configType === 'custom' 
+                        ? 'border-blue-500 bg-blue-50' 
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="configType"
+                        value="custom"
+                        checked={formData.configType === 'custom'}
+                        onChange={(e) => setFormData({ ...formData, configType: e.target.value })}
+                        className="mr-2"
+                      />
+                      <span className="font-semibold">Custom Configuration</span>
+                      <p className="text-xs text-gray-600 mt-1">Customize routing ranges & difficulty</p>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Custom Configuration Settings */}
+                {formData.configType === 'custom' && (
+                  <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
+                    <h3 className="font-semibold text-lg mb-4">Custom Configuration Settings</h3>
+                    
+                    {/* Reading & Writing Config */}
+                    <div className="mb-6">
+                      <h4 className="font-medium text-md mb-3 text-blue-900">📖 Reading & Writing (27 questions)</h4>
+                      
+                      {/* Routing Ranges */}
+                      <div className="bg-white rounded p-3 mb-3">
+                        <p className="text-sm font-medium mb-3">Module 2 Routing Ranges</p>
+                        {['low', 'medium', 'high'].map((path) => (
+                          <div key={path} className="mb-3">
+                            <label className="text-xs font-medium text-gray-700 capitalize block mb-1">{path} Difficulty Path</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-xs text-gray-600">Min Score</label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="27"
+                                  value={formData.customConfig.rw.routing[path].min}
+                                  onChange={(e) => setFormData({
+                                    ...formData,
+                                    customConfig: {
+                                      ...formData.customConfig,
+                                      rw: {
+                                        ...formData.customConfig.rw,
+                                        routing: {
+                                          ...formData.customConfig.rw.routing,
+                                          [path]: { ...formData.customConfig.rw.routing[path], min: parseInt(e.target.value) }
+                                        }
+                                      }
+                                    }
+                                  })}
+                                  className="w-full border rounded px-2 py-1 text-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-gray-600">Max Score</label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="27"
+                                  value={formData.customConfig.rw.routing[path].max}
+                                  onChange={(e) => setFormData({
+                                    ...formData,
+                                    customConfig: {
+                                      ...formData.customConfig,
+                                      rw: {
+                                        ...formData.customConfig.rw,
+                                        routing: {
+                                          ...formData.customConfig.rw.routing,
+                                          [path]: { ...formData.customConfig.rw.routing[path], max: parseInt(e.target.value) }
+                                        }
+                                      }
+                                    }
+                                  })}
+                                  className="w-full border rounded px-2 py-1 text-sm"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Difficulty Distribution */}
+                      <div className="bg-white rounded p-3">
+                        <p className="text-sm font-medium mb-2">Module 2 Difficulty Distribution (%)</p>
+                        {['low', 'medium', 'high'].map((path) => (
+                          <div key={path} className="mb-2">
+                            <label className="text-xs font-medium text-gray-700 capitalize">{path} Path:</label>
+                            <div className="grid grid-cols-3 gap-2">
+                              {['easy', 'medium', 'hard'].map((diff) => (
+                                <div key={diff}>
+                                  <label className="text-xs text-gray-600 capitalize">{diff}</label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={formData.customConfig.rw.distribution[path][diff]}
+                                    onChange={(e) => setFormData({
+                                      ...formData,
+                                      customConfig: {
+                                        ...formData.customConfig,
+                                        rw: {
+                                          ...formData.customConfig.rw,
+                                          distribution: {
+                                            ...formData.customConfig.rw.distribution,
+                                            [path]: {
+                                              ...formData.customConfig.rw.distribution[path],
+                                              [diff]: parseInt(e.target.value)
+                                            }
+                                          }
+                                        }
+                                      }
+                                    })}
+                                    className="w-full border rounded px-2 py-1 text-sm"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Math Config */}
+                    <div>
+                      <h4 className="font-medium text-md mb-3 text-blue-900">🔢 Math (22 questions)</h4>
+                      
+                      {/* Routing Ranges */}
+                      <div className="bg-white rounded p-3 mb-3">
+                        <p className="text-sm font-medium mb-3">Module 2 Routing Ranges</p>
+                        {['low', 'medium', 'high'].map((path) => (
+                          <div key={path} className="mb-3">
+                            <label className="text-xs font-medium text-gray-700 capitalize block mb-1">{path} Difficulty Path</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-xs text-gray-600">Min Score</label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="22"
+                                  value={formData.customConfig.math.routing[path].min}
+                                  onChange={(e) => setFormData({
+                                    ...formData,
+                                    customConfig: {
+                                      ...formData.customConfig,
+                                      math: {
+                                        ...formData.customConfig.math,
+                                        routing: {
+                                          ...formData.customConfig.math.routing,
+                                          [path]: { ...formData.customConfig.math.routing[path], min: parseInt(e.target.value) }
+                                        }
+                                      }
+                                    }
+                                  })}
+                                  className="w-full border rounded px-2 py-1 text-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-gray-600">Max Score</label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="22"
+                                  value={formData.customConfig.math.routing[path].max}
+                                  onChange={(e) => setFormData({
+                                    ...formData,
+                                    customConfig: {
+                                      ...formData.customConfig,
+                                      math: {
+                                        ...formData.customConfig.math,
+                                        routing: {
+                                          ...formData.customConfig.math.routing,
+                                          [path]: { ...formData.customConfig.math.routing[path], max: parseInt(e.target.value) }
+                                        }
+                                      }
+                                    }
+                                  })}
+                                  className="w-full border rounded px-2 py-1 text-sm"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Difficulty Distribution */}
+                      <div className="bg-white rounded p-3">
+                        <p className="text-sm font-medium mb-2">Module 2 Difficulty Distribution (%)</p>
+                        {['low', 'medium', 'high'].map((path) => (
+                          <div key={path} className="mb-2">
+                            <label className="text-xs font-medium text-gray-700 capitalize">{path} Path:</label>
+                            <div className="grid grid-cols-3 gap-2">
+                              {['easy', 'medium', 'hard'].map((diff) => (
+                                <div key={diff}>
+                                  <label className="text-xs text-gray-600 capitalize">{diff}</label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={formData.customConfig.math.distribution[path][diff]}
+                                    onChange={(e) => setFormData({
+                                      ...formData,
+                                      customConfig: {
+                                        ...formData.customConfig,
+                                        math: {
+                                          ...formData.customConfig.math,
+                                          distribution: {
+                                            ...formData.customConfig.math.distribution,
+                                            [path]: {
+                                              ...formData.customConfig.math.distribution[path],
+                                              [diff]: parseInt(e.target.value)
+                                            }
+                                          }
+                                        }
+                                      }
+                                    })}
+                                    className="w-full border rounded px-2 py-1 text-sm"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <label className="flex items-center gap-2 border rounded-lg px-3 py-2">
                     <input
@@ -305,32 +658,6 @@ export default function TestManagement() {
                   />
                   <span className="text-sm font-medium text-gray-700">Active Test</span>
                 </label>
-              </div>
-
-              <div className="mb-6">
-                <div className="text-sm font-semibold mb-2">Test Structure (read-only)</div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="border rounded p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">Reading & Writing</span>
-                      <span className={`px-2 py-1 text-xs rounded ${formData.sections.rw ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
-                        {formData.sections.rw ? 'Enabled' : 'Disabled'}
-                      </span>
-                    </div>
-                    <div className="text-gray-700">Base Module: 27 Q • 32 min</div>
-                    <div className="text-gray-700">Adaptive Module: 27 Q • 32 min</div>
-                  </div>
-                  <div className="border rounded p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">Math</span>
-                      <span className={`px-2 py-1 text-xs rounded ${formData.sections.math ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
-                        {formData.sections.math ? 'Enabled' : 'Disabled'}
-                      </span>
-                    </div>
-                    <div className="text-gray-700">Base Module: 22 Q • 35 min</div>
-                    <div className="text-gray-700">Adaptive Module: 22 Q • 35 min</div>
-                  </div>
-                </div>
               </div>
 
               <div className="flex justify-end space-x-3">

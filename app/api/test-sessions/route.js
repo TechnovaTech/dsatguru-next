@@ -35,7 +35,39 @@ export async function POST(request) {
     }
     
     const sessionData = await request.json()
+    console.log('Received session data:', sessionData)
+    
     sessionData.userId = decoded.userId
+    
+    // If this is a completed test with scores
+    if (sessionData.status === 'Completed' && sessionData.totalScore !== undefined) {
+      // Try to find test and get questionBankId
+      if (sessionData.testId) {
+        try {
+          const test = await Test.findById(sessionData.testId)
+          if (test && test.questionBankId) {
+            sessionData.questionBankId = test.questionBankId
+          }
+        } catch (err) {
+          console.log('Could not fetch test:', err.message)
+        }
+      }
+      
+      // If still no questionBankId, create a dummy one to avoid validation error
+      if (!sessionData.questionBankId) {
+        console.log('No questionBankId found, using null')
+        delete sessionData.questionBankId
+      }
+      
+      sessionData.state = 'COMPLETED'
+      sessionData.endTime = new Date()
+      
+      const session = await TestSession.create(sessionData)
+      console.log('Test session saved:', session._id)
+      return NextResponse.json({ message: 'Test completed and saved', session })
+    }
+    
+    // Regular session creation
     const total = Number(sessionData.totalQuestions || 50)
     sessionData.baseTarget = Math.max(1, Math.floor(total / 2))
     sessionData.state = 'IN_PROGRESS_BASE'
@@ -54,6 +86,7 @@ export async function POST(request) {
     const session = await TestSession.create(sessionData)
     return NextResponse.json({ message: 'Session created', session })
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create session' }, { status: 500 })
+    console.error('Error in POST /api/test-sessions:', error)
+    return NextResponse.json({ error: error.message || 'Failed to create session' }, { status: 500 })
   }
 }

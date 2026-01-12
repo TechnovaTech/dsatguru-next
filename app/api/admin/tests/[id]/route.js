@@ -3,6 +3,19 @@ import { connectDB } from '../../../../../lib/db'
 import Test from '../../../../../lib/models/Test'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 
+export async function GET(request, { params }) {
+  try {
+    await connectDB()
+    const test = await Test.findById(params.id)
+    if (!test) {
+      return NextResponse.json({ error: 'Test not found' }, { status: 404 })
+    }
+    return NextResponse.json(test)
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch test' }, { status: 500 })
+  }
+}
+
 export async function PUT(request, { params }) {
   try {
     await connectDB()

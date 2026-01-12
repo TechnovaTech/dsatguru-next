@@ -91,10 +91,16 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold mb-2">Welcome, {user?.name || 'Student'}!</h1>
         <p className="text-blue-100 mb-4">&quot;Success is the sum of small efforts repeated day in and day out.&quot;</p>
         <div className="flex flex-col sm:flex-row gap-3">
-          <button className="bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors">
-            Create Practice Test
+          <button 
+            onClick={() => router.push('/dashboard/tests')}
+            className="bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors"
+          >
+            Take a Test
           </button>
-          <button className="border border-white text-white px-6 py-2 rounded-lg font-medium hover:bg-white/10 transition-colors">
+          <button 
+            onClick={() => router.push('/dashboard/study-plan')}
+            className="border border-white text-white px-6 py-2 rounded-lg font-medium hover:bg-white/10 transition-colors"
+          >
             View Study Plan
           </button>
         </div>

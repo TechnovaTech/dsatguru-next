@@ -1,0 +1,151 @@
+S.No,Subject,Tag,Difficulty,Question,Option A,Option B,Option C,Option D,Correct Answer,Short Explanation,Long Explanation
+1,Math,Linear Equations (1 & 2 variables),Easy,Solve: 2x + 5 = 13,2,3,4,5,C,Subtract 5 divide by 2,2x = 8 so x = 4
+2,Math,Linear Equations (1 & 2 variables),Easy,If 3x - 7 = 8 find x,3,4,5,6,C,Add 7 divide by 3,3x = 15 so x = 5
+3,Math,Linear Equations (1 & 2 variables),Medium,Solve: 4(x-2) = 20,5,6,7,8,C,Distribute then solve,4x - 8 = 20 so x = 7
+4,Math,Linear Equations (1 & 2 variables),Medium,If 5x + 3 = 2x + 18 find x,3,4,5,6,C,Combine like terms,3x = 15 so x = 5
+5,Math,Linear Equations (1 & 2 variables),Hard,Solve: 2(3x-4) = 3(x+2),4,5,6,7,A,Distribute both sides,6x - 8 = 3x + 6 gives x ≈ 4.67
+6,Math,Linear Equations (1 & 2 variables),Hard,If (x+5)/3 = 7 find x,14,15,16,17,C,Multiply by 3,x + 5 = 21 so x = 16
+7,Math,Linear Equations (1 & 2 variables),Easy,Solve: x + 9 = 15,4,5,6,7,C,Subtract 9,x = 6
+8,Math,Linear Equations (1 & 2 variables),Medium,Solve: 2x + 3y = 12 when y = 2,1,2,3,4,C,Substitute y = 2,2x + 6 = 12 so x = 3
+9,Math,Linear Equations (1 & 2 variables),Hard,If 3x - 2y = 10 and y = 4 find x,4,5,6,7,C,Substitute y,3x - 8 = 10 so x = 6
+10,Math,Linear Equations (1 & 2 variables),Medium,Solve: 7x - 12 = 2x + 13,3,4,5,6,C,Combine terms,5x = 25 so x = 5
+11,Math,Linear Functions,Easy,Slope of y = 3x + 2?,1,2,3,4,C,Coefficient of x,m = 3
+12,Math,Linear Functions,Easy,Y-intercept of y = 2x - 5?,-7,-6,-5,-4,C,Constant term,b = -5
+13,Math,Linear Functions,Medium,Slope between (2,3) and (6,11)?,1,2,3,4,B,Rise over run,(11-3)/(6-2) = 2
+14,Math,Linear Functions,Medium,Line through (0,4) slope 3?,y=3x+1,y=3x+4,y=4x+3,y=x+7,B,Use y = mx + b,m=3 b=4
+15,Math,Linear Functions,Hard,X-intercept of 2x + 3y = 12?,4,5,6,7,C,Set y = 0,2x = 12 so x = 6
+16,Math,Linear Functions,Hard,Where do y=2x+1 and y=-x+7 meet?,1,2,3,4,B,Set equal,2x+1=-x+7 gives x=2
+17,Math,Linear Functions,Easy,Slope of horizontal line?,0,1,-1,undefined,A,No rise,m = 0
+18,Math,Linear Functions,Medium,Parallel lines have?,Same slope,Same intercept,Different slopes,No relationship,A,Equal slopes,Never intersect
+19,Math,Linear Functions,Hard,Perpendicular to y=2x+1?,-2,-1/2,1/2,2,B,Negative reciprocal,m = -1/2
+20,Math,Linear Functions,Medium,If f(x)=4x-3 find f(5),15,16,17,18,C,Substitute,4(5) - 3 = 17
+21,Math,Systems of Linear Equations,Easy,Solve: x+y=5 and x-y=1,x=2 y=3,x=3 y=2,x=4 y=1,x=1 y=4,B,Add equations,2x = 6 so x = 3
+22,Math,Systems of Linear Equations,Easy,Solve: 2x+y=7 and x=2,x=2 y=2,x=2 y=3,x=3 y=1,x=1 y=5,B,Substitute x,2(2)+y=7 so y=3
+23,Math,Systems of Linear Equations,Medium,Solve: x+2y=8 and 2x-y=1,x=2 y=3,x=3 y=2,x=1 y=3,x=4 y=2,A,Elimination method,x=2 y=3
+24,Math,Systems of Linear Equations,Medium,Solve: 3x+y=10 and x-y=2,x=2 y=4,x=3 y=1,x=4 y=-2,x=1 y=7,B,Add equations,4x=12 so x=3
+25,Math,Systems of Linear Equations,Hard,Solve: 2x+3y=13 and x+y=5,x=2 y=3,x=3 y=2,x=4 y=1,x=1 y=4,A,Substitution,x=2 y=3
+26,Math,Systems of Linear Equations,Hard,Solve: 4x-y=10 and 2x+y=8,x=2 y=-2,x=3 y=2,x=4 y=6,x=1 y=-6,B,Add equations,6x=18 so x=3
+27,Math,Systems of Linear Equations,Easy,Solve: y=x+1 and y=2x,x=0 y=0,x=1 y=2,x=2 y=4,x=-1 y=-2,B,Set equal,x+1=2x so x=1
+28,Math,Systems of Linear Equations,Medium,Solve: 3x+2y=12 and x=2,x=2 y=3,x=2 y=2,x=3 y=1,x=1 y=4,A,Substitute,6+2y=12 so y=3
+29,Math,Systems of Linear Equations,Hard,Solve: 5x-2y=16 and 3x+2y=8,x=2 y=-3,x=3 y=-1,x=4 y=2,x=1 y=-5,B,Add equations,8x=24 so x=3
+30,Math,Systems of Linear Equations,Medium,Solve: x+3y=11 and 2x-y=3,x=2 y=3,x=3 y=2,x=4 y=1,x=1 y=3,A,Elimination,x=2 y=3
+31,Math,Equivalent Expressions,Easy,Simplify: 3x + 2x,5x,6x,x,3x,A,Combine like terms,3x + 2x = 5x
+32,Math,Equivalent Expressions,Easy,Expand: 2(x+3),2x+3,2x+6,x+6,2x+9,B,Distribute,2·x + 2·3 = 2x+6
+33,Math,Equivalent Expressions,Medium,Factor: x² - 9,(x-3)(x-3),(x+3)(x+3),(x-3)(x+3),(x-9)(x+1),C,Difference of squares,a²-b² = (a-b)(a+b)
+34,Math,Equivalent Expressions,Medium,Simplify: (2x²)(3x³),5x⁵,6x⁵,6x⁶,5x⁶,B,Multiply coefficients add exponents,2·3=6 and 2+3=5
+35,Math,Equivalent Expressions,Hard,Factor: 2x² + 8x,2x(x+4),2(x²+4x),x(2x+8),2x(x+8),A,Factor out GCF,2x is common factor
+36,Math,Equivalent Expressions,Hard,Simplify: (x²y³)/(xy),xy,xy²,x²y,x²y²,B,Subtract exponents,x^(2-1) y^(3-1)
+37,Math,Equivalent Expressions,Easy,Combine: 5a - 2a,3a,7a,3,2a,A,Subtract coefficients,5 - 2 = 3
+38,Math,Equivalent Expressions,Medium,Expand: (x+2)(x+3),x²+5x+6,x²+6x+5,x²+5x+5,x²+6x+6,A,FOIL method,x² + 3x + 2x + 6
+39,Math,Equivalent Expressions,Hard,Factor: 3x² - 12,3(x²-4),3(x-2)(x+2),Both A and B,Neither,C,Factor out 3 then difference of squares,3(x²-4) = 3(x-2)(x+2)
+40,Math,Equivalent Expressions,Medium,Simplify: 4x + 3 - x + 2,3x+5,5x+5,3x+1,5x+1,A,Combine like terms,3x + 5
+41,Math,Quadratic Functions,Easy,Expand: (x+3)²,x²+6x+9,x²+3x+9,x²+9,x²+6x+3,A,Square binomial,(a+b)² = a²+2ab+b²
+42,Math,Quadratic Functions,Easy,Factor: x²+5x+6,(x+2)(x+3),(x+1)(x+6),(x+2)(x+4),(x+1)(x+5),A,Find factors,2·3=6 and 2+3=5
+43,Math,Quadratic Functions,Medium,Solve: x²-4=0,-2 only,2 only,±2,±4,C,Factor,x²-4 = (x+2)(x-2)
+44,Math,Quadratic Functions,Medium,Vertex of y=x²-6x+5 at x=?,2,3,4,5,B,Use -b/2a,x = 6/2 = 3
+45,Math,Quadratic Functions,Hard,Solve: x²+4x-5=0,-5 or 1,-1 or 5,5 or -1,-5 or -1,A,Factor,(x+5)(x-1)=0
+46,Math,Quadratic Functions,Hard,Discriminant of x²+2x+5?,-16,-12,12,16,A,b²-4ac,4-20 = -16
+47,Math,Quadratic Functions,Easy,Axis of symmetry y=(x-4)²?,x=0,x=2,x=4,x=8,C,Vertex form,h = 4
+48,Math,Quadratic Functions,Medium,Max of y=-x²+6x-5?,3,4,5,6,B,Find vertex,At x=3: y=4
+49,Math,Quadratic Functions,Hard,Roots of x²-7x+12=0?,2 and 5,3 and 4,2 and 6,1 and 12,B,Factor,(x-3)(x-4)=0
+50,Math,Quadratic Functions,Medium,Complete square: x²+8x+__?,4,8,12,16,D,Half b squared,(8/2)² = 16
+51,Math,Exponential Functions,Easy,Evaluate: 2³,6,8,9,16,B,Multiply,2·2·2 = 8
+52,Math,Exponential Functions,Easy,Simplify: x⁴·x²,x⁶,x⁸,x²,x⁴,A,Add exponents,4 + 2 = 6
+53,Math,Exponential Functions,Medium,Solve: 2ˣ = 16,2,3,4,5,C,Same base,2⁴ = 16
+54,Math,Exponential Functions,Medium,Simplify: (x³)²,x⁵,x⁶,x⁹,x,B,Multiply exponents,3·2 = 6
+55,Math,Exponential Functions,Hard,Solve: 3ˣ = 27,2,3,4,5,B,Same base,3³ = 27
+56,Math,Exponential Functions,Hard,Simplify: x⁶/x²,x³,x⁴,x⁸,x²,B,Subtract exponents,6 - 2 = 4
+57,Math,Exponential Functions,Easy,Evaluate: 5²,10,15,20,25,D,Square,5·5 = 25
+58,Math,Exponential Functions,Medium,Growth: y=100(1.05)ᵗ at t=2?,105,110,110.25,115,C,Substitute,100(1.05)² = 110.25
+59,Math,Exponential Functions,Hard,Half-life: y=80(0.5)ᵗ at t=3?,5,10,15,20,B,Substitute,80(0.5)³ = 10
+60,Math,Exponential Functions,Medium,Simplify: (2x)³,6x³,8x³,2x³,8x,B,Cube both,2³·x³ = 8x³
+61,Math,Nonlinear Equations,Easy,Solve: x² = 25,±3,±4,±5,±6,C,Square root,x = ±5
+62,Math,Nonlinear Equations,Easy,Solve: x³ = 8,1,2,3,4,B,Cube root,x = 2
+63,Math,Nonlinear Equations,Medium,Solve: √x = 4,8,12,16,20,C,Square both sides,x = 16
+64,Math,Nonlinear Equations,Medium,Solve: x² + x - 6 = 0,-3 or 2,-2 or 3,3 or -2,2 or -3,A,Factor,(x+3)(x-2)=0
+65,Math,Nonlinear Equations,Hard,Solve: 2x² - 8 = 0,±1,±2,±3,±4,B,Divide factor,x² = 4 so x = ±2
+66,Math,Nonlinear Equations,Hard,Solve: x³ - 27 = 0,2,3,4,5,B,Add 27,x³ = 27 so x = 3
+67,Math,Nonlinear Equations,Easy,Solve: x² = 36,±4,±5,±6,±7,C,Square root,x = ±6
+68,Math,Nonlinear Equations,Medium,Solve: x² - 2x - 8 = 0,-2 or 4,-4 or 2,2 or -4,4 or -2,A,Factor,(x-4)(x+2)=0
+69,Math,Nonlinear Equations,Hard,Solve: x³ + 8 = 0,-3,-2,-1,0,B,Subtract 8,x³ = -8 so x = -2
+70,Math,Nonlinear Equations,Medium,Solve: √(x+5) = 3,2,3,4,5,C,Square,x + 5 = 9 so x = 4
+71,Math,Ratios/Rates/Proportions,Easy,If 3:5 = x:15 find x,6,7,8,9,D,Cross multiply,3·15 = 5x so x = 9
+72,Math,Ratios/Rates/Proportions,Easy,120 miles in 2 hours rate?,50,55,60,65,C,Divide,120/2 = 60 mph
+73,Math,Ratios/Rates/Proportions,Medium,2 cups for 12 cookies. For 30?,4,5,6,7,B,Proportion,2/12 = x/30 so x = 5
+74,Math,Ratios/Rates/Proportions,Medium,Ratio 3:4. If 21 boys how many girls?,24,26,28,30,C,Set up ratio,3/4 = 21/x so x = 28
+75,Math,Ratios/Rates/Proportions,Hard,75 km/h to m/s?,18.75,20.83,22.5,25,B,Convert,75000/3600 = 20.83
+76,Math,Ratios/Rates/Proportions,Hard,If a:b=2:3 and b:c=4:5 find a:c,8:15,2:5,3:5,4:15,A,Chain ratios,Scale to common b
+77,Math,Ratios/Rates/Proportions,Easy,15 is what percent of 60?,20%,25%,30%,35%,B,Divide,15/60 = 0.25 = 25%
+78,Math,Ratios/Rates/Proportions,Medium,$40 to $50 percent increase?,20%,25%,30%,35%,B,Change/original,10/40 = 25%
+79,Math,Ratios/Rates/Proportions,Hard,Decreased 20% to 4800. Original?,5000,5500,6000,6500,C,Work back,0.8x = 4800 so x = 6000
+80,Math,Ratios/Rates/Proportions,Medium,$12 for 4 pounds. Per pound?,$2,$2.50,$3,$3.50,C,Divide,12/4 = $3
+81,Math,Probability,Easy,Flip coin. Probability of heads?,1/4,1/3,1/2,2/3,C,Favorable/total,1/2
+82,Math,Probability,Easy,Roll die. Probability of 3?,1/2,1/3,1/4,1/6,D,One outcome,1/6
+83,Math,Probability,Medium,Two coins. Both heads?,1/8,1/4,1/3,1/2,B,Multiply,(1/2)(1/2) = 1/4
+84,Math,Probability,Medium,Bag: 3 red 2 blue. Red?,1/5,2/5,3/5,4/5,C,Red/total,3/5
+85,Math,Probability,Hard,Draw 2 cards without replacement. Both aces?,1/221,2/221,3/221,4/221,A,Multiply,(4/52)(3/51)
+86,Math,Probability,Hard,Roll two dice. Sum of 7?,1/12,1/9,1/6,1/3,C,Count outcomes,6/36 = 1/6
+87,Math,Probability,Easy,Spinner 4 equal sections. Land on 1?,1/2,1/3,1/4,1/5,C,One section,1/4
+88,Math,Probability,Medium,Deck of cards. Draw heart?,1/2,1/3,1/4,1/5,C,Hearts/total,13/52 = 1/4
+89,Math,Probability,Hard,3 coins. At least 2 heads?,1/4,3/8,1/2,5/8,D,Count favorable,5/8
+90,Math,Probability,Medium,Bag: 5 red 3 blue. Blue?,3/5,2/5,3/8,5/8,C,Blue/total,3/8
+91,Math,Unit Conversions,Easy,5 feet to inches?,50,55,60,65,C,Multiply by 12,5·12 = 60
+92,Math,Unit Conversions,Easy,2 hours to minutes?,100,110,120,130,C,Multiply by 60,2·60 = 120
+93,Math,Unit Conversions,Medium,3 km to meters?,300,3000,30000,300000,B,Multiply by 1000,3·1000 = 3000
+94,Math,Unit Conversions,Medium,500 cm to meters?,0.5,5,50,500,B,Divide by 100,500/100 = 5
+95,Math,Unit Conversions,Hard,72 km/h to m/s?,15,18,20,22,C,Divide by 3.6,72/3.6 = 20
+96,Math,Unit Conversions,Hard,2.5 kg to grams?,250,2500,25000,250000,B,Multiply by 1000,2.5·1000 = 2500
+97,Math,Unit Conversions,Easy,3 meters to centimeters?,30,300,3000,30000,B,Multiply by 100,3·100 = 300
+98,Math,Unit Conversions,Medium,1.5 liters to milliliters?,150,1500,15000,150000,B,Multiply by 1000,1.5·1000 = 1500
+99,Math,Unit Conversions,Hard,90 minutes to hours?,1,1.5,2,2.5,B,Divide by 60,90/60 = 1.5
+100,Math,Unit Conversions,Medium,4000 grams to kilograms?,0.4,4,40,400,B,Divide by 1000,4000/1000 = 4
+101,Math,Data Distributions,Easy,Mean of 2 4 6 8?,4,5,6,7,B,Sum/count,20/4 = 5
+102,Math,Data Distributions,Easy,Median of 1 3 5 7 9?,3,5,7,9,B,Middle value,5 is center
+103,Math,Data Distributions,Medium,Mode of 2 3 3 4 5?,2,3,4,5,B,Most frequent,3 appears twice
+104,Math,Data Distributions,Medium,Range of 10 15 20 25?,10,15,20,25,B,Max - min,25 - 10 = 15
+105,Math,Data Distributions,Hard,Standard deviation concept?,Spread,Center,Mode,Median,A,Measures spread,Shows variability
+106,Math,Data Distributions,Hard,Outlier in 2 3 4 5 20?,2,3,5,20,D,Far from others,20 is extreme
+107,Math,Data Distributions,Easy,Mean of 10 20 30?,15,20,25,30,B,Sum/count,60/3 = 20
+108,Math,Data Distributions,Medium,Median of 2 4 6 8 10 12?,6,7,8,9,B,Average middle two,(6+8)/2 = 7
+109,Math,Data Distributions,Hard,Which affected by outliers?,Mean,Median,Mode,Range,A,Mean sensitive,Outliers change average
+110,Math,Data Distributions,Medium,IQR concept?,Middle 50%,All data,Top 25%,Bottom 25%,A,Q3 - Q1,Interquartile range
+111,Math,Area & Volume,Easy,Rectangle 5 by 8 area?,35,40,45,50,B,Length × width,5·8 = 40
+112,Math,Area & Volume,Easy,Square side 6 perimeter?,18,20,24,28,C,4 × side,4·6 = 24
+113,Math,Area & Volume,Medium,Triangle base 10 height 6?,25,30,35,40,B,½bh,½·10·6 = 30
+114,Math,Area & Volume,Medium,Cube edge 4 volume?,48,56,64,72,C,Edge³,4³ = 64
+115,Math,Area & Volume,Hard,Circle radius 5 area?,25π,50π,75π,100π,A,πr²,π·5² = 25π
+116,Math,Area & Volume,Hard,Cylinder r=3 h=10 volume?,30π,60π,90π,120π,C,πr²h,π·9·10 = 90π
+117,Math,Area & Volume,Easy,Square side 7 area?,42,45,49,56,C,Side²,7² = 49
+118,Math,Area & Volume,Medium,Cube edge 5 surface area?,100,125,150,175,C,6s²,6·25 = 150
+119,Math,Area & Volume,Hard,Box 3×4×5 volume?,50,55,60,65,C,l×w×h,3·4·5 = 60
+120,Math,Area & Volume,Medium,Circle radius 7 circumference?,7π,14π,21π,28π,B,2πr,2π·7 = 14π
+121,Math,Lines/Angles/Triangles,Easy,Sum of angles in triangle?,90°,180°,270°,360°,B,Triangle property,Always 180°
+122,Math,Lines/Angles/Triangles,Easy,Complementary angles sum?,45°,90°,180°,360°,B,Add to 90°,Definition
+123,Math,Lines/Angles/Triangles,Medium,Supplementary angles sum?,90°,180°,270°,360°,B,Add to 180°,Linear pair
+124,Math,Lines/Angles/Triangles,Medium,Vertical angles are?,Equal,Supplementary,Complementary,Different,A,Opposite angles,Always equal
+125,Math,Lines/Angles/Triangles,Hard,Exterior angle equals?,One interior,Sum of remote interiors,All interiors,Supplement,B,Triangle theorem,Sum of non-adjacent
+126,Math,Lines/Angles/Triangles,Hard,Isosceles triangle has?,2 equal sides,3 equal sides,No equal sides,4 sides,A,Definition,Two congruent sides
+127,Math,Lines/Angles/Triangles,Easy,Right angle measures?,45°,60°,90°,180°,C,Definition,90 degrees
+128,Math,Lines/Angles/Triangles,Medium,Parallel lines cut by transversal?,Alternate interior equal,All different,Only vertical equal,No relationship,A,Parallel property,Corresponding equal
+129,Math,Lines/Angles/Triangles,Hard,Triangle with angles 60° 60° 60°?,Scalene,Isosceles,Equilateral,Right,C,All equal,Equilateral triangle
+130,Math,Lines/Angles/Triangles,Medium,Acute angle is?,Less than 90°,Equal to 90°,More than 90°,Equal to 180°,A,Definition,Between 0° and 90°
+131,Math,Right Triangles & Trig,Easy,Pythagorean theorem?,a²+b²=c²,a+b=c,a²-b²=c²,ab=c,A,Right triangle,Hypotenuse squared
+132,Math,Right Triangles & Trig,Easy,3-4-5 triangle. Hypotenuse?,3,4,5,6,C,Pythagorean triple,Common triple
+133,Math,Right Triangles & Trig,Medium,Legs 6 and 8. Hypotenuse?,8,9,10,11,C,Use a²+b²=c²,36+64=100 so c=10
+134,Math,Right Triangles & Trig,Medium,sin(30°) equals?,1/4,1/3,1/2,1,C,Special angle,Memorize
+135,Math,Right Triangles & Trig,Hard,cos(60°) equals?,1/4,1/3,1/2,1,C,Special angle,Same as sin(30°)
+136,Math,Right Triangles & Trig,Hard,tan(45°) equals?,1/2,√2/2,1,√3,C,Special angle,Opposite/adjacent
+137,Math,Right Triangles & Trig,Easy,In right triangle SOH CAH TOA?,Trig ratios,Angles,Sides,Area,A,Mnemonic,Sin Cos Tan
+138,Math,Right Triangles & Trig,Medium,Hypotenuse 10 leg 6. Other leg?,6,7,8,9,C,Pythagorean,100-36=64 so 8
+139,Math,Right Triangles & Trig,Hard,45-45-90 triangle sides ratio?,1:1:√2,1:2:√3,1:1:2,1:√3:2,A,Special right triangle,Isosceles right
+140,Math,Right Triangles & Trig,Medium,30-60-90 triangle sides ratio?,1:1:√2,1:√3:2,1:2:√3,1:2:3,B,Special right triangle,Short:long:hypotenuse
+141,Math,Circles,Easy,Diameter is?,Radius,2×radius,Circumference,Area,B,Definition,Twice radius
+142,Math,Circles,Easy,Radius 4. Diameter?,4,6,8,10,C,Double radius,2·4 = 8
+143,Math,Circles,Medium,Circumference formula?,πr,2πr,πr²,2πr²,B,Circle perimeter,2 times pi times radius
+144,Math,Circles,Medium,Area formula?,2πr,πr,πr²,2πr²,C,Circle area,Pi times radius squared
+145,Math,Circles,Hard,Radius 6. Circumference?,6π,12π,18π,36π,B,Use C=2πr,2π·6 = 12π
+146,Math,Circles,Hard,Diameter 10. Area?,25π,50π,75π,100π,A,Use A=πr²,π·5² = 25π
+147,Math,Circles,Easy,Chord is?,Line through center,Line touching circle,Line segment in circle,Radius,C,Definition,Connects two points
+148,Math,Circles,Medium,Tangent line?,Intersects twice,Touches once,Passes through,Parallel,B,Definition,One point of contact
+149,Math,Circles,Hard,Central angle 60° in circle. Arc?,60°,120°,180°,360°,A,Same as angle,Arc equals central angle
+150,Math,Circles,Medium,Semicircle is?,Quarter circle,Half circle,Full circle,No circle,B,Definition,180 degrees

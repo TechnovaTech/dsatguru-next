@@ -2,10 +2,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from './AuthContext'
-import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign } from 'react-icons/fi'
+import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText } from 'react-icons/fi'
 
 const navItems = [
   { name: "Dashboard", icon: <FiGrid />, path: "/dashboard" },
+  { name: "Tests", icon: <FiFileText />, path: "/dashboard/tests" },
   { name: "Courses", icon: <FiBook />, path: "/dashboard/courses" },
   { name: "Question Banks", icon: <FiDatabase />, path: "/dashboard/question-banks" },
   { name: "Study Plan", icon: <FiTarget />, path: "/dashboard/study-plan" },

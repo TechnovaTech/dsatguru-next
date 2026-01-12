@@ -1,0 +1,111 @@
+S.No,Subject,Tag,Difficulty,Question,Option A,Option B,Option C,Option D,Correct Answer,Short Explanation,Long Explanation
+1,Reading and Writing,Vocabulary in Context,Easy,The scientist's findings were _____ by multiple studies.,contradicted,refuted,corroborated,dismissed,C,Corroborated means confirmed,Multiple studies confirmed the findings
+2,Reading and Writing,Vocabulary in Context,Easy,Despite the _____ weather forecast the event proceeded.,ominous,favorable,indifferent,neutral,A,Ominous means threatening,Despite shows contrast
+3,Reading and Writing,Vocabulary in Context,Medium,The author's style is notably _____.,verbose,ornate,lucid,ambiguous,C,Lucid means clear,Simple yet effective writing
+4,Reading and Writing,Vocabulary in Context,Medium,The politician's _____ response failed to address the question.,evasive,candid,forthright,transparent,A,Evasive means avoiding,Failed to address directly
+5,Reading and Writing,Vocabulary in Context,Hard,The researcher's _____ approach revealed new patterns.,cursory,meticulous,haphazard,superficial,B,Meticulous means careful,Thorough analysis needed
+6,Reading and Writing,Vocabulary in Context,Hard,The expansion was _____ given the economic downturn.,prudent,judicious,imprudent,sagacious,C,Imprudent means unwise,Bad timing for expansion
+7,Reading and Writing,Vocabulary in Context,Easy,The explanation was so _____ that beginners understood.,convoluted,obscure,pellucid,cryptic,C,Pellucid means clear,Easy to understand
+8,Reading and Writing,Vocabulary in Context,Medium,The artist's work is _____.,eclectic,homogeneous,uniform,monotonous,A,Eclectic means diverse,Multiple influences
+9,Reading and Writing,Vocabulary in Context,Hard,The diplomat's _____ remarks eased tensions.,inflammatory,conciliatory,provocative,contentious,B,Conciliatory means reconciling,Helped resolve conflict
+10,Reading and Writing,Vocabulary in Context,Medium,The evidence was _____.,equivocal,ambiguous,incontrovertible,dubious,C,Incontrovertible means undeniable,No room for doubt
+11,Reading and Writing,Text Structure & Purpose,Easy,Primary purpose of recycling passage?,Entertain,Inform,Persuade,Criticize,B,Informational text,Provides facts
+12,Reading and Writing,Text Structure & Purpose,Easy,Chronological order shows?,Cause-effect,Time sequence,Comparison,Description,B,Time-based organization,Events in order
+13,Reading and Writing,Text Structure & Purpose,Medium,Passage uses which structure?,Problem-solution,Compare-contrast,Cause-effect,Sequential,A,Identifies then solves,Issue and fix
+14,Reading and Writing,Text Structure & Purpose,Medium,Why include anecdote in paragraph 2?,Provide evidence,Add humor,Illustrate point,Change topics,C,Supports main idea,Example demonstrates concept
+15,Reading and Writing,Text Structure & Purpose,Hard,Tone shift from paragraph 1 to 2?,Introduce conflict,Show contrast,Build suspense,Provide resolution,B,Emphasizes difference,Contrasting perspectives
+16,Reading and Writing,Text Structure & Purpose,Hard,Rhetorical questions primarily?,Confuse readers,Engage readers,Provide answers,State facts,B,Interactive technique,Makes readers think
+17,Reading and Writing,Text Structure & Purpose,Easy,Main idea is?,Specific detail,Central point,Supporting fact,Example,B,Overall message,Key concept
+18,Reading and Writing,Text Structure & Purpose,Medium,Conclusion paragraph functions to?,Introduce ideas,Summarize points,Ask questions,Present evidence,B,Wraps up,Final summary
+19,Reading and Writing,Text Structure & Purpose,Hard,Parallel structure emphasizes?,Differences,Similarities,Confusion,Randomness,B,Shows connection,Links related ideas
+20,Reading and Writing,Text Structure & Purpose,Medium,Transitional phrase 'however' indicates?,Agreement,Contrast,Addition,Example,B,Shows opposition,Signals different view
+21,Reading and Writing,Cross-Text Connections,Easy,Both passages discuss?,Different topics,Same topic,Unrelated ideas,Opposite views,B,Common subject,Shared theme
+22,Reading and Writing,Cross-Text Connections,Easy,Passage 1 argues X. Passage 2?,Agrees,Disagrees,Ignores,Expands,B,Opposing views,Different conclusions
+23,Reading and Writing,Cross-Text Connections,Medium,How do passages differ?,Topic,Tone,Both,Neither,C,Multiple differences,Topic and approach vary
+24,Reading and Writing,Cross-Text Connections,Medium,Both authors would agree that?,Statement A,Statement B,Statement C,Statement D,B,Common ground,Shared belief
+25,Reading and Writing,Cross-Text Connections,Hard,Passage 2 responds to Passage 1 by?,Supporting,Refuting,Ignoring,Expanding,B,Challenges claims,Disagrees with argument
+26,Reading and Writing,Cross-Text Connections,Hard,Main difference in approach?,Evidence type,Tone,Structure,All above,D,Multiple distinctions,Various differences
+27,Reading and Writing,Cross-Text Connections,Easy,Both passages provide?,Opinions,Facts,Fiction,Poetry,B,Factual information,Data-based
+28,Reading and Writing,Cross-Text Connections,Medium,Passage 1 focuses on X. Passage 2 on?,Same X,Related Y,Unrelated Z,Opposite of X,B,Connected topics,Related but different
+29,Reading and Writing,Cross-Text Connections,Hard,Which statement both support?,A,B,C,D,C,Mutual agreement,Shared conclusion
+30,Reading and Writing,Cross-Text Connections,Medium,Passages differ in?,Perspective,Topic,Length,All,A,Viewpoint varies,Different angles
+31,Reading and Writing,Central Ideas & Details,Easy,According to passage event occurred in?,1995,1998,2001,2005,B,Text states 1998,Explicitly mentioned
+32,Reading and Writing,Central Ideas & Details,Easy,Passage states character?,Likes sports,Enjoys reading,Prefers music,Avoids crowds,B,Directly stated,Text says enjoys reading
+33,Reading and Writing,Central Ideas & Details,Medium,Which detail supports claim?,Detail A,Detail B,Detail C,Detail D,C,Provides evidence,Backs up argument
+34,Reading and Writing,Central Ideas & Details,Medium,Author implies solution?,Is simple,Requires effort,Is impossible,Needs funding,B,Indirect suggestion,Context indicates work
+35,Reading and Writing,Central Ideas & Details,Hard,Character's motivation?,Seeks fame,Desires knowledge,Wants wealth,Needs approval,B,Inferred from actions,Behavior shows curiosity
+36,Reading and Writing,Central Ideas & Details,Hard,Passage suggests outcome was?,Expected,Surprising,Inevitable,Disappointing,B,Context clues,Language indicates unexpected
+37,Reading and Writing,Central Ideas & Details,Easy,Study had how many participants?,50,75,100,125,C,States 100,Explicit number
+38,Reading and Writing,Central Ideas & Details,Medium,Paragraph 3 focuses on?,Historical context,Current situation,Future predictions,Past mistakes,B,Present tense,Discusses now
+39,Reading and Writing,Central Ideas & Details,Hard,Author's attitude is?,Critical,Neutral,Supportive,Dismissive,C,Word choice,Positive language
+40,Reading and Writing,Central Ideas & Details,Medium,Data supports which statement?,Statement A,Statement B,Statement C,Statement D,B,Numbers confirm,Evidence backs claim
+41,Reading and Writing,Command of Evidence (Textual/Quantitative),Easy,Which quote supports claim?,Quote A,Quote B,Quote C,Quote D,B,Direct evidence,Text proves point
+42,Reading and Writing,Command of Evidence (Textual/Quantitative),Easy,Graph shows trend is?,Increasing,Decreasing,Stable,Variable,A,Visual data,Upward pattern
+43,Reading and Writing,Command of Evidence (Textual/Quantitative),Medium,Best evidence for argument?,Lines 1-5,Lines 10-15,Lines 20-25,Lines 30-35,C,Strongest support,Most relevant text
+44,Reading and Writing,Command of Evidence (Textual/Quantitative),Medium,Table indicates?,A increased,B decreased,C stable,D variable,A,Numerical data,Shows growth
+45,Reading and Writing,Command of Evidence (Textual/Quantitative),Hard,Which data point supports conclusion?,Point A,Point B,Point C,Point D,C,Specific evidence,Proves claim
+46,Reading and Writing,Command of Evidence (Textual/Quantitative),Hard,Chart best supports?,Claim 1,Claim 2,Claim 3,Claim 4,B,Visual evidence,Graph confirms
+47,Reading and Writing,Command of Evidence (Textual/Quantitative),Easy,Passage states X. Which proves it?,Sentence 1,Sentence 2,Sentence 3,Sentence 4,C,Direct proof,Text evidence
+48,Reading and Writing,Command of Evidence (Textual/Quantitative),Medium,Figure 1 shows?,Correlation,Causation,No relationship,Inverse,A,Data relationship,Pattern visible
+49,Reading and Writing,Command of Evidence (Textual/Quantitative),Hard,Strongest textual support?,Paragraph 1,Paragraph 2,Paragraph 3,Paragraph 4,C,Best evidence,Most convincing
+50,Reading and Writing,Command of Evidence (Textual/Quantitative),Medium,Data in table 2 indicates?,Growth,Decline,Stability,Fluctuation,A,Numbers show,Upward trend
+51,Reading and Writing,Inferences,Easy,Passage implies character is?,Happy,Sad,Angry,Confused,B,Context clues,Behavior suggests sadness
+52,Reading and Writing,Inferences,Easy,Author suggests?,Agreement,Disagreement,Neutrality,Uncertainty,B,Tone indicates,Opposes idea
+53,Reading and Writing,Inferences,Medium,Can infer from passage?,Fact A,Fact B,Fact C,Fact D,C,Logical conclusion,Evidence supports
+54,Reading and Writing,Inferences,Medium,Character's action implies?,Fear,Courage,Indifference,Confusion,B,Behavior shows,Brave action
+55,Reading and Writing,Inferences,Hard,Author's unstated assumption?,A,B,C,D,C,Underlying belief,Implicit premise
+56,Reading and Writing,Inferences,Hard,Passage suggests future will?,Improve,Worsen,Stay same,Be uncertain,A,Optimistic tone,Positive outlook
+57,Reading and Writing,Inferences,Easy,Setting is likely?,City,Country,Beach,Mountain,A,Context clues,Urban details
+58,Reading and Writing,Inferences,Medium,Reader can conclude?,X is true,Y is false,Z is uncertain,W is possible,A,Evidence supports,Logical inference
+59,Reading and Writing,Inferences,Hard,Author implies relationship is?,Strong,Weak,Nonexistent,Complex,D,Nuanced description,Multiple factors
+60,Reading and Writing,Inferences,Medium,Tone suggests author is?,Optimistic,Pessimistic,Neutral,Sarcastic,A,Word choice,Positive language
+61,Reading and Writing,Boundaries (Punctuation),Easy,Which is correct?,Its a nice day.,It's a nice day.,Its' a nice day.,Its a nice day,B,Contraction,It's = it is
+62,Reading and Writing,Boundaries (Punctuation),Easy,Choose correct.,The dog wagged it's tail.,The dog wagged its tail.,The dog wagged its' tail.,The dog wagged it tail.,B,Possessive,No apostrophe
+63,Reading and Writing,Boundaries (Punctuation),Medium,Comma placement?,"Yes I agree.","Yes, I agree.","Yes I, agree.","Yes I agree,",B,After introductory,Comma needed
+64,Reading and Writing,Boundaries (Punctuation),Medium,Apostrophe use?,"The students books.","The student's books.","The students' books.","The students book's.",B,Singular possessive,One student
+65,Reading and Writing,Boundaries (Punctuation),Hard,Semicolon use?,I like apples; oranges.,I like apples; I like oranges.,I like; apples.,I like apples and; oranges.,B,Independent clauses,Both complete
+66,Reading and Writing,Boundaries (Punctuation),Hard,Punctuate correctly.,"Won, however celebrated.","Won; however, celebrated.","Won however, celebrated.","Won, however; celebrated.",B,Semicolon before however,Joins sentences
+67,Reading and Writing,Boundaries (Punctuation),Easy,Which is correct?,Their going.,There going.,They're going.,Theyre going.,C,Contraction,They're = they are
+68,Reading and Writing,Boundaries (Punctuation),Medium,Colon use?,"List includes: apples.","List includes apples.","List includes, apples.","List includes apples",B,No colon needed,Simple list
+69,Reading and Writing,Boundaries (Punctuation),Hard,Dash use?,The answer - I think - is correct.,The answer-I think-is correct.,The answer - I think-is correct.,The answer -I think - is correct.,A,Spaces around,Em dash spacing
+70,Reading and Writing,Boundaries (Punctuation),Medium,Quote punctuation?,"She said, 'Hello.'","She said 'Hello'.","She said, Hello.","She said 'Hello'.",A,Comma before,Introduces dialogue
+71,Reading and Writing,Form/Structure/Sense,Easy,Verb form?,He walk.,He walks.,He walking.,He walk to.,B,Third person,Needs -s
+72,Reading and Writing,Form/Structure/Sense,Easy,Subject-verb agreement?,Books is.,Books are.,Books be.,Books was.,B,Plural subject,Use are
+73,Reading and Writing,Form/Structure/Sense,Medium,Parallel structure?,Reading writing painting.,Reading writing to paint.,To read write painting.,Read write paint.,A,All gerunds,Consistent form
+74,Reading and Writing,Form/Structure/Sense,Medium,Pronoun agreement?,Each bring their book.,Each bring his or her book.,Each bring they book.,Each bring its book.,B,Singular,Each is singular
+75,Reading and Writing,Form/Structure/Sense,Hard,Collective noun?,Team are playing.,Team is playing.,Team were playing.,Team be playing.,B,Singular verb,Team as unit
+76,Reading and Writing,Form/Structure/Sense,Hard,Verb tense?,Will finished.,Will have finished.,Will finishing.,Will finish.,B,Future perfect,Completion before future
+77,Reading and Writing,Form/Structure/Sense,Easy,Pronoun case?,Me and him went.,Him and I went.,He and I went.,Me and he went.,C,Subject pronouns,He and I
+78,Reading and Writing,Form/Structure/Sense,Medium,Modifier placement?,Running the line was crossed.,The line was crossed running.,Running he crossed the line.,He crossed running the line.,C,Near modified,Running describes he
+79,Reading and Writing,Form/Structure/Sense,Hard,Avoid dangling?,Walking the rain started.,Walking I felt rain.,Rain started walking.,Walking started rain.,B,Subject performs,I was walking
+80,Reading and Writing,Form/Structure/Sense,Medium,Comparison?,More smarter.,Smarter.,More smart.,Smartest than.,B,Don't double,Smarter alone
+81,Reading and Writing,Rhetorical Synthesis,Easy,Best combines sentences?,And,But,Because,However,A,Simple connection,Addition
+82,Reading and Writing,Rhetorical Synthesis,Easy,Student notes show?,Agreement,Disagreement,Confusion,Clarity,D,Organized thoughts,Clear notes
+83,Reading and Writing,Rhetorical Synthesis,Medium,Synthesize information?,Combine all,Select relevant,Ignore some,Repeat all,B,Choose important,Key points only
+84,Reading and Writing,Rhetorical Synthesis,Medium,Best represents notes?,Summary A,Summary B,Summary C,Summary D,B,Accurate synthesis,Captures main ideas
+85,Reading and Writing,Rhetorical Synthesis,Hard,Integrate sources?,Quote all,Paraphrase some,Cite none,Mix methods,D,Varied approach,Multiple techniques
+86,Reading and Writing,Rhetorical Synthesis,Hard,Student's claim supported by?,Note 1,Note 2,Note 3,All notes,D,Multiple sources,Combined evidence
+87,Reading and Writing,Rhetorical Synthesis,Easy,Combine for clarity?,Short sentences,Long sentence,Fragment,Run-on,B,Clear combination,One complete thought
+88,Reading and Writing,Rhetorical Synthesis,Medium,Best synthesis?,Option A,Option B,Option C,Option D,C,Most effective,Clear and complete
+89,Reading and Writing,Rhetorical Synthesis,Hard,Notes suggest conclusion?,A,B,C,D,C,Logical inference,Evidence supports
+90,Reading and Writing,Rhetorical Synthesis,Medium,Effective summary?,Brief and complete,Long and detailed,Partial only,Repetitive,A,Concise yet thorough,Key points covered
+91,Reading and Writing,Transitions,Easy,Show addition?,However,Moreover,But,Although,B,Adds information,Furthermore
+92,Reading and Writing,Transitions,Easy,Show contrast?,And,Also,However,Furthermore,C,Opposes previous,But
+93,Reading and Writing,Transitions,Medium,Show cause?,Therefore,However,Also,Meanwhile,A,Result follows,Consequence
+94,Reading and Writing,Transitions,Medium,Show time?,However,Meanwhile,Therefore,Moreover,B,Temporal,During that time
+95,Reading and Writing,Transitions,Hard,Show emphasis?,However,Indeed,Meanwhile,Therefore,B,Strengthens point,Confirms
+96,Reading and Writing,Transitions,Hard,Show concession?,Therefore,Although,Moreover,Meanwhile,B,Admits point,Despite
+97,Reading and Writing,Transitions,Easy,Show example?,However,For instance,Therefore,Meanwhile,B,Illustrates,Provides example
+98,Reading and Writing,Transitions,Medium,Show sequence?,However,First,Although,Indeed,B,Order,Shows progression
+99,Reading and Writing,Transitions,Hard,Show comparison?,However,Similarly,Therefore,Meanwhile,B,Shows likeness,Alike
+100,Reading and Writing,Transitions,Medium,Show conclusion?,However,Meanwhile,In conclusion,Moreover,C,Ends argument,Final point
+101,Reading and Writing,Transitions,Easy,Logical flow needs?,Transition,Period,Comma,Nothing,A,Connection word,Links ideas
+102,Reading and Writing,Transitions,Medium,Best transition?,And,But,So,Or,C,Shows result,Consequence
+103,Reading and Writing,Transitions,Hard,Contrast ideas?,Moreover,Nevertheless,Therefore,Meanwhile,B,Despite previous,Opposition
+104,Reading and Writing,Transitions,Medium,Add information?,However,Additionally,Therefore,Although,B,More info,Adds to previous
+105,Reading and Writing,Transitions,Easy,Show result?,And,Because,So,Or,C,Consequence,Result follows
+106,Reading and Writing,Transitions,Medium,Time relationship?,However,Then,Therefore,Moreover,B,Sequence,Next in time
+107,Reading and Writing,Transitions,Hard,Qualify statement?,Therefore,However,Indeed,Although,D,Limits claim,Despite
+108,Reading and Writing,Transitions,Medium,Emphasize point?,However,In fact,Meanwhile,Although,B,Strengthens,Confirms truth
+109,Reading and Writing,Transitions,Easy,Continue thought?,But,And,However,Although,B,Addition,Continues
+110,Reading and Writing,Transitions,Medium,Shift focus?,Moreover,Meanwhile,Therefore,Indeed,B,Different aspect,Change topic
