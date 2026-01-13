@@ -69,8 +69,8 @@ export default function UserResultManagement() {
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <StatCard title="Total Attempts" value={(stats?.totalAttempts ?? 0).toString()} icon={<FiFileText />} color="bg-blue-500" />
-          <StatCard title="Average Score" value={`${stats?.averageScore ?? 0}%`} icon={<FiBarChart />} color="bg-green-500" />
-          <StatCard title="Pass Rate" value={`${stats?.passRate ?? 0}%`} icon={<FiCheckCircle />} color="bg-purple-500" />
+          <StatCard title="Avg Total Score" value={`${stats?.averageScore ?? 0}`} icon={<FiBarChart />} color="bg-purple-500" />
+          <StatCard title="Pass Rate" value={`${stats?.passRate ?? 0}%`} icon={<FiCheckCircle />} color="bg-green-500" />
           <StatCard title="Total Students" value={(stats?.totalStudents ?? 0).toString()} icon={<FiUser />} color="bg-orange-500" />
         </div>
 
@@ -106,9 +106,9 @@ export default function UserResultManagement() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Test</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Correct</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Questions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">R&W Score</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Math Score</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Score</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Completed</th>
               </tr>
@@ -126,9 +126,9 @@ export default function UserResultManagement() {
                       'bg-green-100 text-green-800'
                     }`}>{r.testType}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-semibold">{r.score}%</td>
-                  <td className="px-6 py-4 text-sm">{r.correctAnswers}</td>
-                  <td className="px-6 py-4 text-sm">{r.totalQuestions}</td>
+                  <td className="px-6 py-4 text-sm font-semibold text-blue-600">{r.rwScore || 0}</td>
+                  <td className="px-6 py-4 text-sm font-semibold text-green-600">{r.mathScore || 0}</td>
+                  <td className="px-6 py-4 text-lg font-bold text-purple-600">{r.totalScore || 0}</td>
                   <td className="px-6 py-4 text-sm">{r.duration} min</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{new Date(r.completedAt).toLocaleString()}</td>
                 </tr>

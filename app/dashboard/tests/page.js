@@ -6,6 +6,7 @@ import { FiPlay, FiClock, FiFileText, FiCheckCircle } from 'react-icons/fi'
 export default function TestsPage() {
   const router = useRouter()
   const [tests, setTests] = useState([])
+  const [completedTestIds, setCompletedTestIds] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -15,12 +16,27 @@ export default function TestsPage() {
   const fetchTests = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/admin/tests', {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      })
-      if (response.ok) {
-        const data = await response.json()
+      const [testsRes, historyRes] = await Promise.all([
+        fetch('/api/admin/tests', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        }),
+        fetch('/api/test-sessions', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+      ])
+      
+      if (testsRes.ok) {
+        const data = await testsRes.json()
         setTests(data.filter(test => test.isActive))
+      }
+      
+      if (historyRes.ok) {
+        const historyData = await historyRes.json()
+        const sessions = historyData.sessions || historyData || []
+        const completed = sessions
+          .filter(s => s.status === 'Completed' && s.totalScore !== undefined)
+          .map(s => String(s.testId))
+        setCompletedTestIds(completed)
       }
     } catch (error) {
       console.error('Error fetching tests:', error)
@@ -30,6 +46,10 @@ export default function TestsPage() {
   }
 
   const startTest = (testId) => {
+    if (completedTestIds.includes(String(testId))) {
+      alert('You have already completed this test. Check your Test History to review it.')
+      return
+    }
     router.push(`/dashboard/tests/${testId}/start`)
   }
 
@@ -64,56 +84,76 @@ export default function TestsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tests.map((test) => (
-            <div key={test._id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <FiFileText className="text-blue-600" size={24} />
-                  <h3 className="text-lg font-semibold text-gray-900">{test.title}</h3>
-                </div>
-                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                  Active
-                </span>
-              </div>
-
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <FiClock size={16} />
-                  <span>Duration: {test.duration || 180} minutes</span>
-                </div>
-                
-                <div className="border-t pt-3">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Sections:</p>
-                  <div className="flex gap-2">
-                    {test.sections?.math && (
-                      <span className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded">
-                        Math
-                      </span>
-                    )}
-                    {test.sections?.rw && (
-                      <span className="px-2 py-1 text-xs bg-green-50 text-green-700 rounded">
-                        Reading & Writing
-                      </span>
-                    )}
+          {tests.map((test) => {
+            const isCompleted = completedTestIds.includes(String(test._id))
+            
+            return (
+              <div key={test._id} className={`bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow ${
+                isCompleted ? 'opacity-75 border-2 border-green-500' : ''
+              }`}>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <FiFileText className="text-blue-600" size={24} />
+                    <h3 className="text-lg font-semibold text-gray-900">{test.title}</h3>
                   </div>
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                    isCompleted 
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-blue-100 text-blue-800'
+                  }`}>
+                    {isCompleted ? 'Completed' : 'Active'}
+                  </span>
                 </div>
 
-                {test.configType && (
-                  <div className="text-xs text-gray-500">
-                    Type: {test.configType === 'standard' ? 'Standard SAT' : 'Custom'}
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <FiClock size={16} />
+                    <span>Duration: {test.duration || 180} minutes</span>
                   </div>
+                  
+                  <div className="border-t pt-3">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Sections:</p>
+                    <div className="flex gap-2">
+                      {test.sections?.math && (
+                        <span className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded">
+                          Math
+                        </span>
+                      )}
+                      {test.sections?.rw && (
+                        <span className="px-2 py-1 text-xs bg-green-50 text-green-700 rounded">
+                          Reading & Writing
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {test.configType && (
+                    <div className="text-xs text-gray-500">
+                      Type: {test.configType === 'standard' ? 'Standard SAT' : 'Custom'}
+                    </div>
+                  )}
+                </div>
+
+                {isCompleted ? (
+                  <button
+                    onClick={() => router.push('/dashboard/tests/history')}
+                    className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <FiCheckCircle size={18} />
+                    View Results
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => startTest(test._id)}
+                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <FiPlay size={18} />
+                    Start Test
+                  </button>
                 )}
               </div>
-
-              <button
-                onClick={() => startTest(test._id)}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <FiPlay size={18} />
-                Start Test
-              </button>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

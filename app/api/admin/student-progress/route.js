@@ -1,47 +1,55 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
+import User from '../../../../lib/models/User'
+import TestSession from '../../../../lib/models/TestSession'
 
 export async function GET() {
   try {
     await connectDB()
-    // Mock data for student progress
-    const students = [
-      {
-        _id: '1',
-        name: 'John Doe',
-        email: 'john@example.com',
-        enrolledAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-        overallProgress: 75,
-        testsCompleted: 8,
-        averageScore: 82,
-        totalStudyTime: 2400, // minutes
-        lastActive: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
-      },
-      {
-        _id: '2',
-        name: 'Jane Smith',
-        email: 'jane@example.com',
-        enrolledAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000), // 45 days ago
-        overallProgress: 92,
-        testsCompleted: 12,
-        averageScore: 88,
-        totalStudyTime: 3600, // minutes
-        lastActive: new Date(Date.now() - 1 * 60 * 60 * 1000) // 1 hour ago
-      },
-      {
-        _id: '3',
-        name: 'Alice Johnson',
-        email: 'alice@example.com',
-        enrolledAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
-        overallProgress: 45,
-        testsCompleted: 4,
-        averageScore: 76,
-        totalStudyTime: 1200, // minutes
-        lastActive: new Date(Date.now() - 6 * 60 * 60 * 1000) // 6 hours ago
-      }
-    ]
-    return NextResponse.json(students)
+    
+    const students = await User.find({ role: 'student' }).lean()
+    
+    const studentsWithProgress = await Promise.all(
+      students.map(async (student) => {
+        const sessions = await TestSession.find({ 
+          userId: student._id,
+          state: 'COMPLETED'
+        }).lean()
+        
+        const testsCompleted = sessions.length
+        const avgTotalScore = sessions.length > 0 
+          ? Math.round(sessions.reduce((sum, s) => sum + (s.totalScore || 0), 0) / sessions.length)
+          : 0
+        const avgRWScore = sessions.length > 0
+          ? Math.round(sessions.reduce((sum, s) => sum + (s.rwScore || 0), 0) / sessions.length)
+          : 0
+        const avgMathScore = sessions.length > 0
+          ? Math.round(sessions.reduce((sum, s) => sum + (s.mathScore || 0), 0) / sessions.length)
+          : 0
+        const totalStudyTime = sessions.reduce((sum, s) => {
+          const duration = (new Date(s.endTime) - new Date(s.startTime)) / (1000 * 60)
+          return sum + duration
+        }, 0)
+        const lastSession = sessions.length > 0 ? sessions[sessions.length - 1] : null
+        
+        return {
+          _id: student._id.toString(),
+          name: student.name,
+          email: student.email,
+          enrolledAt: student.createdAt,
+          testsCompleted,
+          avgTotalScore,
+          avgRWScore,
+          avgMathScore,
+          totalStudyTime,
+          lastActive: lastSession?.completedAt || student.createdAt
+        }
+      })
+    )
+    
+    return NextResponse.json(studentsWithProgress)
   } catch (error) {
+    console.error('Error fetching student progress:', error)
     return NextResponse.json({ error: 'Failed to fetch student progress' }, { status: 500 })
   }
 }

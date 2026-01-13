@@ -100,18 +100,15 @@ export default function TestReviewPage() {
       return
     }
     
-    let pdfContent = `SAT PRACTICE TEST - COMPLETE REVIEW\n`
-    pdfContent += `${'='.repeat(100)}\n\n`
-    pdfContent += `Test Date: ${new Date(session.completedAt || session.createdAt).toLocaleDateString()}\n`
-    pdfContent += `Total Score: ${session.totalScore || 0} / 1600\n`
-    if (session.rwScore) pdfContent += `Reading & Writing: ${session.rwScore} / 800\n`
-    if (session.mathScore) pdfContent += `Math: ${session.mathScore} / 800\n`
-    pdfContent += `\nTotal Questions: ${questions.length}\n`
-    pdfContent += `Correct: ${correctCount} | Wrong: ${wrongCount} | Skipped: ${unattemptedCount}\n`
-    pdfContent += `Accuracy: ${accuracy}%\n\n`
-    pdfContent += `${'='.repeat(100)}\n\n`
+    let content = 'SAT PRACTICE TEST - COMPLETE REVIEW\n'
+    content += '='.repeat(80) + '\n\n'
+    content += `Test Date: ${new Date(session.completedAt || session.createdAt).toLocaleDateString()}\n`
+    content += `Total Score: ${session.totalScore || 0} / 1600\n`
+    if (session.rwScore) content += `Reading & Writing: ${session.rwScore} / 800\n`
+    if (session.mathScore) content += `Math: ${session.mathScore} / 800\n`
+    content += `Correct: ${correctCount} | Wrong: ${wrongCount} | Skipped: ${unattemptedCount}\n\n`
+    content += '='.repeat(80) + '\n\n'
 
-    // Group by module
     const moduleGroups = {
       'rw_module1': [],
       'rw_module2': [],
@@ -120,56 +117,38 @@ export default function TestReviewPage() {
     }
     
     questions.forEach(q => {
-      if (moduleGroups[q.module]) {
+      if (q && moduleGroups[q.module]) {
         moduleGroups[q.module].push(q)
       }
     })
 
-    // Print each module
     Object.keys(moduleGroups).forEach(moduleKey => {
       const moduleQuestions = moduleGroups[moduleKey]
-      if (moduleQuestions.length === 0) return
+      if (!moduleQuestions || moduleQuestions.length === 0) return
       
       const moduleName = moduleKey.replace('_', ' ').toUpperCase()
-      pdfContent += `\n\n${'#'.repeat(100)}\n`
-      pdfContent += `${moduleName}\n`
-      pdfContent += `${'#'.repeat(100)}\n\n`
+      content += `\n${'#'.repeat(80)}\n${moduleName}\n${'#'.repeat(80)}\n\n`
       
       moduleQuestions.forEach((q, idx) => {
-        pdfContent += `QUESTION ${idx + 1}\n`
-        pdfContent += `Subject: ${q.subject} | Difficulty: ${q.difficulty}\n`
+        if (!q) return
         
-        if (!q.wasAttempted) {
-          pdfContent += `Status: NOT ATTEMPTED\n`
-        } else if (q.isCorrect) {
-          pdfContent += `Status: CORRECT ✓\n`
-        } else {
-          pdfContent += `Status: WRONG ✗\n`
-        }
-        
-        pdfContent += `${'-'.repeat(100)}\n\n`
-        pdfContent += `${q.question || q.content}\n\n`
-        pdfContent += `A) ${q.optionA}\n`
-        pdfContent += `B) ${q.optionB}\n`
-        pdfContent += `C) ${q.optionC}\n`
-        pdfContent += `D) ${q.optionD}\n\n`
-        
-        if (q.wasAttempted) {
-          pdfContent += `Your Answer: ${q.userAnswer} ${q.isCorrect ? '✓' : '✗'}\n`
-        } else {
-          pdfContent += `Your Answer: (Not Attempted)\n`
-        }
-        pdfContent += `Correct Answer: ${q.correctAnswer} ✓\n\n`
-        
-        if (q.shortExplanation) {
-          pdfContent += `SHORT EXPLANATION:\n${q.shortExplanation}\n\n`
-        }
-        pdfContent += `DETAILED EXPLANATION:\n${q.longExplanation || q.explanation || 'No detailed explanation available'}\n\n`
-        pdfContent += `${'='.repeat(100)}\n\n`
+        content += `QUESTION ${idx + 1}\n`
+        content += `Subject: ${q.subject || 'N/A'} | Difficulty: ${q.difficulty || 'N/A'}\n`
+        content += `Status: ${q.wasAttempted ? (q.isCorrect ? 'CORRECT ✓' : 'WRONG ✗') : 'NOT ATTEMPTED'}\n`
+        content += '-'.repeat(80) + '\n\n'
+        content += `${q.question || q.content || 'No question text'}\n\n`
+        content += `A) ${q.optionA || 'N/A'}\n`
+        content += `B) ${q.optionB || 'N/A'}\n`
+        content += `C) ${q.optionC || 'N/A'}\n`
+        content += `D) ${q.optionD || 'N/A'}\n\n`
+        content += `Your Answer: ${q.wasAttempted ? q.userAnswer : '(Not Attempted)'}\n`
+        content += `Correct Answer: ${q.correctAnswer}\n\n`
+        if (q.shortExplanation) content += `Explanation: ${q.shortExplanation}\n\n`
+        content += '='.repeat(80) + '\n\n'
       })
     })
 
-    const blob = new Blob([pdfContent], { type: 'text/plain' })
+    const blob = new Blob([content], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -179,39 +158,37 @@ export default function TestReviewPage() {
   }
 
   const downloadWrongAnswers = () => {
-    const wrongQuestions = questions.filter(q => q.wasAttempted && !q.isCorrect)
+    const wrongQuestions = questions.filter(q => q && q.wasAttempted && !q.isCorrect)
     
     if (wrongQuestions.length === 0) {
       alert('No wrong answers to download!')
       return
     }
     
-    let pdfContent = `WRONG ANSWERS PRACTICE SHEET\n`
-    pdfContent += `${'='.repeat(100)}\n\n`
-    pdfContent += `Test Date: ${new Date(session.completedAt || session.createdAt).toLocaleDateString()}\n`
-    pdfContent += `Total Wrong: ${wrongQuestions.length}\n`
-    pdfContent += `Total Score: ${session.totalScore || 0}\n\n`
-    pdfContent += `${'='.repeat(100)}\n\n`
+    let content = 'WRONG ANSWERS PRACTICE SHEET\n'
+    content += '='.repeat(80) + '\n\n'
+    content += `Test Date: ${new Date(session.completedAt || session.createdAt).toLocaleDateString()}\n`
+    content += `Total Wrong: ${wrongQuestions.length}\n`
+    content += `Total Score: ${session.totalScore || 0}\n\n`
+    content += '='.repeat(80) + '\n\n'
 
     wrongQuestions.forEach((q, idx) => {
-      pdfContent += `QUESTION ${idx + 1}\n`
-      pdfContent += `Subject: ${q.subject} | Difficulty: ${q.difficulty} | Module: ${q.module}\n`
-      pdfContent += `${'-'.repeat(100)}\n\n`
-      pdfContent += `${q.question || q.content}\n\n`
-      pdfContent += `A) ${q.optionA}\n`
-      pdfContent += `B) ${q.optionB}\n`
-      pdfContent += `C) ${q.optionC}\n`
-      pdfContent += `D) ${q.optionD}\n\n`
-      pdfContent += `Your Answer: ${q.userAnswer} ✗\n`
-      pdfContent += `Correct Answer: ${q.correctAnswer} ✓\n\n`
-      if (q.shortExplanation) {
-        pdfContent += `SHORT EXPLANATION:\n${q.shortExplanation}\n\n`
-      }
-      pdfContent += `DETAILED EXPLANATION:\n${q.longExplanation || q.explanation || 'No detailed explanation available'}\n\n`
-      pdfContent += `${'='.repeat(100)}\n\n`
+      content += `QUESTION ${idx + 1}\n`
+      content += `Subject: ${q.subject || 'N/A'} | Difficulty: ${q.difficulty || 'N/A'} | Module: ${q.module || 'N/A'}\n`
+      content += '-'.repeat(80) + '\n\n'
+      content += `${q.question || q.content || 'No question text'}\n\n`
+      content += `A) ${q.optionA || 'N/A'}\n`
+      content += `B) ${q.optionB || 'N/A'}\n`
+      content += `C) ${q.optionC || 'N/A'}\n`
+      content += `D) ${q.optionD || 'N/A'}\n\n`
+      content += `Your Answer: ${q.userAnswer} ✗\n`
+      content += `Correct Answer: ${q.correctAnswer} ✓\n\n`
+      if (q.shortExplanation) content += `Explanation: ${q.shortExplanation}\n\n`
+      if (q.longExplanation) content += `Detailed: ${q.longExplanation}\n\n`
+      content += '='.repeat(80) + '\n\n'
     })
 
-    const blob = new Blob([pdfContent], { type: 'text/plain' })
+    const blob = new Blob([content], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url

@@ -5,22 +5,31 @@ import TestSession from '../../../../lib/models/TestSession'
 export async function GET() {
   try {
     await connectDB()
-    const sessions = await TestSession.find().sort({ createdAt: -1 }).limit(100).populate('userId', 'name email')
+    const sessions = await TestSession.find({ state: { $in: ['COMPLETED', 'TERMINATED'] } })
+      .sort({ completedAt: -1 })
+      .limit(100)
+      .populate('userId', 'name email')
+      .populate('testId', 'title')
+      .lean()
+
     const formatted = sessions.map(s => ({
-      _id: s._id,
-      studentName: s.userId?.name,
-      studentEmail: s.userId?.email,
-      testTitle: 'Session',
-      testType: s.sessionType,
-      status: s.status,
-      score: s.score,
-      totalQuestions: s.totalQuestions,
-      answeredQuestions: s.answeredQuestions,
-      correctAnswers: s.correctAnswers,
-      createdAt: s.createdAt
+      _id: s._id.toString(),
+      studentName: s.userId?.name || 'Unknown',
+      studentEmail: s.userId?.email || '',
+      testTitle: s.testId?.title || 'Unknown Test',
+      testType: s.sessionType || 'Practice',
+      rwScore: s.rwScore || 0,
+      mathScore: s.mathScore || 0,
+      totalScore: s.totalScore || 0,
+      totalQuestions: s.totalQuestions || 98,
+      answeredQuestions: s.answeredQuestions || 0,
+      correctAnswers: s.correctAnswers || 0,
+      duration: Math.round((new Date(s.endTime) - new Date(s.startTime)) / (1000 * 60)),
+      completedAt: s.completedAt || s.endTime
     }))
     return NextResponse.json(formatted)
   } catch (error) {
+    console.error('Error fetching user results:', error)
     return NextResponse.json({ error: 'Failed to fetch results' }, { status: 500 })
   }
 }

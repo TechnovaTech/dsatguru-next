@@ -24,6 +24,8 @@ export default function TakeTestPage() {
   const [moduleScores, setModuleScores] = useState({})
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [tabChangeWarning, setTabChangeWarning] = useState(false)
+  const [alreadyTaken, setAlreadyTaken] = useState(false)
+  const [checkingHistory, setCheckingHistory] = useState(true)
   const testContainerRef = useRef(null)
 
   useEffect(() => {
@@ -87,11 +89,14 @@ export default function TakeTestPage() {
   const fetchTestData = async () => {
     try {
       const token = localStorage.getItem('token')
-      const [testRes, questionsRes] = await Promise.all([
+      const [testRes, questionsRes, historyRes] = await Promise.all([
         fetch(`/api/admin/tests/${testId}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         }),
         fetch('/api/questions', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        }),
+        fetch('/api/test-sessions', {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         })
       ])
@@ -99,6 +104,24 @@ export default function TakeTestPage() {
       if (testRes.ok && questionsRes.ok) {
         const testData = await testRes.json()
         const questions = await questionsRes.json()
+        
+        // Check if user already took this test
+        if (historyRes.ok) {
+          const historyData = await historyRes.json()
+          const sessions = historyData.sessions || historyData || []
+          const alreadyCompleted = sessions.some(s => 
+            String(s.testId) === String(testId) && 
+            s.status === 'Completed' && 
+            s.totalScore !== undefined
+          )
+          
+          if (alreadyCompleted) {
+            setAlreadyTaken(true)
+            setCheckingHistory(false)
+            setLoading(false)
+            return
+          }
+        }
         
         setTest(testData)
         setAllQuestions(questions)
@@ -113,6 +136,7 @@ export default function TakeTestPage() {
     } catch (error) {
       console.error('Error fetching test:', error)
     } finally {
+      setCheckingHistory(false)
       setLoading(false)
     }
   }
@@ -335,10 +359,52 @@ export default function TakeTestPage() {
   }
 
   // Start test confirmation screen
-  if (loading) {
+  if (loading || checkingHistory) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    )
+  }
+
+  // Already taken test screen
+  if (alreadyTaken) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
+          <div className="text-center">
+            <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Test Already Completed</h2>
+            <p className="text-gray-600 mb-6">
+              You have already taken this test. Each test can only be attempted once to maintain test integrity.
+            </p>
+            
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 text-left">
+              <p className="text-sm text-gray-700">
+                💡 You can review your previous attempt in the Test History section.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push('/dashboard/tests/history')}
+                className="w-full bg-purple-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-purple-700 transition-colors"
+              >
+                📚 View Test History
+              </button>
+              <button
+                onClick={() => router.push('/dashboard/tests')}
+                className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+              >
+                Back to Tests
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }

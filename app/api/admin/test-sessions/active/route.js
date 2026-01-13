@@ -1,40 +1,38 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
+import TestSession from '../../../../../lib/models/TestSession'
+import User from '../../../../../lib/models/User'
+import Test from '../../../../../lib/models/Test'
 
 export async function GET() {
   try {
     await connectDB()
-    // Mock data for active test sessions
-    const activeSessions = [
-      {
-        _id: '1',
-        testTitle: 'SAT Practice Test 1',
-        studentName: 'John Doe',
-        studentEmail: 'john@example.com',
-        startTime: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-        endTime: new Date(Date.now() + 150 * 60 * 1000), // 150 minutes from now
-        currentQuestion: 15,
-        totalQuestions: 50,
-        answeredQuestions: 14,
-        violations: 0,
-        status: 'active'
-      },
-      {
-        _id: '2',
-        testTitle: 'SAT Mock Test',
-        studentName: 'Jane Smith',
-        studentEmail: 'jane@example.com',
-        startTime: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
-        endTime: new Date(Date.now() + 75 * 60 * 1000), // 75 minutes from now
-        currentQuestion: 22,
-        totalQuestions: 40,
-        answeredQuestions: 20,
-        violations: 1,
-        status: 'active'
-      }
-    ]
-    return NextResponse.json(activeSessions)
+    
+    const activeSessions = await TestSession.find({
+      state: { $in: ['IN_PROGRESS_BASE', 'IN_PROGRESS_ADAPTIVE'] }
+    })
+    .populate('userId', 'name email')
+    .populate('testId', 'title')
+    .sort({ startTime: -1 })
+    .lean()
+
+    const formattedSessions = activeSessions.map(session => ({
+      _id: session._id.toString(),
+      testTitle: session.testId?.title || 'Unknown Test',
+      studentName: session.userId?.name || 'Unknown Student',
+      studentEmail: session.userId?.email || '',
+      startTime: session.startTime,
+      endTime: session.endTime,
+      currentQuestion: session.answeredQuestions || 0,
+      totalQuestions: session.totalQuestions || 98,
+      answeredQuestions: session.answeredQuestions || 0,
+      violations: 0,
+      status: 'active'
+    }))
+
+    return NextResponse.json(formattedSessions)
   } catch (error) {
+    console.error('Error fetching active sessions:', error)
     return NextResponse.json({ error: 'Failed to fetch active sessions' }, { status: 500 })
   }
 }
