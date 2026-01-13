@@ -34,27 +34,37 @@ export async function GET(request, { params }) {
       }))
     }
     return NextResponse.json({
-      session: {
-        id: session._id,
-        questionBankId: session.questionBankId,
-        subject: session.subject,
-        sessionType: session.sessionType,
-        status: session.status,
-        state: session.state,
-        totalQuestions: session.totalQuestions,
-        baseTarget: session.baseTarget,
-        answeredQuestions: session.answeredQuestions,
-        correctAnswers: session.correctAnswers,
-        adaptiveAssignedQuestionIds: session.adaptiveAssignedQuestionIds,
-        adaptiveQuestions,
-        responses: (session.responses || []).map(r => ({
-          questionId: r.questionId,
-          selectedAnswer: r.selectedAnswer,
-          isCorrect: r.isCorrect,
-          timeSpent: r.timeSpent,
-          answeredAt: r.answeredAt
-        }))
-      }
+      _id: session._id,
+      id: session._id,
+      userId: session.userId,
+      testId: session.testId,
+      questionBankId: session.questionBankId,
+      subject: session.subject,
+      sessionType: session.sessionType,
+      status: session.status,
+      state: session.state,
+      totalQuestions: session.totalQuestions,
+      baseTarget: session.baseTarget,
+      answeredQuestions: session.answeredQuestions,
+      correctAnswers: session.correctAnswers,
+      moduleScores: session.moduleScores,
+      moduleAnswers: session.moduleAnswers,
+      rwScore: session.rwScore,
+      mathScore: session.mathScore,
+      totalScore: session.totalScore,
+      completedAt: session.completedAt,
+      createdAt: session.createdAt,
+      startTime: session.startTime,
+      endTime: session.endTime,
+      adaptiveAssignedQuestionIds: session.adaptiveAssignedQuestionIds,
+      adaptiveQuestions,
+      responses: (session.responses || []).map(r => ({
+        questionId: r.questionId,
+        selectedAnswer: r.selectedAnswer,
+        isCorrect: r.isCorrect,
+        timeSpent: r.timeSpent,
+        answeredAt: r.answeredAt
+      }))
     })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch session' }, { status: 500 })

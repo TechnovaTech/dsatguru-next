@@ -30,44 +30,56 @@ export async function POST(request) {
     const token = getTokenFromRequest(request)
     const decoded = verifyToken(token)
     
+    console.log('POST /api/test-sessions - Token decoded:', decoded ? 'Yes' : 'No')
+    
     if (!decoded) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      console.error('Unauthorized: No valid token')
+      return NextResponse.json({ error: 'Unauthorized - Please log in' }, { status: 401 })
     }
     
     const sessionData = await request.json()
-    console.log('Received session data:', sessionData)
+    console.log('Received session data:', JSON.stringify(sessionData, null, 2))
     
     sessionData.userId = decoded.userId
+    console.log('User ID from token:', decoded.userId)
     
     // If this is a completed test with scores
     if (sessionData.status === 'Completed' && sessionData.totalScore !== undefined) {
+      console.log('Processing completed test with total score:', sessionData.totalScore)
+      
       // Try to find test and get questionBankId
       if (sessionData.testId) {
         try {
           const test = await Test.findById(sessionData.testId)
           if (test && test.questionBankId) {
             sessionData.questionBankId = test.questionBankId
+            console.log('Found questionBankId from test:', test.questionBankId)
+          } else {
+            console.log('Test found but no questionBankId')
           }
         } catch (err) {
           console.log('Could not fetch test:', err.message)
         }
       }
       
-      // If still no questionBankId, create a dummy one to avoid validation error
+      // If still no questionBankId, it's optional for completed tests
       if (!sessionData.questionBankId) {
-        console.log('No questionBankId found, using null')
+        console.log('No questionBankId - proceeding without it')
         delete sessionData.questionBankId
       }
       
       sessionData.state = 'COMPLETED'
       sessionData.endTime = new Date()
       
+      console.log('Creating test session with data:', JSON.stringify(sessionData, null, 2))
+      
       const session = await TestSession.create(sessionData)
-      console.log('Test session saved:', session._id)
-      return NextResponse.json({ message: 'Test completed and saved', session })
+      console.log('✅ Test session saved successfully with ID:', session._id)
+      return NextResponse.json({ message: 'Test completed and saved', session }, { status: 201 })
     }
     
     // Regular session creation
+    console.log('Processing regular session creation')
     const total = Number(sessionData.totalQuestions || 50)
     sessionData.baseTarget = Math.max(1, Math.floor(total / 2))
     sessionData.state = 'IN_PROGRESS_BASE'
@@ -84,9 +96,11 @@ export async function POST(request) {
     }
     
     const session = await TestSession.create(sessionData)
-    return NextResponse.json({ message: 'Session created', session })
+    console.log('✅ Session created with ID:', session._id)
+    return NextResponse.json({ message: 'Session created', session }, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /api/test-sessions:', error)
+    console.error('❌ Error in POST /api/test-sessions:', error)
+    console.error('Error stack:', error.stack)
     return NextResponse.json({ error: error.message || 'Failed to create session' }, { status: 500 })
   }
 }

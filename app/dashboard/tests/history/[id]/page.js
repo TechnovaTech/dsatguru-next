@@ -41,18 +41,40 @@ export default function TestReviewPage() {
         const moduleAnswers = sessionData.moduleAnswers || {}
         
         Object.keys(moduleAnswers).forEach(moduleKey => {
-          const answers = moduleAnswers[moduleKey]
-          console.log(`Processing ${moduleKey}:`, Object.keys(answers).length, 'answers')
+          const moduleData = moduleAnswers[moduleKey]
+          console.log(`Processing ${moduleKey}:`, moduleData)
           
-          Object.keys(answers).forEach(questionId => {
-            const question = allQuestions.find(q => String(q._id) === String(questionId) || String(q.id) === String(questionId))
+          // Handle both old format (direct answers) and new format (with questionIds)
+          let answers = {}
+          let questionIds = []
+          
+          if (moduleData && typeof moduleData === 'object') {
+            if (moduleData.answers && moduleData.questionIds) {
+              // New format
+              answers = moduleData.answers
+              questionIds = moduleData.questionIds
+            } else {
+              // Old format - moduleData is the answers object
+              answers = moduleData
+              questionIds = Object.keys(answers)
+            }
+          }
+          
+          console.log(`${moduleKey} - Question IDs:`, questionIds.length, 'Answers:', Object.keys(answers).length)
+          
+          // Get all questions for this module
+          questionIds.forEach(questionId => {
+            const question = allQuestions.find(q => String(q._id) === String(questionId))
             if (question) {
-              const userAnswer = answers[questionId]
+              const userAnswer = answers[questionId] || null
               const isCorrect = userAnswer === question.correctAnswer
+              const wasAttempted = userAnswer !== null && userAnswer !== undefined
+              
               reviewQuestions.push({
                 ...question,
                 userAnswer,
                 isCorrect,
+                wasAttempted,
                 module: moduleKey
               })
             } else {
@@ -72,8 +94,92 @@ export default function TestReviewPage() {
     }
   }
 
+  const downloadAllQuestions = () => {
+    if (questions.length === 0) {
+      alert('No questions to download!')
+      return
+    }
+    
+    let pdfContent = `SAT PRACTICE TEST - COMPLETE REVIEW\n`
+    pdfContent += `${'='.repeat(100)}\n\n`
+    pdfContent += `Test Date: ${new Date(session.completedAt || session.createdAt).toLocaleDateString()}\n`
+    pdfContent += `Total Score: ${session.totalScore || 0} / 1600\n`
+    if (session.rwScore) pdfContent += `Reading & Writing: ${session.rwScore} / 800\n`
+    if (session.mathScore) pdfContent += `Math: ${session.mathScore} / 800\n`
+    pdfContent += `\nTotal Questions: ${questions.length}\n`
+    pdfContent += `Correct: ${correctCount} | Wrong: ${wrongCount} | Skipped: ${unattemptedCount}\n`
+    pdfContent += `Accuracy: ${accuracy}%\n\n`
+    pdfContent += `${'='.repeat(100)}\n\n`
+
+    // Group by module
+    const moduleGroups = {
+      'rw_module1': [],
+      'rw_module2': [],
+      'math_module1': [],
+      'math_module2': []
+    }
+    
+    questions.forEach(q => {
+      if (moduleGroups[q.module]) {
+        moduleGroups[q.module].push(q)
+      }
+    })
+
+    // Print each module
+    Object.keys(moduleGroups).forEach(moduleKey => {
+      const moduleQuestions = moduleGroups[moduleKey]
+      if (moduleQuestions.length === 0) return
+      
+      const moduleName = moduleKey.replace('_', ' ').toUpperCase()
+      pdfContent += `\n\n${'#'.repeat(100)}\n`
+      pdfContent += `${moduleName}\n`
+      pdfContent += `${'#'.repeat(100)}\n\n`
+      
+      moduleQuestions.forEach((q, idx) => {
+        pdfContent += `QUESTION ${idx + 1}\n`
+        pdfContent += `Subject: ${q.subject} | Difficulty: ${q.difficulty}\n`
+        
+        if (!q.wasAttempted) {
+          pdfContent += `Status: NOT ATTEMPTED\n`
+        } else if (q.isCorrect) {
+          pdfContent += `Status: CORRECT ✓\n`
+        } else {
+          pdfContent += `Status: WRONG ✗\n`
+        }
+        
+        pdfContent += `${'-'.repeat(100)}\n\n`
+        pdfContent += `${q.question || q.content}\n\n`
+        pdfContent += `A) ${q.optionA}\n`
+        pdfContent += `B) ${q.optionB}\n`
+        pdfContent += `C) ${q.optionC}\n`
+        pdfContent += `D) ${q.optionD}\n\n`
+        
+        if (q.wasAttempted) {
+          pdfContent += `Your Answer: ${q.userAnswer} ${q.isCorrect ? '✓' : '✗'}\n`
+        } else {
+          pdfContent += `Your Answer: (Not Attempted)\n`
+        }
+        pdfContent += `Correct Answer: ${q.correctAnswer} ✓\n\n`
+        
+        if (q.shortExplanation) {
+          pdfContent += `SHORT EXPLANATION:\n${q.shortExplanation}\n\n`
+        }
+        pdfContent += `DETAILED EXPLANATION:\n${q.longExplanation || q.explanation || 'No detailed explanation available'}\n\n`
+        pdfContent += `${'='.repeat(100)}\n\n`
+      })
+    })
+
+    const blob = new Blob([pdfContent], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `SAT-Test-Review-${new Date().toISOString().split('T')[0]}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const downloadWrongAnswers = () => {
-    const wrongQuestions = questions.filter(q => !q.isCorrect)
+    const wrongQuestions = questions.filter(q => q.wasAttempted && !q.isCorrect)
     
     if (wrongQuestions.length === 0) {
       alert('No wrong answers to download!')
@@ -81,16 +187,16 @@ export default function TestReviewPage() {
     }
     
     let pdfContent = `WRONG ANSWERS PRACTICE SHEET\n`
-    pdfContent += `${'='.repeat(80)}\n\n`
+    pdfContent += `${'='.repeat(100)}\n\n`
     pdfContent += `Test Date: ${new Date(session.completedAt || session.createdAt).toLocaleDateString()}\n`
     pdfContent += `Total Wrong: ${wrongQuestions.length}\n`
     pdfContent += `Total Score: ${session.totalScore || 0}\n\n`
-    pdfContent += `${'='.repeat(80)}\n\n`
+    pdfContent += `${'='.repeat(100)}\n\n`
 
     wrongQuestions.forEach((q, idx) => {
       pdfContent += `QUESTION ${idx + 1}\n`
-      pdfContent += `Subject: ${q.subject} | Difficulty: ${q.difficulty}\n`
-      pdfContent += `${'-'.repeat(80)}\n\n`
+      pdfContent += `Subject: ${q.subject} | Difficulty: ${q.difficulty} | Module: ${q.module}\n`
+      pdfContent += `${'-'.repeat(100)}\n\n`
       pdfContent += `${q.question || q.content}\n\n`
       pdfContent += `A) ${q.optionA}\n`
       pdfContent += `B) ${q.optionB}\n`
@@ -98,16 +204,18 @@ export default function TestReviewPage() {
       pdfContent += `D) ${q.optionD}\n\n`
       pdfContent += `Your Answer: ${q.userAnswer} ✗\n`
       pdfContent += `Correct Answer: ${q.correctAnswer} ✓\n\n`
-      pdfContent += `SHORT EXPLANATION:\n${q.shortExplanation || 'N/A'}\n\n`
+      if (q.shortExplanation) {
+        pdfContent += `SHORT EXPLANATION:\n${q.shortExplanation}\n\n`
+      }
       pdfContent += `DETAILED EXPLANATION:\n${q.longExplanation || q.explanation || 'No detailed explanation available'}\n\n`
-      pdfContent += `${'='.repeat(80)}\n\n`
+      pdfContent += `${'='.repeat(100)}\n\n`
     })
 
     const blob = new Blob([pdfContent], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `wrong-answers-${new Date().toISOString().split('T')[0]}.txt`
+    a.download = `Wrong-Answers-${new Date().toISOString().split('T')[0]}.txt`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -137,8 +245,10 @@ export default function TestReviewPage() {
   }
 
   const correctCount = questions.filter(q => q.isCorrect).length
-  const wrongCount = questions.length - correctCount
-  const accuracy = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0
+  const attemptedCount = questions.filter(q => q.wasAttempted).length
+  const wrongCount = questions.filter(q => q.wasAttempted && !q.isCorrect).length
+  const unattemptedCount = questions.filter(q => !q.wasAttempted).length
+  const accuracy = attemptedCount > 0 ? Math.round((correctCount / attemptedCount) * 100) : 0
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -159,7 +269,7 @@ export default function TestReviewPage() {
 
         {/* Summary */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
             <div className="text-center">
               <p className="text-4xl font-bold text-blue-600">{session.totalScore || 0}</p>
               <p className="text-sm text-gray-600">Total Score</p>
@@ -171,6 +281,10 @@ export default function TestReviewPage() {
             <div className="text-center">
               <p className="text-4xl font-bold text-red-600">{wrongCount}</p>
               <p className="text-sm text-gray-600">Wrong</p>
+            </div>
+            <div className="text-center">
+              <p className="text-4xl font-bold text-gray-600">{unattemptedCount}</p>
+              <p className="text-sm text-gray-600">Skipped</p>
             </div>
             <div className="text-center">
               <p className="text-4xl font-bold text-purple-600">{accuracy}%</p>
@@ -195,14 +309,22 @@ export default function TestReviewPage() {
             </div>
           ) : null}
 
-          {wrongCount > 0 && (
+          <div className="grid grid-cols-2 gap-3">
             <button
-              onClick={downloadWrongAnswers}
-              className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 font-medium"
+              onClick={downloadAllQuestions}
+              className="bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 font-medium"
             >
-              <FiDownload /> Download Wrong Answers for Practice ({wrongCount} questions)
+              <FiDownload /> Download All Questions ({questions.length})
             </button>
-          )}
+            {wrongCount > 0 && (
+              <button
+                onClick={downloadWrongAnswers}
+                className="bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 font-medium"
+              >
+                <FiDownload /> Download Wrong Only ({wrongCount})
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Questions Review */}
@@ -216,12 +338,20 @@ export default function TestReviewPage() {
               <div
                 key={q._id || idx}
                 className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${
-                  q.isCorrect ? 'border-green-500' : 'border-red-500'
+                  !q.wasAttempted ? 'border-gray-400' : q.isCorrect ? 'border-green-500' : 'border-red-500'
                 }`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    {q.isCorrect ? (
+                    {!q.wasAttempted ? (
+                      <div className="text-gray-500 flex-shrink-0" title="Not Attempted">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <line x1="12" y1="8" x2="12" y2="12"/>
+                          <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                      </div>
+                    ) : q.isCorrect ? (
                       <FiCheckCircle className="text-green-600 flex-shrink-0" size={24} />
                     ) : (
                       <FiXCircle className="text-red-600 flex-shrink-0" size={24} />
@@ -238,6 +368,11 @@ export default function TestReviewPage() {
                         {q.module && (
                           <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
                             {q.module.replace('_', ' ').toUpperCase()}
+                          </span>
+                        )}
+                        {!q.wasAttempted && (
+                          <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">
+                            NOT ATTEMPTED
                           </span>
                         )}
                       </div>
@@ -280,15 +415,21 @@ export default function TestReviewPage() {
                   })}
                 </div>
 
-                {!q.isCorrect && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <p className="font-semibold text-yellow-900 mb-2">📝 Explanation:</p>
+                {(!q.wasAttempted || !q.isCorrect) && (
+                  <div className={`border rounded-lg p-4 ${
+                    !q.wasAttempted ? 'bg-gray-50 border-gray-200' : 'bg-yellow-50 border-yellow-200'
+                  }`}>
+                    <p className={`font-semibold mb-2 ${
+                      !q.wasAttempted ? 'text-gray-900' : 'text-yellow-900'
+                    }`}>
+                      {!q.wasAttempted ? '💡 Answer & Explanation:' : '📝 Explanation:'}
+                    </p>
                     {q.shortExplanation && (
-                      <p className="text-yellow-800 mb-2">
+                      <p className={!q.wasAttempted ? 'text-gray-800 mb-2' : 'text-yellow-800 mb-2'}>
                         <span className="font-medium">Quick:</span> {q.shortExplanation}
                       </p>
                     )}
-                    <p className="text-yellow-800">
+                    <p className={!q.wasAttempted ? 'text-gray-800' : 'text-yellow-800'}>
                       <span className="font-medium">Detailed:</span> {q.longExplanation || q.explanation || 'No detailed explanation available'}
                     </p>
                   </div>

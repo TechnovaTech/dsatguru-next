@@ -1,7 +1,7 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { FiClock, FiCheckCircle, FiArrowRight } from 'react-icons/fi'
+import { FiClock, FiCheckCircle, FiArrowRight, FiAlertTriangle } from 'react-icons/fi'
 
 export default function TakeTestPage() {
   const router = useRouter()
@@ -22,10 +22,52 @@ export default function TakeTestPage() {
   const [testCompleted, setTestCompleted] = useState(false)
   const [finalScore, setFinalScore] = useState(null)
   const [moduleScores, setModuleScores] = useState({})
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [tabChangeWarning, setTabChangeWarning] = useState(false)
+  const testContainerRef = useRef(null)
 
   useEffect(() => {
     fetchTestData()
   }, [testId])
+
+  // Fullscreen and tab change detection
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isFullscreen && !testCompleted && !showModuleSummary) {
+        setTabChangeWarning(true)
+        setTimeout(() => {
+          alert('Test terminated: You switched tabs or left the test window.')
+          router.push('/dashboard/tests')
+        }, 100)
+      }
+    }
+
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && isFullscreen && !testCompleted && !showModuleSummary) {
+        alert('Test terminated: You exited fullscreen mode.')
+        router.push('/dashboard/tests')
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    }
+  }, [isFullscreen, testCompleted, showModuleSummary, router])
+
+  const enterFullscreen = async () => {
+    try {
+      if (testContainerRef.current) {
+        await testContainerRef.current.requestFullscreen()
+        setIsFullscreen(true)
+      }
+    } catch (error) {
+      console.error('Failed to enter fullscreen:', error)
+    }
+  }
 
   useEffect(() => {
     if (timeRemaining > 0 && !showModuleSummary && !testCompleted) {
@@ -58,19 +100,14 @@ export default function TakeTestPage() {
         const testData = await testRes.json()
         const questions = await questionsRes.json()
         
-        console.log('Test data:', testData)
-        console.log('Questions loaded:', questions.length)
-        console.log('Sample question:', questions[0])
-        
         setTest(testData)
         setAllQuestions(questions)
         
-        // Start with R&W Module 1 if enabled, else Math Module 1
+        // Don't auto-load module, wait for user to start
         if (testData.sections?.rw) {
-          loadModule('rw', 1, questions, testData)
+          setCurrentSection('rw')
         } else if (testData.sections?.math) {
           setCurrentSection('math')
-          loadModule('math', 1, questions, testData)
         }
       }
     } catch (error) {
@@ -191,7 +228,13 @@ export default function TakeTestPage() {
     
     const moduleKey = `${currentSection}_module${currentModule}`
     setModuleScores(prev => ({ ...prev, [moduleKey]: correctCount }))
-    setModuleAnswers(prev => ({ ...prev, [moduleKey]: answers }))
+    setModuleAnswers(prev => ({ 
+      ...prev, 
+      [moduleKey]: {
+        answers: answers,
+        questionIds: moduleQuestions.map(q => q._id)
+      }
+    }))
     setShowModuleSummary(true)
   }
 
@@ -241,31 +284,46 @@ export default function TakeTestPage() {
     // Save to database with all required fields
     try {
       const token = localStorage.getItem('token')
+      
+      if (!token) {
+        console.error('No authentication token found')
+        alert('Session not saved: Please log in again')
+        return
+      }
+      
+      const sessionData = {
+        testId,
+        status: 'Completed',
+        moduleScores,
+        moduleAnswers,
+        rwScore,
+        mathScore,
+        totalScore: total,
+        completedAt: new Date().toISOString()
+      }
+      
+      console.log('Saving test session:', sessionData)
+      
       const response = await fetch('/api/test-sessions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          testId,
-          status: 'Completed',
-          moduleScores,
-          moduleAnswers,
-          rwScore,
-          mathScore,
-          totalScore: total,
-          completedAt: new Date().toISOString()
-        })
+        body: JSON.stringify(sessionData)
       })
       
+      const responseData = await response.json()
+      
       if (response.ok) {
-        console.log('Test session saved successfully')
+        console.log('✅ Test session saved successfully:', responseData)
       } else {
-        console.error('Failed to save test session:', await response.text())
+        console.error('❌ Failed to save test session:', responseData)
+        alert(`Failed to save test: ${responseData.error || 'Unknown error'}`)
       }
     } catch (error) {
-      console.error('Error saving test session:', error)
+      console.error('❌ Error saving test session:', error)
+      alert('Failed to save test session. Please check console for details.')
     }
   }
 
@@ -276,10 +334,58 @@ export default function TakeTestPage() {
     return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
+  // Start test confirmation screen
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    )
+  }
+
+  if (!isFullscreen && moduleQuestions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
+          <div className="text-center">
+            <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FiAlertTriangle className="text-blue-600" size={40} />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Start?</h2>
+            <p className="text-gray-600 mb-6">This test will open in fullscreen mode. Please note:</p>
+            
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-left">
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li>✓ Test will run in fullscreen mode</li>
+                <li>✓ Timer will start immediately</li>
+                <li>⚠️ Switching tabs will terminate the test</li>
+                <li>⚠️ Exiting fullscreen will terminate the test</li>
+              </ul>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  if (test.sections?.rw) {
+                    loadModule('rw', 1, allQuestions, test)
+                  } else if (test.sections?.math) {
+                    loadModule('math', 1, allQuestions, test)
+                  }
+                  enterFullscreen()
+                }}
+                className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors"
+              >
+                Start Test in Fullscreen
+              </button>
+              <button
+                onClick={() => router.push('/dashboard/tests')}
+                className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -393,111 +499,126 @@ export default function TakeTestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div ref={testContainerRef} className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-md sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
+        <div className="px-8 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">{test?.title}</h1>
-            <p className="text-sm text-gray-600">
-              {currentSection === 'rw' ? 'Reading & Writing' : 'Math'} - Module {currentModule}
-            </p>
-            <p className="text-xs text-gray-500">
-              Question {currentQuestion + 1} of {moduleQuestions.length}
+            <h1 className="text-2xl font-bold">{test?.title}</h1>
+            <p className="text-sm text-blue-100">
+              {currentSection === 'rw' ? 'Reading & Writing' : 'Math'} - Module {currentModule} | Question {currentQuestion + 1} of {moduleQuestions.length}
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 text-2xl font-bold bg-white text-gray-900 px-6 py-3 rounded-lg">
               <FiClock className="text-blue-600" />
               {formatTime(timeRemaining)}
             </div>
             <button
               onClick={handleModuleComplete}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700"
+              className="bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors"
             >
-              Complete Module
+              Submit Module
             </button>
           </div>
         </div>
       </div>
 
-      {/* Question Area */}
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-md p-8 mb-6">
-          <div className="flex items-start gap-3 mb-6">
-            <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-              {currentQ?.subject}
-            </span>
-            <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">
-              {currentQ?.difficulty}
-            </span>
-          </div>
+      {/* Main Content - Split Layout */}
+      <div className="flex h-[calc(100vh-140px)]">
+        {/* Left Side - Question */}
+        <div className="w-1/2 p-8 overflow-y-auto border-r-2 border-gray-200">
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-3 mb-6">
+              <span className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
+                {currentQ?.subject}
+              </span>
+              <span className="bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-semibold">
+                {currentQ?.difficulty}
+              </span>
+            </div>
 
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-            {currentQ?.question}
-          </h2>
-
-          <div className="space-y-3">
-            {['A', 'B', 'C', 'D'].map((option) => (
-              <button
-                key={option}
-                onClick={() => handleAnswer(currentQ._id, option)}
-                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                  answers[currentQ._id] === option
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-300 hover:border-blue-400'
-                }`}
-              >
-                <span className="font-semibold text-gray-900">{option}.</span>{' '}
-                {currentQ?.[`option${option}`]}
-              </button>
-            ))}
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <h2 className="text-2xl font-semibold text-gray-900 leading-relaxed">
+                {currentQ?.question}
+              </h2>
+            </div>
           </div>
         </div>
 
-        {/* Navigation */}
-        <div className="flex justify-between items-center">
+        {/* Right Side - Options */}
+        <div className="w-1/2 p-8 overflow-y-auto bg-gray-50">
+          <div className="max-w-2xl">
+            <h3 className="text-lg font-semibold text-gray-700 mb-6">Select your answer:</h3>
+            <div className="space-y-4">
+              {['A', 'B', 'C', 'D'].map((option) => (
+                <button
+                  key={option}
+                  onClick={() => handleAnswer(currentQ._id, option)}
+                  className={`w-full text-left p-6 rounded-xl border-3 transition-all transform hover:scale-[1.02] ${
+                    answers[currentQ._id] === option
+                      ? 'border-blue-600 bg-blue-50 shadow-lg ring-4 ring-blue-200'
+                      : 'border-gray-300 bg-white hover:border-blue-400 hover:shadow-md'
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    <span className={`text-2xl font-bold min-w-[40px] h-10 w-10 rounded-full flex items-center justify-center ${
+                      answers[currentQ._id] === option
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700'
+                    }`}>
+                      {option}
+                    </span>
+                    <span className="text-lg text-gray-800 pt-1">{currentQ?.[`option${option}`]}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 shadow-lg">
+        <div className="px-8 py-4 flex justify-between items-center">
           <button
             onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
             disabled={currentQuestion === 0}
-            className="px-6 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-8 py-3 border-2 border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            Previous
+            ← Previous
           </button>
 
-          <div className="text-sm text-gray-600">
-            {Object.keys(answers).length} of {moduleQuestions.length} answered
+          <div className="text-center">
+            <div className="text-sm text-gray-600 mb-1">
+              {Object.keys(answers).length} of {moduleQuestions.length} answered
+            </div>
+            <div className="flex gap-1">
+              {moduleQuestions.map((q, idx) => (
+                <button
+                  key={q._id}
+                  onClick={() => setCurrentQuestion(idx)}
+                  className={`w-8 h-8 rounded text-xs font-semibold ${
+                    idx === currentQuestion
+                      ? 'bg-blue-600 text-white'
+                      : answers[q._id]
+                      ? 'bg-green-400 text-white'
+                      : 'bg-gray-200 text-gray-600'
+                  }`}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </div>
           </div>
 
           <button
             onClick={() => setCurrentQuestion(prev => Math.min(moduleQuestions.length - 1, prev + 1))}
             disabled={currentQuestion === moduleQuestions.length - 1}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            Next
+            Next →
           </button>
-        </div>
-
-        {/* Question Navigator */}
-        <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-          <h3 className="font-semibold text-gray-900 mb-3">Question Navigator</h3>
-          <div className="grid grid-cols-10 gap-2">
-            {moduleQuestions.map((q, idx) => (
-              <button
-                key={q._id}
-                onClick={() => setCurrentQuestion(idx)}
-                className={`w-10 h-10 rounded-lg font-medium ${
-                  idx === currentQuestion
-                    ? 'bg-blue-600 text-white'
-                    : answers[q._id]
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-gray-100 text-gray-700'
-                }`}
-              >
-                {idx + 1}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </div>
