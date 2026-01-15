@@ -185,6 +185,16 @@ export default function RetestPage() {
           </div>
         </div>
 
+        {/* History Button */}
+        <div className="mb-6 flex justify-end">
+          <button
+            onClick={() => router.push('/dashboard/tests/retest/history')}
+            className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 font-medium flex items-center gap-2"
+          >
+            📚 View Retest History
+          </button>
+        </div>
+
         {/* Retest Action Card */}
         <div className="bg-white rounded-lg shadow-md p-8">
           {!canStartRetest ? (
