@@ -785,11 +785,16 @@ export default function TakeTestPage() {
           </div>
           
           <button
-            onClick={() => setCurrentQuestion(prev => Math.min(moduleQuestions.length - 1, prev + 1))}
-            disabled={currentQuestion === moduleQuestions.length - 1}
-            className="px-8 py-2.5 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            onClick={() => {
+              if (currentQuestion === moduleQuestions.length - 1) {
+                handleModuleComplete()
+              } else {
+                setCurrentQuestion(prev => Math.min(moduleQuestions.length - 1, prev + 1))
+              }
+            }}
+            className="px-8 py-2.5 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700"
           >
-            Next
+            {currentQuestion === moduleQuestions.length - 1 ? 'Submit Module' : 'Next'}
           </button>
         </div>
       </div>
