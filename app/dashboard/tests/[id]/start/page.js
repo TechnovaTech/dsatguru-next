@@ -28,6 +28,8 @@ export default function TakeTestPage() {
   const [checkingHistory, setCheckingHistory] = useState(true)
   const [showQuestionNav, setShowQuestionNav] = useState(false)
   const [markedQuestions, setMarkedQuestions] = useState(new Set())
+  const [showFlagModal, setShowFlagModal] = useState(false)
+  const [flagNote, setFlagNote] = useState('')
   const testContainerRef = useRef(null)
 
   useEffect(() => {
@@ -588,8 +590,9 @@ export default function TakeTestPage() {
           {formatTime(timeRemaining)}
         </div>
         <button 
+          onClick={() => setShowFlagModal(true)}
           className="text-gray-600 hover:text-gray-800 p-2"
-          title="Flag"
+          title="Flag Question"
         >
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
             <path d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" />
@@ -790,6 +793,69 @@ export default function TakeTestPage() {
           </button>
         </div>
       </div>
+
+      {/* Flag Question Modal */}
+      {showFlagModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold mb-4">Flag Question</h3>
+            <p className="text-sm text-gray-600 mb-4">Please note your concern about this question:</p>
+            <textarea
+              value={flagNote}
+              onChange={(e) => setFlagNote(e.target.value)}
+              className="w-full border rounded px-3 py-2 mb-4"
+              rows="4"
+              placeholder="Describe your concern..."
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowFlagModal(false)
+                  setFlagNote('')
+                }}
+                className="flex-1 bg-gray-200 text-gray-700 py-2 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!flagNote.trim()) {
+                    alert('Please enter a note')
+                    return
+                  }
+                  try {
+                    const token = localStorage.getItem('token')
+                    await fetch('/api/flagged-questions', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                      },
+                      body: JSON.stringify({
+                        questionId: currentQ._id,
+                        testId,
+                        testName: test?.title || 'Unknown Test',
+                        studentNote: flagNote,
+                        subject: currentQ.subject,
+                        difficulty: currentQ.difficulty
+                      })
+                    })
+                    setShowFlagModal(false)
+                    setFlagNote('')
+                    alert('Question flagged successfully!')
+                  } catch (error) {
+                    console.error('Error flagging question:', error)
+                    alert('Failed to flag question')
+                  }
+                }}
+                className="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
