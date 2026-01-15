@@ -88,7 +88,9 @@ export default function QuestionBankManagement() {
       if (filters.isActive !== '') params.set('isActive', String(filters.isActive === 'true'))
       const res = await fetch(`/api/questions?${params.toString()}`)
       const json = await res.json()
-      setQuestions(json.data || [])
+      // Handle both response formats: direct array or {data: array}
+      const questionsArray = Array.isArray(json) ? json : (json.data || [])
+      setQuestions(questionsArray)
     } finally {
       setQLoading(false)
     }
@@ -437,8 +439,11 @@ export default function QuestionBankManagement() {
                   {questions.map((q, index) => {
                     // Extract serial number from questionId (e.g., "TRIMATH-ES-1" -> "1")
                     const serialNumber = q.questionId ? q.questionId.split('-').pop() : (index + 1)
+                    // Parse options and tags if they're strings
+                    const parsedOptions = typeof q.options === 'string' ? JSON.parse(q.options) : (Array.isArray(q.options) ? q.options : [])
+                    const parsedTags = typeof q.tags === 'string' ? JSON.parse(q.tags) : (Array.isArray(q.tags) ? q.tags : [])
                     return (
-                      <tr key={q.id} className="hover:bg-gray-50">
+                      <tr key={q.id || q._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4">
                           <input
                             type="checkbox"
@@ -463,7 +468,7 @@ export default function QuestionBankManagement() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">{q.type || 'MultipleChoice'}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{(q.tags || []).join(', ') || '-'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{parsedTags.join(', ') || '-'}</td>
                         <td className="px-6 py-4 text-sm">
                           <span className={`px-2 py-1 text-xs font-semibold rounded-full ${q.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                             {q.isActive ? 'Active' : 'Inactive'}
@@ -507,17 +512,20 @@ export default function QuestionBankManagement() {
                 </div>
                 <div className="p-4 space-y-4">
                   {preview.questionParagraph && <div className="text-gray-700 whitespace-pre-line">{preview.questionParagraph}</div>}
-                  <div className="text-gray-900 whitespace-pre-line">{preview.content}</div>
-                  {Array.isArray(preview.options) && preview.options.length > 0 && (
+                  <div className="text-gray-900 whitespace-pre-line">{preview.content || preview.question}</div>
+                  {(() => {
+                    const opts = typeof preview.options === 'string' ? JSON.parse(preview.options) : (Array.isArray(preview.options) ? preview.options : [])
+                    return opts.length > 0 && (
                     <div className="space-y-2">
-                      {preview.options.map((opt, i) => (
+                      {opts.map((opt, i) => (
                         <div key={i} className="flex items-start gap-2">
                           <span className="font-medium">{String.fromCharCode(65 + i)}.</span>
                           <span>{opt}</span>
                         </div>
                       ))}
                     </div>
-                  )}
+                  )
+                  })()}
                   <div className="text-sm text-gray-600">Correct Answer: <span className="font-semibold">{preview.correctAnswer}</span></div>
                   {preview.explanation && (
                     <div className="mt-2 text-sm">
@@ -587,7 +595,10 @@ export default function QuestionBankManagement() {
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
                     <input
-                      value={(editItem.tags || []).join(', ')}
+                      value={(() => {
+                        const tags = typeof editItem.tags === 'string' ? JSON.parse(editItem.tags) : (Array.isArray(editItem.tags) ? editItem.tags : [])
+                        return tags.join(', ')
+                      })()}
                       onChange={(e) => setEditItem({ ...editItem, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}
                       className="w-full border rounded px-2 py-1 text-sm"
                     />
@@ -648,20 +659,24 @@ export default function QuestionBankManagement() {
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-gray-700 mb-2">Options</label>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                      {(Array.isArray(editItem.options) && editItem.options.length > 0 ? editItem.options : ['', '', '', '']).map((opt, idx) => (
+                      {(() => {
+                        const opts = typeof editItem.options === 'string' ? JSON.parse(editItem.options) : (Array.isArray(editItem.options) && editItem.options.length > 0 ? editItem.options : ['', '', '', ''])
+                        return opts.map((opt, idx) => (
                         <div key={idx}>
                           <label className="block text-xs font-medium text-gray-700 mb-1">Option {String.fromCharCode(65 + idx)}</label>
                           <input
                             value={opt || ''}
                             onChange={(e) => {
-                              const next = Array.isArray(editItem.options) && editItem.options.length > 0 ? [...editItem.options] : ['', '', '', '']
+                              const currentOpts = typeof editItem.options === 'string' ? JSON.parse(editItem.options) : (Array.isArray(editItem.options) && editItem.options.length > 0 ? editItem.options : ['', '', '', ''])
+                              const next = [...currentOpts]
                               next[idx] = e.target.value
                               setEditItem({ ...editItem, options: next })
                             }}
                             className="w-full border rounded px-2 py-1 text-sm"
                           />
                         </div>
-                      ))}
+                      ))
+                      })()}
                     </div>
                   </div>
                   <div>
