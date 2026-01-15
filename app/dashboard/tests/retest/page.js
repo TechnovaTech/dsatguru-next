@@ -185,7 +185,7 @@ export default function RetestPage() {
 
                 <div className="mt-4 pt-4 border-t">
                   <p className="text-sm text-gray-600">
-                    💡 Retake this test with questions you got wrong or didn't attempt to improve your score
+                    💡 Retake this test with questions you got wrong or didn&apos;t attempt to improve your score
                   </p>
                 </div>
               </div>
