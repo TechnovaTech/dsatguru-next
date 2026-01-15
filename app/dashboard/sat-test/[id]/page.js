@@ -202,92 +202,141 @@ export default function SatTestRunner() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-sm text-gray-600">
-              Question {currentIndex + 1} of {baseQuestions.length}
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Header */}
+      <div className="bg-white border-b px-6 py-3 flex items-center justify-between">
+        <div className="text-sm font-medium text-gray-700">
+          Section 1, Module 1: {session?.subject || 'Reading and Writing'}
+        </div>
+        <div className="text-sm font-medium text-gray-700">
+          {Math.floor(remaining / 60)}:{String(remaining % 60).padStart(2, '0')}
+        </div>
+        <div className="text-sm text-gray-600">
+          80% ⚡
+        </div>
+      </div>
+
+      {/* Main Content - Split Screen */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Side - Passage/Context */}
+        <div className="w-1/2 border-r overflow-y-auto p-8 bg-gray-50">
+          {currentQuestion.questionParagraph ? (
+            <div className="prose max-w-none">
+              <div className="whitespace-pre-line text-gray-800 leading-relaxed">
+                {currentQuestion.questionParagraph}
+              </div>
             </div>
-            <div className="text-sm text-gray-600">
-              {session?.state === 'IN_PROGRESS_BASE' ? 'Base Module' : 'Adaptive Module'}
-            </div>
-          </div>
-          <div className="mb-4 text-right text-sm text-gray-700">
-            Time left: {Math.floor(remaining / 60)}:{String(remaining % 60).padStart(2, '0')}
-          </div>
-          {currentQuestion.questionParagraph && (
-            <div className="whitespace-pre-line text-gray-700 mb-4">
-              {currentQuestion.questionParagraph}
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-400">
+              <div className="text-center">
+                <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p>No passage for this question</p>
+              </div>
             </div>
           )}
-          <div className="whitespace-pre-line text-gray-900 mb-6">
-            {currentQuestion.content}
-          </div>
-          {currentQuestion.imageUrl && (
-            <div className="mb-4">
-              <img src={currentQuestion.imageUrl} alt="Question" className="max-h-64 object-contain" />
-            </div>
-          )}
-          <div className="space-y-3">
-            {(currentQuestion.options || []).map((opt, i) => (
-              <button
-                key={i}
-                onClick={() => submitAnswer(String.fromCharCode(65 + i))}
-                disabled={submitting || !!answeredMap[String(currentQuestion.id || currentQuestion._id)]}
-                className={`w-full text-left border rounded-lg p-3 transition-colors ${
-                  answeredMap[String(currentQuestion.id || currentQuestion._id)]
-                    ? 'bg-gray-50 cursor-not-allowed'
-                    : 'hover:bg-blue-50'
-                } ${selectedMap[String(currentQuestion.id || currentQuestion._id)] === String.fromCharCode(65 + i) ? 'border-blue-500 bg-blue-50' : ''}`}
-              >
-                <span className="font-medium mr-2">{String.fromCharCode(65 + i)}.</span>
-                <span>{opt}</span>
+        </div>
+
+        {/* Right Side - Question and Options */}
+        <div className="w-1/2 overflow-y-auto p-8 bg-white">
+          <div className="max-w-2xl">
+            {/* Question Number Badge */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="bg-black text-white w-10 h-10 rounded flex items-center justify-center font-bold">
+                {currentIndex + 1}
+              </div>
+              <button className="text-gray-400 hover:text-gray-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
               </button>
-            ))}
+              <span className="text-gray-500 text-sm">Mark for Review</span>
+              <button className="ml-auto text-gray-400 hover:text-gray-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Question Text */}
+            <div className="mb-6">
+              <p className="text-gray-900 text-base leading-relaxed whitespace-pre-line">
+                {currentQuestion.content}
+              </p>
+            </div>
+
+            {/* Question Image */}
+            {currentQuestion.imageUrl && (
+              <div className="mb-6">
+                <img src={currentQuestion.imageUrl} alt="Question" className="max-w-full h-auto rounded border" />
+              </div>
+            )}
+
+            {/* Answer Options */}
+            <div className="space-y-3">
+              {(currentQuestion.options || []).map((opt, i) => {
+                const optionLetter = String.fromCharCode(65 + i)
+                const qId = String(currentQuestion.id || currentQuestion._id)
+                const isSelected = selectedMap[qId] === optionLetter
+                const isAnswered = !!answeredMap[qId]
+                
+                return (
+                  <button
+                    key={i}
+                    onClick={() => submitAnswer(optionLetter)}
+                    disabled={submitting || isAnswered}
+                    className={`w-full text-left border-2 rounded-lg p-4 transition-all ${
+                      isSelected
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                    } ${isAnswered ? 'cursor-not-allowed opacity-60' : ''}`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-500 text-white'
+                          : 'border-gray-400 text-gray-700'
+                      }`}>
+                        {optionLetter}
+                      </div>
+                      <div className="flex-1 pt-1">
+                        <span className="text-gray-900">{opt}</span>
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </div>
       </div>
-      <div className="max-w-4xl mx-auto px-6 py-4">
-        <div className="bg-white border rounded-lg p-3 flex items-center justify-between">
+
+      {/* Bottom Navigation */}
+      <div className="bg-white border-t px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <button
+            onClick={() => navigateIndex(currentIndex - 1)}
+            disabled={currentIndex === 0}
+            className="px-6 py-2 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            Back
+          </button>
+          
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => navigateIndex(currentIndex - 1)}
-              className="px-3 py-1 border rounded hover:bg-gray-50"
-              disabled={currentIndex === 0}
-            >
-              Prev
+            <span className="text-sm text-gray-600 mr-2">Question {currentIndex + 1} of {baseQuestions.length}</span>
+            <button className="px-4 py-2 border border-gray-300 rounded-full text-sm hover:bg-gray-50">
+              ▲
             </button>
           </div>
-          <div className="flex flex-wrap gap-2 justify-center">
-            {baseQuestions.map((q, idx) => {
-              const isCurrent = idx === currentIndex
-              const qId = String(q.id || q._id)
-              const isAnswered = !!answeredMap[qId]
-              return (
-                <button
-                  key={idx}
-                  onClick={() => navigateIndex(idx)}
-                  className={`w-8 h-8 text-sm rounded-full border ${
-                    isCurrent ? 'bg-blue-600 text-white border-blue-600' :
-                    isAnswered ? 'bg-green-100 text-green-700 border-green-300' :
-                    'bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {idx + 1}
-                </button>
-              )
-            })}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => navigateIndex(currentIndex + 1)}
-              className="px-3 py-1 border rounded hover:bg-gray-50"
-              disabled={currentIndex >= baseQuestions.length - 1}
-            >
-              Next
-            </button>
-          </div>
+          
+          <button
+            onClick={() => navigateIndex(currentIndex + 1)}
+            disabled={currentIndex >= baseQuestions.length - 1}
+            className="px-6 py-2 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
         </div>
       </div>
     </div>

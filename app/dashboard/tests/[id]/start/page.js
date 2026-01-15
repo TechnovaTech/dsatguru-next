@@ -26,6 +26,7 @@ export default function TakeTestPage() {
   const [tabChangeWarning, setTabChangeWarning] = useState(false)
   const [alreadyTaken, setAlreadyTaken] = useState(false)
   const [checkingHistory, setCheckingHistory] = useState(true)
+  const [showQuestionNav, setShowQuestionNav] = useState(false)
   const testContainerRef = useRef(null)
 
   useEffect(() => {
@@ -36,11 +37,8 @@ export default function TakeTestPage() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && isFullscreen && !testCompleted && !showModuleSummary) {
-        setTabChangeWarning(true)
-        setTimeout(() => {
-          alert('Test terminated: You switched tabs or left the test window.')
-          router.push('/dashboard/tests')
-        }, 100)
+        alert('Test terminated: You switched tabs or left the test window.')
+        router.push('/dashboard/tests')
       }
     }
 
@@ -51,12 +49,25 @@ export default function TakeTestPage() {
       }
     }
 
+    const handleEscKey = (e) => {
+      if (e.key === 'Escape' && isFullscreen && !testCompleted && !showModuleSummary) {
+        e.preventDefault()
+        alert('Test terminated: You pressed ESC to exit fullscreen.')
+        if (document.fullscreenElement) {
+          document.exitFullscreen()
+        }
+        router.push('/dashboard/tests')
+      }
+    }
+
     document.addEventListener('visibilitychange', handleVisibilityChange)
     document.addEventListener('fullscreenchange', handleFullscreenChange)
+    document.addEventListener('keydown', handleEscKey)
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       document.removeEventListener('fullscreenchange', handleFullscreenChange)
+      document.removeEventListener('keydown', handleEscKey)
     }
   }, [isFullscreen, testCompleted, showModuleSummary, router])
 
@@ -68,6 +79,7 @@ export default function TakeTestPage() {
       }
     } catch (error) {
       console.error('Failed to enter fullscreen:', error)
+      alert('Please allow fullscreen mode to start the test.')
     }
   }
 
@@ -565,125 +577,182 @@ export default function TakeTestPage() {
   }
 
   return (
-    <div ref={testContainerRef} className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
-        <div className="px-8 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">{test?.title}</h1>
-            <p className="text-sm text-blue-100">
-              {currentSection === 'rw' ? 'Reading & Writing' : 'Math'} - Module {currentModule} | Question {currentQuestion + 1} of {moduleQuestions.length}
-            </p>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 text-2xl font-bold bg-white text-gray-900 px-6 py-3 rounded-lg">
-              <FiClock className="text-blue-600" />
-              {formatTime(timeRemaining)}
-            </div>
-            <button
-              onClick={handleModuleComplete}
-              className="bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors"
-            >
-              Submit Module
-            </button>
-          </div>
+    <div ref={testContainerRef} className="h-screen flex flex-col bg-white">
+      {/* Top Header */}
+      <div className="bg-white border-b px-6 py-3 flex items-center justify-between">
+        <div className="text-base font-bold text-gray-900">
+          Section 1, Module {currentModule}: {currentSection === 'rw' ? 'Reading and Writing' : 'Math'}
         </div>
+        <div className="text-lg font-bold text-gray-900">
+          {formatTime(timeRemaining)}
+        </div>
+        <button 
+          className="text-gray-600 hover:text-gray-800 p-2"
+          title="Flag"
+        >
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" />
+          </svg>
+        </button>
       </div>
 
-      {/* Main Content - Split Layout */}
-      <div className="flex h-[calc(100vh-140px)]">
-        {/* Left Side - Question */}
-        <div className="w-1/2 p-8 overflow-y-auto border-r-2 border-gray-200">
-          <div className="max-w-2xl">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
-                {currentQ?.subject}
-              </span>
-              <span className="bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-semibold">
-                {currentQ?.difficulty}
-              </span>
+      {/* Main Split Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Side - Passage + Question */}
+        <div className="w-1/2 overflow-y-auto p-8 bg-gray-50 relative border-r border-gray-300">
+          {/* Watermark */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="text-gray-300 text-6xl font-bold transform -rotate-45 opacity-30 select-none">
+              www.dsatguru.com
             </div>
-
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-semibold text-gray-900 leading-relaxed">
-                {currentQ?.question}
-              </h2>
+          </div>
+          
+          {/* Content */}
+          <div className="relative z-10">
+            {/* Passage/Context */}
+            {currentQ?.questionParagraph && (
+              <div className="prose max-w-none mb-8">
+                <p className="text-gray-800 leading-relaxed whitespace-pre-line">
+                  {currentQ.questionParagraph}
+                </p>
+              </div>
+            )}
+            
+            {/* Question Text - No Card */}
+            <div className="mt-6">
+              <p className="text-gray-900 text-base leading-relaxed font-medium">
+                {currentQ?.question || currentQ?.content}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Right Side - Options */}
-        <div className="w-1/2 p-8 overflow-y-auto bg-gray-50">
-          <div className="max-w-2xl">
-            <h3 className="text-lg font-semibold text-gray-700 mb-6">Select your answer:</h3>
-            <div className="space-y-4">
-              {['A', 'B', 'C', 'D'].map((option) => (
-                <button
-                  key={option}
-                  onClick={() => handleAnswer(currentQ._id, option)}
-                  className={`w-full text-left p-6 rounded-xl border-3 transition-all transform hover:scale-[1.02] ${
-                    answers[currentQ._id] === option
-                      ? 'border-blue-600 bg-blue-50 shadow-lg ring-4 ring-blue-200'
-                      : 'border-gray-300 bg-white hover:border-blue-400 hover:shadow-md'
-                  }`}
-                >
-                  <div className="flex items-start gap-4">
-                    <span className={`text-2xl font-bold min-w-[40px] h-10 w-10 rounded-full flex items-center justify-center ${
-                      answers[currentQ._id] === option
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-700'
-                    }`}>
-                      {option}
-                    </span>
-                    <span className="text-lg text-gray-800 pt-1">{currentQ?.[`option${option}`]}</span>
-                  </div>
-                </button>
-              ))}
+        {/* Right Side - Question Number & Options */}
+        <div className="w-1/2 overflow-y-auto p-8 bg-gray-50 relative">
+          {/* Watermark */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="text-gray-300 text-6xl font-bold transform -rotate-45 opacity-30 select-none">
+              www.dsatguru.com
+            </div>
+          </div>
+          
+          {/* Content */}
+          <div className="max-w-2xl mx-auto relative z-10">
+            {/* Question Number & Actions */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="bg-black text-white w-12 h-12 rounded flex items-center justify-center font-bold text-lg">
+                {currentQuestion + 1}
+              </div>
+              <button className="text-gray-400 hover:text-gray-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+              </button>
+              <span className="text-gray-500 text-sm">Mark for Review</span>
+              <button className="ml-auto text-gray-400 hover:text-gray-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Question Prompt */}
+            <div className="mb-6">
+              <p className="text-gray-700 text-sm font-medium">
+                The author makes which point about the Spanish language?
+              </p>
+            </div>
+
+            {/* Answer Options */}
+            <div className="space-y-3">
+              {['A', 'B', 'C', 'D'].map((option) => {
+                const isSelected = answers[currentQ._id] === option
+                return (
+                  <button
+                    key={option}
+                    onClick={() => handleAnswer(currentQ._id, option)}
+                    className={`w-full text-left border-2 rounded-lg p-4 transition-all ${
+                      isSelected
+                        ? 'border-gray-400 bg-gray-50'
+                        : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold ${
+                        isSelected
+                          ? 'border-gray-600 bg-gray-600 text-white'
+                          : 'border-gray-400 text-gray-700'
+                      }`}>
+                        {option}
+                      </div>
+                      <div className="flex-1 pt-1">
+                        <span className="text-gray-900">{currentQ?.[`option${option}`]}</span>
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
             </div>
           </div>
         </div>
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 shadow-lg">
-        <div className="px-8 py-4 flex justify-between items-center">
+      <div className="bg-white border-t px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <button
             onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
             disabled={currentQuestion === 0}
-            className="px-8 py-3 border-2 border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-8 py-2.5 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
-            ← Previous
+            Back
           </button>
-
-          <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">
-              {Object.keys(answers).length} of {moduleQuestions.length} answered
-            </div>
-            <div className="flex gap-1">
-              {moduleQuestions.map((q, idx) => (
-                <button
-                  key={q._id}
-                  onClick={() => setCurrentQuestion(idx)}
-                  className={`w-8 h-8 rounded text-xs font-semibold ${
-                    idx === currentQuestion
-                      ? 'bg-blue-600 text-white'
-                      : answers[q._id]
-                      ? 'bg-green-400 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {idx + 1}
-                </button>
-              ))}
-            </div>
+          
+          <div className="flex items-center gap-3 relative">
+            <span className="text-sm text-gray-600">Question {currentQuestion + 1} of {moduleQuestions.length}</span>
+            <button 
+              onClick={() => setShowQuestionNav(!showQuestionNav)}
+              className="px-4 py-2 border border-gray-300 rounded-full text-sm hover:bg-gray-50"
+            >
+              ▲
+            </button>
+            
+            {showQuestionNav && (
+              <div className="absolute bottom-full mb-2 right-0 bg-white border-2 border-gray-300 rounded-lg shadow-xl p-4 w-80 max-h-96 overflow-y-auto z-50">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900">Questions</h3>
+                  <button onClick={() => setShowQuestionNav(false)} className="text-gray-500 hover:text-gray-700">✕</button>
+                </div>
+                <div className="grid grid-cols-6 gap-2">
+                  {moduleQuestions.map((q, idx) => {
+                    const qId = String(q._id || q.id)
+                    const isAnswered = !!answers[qId]
+                    const isCurrent = idx === currentQuestion
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => { setCurrentQuestion(idx); setShowQuestionNav(false) }}
+                        className={`w-10 h-10 rounded-full font-semibold text-sm ${
+                          isCurrent ? 'bg-blue-600 text-white' :
+                          isAnswered ? 'bg-green-500 text-white' :
+                          'bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        {idx + 1}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
-
+          
           <button
             onClick={() => setCurrentQuestion(prev => Math.min(moduleQuestions.length - 1, prev + 1))}
             disabled={currentQuestion === moduleQuestions.length - 1}
-            className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-8 py-2.5 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
-            Next →
+            Next
           </button>
         </div>
       </div>
