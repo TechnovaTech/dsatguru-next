@@ -68,12 +68,26 @@ export default function TestsPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">📝 Available Tests</h1>
           <p className="text-gray-600">Take practice tests created by your instructors</p>
         </div>
-        <button
-          onClick={() => router.push('/dashboard/tests/history')}
-          className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
-        >
-          📚 Test History
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => router.push('/dashboard/tests/marked')}
+            className="bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700 flex items-center gap-2"
+          >
+            🔖 Marked Questions
+          </button>
+          <button
+            onClick={() => router.push('/dashboard/tests/retest')}
+            className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 flex items-center gap-2"
+          >
+            🔄 Retest
+          </button>
+          <button
+            onClick={() => router.push('/dashboard/tests/history')}
+            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+          >
+            📚 Test History
+          </button>
+        </div>
       </div>
 
       {tests.length === 0 ? (

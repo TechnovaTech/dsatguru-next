@@ -656,13 +656,6 @@ export default function TakeTestPage() {
               </button>
             </div>
 
-            {/* Question Prompt */}
-            <div className="mb-6">
-              <p className="text-gray-700 text-sm font-medium">
-                The author makes which point about the Spanish language?
-              </p>
-            </div>
-
             {/* Answer Options */}
             <div className="space-y-3">
               {['A', 'B', 'C', 'D'].map((option) => {
