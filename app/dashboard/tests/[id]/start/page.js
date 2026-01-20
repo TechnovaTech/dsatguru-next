@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { FiClock, FiCheckCircle, FiArrowRight, FiAlertTriangle, FiMoreVertical, FiHelpCircle, FiBookOpen, FiSlash, FiGrid, FiLayers } from 'react-icons/fi'
+import { FiClock, FiCheckCircle, FiArrowRight, FiAlertTriangle, FiMoreVertical, FiHelpCircle, FiBookOpen, FiSlash, FiGrid, FiLayers, FiEdit2 } from 'react-icons/fi'
 
 export default function TakeTestPage() {
   const router = useRouter()
@@ -29,6 +29,7 @@ export default function TakeTestPage() {
   const [showQuestionNav, setShowQuestionNav] = useState(false)
   const [markedQuestions, setMarkedQuestions] = useState(new Set())
   const [showFlagModal, setShowFlagModal] = useState(false)
+  const [showHighlights, setShowHighlights] = useState(false)
   const [flagNote, setFlagNote] = useState('')
   const testContainerRef = useRef(null)
 
@@ -876,6 +877,17 @@ export default function TakeTestPage() {
             {showMoreMenu && (
               <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
                 <button 
+                  onClick={() => { 
+                    setShowMoreMenu(false); 
+                    setShowHighlights(!showHighlights);
+                  }}
+                  className={`w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50 ${showHighlights ? 'bg-gray-50' : ''}`}
+                >
+                  <FiEdit2 className="text-gray-500" />
+                  <span className="text-sm font-medium">Highlights & Notes {showHighlights ? '(On)' : ''}</span>
+                </button>
+                <div className="border-t my-2"></div>
+                <button 
                   onClick={() => { setShowMoreMenu(false); /* Implement help */ }}
                   className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50"
                 >
@@ -916,6 +928,17 @@ export default function TakeTestPage() {
                 >
                   <FiClock className="text-gray-500" />
                   <span className="text-sm font-medium">Unscheduled Break</span>
+                </button>
+                <div className="border-t my-2"></div>
+                <button 
+                  onClick={() => { 
+                    setShowMoreMenu(false); 
+                    router.push('/dashboard/tests');
+                  }}
+                  className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50"
+                >
+                  <FiAlertTriangle className="text-gray-500" />
+                  <span className="text-sm font-medium">Exit the Exam</span>
                 </button>
               </div>
             )}

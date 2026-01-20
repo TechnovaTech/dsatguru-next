@@ -2,11 +2,20 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from './AuthContext'
-import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText } from 'react-icons/fi'
+import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock } from 'react-icons/fi'
 
 const navItems = [
   { name: "Dashboard", icon: <FiGrid />, path: "/dashboard" },
-  { name: "Tests", icon: <FiFileText />, path: "/dashboard/tests" },
+  { 
+    name: "Practice Tests", 
+    icon: <FiFileText />, 
+    path: "/dashboard/tests",
+    children: [
+      { name: "Create Practice", icon: <FiFileText />, path: "/dashboard/tests/create" },
+      { name: "Admin Practice", icon: <FiClipboard />, path: "/dashboard/tests" },
+      { name: "Practice History", icon: <FiClock />, path: "/dashboard/tests/history" },
+    ]
+  },
   { name: "Courses", icon: <FiBook />, path: "/dashboard/courses" },
   { name: "Question Banks", icon: <FiDatabase />, path: "/dashboard/question-banks" },
   { name: "Study Plan", icon: <FiTarget />, path: "/dashboard/study-plan" },
@@ -17,6 +26,17 @@ const navItems = [
 export default function DashboardLayout({ children }) {
   const { user, logout } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
+  const [expandedItems, setExpandedItems] = useState(['Practice Tests', 'Performance'])
+
+  const toggleExpand = (name, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setExpandedItems(prev => 
+      prev.includes(name) 
+        ? prev.filter(item => item !== name)
+        : [...prev, name]
+    )
+  }
   
   const initials = user?.name
     ?.split(" ")
@@ -56,14 +76,42 @@ export default function DashboardLayout({ children }) {
           </div>
           <nav className="space-y-3">
             {navItems.map((item) => (
-              <a
-                href={item.path}
-                key={item.name}
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-blue-100"
-              >
-                {item.icon} {item.name}
-              </a>
+              <div key={item.name}>
+                {item.children ? (
+                  <div
+                    className="flex items-center justify-between px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-blue-100 cursor-pointer"
+                    onClick={(e) => toggleExpand(item.name, e)}
+                  >
+                    <div className="flex items-center gap-3">
+                      {item.icon} {item.name}
+                    </div>
+                    {expandedItems.includes(item.name) ? <FiChevronDown /> : <FiChevronRight />}
+                  </div>
+                ) : (
+                  <a
+                    href={item.path}
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-blue-100"
+                  >
+                    {item.icon} {item.name}
+                  </a>
+                )}
+
+                {item.children && expandedItems.includes(item.name) && (
+                  <div className="ml-4 space-y-1 mt-1 border-l-2 border-gray-100 pl-2">
+                    {item.children.map((child) => (
+                      <a
+                        key={child.name}
+                        href={child.path}
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-blue-50 text-gray-600 hover:text-blue-700"
+                      >
+                        {child.icon} {child.name}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
         </div>
