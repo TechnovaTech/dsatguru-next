@@ -1408,8 +1408,8 @@ export default function TakeTestPage() {
                  <ul className="list-disc pl-6 space-y-2">
                    <li>If you find <span className="font-bold">more than one correct answer</span>, enter only one answer.</li>
                    <li>You can enter up to 5 characters for a <span className="font-bold">positive answer</span> and up to 6 characters (including the negative sign) for a <span className="font-bold">negative answer</span>.</li>
-                   <li>If your answer is a <span className="font-bold">fraction</span> that doesn't fit in the provided space, enter the decimal equivalent.</li>
-                   <li>If your answer is a <span className="font-bold">decimal</span> that doesn't fit in the provided space, enter it by truncating or rounding at the fourth digit.</li>
+                   <li>If your answer is a <span className="font-bold">fraction</span> that doesn&apos;t fit in the provided space, enter the decimal equivalent.</li>
+                  <li>If your answer is a <span className="font-bold">decimal</span> that doesn&apos;t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li>
                    <li>If your answer is a <span className="font-bold">mixed number</span> (such as 3 1/2), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li>
                  </ul>
                </div>
