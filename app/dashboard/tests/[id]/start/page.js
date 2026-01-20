@@ -27,6 +27,7 @@ export default function TakeTestPage() {
   const [alreadyTaken, setAlreadyTaken] = useState(false)
   const [checkingHistory, setCheckingHistory] = useState(true)
   const [showQuestionNav, setShowQuestionNav] = useState(false)
+  const [markedQuestions, setMarkedQuestions] = useState(new Set())
   const [showFlagModal, setShowFlagModal] = useState(false)
   const [flagNote, setFlagNote] = useState('')
   const testContainerRef = useRef(null)
@@ -648,12 +649,22 @@ export default function TakeTestPage() {
               </div>
               <button 
                 onClick={() => {
-                  // Intentionally no-op: "Mark for Review" behavior has been removed.
-                  // We'll repurpose this button for a new action later.
+                  const qId = String(currentQ._id || currentQ.id)
+                  setMarkedQuestions(prev => {
+                    const next = new Set(prev)
+                    if (next.has(qId)) {
+                      next.delete(qId)
+                    } else {
+                      next.add(qId)
+                    }
+                    return next
+                  })
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className={markedQuestions.has(String(currentQ._id || currentQ.id))
+                  ? 'text-orange-500 hover:text-orange-600'
+                  : 'text-gray-400 hover:text-gray-600'}
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6" fill={markedQuestions.has(String(currentQ._id || currentQ.id)) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
               </button>
@@ -720,22 +731,46 @@ export default function TakeTestPage() {
             </button>
             
             {showQuestionNav && (
-              <div className="absolute bottom-full mb-2 right-0 bg-white border-2 border-gray-300 rounded-lg shadow-xl p-4 w-80 max-h-96 overflow-y-auto z-50">
-                <div className="flex items-center justify-between mb-3">
+              <div className={`absolute bottom-full mb-2 right-0 bg-white border-2 border-gray-300 rounded-lg shadow-xl p-4 max-h-96 overflow-y-auto z-50 ${
+                currentSection === 'rw' ? 'w-[28rem]' : 'w-[34rem]'
+              }`}>
+                <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-gray-900">Questions</h3>
                   <button onClick={() => setShowQuestionNav(false)} className="text-gray-500 hover:text-gray-700">✕</button>
                 </div>
-                <div className="grid grid-cols-6 gap-2">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600 mb-3">
+                  <div className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded-full bg-blue-600" />
+                    <span>Current</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded-full bg-green-500" />
+                    <span>Answered</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded-full bg-orange-500" />
+                    <span>Marked</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded-full bg-gray-300" />
+                    <span>Not answered</span>
+                  </div>
+                </div>
+                <div className={`grid gap-2 ${currentSection === 'rw' ? 'grid-cols-9' : 'grid-cols-11'}`}>
                   {moduleQuestions.map((q, idx) => {
                     const qId = String(q._id || q.id)
                     const isAnswered = !!answers[qId]
                     const isCurrent = idx === currentQuestion
+                    const isMarked = markedQuestions.has(qId)
                     return (
                       <button
                         key={idx}
                         onClick={() => { setCurrentQuestion(idx); setShowQuestionNav(false) }}
-                        className={`w-10 h-10 rounded-full font-semibold text-sm ${
+                        className={`rounded-full font-semibold ${
+                          currentSection === 'rw' ? 'w-9 h-9 text-xs' : 'w-9 h-9 text-xs'
+                        } ${
                           isCurrent ? 'bg-blue-600 text-white' :
+                          isMarked ? 'bg-orange-500 text-white' :
                           isAnswered ? 'bg-green-500 text-white' :
                           'bg-gray-200 text-gray-700'
                         }`}
