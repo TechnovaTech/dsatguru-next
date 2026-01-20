@@ -42,6 +42,75 @@ export default function TakeTestPage() {
   const [eliminationMode, setEliminationMode] = useState(false)
   const [showRWInstructions, setShowRWInstructions] = useState(false)
   const [showMathInstructions, setShowMathInstructions] = useState(false)
+  const [showCalculator, setShowCalculator] = useState(false)
+  const [calcPosition, setCalcPosition] = useState({ x: 50, y: 100 })
+  const [isDraggingCalc, setIsDraggingCalc] = useState(false)
+  const dragStartPos = useRef({ x: 0, y: 0 })
+  const calculatorRef = useRef(null)
+  const [desmosLoaded, setDesmosLoaded] = useState(false)
+  const [calculatorInstance, setCalculatorInstance] = useState(null)
+
+  // Load Desmos Script
+  useEffect(() => {
+    if (!document.getElementById('desmos-script')) {
+      const script = document.createElement('script')
+      script.id = 'desmos-script'
+      // Using public demo key from Desmos docs
+      script.src = 'https://www.desmos.com/api/v1.10/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6'
+      script.async = true
+      script.onload = () => setDesmosLoaded(true)
+      document.body.appendChild(script)
+    } else {
+      setDesmosLoaded(true)
+    }
+  }, [])
+
+  // Initialize Calculator
+  useEffect(() => {
+    if (desmosLoaded && showCalculator && calculatorRef.current && !calculatorInstance) {
+      // Ensure window.Desmos exists before using it
+      if (window.Desmos) {
+        const calculator = window.Desmos.GraphingCalculator(calculatorRef.current, {
+          keypad: true,
+          graphpaper: true,
+          expressions: true,
+          settingsMenu: true,
+          zoomButtons: true,
+          expressionsCollapsed: false,
+          lockViewport: false,
+          // Testing calculator specific settings to match standard test environment
+          distributions: false,
+          pointsOfInterest: true,
+          trace: true
+        })
+        setCalculatorInstance(calculator)
+      }
+    }
+    // Cleanup is handled manually or when component unmounts if we want to reset
+  }, [desmosLoaded, showCalculator, calculatorRef])
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isDraggingCalc) {
+        setCalcPosition({
+          x: e.clientX - dragStartPos.current.x,
+          y: e.clientY - dragStartPos.current.y
+        })
+      }
+    }
+    const handleMouseUp = () => {
+      setIsDraggingCalc(false)
+    }
+
+    if (isDraggingCalc) {
+      window.addEventListener('mousemove', handleMouseMove)
+      window.addEventListener('mouseup', handleMouseUp)
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDraggingCalc])
 
   useEffect(() => {
     fetchTestData()
@@ -750,6 +819,17 @@ export default function TakeTestPage() {
           {formatTime(timeRemaining)}
         </div>
         <div className="flex items-center gap-4">
+          {currentSection === 'math' && (
+            <button
+              onClick={() => setShowCalculator(!showCalculator)}
+              className={`p-2 hover:bg-gray-100 rounded transition-colors ${showCalculator ? 'text-blue-600 bg-blue-50' : 'text-gray-600'}`}
+              title="Calculator"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </button>
+          )}
           <button 
             onClick={() => setShowFlagModal(true)}
             className="text-gray-600 hover:text-gray-800 p-2"
@@ -1323,6 +1403,74 @@ export default function TakeTestPage() {
            </div>
          </div>
        )}
+      {/* Desmos Calculator */}
+      <div 
+        style={{ 
+          left: calcPosition.x, 
+          top: calcPosition.y,
+          position: 'fixed',
+          zIndex: 60,
+          display: showCalculator ? 'flex' : 'none'
+        }}
+        className="bg-white rounded-lg shadow-2xl border border-gray-700 w-[90vw] sm:w-[600px] h-[450px] flex-col overflow-hidden"
+      >
+        {/* Header (Draggable) */}
+        <div 
+          className="bg-[#1a1a1a] px-3 py-2 flex justify-between items-center cursor-move select-none flex-shrink-0"
+          onMouseDown={(e) => {
+            setIsDraggingCalc(true)
+            dragStartPos.current = {
+              x: e.clientX - calcPosition.x,
+              y: e.clientY - calcPosition.y
+            }
+          }}
+        >
+          {/* Title */}
+          <h3 className="font-bold text-white text-sm">
+            Calculator
+          </h3>
+
+          {/* Drag Handle (Dots) */}
+          <div className="flex-1 flex justify-center opacity-50 hover:opacity-100 transition-opacity">
+              <div className="grid grid-cols-3 gap-0.5">
+                <div className="w-1 h-1 bg-white rounded-full"></div>
+                <div className="w-1 h-1 bg-white rounded-full"></div>
+                <div className="w-1 h-1 bg-white rounded-full"></div>
+                <div className="w-1 h-1 bg-white rounded-full"></div>
+                <div className="w-1 h-1 bg-white rounded-full"></div>
+                <div className="w-1 h-1 bg-white rounded-full"></div>
+              </div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center gap-1">
+              {/* Maximize (Visual only for now) */}
+              <button className="text-gray-400 hover:text-white p-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+              </button>
+              {/* Close */}
+              <button 
+                onClick={() => setShowCalculator(false)}
+                className="text-gray-400 hover:text-white p-1"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+          </div>
+        </div>
+        
+        {/* API Content */}
+        <div className="flex-1 bg-white relative">
+            <div ref={calculatorRef} className="w-full h-full"></div>
+            {/* Overlay to prevent interaction while dragging */}
+            {isDraggingCalc && (
+              <div className="absolute inset-0 z-10 bg-transparent"></div>
+            )}
+        </div>
+      </div>
      </div>
     )
 }
