@@ -89,6 +89,11 @@ export default function TakeTestPage() {
     // Cleanup is handled manually or when component unmounts if we want to reset
   }, [desmosLoaded, showCalculator, calculatorRef])
 
+  const [showReference, setShowReference] = useState(false)
+  const [refPosition, setRefPosition] = useState({ x: 100, y: 100 })
+  const [isDraggingRef, setIsDraggingRef] = useState(false)
+  const dragStartRefPos = useRef({ x: 0, y: 0 })
+
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (isDraggingCalc) {
@@ -97,12 +102,19 @@ export default function TakeTestPage() {
           y: e.clientY - dragStartPos.current.y
         })
       }
+      if (isDraggingRef) {
+        setRefPosition({
+          x: e.clientX - dragStartRefPos.current.x,
+          y: e.clientY - dragStartRefPos.current.y
+        })
+      }
     }
     const handleMouseUp = () => {
       setIsDraggingCalc(false)
+      setIsDraggingRef(false)
     }
 
-    if (isDraggingCalc) {
+    if (isDraggingCalc || isDraggingRef) {
       window.addEventListener('mousemove', handleMouseMove)
       window.addEventListener('mouseup', handleMouseUp)
     }
@@ -110,7 +122,7 @@ export default function TakeTestPage() {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [isDraggingCalc])
+  }, [isDraggingCalc, isDraggingRef])
 
   useEffect(() => {
     fetchTestData()
@@ -820,15 +832,26 @@ export default function TakeTestPage() {
         </div>
         <div className="flex items-center gap-4">
           {currentSection === 'math' && (
-            <button
-              onClick={() => setShowCalculator(!showCalculator)}
-              className={`p-2 hover:bg-gray-100 rounded transition-colors ${showCalculator ? 'text-blue-600 bg-blue-50' : 'text-gray-600'}`}
-              title="Calculator"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-            </button>
+            <>
+              <button
+                onClick={() => setShowCalculator(!showCalculator)}
+                className={`p-2 hover:bg-gray-100 rounded transition-colors ${showCalculator ? 'text-blue-600 bg-blue-50' : 'text-gray-600'}`}
+                title="Calculator"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setShowReference(!showReference)}
+                className={`p-2 hover:bg-gray-100 rounded transition-colors ${showReference ? 'text-blue-600 bg-blue-50' : 'text-gray-600'}`}
+                title="Reference"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </button>
+            </>
           )}
           <button 
             onClick={() => setShowFlagModal(true)}
@@ -1335,30 +1358,30 @@ export default function TakeTestPage() {
 
       {/* RW Instructions Modal */}
        {showRWInstructions && (
-         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[100] p-4">
-           <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full overflow-hidden border-[3px] border-orange-400">
-             <div className="p-8 space-y-6">
-               <div className="space-y-4 text-gray-800 text-lg leading-relaxed">
-                 <p>
-                   The questions in this section address a number of important reading and writing skills. Each question includes one or more passages, which may include a table or graph. Read each passage and question carefully, and then choose the best answer to the question based on the passage(s).
-                 </p>
-                 <p>
-                   All questions in this section are multiple-choice with four answer choices. Each question has a single best answer.
-                 </p>
-               </div>
-               
-               <div className="flex justify-end pt-4">
-                 <button
-                   onClick={() => setShowRWInstructions(false)}
-                   className="bg-[#FFD700] hover:bg-[#FFC700] text-black font-bold py-2.5 px-10 rounded-full shadow-md transition-all border border-gray-300"
-                 >
-                   Close
-                 </button>
-               </div>
-             </div>
-           </div>
-         </div>
-       )}
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full overflow-hidden border-[3px] border-blue-600">
+            <div className="p-8 space-y-6">
+              <div className="space-y-4 text-gray-800 text-lg leading-relaxed">
+                <p>
+                  The questions in this section address a number of important reading and writing skills. Each question includes one or more passages, which may include a table or graph. Read each passage and question carefully, and then choose the best answer to the question based on the passage(s).
+                </p>
+                <p>
+                  All questions in this section are multiple-choice with four answer choices. Each question has a single best answer.
+                </p>
+              </div>
+              
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={() => setShowRWInstructions(false)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-10 rounded-full shadow-md transition-all border border-blue-700"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
        {/* Math Instructions Modal */}
        {showMathInstructions && (
@@ -1403,7 +1426,244 @@ export default function TakeTestPage() {
            </div>
          </div>
        )}
-      {/* Desmos Calculator */}
+      {/* Reference Sheet */}
+       <div 
+         style={{ 
+           left: refPosition.x, 
+           top: refPosition.y,
+           position: 'fixed',
+           zIndex: 60,
+           display: showReference ? 'flex' : 'none'
+         }}
+         className="bg-white rounded-lg shadow-2xl border border-gray-700 w-[90vw] sm:w-[600px] h-[500px] flex-col overflow-hidden"
+       >
+         {/* Header (Draggable) */}
+         <div 
+           className="bg-[#1a1a1a] px-3 py-2 flex justify-between items-center cursor-move select-none flex-shrink-0"
+           onMouseDown={(e) => {
+             setIsDraggingRef(true)
+             dragStartRefPos.current = {
+               x: e.clientX - refPosition.x,
+               y: e.clientY - refPosition.y
+             }
+           }}
+         >
+           {/* Title */}
+           <h3 className="font-bold text-white text-sm">
+             Reference Sheet
+           </h3>
+ 
+           {/* Drag Handle (Dots) */}
+           <div className="flex-1 flex justify-center opacity-50 hover:opacity-100 transition-opacity">
+               <div className="grid grid-cols-3 gap-0.5">
+                 <div className="w-1 h-1 bg-white rounded-full"></div>
+                 <div className="w-1 h-1 bg-white rounded-full"></div>
+                 <div className="w-1 h-1 bg-white rounded-full"></div>
+                 <div className="w-1 h-1 bg-white rounded-full"></div>
+                 <div className="w-1 h-1 bg-white rounded-full"></div>
+                 <div className="w-1 h-1 bg-white rounded-full"></div>
+               </div>
+           </div>
+ 
+           {/* Controls */}
+           <div className="flex items-center gap-1">
+               {/* Close */}
+               <button 
+                 onClick={() => setShowReference(false)}
+                 className="text-gray-400 hover:text-white p-1"
+               >
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                 </svg>
+               </button>
+           </div>
+         </div>
+         
+         {/* Reference Content */}
+         <div className="flex-1 bg-white relative overflow-y-auto p-4 text-sm">
+             {/* Overlay to prevent interaction while dragging */}
+             {isDraggingRef && (
+               <div className="absolute inset-0 z-10 bg-transparent"></div>
+             )}
+             
+             <div className="grid grid-cols-2 gap-x-8 gap-y-6 max-w-lg mx-auto">
+               {/* Row 1 */}
+               <div className="flex flex-col items-center">
+                 <svg width="80" height="80" viewBox="0 0 100 100">
+                   <circle cx="50" cy="50" r="40" fill="none" stroke="black" strokeWidth="1.5" />
+                   <line x1="50" y1="50" x2="90" y2="50" stroke="black" strokeWidth="1" />
+                   <text x="70" y="45" fontSize="12" fontFamily="serif">r</text>
+                 </svg>
+                 <div className="text-center font-serif mt-1">
+                   <div>A = πr²</div>
+                   <div>C = 2πr</div>
+                 </div>
+               </div>
+
+               <div className="flex flex-col items-center">
+                 <svg width="100" height="60" viewBox="0 0 120 80">
+                   <rect x="10" y="20" width="100" height="50" fill="none" stroke="black" strokeWidth="1.5" />
+                   <text x="60" y="15" fontSize="12" fontFamily="serif">ℓ</text>
+                   <text x="115" y="45" fontSize="12" fontFamily="serif">w</text>
+                 </svg>
+                 <div className="text-center font-serif mt-1">
+                   <div>A = ℓw</div>
+                 </div>
+               </div>
+
+               {/* Row 2 */}
+               <div className="flex flex-col items-center">
+                 <svg width="80" height="80" viewBox="0 0 100 100">
+                   <path d="M10 90 L90 90 L50 10 Z" fill="none" stroke="black" strokeWidth="1.5" />
+                   <line x1="50" y1="10" x2="50" y2="90" stroke="black" strokeWidth="1" strokeDasharray="4" />
+                   <rect x="50" y="80" width="10" height="10" fill="none" stroke="black" strokeWidth="1" />
+                   <text x="55" y="50" fontSize="12" fontFamily="serif">h</text>
+                   <text x="50" y="98" fontSize="12" fontFamily="serif">b</text>
+                 </svg>
+                 <div className="text-center font-serif mt-1">
+                   <div>A = ½bh</div>
+                 </div>
+               </div>
+
+               <div className="flex flex-col items-center">
+                 <svg width="80" height="80" viewBox="0 0 100 100">
+                   <path d="M10 10 L10 90 L90 90 Z" fill="none" stroke="black" strokeWidth="1.5" />
+                   <rect x="10" y="80" width="10" height="10" fill="none" stroke="black" strokeWidth="1" />
+                   <text x="5" y="50" fontSize="12" fontFamily="serif">a</text>
+                   <text x="50" y="98" fontSize="12" fontFamily="serif">b</text>
+                   <text x="60" y="40" fontSize="12" fontFamily="serif">c</text>
+                 </svg>
+                 <div className="text-center font-serif mt-1">
+                   <div>c² = a² + b²</div>
+                 </div>
+               </div>
+               
+               {/* Row 3 - Special Triangles */}
+               <div className="col-span-2 flex justify-center gap-12 py-2">
+                  <div className="flex flex-col items-center">
+                    <svg width="100" height="70" viewBox="0 0 140 80">
+                      <path d="M10 70 L130 70 L10 10 Z" fill="none" stroke="black" strokeWidth="1.5" />
+                      <text x="30" y="65" fontSize="10" fontFamily="serif">60°</text>
+                      <text x="15" y="25" fontSize="10" fontFamily="serif">30°</text>
+                      <rect x="10" y="60" width="10" height="10" fill="none" stroke="black" strokeWidth="1" />
+                      <text x="5" y="45" fontSize="12" fontFamily="serif">x</text>
+                      <text x="70" y="80" fontSize="12" fontFamily="serif">x√3</text>
+                      <text x="75" y="35" fontSize="12" fontFamily="serif">2x</text>
+                    </svg>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <svg width="80" height="80" viewBox="0 0 100 100">
+                      <path d="M10 90 L90 90 L10 10 Z" fill="none" stroke="black" strokeWidth="1.5" />
+                      <text x="65" y="85" fontSize="10" fontFamily="serif">45°</text>
+                      <text x="15" y="25" fontSize="10" fontFamily="serif">45°</text>
+                      <rect x="10" y="80" width="10" height="10" fill="none" stroke="black" strokeWidth="1" />
+                      <text x="5" y="50" fontSize="12" fontFamily="serif">s</text>
+                      <text x="50" y="98" fontSize="12" fontFamily="serif">s</text>
+                      <text x="60" y="40" fontSize="12" fontFamily="serif">s√2</text>
+                    </svg>
+                  </div>
+               </div>
+               <div className="col-span-2 text-center font-serif font-bold mb-4">
+                 Special Right Triangles
+               </div>
+
+               {/* Row 4 - Volumes */}
+               <div className="flex flex-col items-center">
+                 <svg width="90" height="70" viewBox="0 0 120 80">
+                   <rect x="10" y="30" width="80" height="40" fill="none" stroke="black" strokeWidth="1.5" />
+                   <polyline points="10,30 30,10 110,10 110,50 90,70" fill="none" stroke="black" strokeWidth="1.5" />
+                   <line x1="30" y1="10" x2="30" y2="50" stroke="black" strokeWidth="1" strokeDasharray="3" />
+                   <line x1="30" y1="50" x2="110" y2="50" stroke="black" strokeWidth="1" strokeDasharray="3" />
+                   <line x1="30" y1="50" x2="10" y2="70" stroke="black" strokeWidth="1" strokeDasharray="3" /> {/* Adjusted hidden line */}
+                   <text x="50" y="80" fontSize="12" fontFamily="serif">ℓ</text>
+                   <text x="100" y="80" fontSize="12" fontFamily="serif">w</text>
+                   <text x="115" y="30" fontSize="12" fontFamily="serif">h</text>
+                 </svg>
+                 <div className="text-center font-serif mt-1">
+                   <div>V = ℓwh</div>
+                 </div>
+               </div>
+
+               <div className="flex flex-col items-center">
+                 <svg width="70" height="80" viewBox="0 0 100 100">
+                   <ellipse cx="50" cy="20" rx="40" ry="10" fill="none" stroke="black" strokeWidth="1.5" />
+                   <line x1="10" y1="20" x2="10" y2="80" stroke="black" strokeWidth="1.5" />
+                   <line x1="90" y1="20" x2="90" y2="80" stroke="black" strokeWidth="1.5" />
+                   <path d="M10 80 A40 10 0 0 0 90 80" fill="none" stroke="black" strokeWidth="1.5" />
+                   <path d="M10 80 A40 10 0 0 1 90 80" fill="none" stroke="black" strokeWidth="1.5" strokeDasharray="4" />
+                   <line x1="50" y1="20" x2="90" y2="20" stroke="black" strokeWidth="1" />
+                   <text x="70" y="15" fontSize="12" fontFamily="serif">r</text>
+                   <text x="95" y="50" fontSize="12" fontFamily="serif">h</text>
+                 </svg>
+                 <div className="text-center font-serif mt-1">
+                   <div>V = πr²h</div>
+                 </div>
+               </div>
+
+               {/* Row 5 */}
+               <div className="flex flex-col items-center">
+                 <svg width="80" height="80" viewBox="0 0 100 100">
+                   <circle cx="50" cy="50" r="40" fill="none" stroke="black" strokeWidth="1.5" />
+                   <ellipse cx="50" cy="50" rx="40" ry="10" fill="none" stroke="black" strokeWidth="1" strokeDasharray="4" />
+                   <line x1="50" y1="50" x2="90" y2="50" stroke="black" strokeWidth="1" />
+                   <text x="70" y="45" fontSize="12" fontFamily="serif">r</text>
+                 </svg>
+                 <div className="text-center font-serif mt-1">
+                   <div>V = 4/3πr³</div>
+                 </div>
+               </div>
+
+               <div className="flex flex-col items-center">
+                 <svg width="70" height="80" viewBox="0 0 100 100">
+                   <ellipse cx="50" cy="80" rx="40" ry="10" fill="none" stroke="black" strokeWidth="1.5" strokeDasharray="4,0" />
+                   {/* Make bottom ellipse look correct: front arc solid, back dashed */}
+                   <path d="M10 80 A40 10 0 0 0 90 80" fill="none" stroke="black" strokeWidth="1.5" />
+                   <path d="M10 80 A40 10 0 0 1 90 80" fill="none" stroke="black" strokeWidth="1.5" strokeDasharray="4" />
+                   
+                   <line x1="50" y1="10" x2="10" y2="80" stroke="black" strokeWidth="1.5" />
+                   <line x1="50" y1="10" x2="90" y2="80" stroke="black" strokeWidth="1.5" />
+                   <line x1="50" y1="10" x2="50" y2="80" stroke="black" strokeWidth="1" strokeDasharray="4" />
+                   <line x1="50" y1="80" x2="90" y2="80" stroke="black" strokeWidth="1" />
+                   <text x="70" y="75" fontSize="12" fontFamily="serif">r</text>
+                   <text x="52" y="50" fontSize="12" fontFamily="serif">h</text>
+                 </svg>
+                 <div className="text-center font-serif mt-1">
+                   <div>V = 1/3πr²h</div>
+                 </div>
+               </div>
+               
+               {/* Row 6 - Pyramid */}
+               <div className="col-span-2 flex flex-col items-center">
+                 <svg width="100" height="80" viewBox="0 0 120 100">
+                   {/* Base */}
+                   <path d="M20 70 L50 90 L100 90 L70 70 Z" fill="none" stroke="black" strokeWidth="1.5" strokeDasharray="4" />
+                   <path d="M20 70 L50 90 L100 90" fill="none" stroke="black" strokeWidth="1.5" />
+                   {/* Apex to base corners */}
+                   <line x1="60" y1="10" x2="20" y2="70" stroke="black" strokeWidth="1.5" />
+                   <line x1="60" y1="10" x2="50" y2="90" stroke="black" strokeWidth="1.5" />
+                   <line x1="60" y1="10" x2="100" y2="90" stroke="black" strokeWidth="1.5" />
+                   <line x1="60" y1="10" x2="70" y2="70" stroke="black" strokeWidth="1.5" strokeDasharray="4" />
+                   {/* Height */}
+                   <line x1="60" y1="10" x2="60" y2="80" stroke="black" strokeWidth="1" strokeDasharray="4" />
+                   <text x="65" y="50" fontSize="12" fontFamily="serif">h</text>
+                   <text x="80" y="95" fontSize="12" fontFamily="serif">w</text>
+                   <text x="30" y="90" fontSize="12" fontFamily="serif">ℓ</text>
+                 </svg>
+                 <div className="text-center font-serif mt-1">
+                   <div>V = 1/3ℓwh</div>
+                 </div>
+               </div>
+             </div>
+
+             <div className="mt-8 space-y-2 font-serif text-sm">
+               <p>The number of degrees of arc in a circle is 360.</p>
+               <p>The number of radians of arc in a circle is 2π.</p>
+               <p>The sum of the measures in degrees of the angles of a triangle is 180.</p>
+             </div>
+         </div>
+       </div>
+       
+       {/* Desmos Calculator */}
       <div 
         style={{ 
           left: calcPosition.x, 
