@@ -40,6 +40,8 @@ export default function TakeTestPage() {
   const [assistiveTechMode, setAssistiveTechMode] = useState(false)
   const [eliminatedAnswers, setEliminatedAnswers] = useState({}) // { questionId: ['A', 'C'] }
   const [eliminationMode, setEliminationMode] = useState(false)
+  const [showRWInstructions, setShowRWInstructions] = useState(false)
+  const [showMathInstructions, setShowMathInstructions] = useState(false)
 
   useEffect(() => {
     fetchTestData()
@@ -182,7 +184,7 @@ export default function TakeTestPage() {
   }
 
   useEffect(() => {
-    if (timeRemaining > 0 && !showModuleSummary && !testCompleted) {
+    if (timeRemaining > 0 && !showModuleSummary && !testCompleted && !showRWInstructions && !showMathInstructions) {
       const timer = setInterval(() => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
@@ -194,7 +196,7 @@ export default function TakeTestPage() {
       }, 1000)
       return () => clearInterval(timer)
     }
-  }, [timeRemaining, showModuleSummary, testCompleted])
+  }, [timeRemaining, showModuleSummary, testCompleted, showRWInstructions, showMathInstructions])
 
   const fetchTestData = async () => {
     try {
@@ -278,6 +280,11 @@ export default function TakeTestPage() {
     
     if (moduleNum === 1) {
       // Module 1 (Baseline) - Balanced distribution
+      if (section === 'rw') {
+        setShowRWInstructions(true)
+      } else if (section === 'math') {
+        setShowMathInstructions(true)
+      }
       const distribution = section === 'rw' 
         ? { easy: 7, medium: 12, hard: 8 }  // R&W Module 1
         : { easy: 6, medium: 11, hard: 5 }  // Math Module 1
@@ -1020,7 +1027,7 @@ export default function TakeTestPage() {
             </button>
             
             {showQuestionNav && (
-              <div className="absolute bottom-full mb-3 right-0 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 w-max max-w-[92vw] sm:max-w-lg md:max-w-3xl max-h-[80vh] overflow-y-auto z-50">
+              <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-0 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 w-[calc(100vw-2rem)] sm:w-max max-w-[95vw] sm:max-w-lg md:max-w-3xl max-h-[80vh] overflow-y-auto z-50">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-gray-900 text-lg">Question Navigator</h3>
                   <button onClick={() => setShowQuestionNav(false)} className="p-1 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
@@ -1051,7 +1058,7 @@ export default function TakeTestPage() {
                   </div>
                 </div>
 
-                <div className={`grid gap-3 ${currentSection === 'rw' ? 'grid-cols-5 sm:grid-cols-9' : 'grid-cols-5 sm:grid-cols-11'}`}>
+                <div className={`grid gap-3 justify-items-center ${currentSection === 'rw' ? 'grid-cols-5 sm:grid-cols-7 md:grid-cols-9' : 'grid-cols-5 sm:grid-cols-8 md:grid-cols-11'}`}>
                   {moduleQuestions.map((q, idx) => {
                     const qId = String(q._id || q.id)
                     const isAnswered = !!answers[qId]
@@ -1245,6 +1252,77 @@ export default function TakeTestPage() {
           </div>
         </div>
       )}
-    </div>
-  )
+
+      {/* RW Instructions Modal */}
+       {showRWInstructions && (
+         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[100] p-4">
+           <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full overflow-hidden border-[3px] border-orange-400">
+             <div className="p-8 space-y-6">
+               <div className="space-y-4 text-gray-800 text-lg leading-relaxed">
+                 <p>
+                   The questions in this section address a number of important reading and writing skills. Each question includes one or more passages, which may include a table or graph. Read each passage and question carefully, and then choose the best answer to the question based on the passage(s).
+                 </p>
+                 <p>
+                   All questions in this section are multiple-choice with four answer choices. Each question has a single best answer.
+                 </p>
+               </div>
+               
+               <div className="flex justify-end pt-4">
+                 <button
+                   onClick={() => setShowRWInstructions(false)}
+                   className="bg-[#FFD700] hover:bg-[#FFC700] text-black font-bold py-2.5 px-10 rounded-full shadow-md transition-all border border-gray-300"
+                 >
+                   Close
+                 </button>
+               </div>
+             </div>
+           </div>
+         </div>
+       )}
+
+       {/* Math Instructions Modal */}
+       {showMathInstructions && (
+         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[100] p-4">
+           <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full overflow-hidden border-[3px] border-blue-600 flex flex-col max-h-[90vh]">
+             <div className="p-8 space-y-6 overflow-y-auto flex-1 text-gray-800 text-base leading-relaxed">
+               <p className="font-semibold text-lg">The questions in this section address a number of important math skills.</p>
+               <p>Use of a calculator is permitted for all questions. A reference sheet, calculator, and these directions can be accessed throughout the test.</p>
+               
+               <div className="space-y-2">
+                 <p className="font-semibold">Unless otherwise indicated:</p>
+                 <ul className="list-disc pl-6 space-y-1">
+                   <li>All variables and expressions represent real numbers.</li>
+                   <li>Figures provided are drawn to scale.</li>
+                   <li>All figures lie in a plane.</li>
+                   <li>The domain of a given function f is the set of all real numbers x for which f(x) is a real number.</li>
+                 </ul>
+               </div>
+
+               <p>For <span className="font-bold">multiple-choice questions</span>, solve each problem and choose the correct answer from the choices provided. Each multiple-choice question has a single correct answer.</p>
+               
+               <div className="space-y-2">
+                 <p>For <span className="font-bold">student-produced response questions</span>, solve each problem and enter your answer as described below.</p>
+                 <ul className="list-disc pl-6 space-y-2">
+                   <li>If you find <span className="font-bold">more than one correct answer</span>, enter only one answer.</li>
+                   <li>You can enter up to 5 characters for a <span className="font-bold">positive answer</span> and up to 6 characters (including the negative sign) for a <span className="font-bold">negative answer</span>.</li>
+                   <li>If your answer is a <span className="font-bold">fraction</span> that doesn't fit in the provided space, enter the decimal equivalent.</li>
+                   <li>If your answer is a <span className="font-bold">decimal</span> that doesn't fit in the provided space, enter it by truncating or rounding at the fourth digit.</li>
+                   <li>If your answer is a <span className="font-bold">mixed number</span> (such as 3 1/2), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li>
+                 </ul>
+               </div>
+             </div>
+             
+             <div className="p-6 bg-gray-50 border-t flex justify-end">
+               <button
+                 onClick={() => setShowMathInstructions(false)}
+                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-10 rounded-full shadow-md transition-all border border-blue-700"
+               >
+                 Close
+               </button>
+             </div>
+           </div>
+         </div>
+       )}
+     </div>
+    )
 }
