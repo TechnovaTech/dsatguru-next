@@ -70,12 +70,6 @@ export default function TestsPage() {
         </div>
         <div className="flex gap-3">
           <button
-            onClick={() => router.push('/dashboard/tests/marked')}
-            className="bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700 flex items-center gap-2"
-          >
-            🔖 Marked Questions
-          </button>
-          <button
             onClick={() => router.push('/dashboard/tests/retest')}
             className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 flex items-center gap-2"
           >

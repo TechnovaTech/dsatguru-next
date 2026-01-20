@@ -27,7 +27,6 @@ export default function TakeTestPage() {
   const [alreadyTaken, setAlreadyTaken] = useState(false)
   const [checkingHistory, setCheckingHistory] = useState(true)
   const [showQuestionNav, setShowQuestionNav] = useState(false)
-  const [markedQuestions, setMarkedQuestions] = useState(new Set())
   const [showFlagModal, setShowFlagModal] = useState(false)
   const [flagNote, setFlagNote] = useState('')
   const testContainerRef = useRef(null)
@@ -648,47 +647,13 @@ export default function TakeTestPage() {
                 {currentQuestion + 1}
               </div>
               <button 
-                onClick={async () => {
-                  const qId = currentQ._id
-                  const isMarked = markedQuestions.has(qId)
-                  
-                  try {
-                    const token = localStorage.getItem('token')
-                    if (isMarked) {
-                      await fetch(`/api/marked-questions?questionId=${qId}`, {
-                        method: 'DELETE',
-                        headers: { Authorization: `Bearer ${token}` }
-                      })
-                      setMarkedQuestions(prev => {
-                        const newSet = new Set(prev)
-                        newSet.delete(qId)
-                        return newSet
-                      })
-                    } else {
-                      await fetch('/api/marked-questions', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `Bearer ${token}`
-                        },
-                        body: JSON.stringify({
-                          questionId: qId,
-                          testId,
-                          testDate: new Date(),
-                          subject: currentQ.subject,
-                          difficulty: currentQ.difficulty,
-                          section: currentSection
-                        })
-                      })
-                      setMarkedQuestions(prev => new Set([...prev, qId]))
-                    }
-                  } catch (error) {
-                    console.error('Error marking question:', error)
-                  }
+                onClick={() => {
+                  // Intentionally no-op: "Mark for Review" behavior has been removed.
+                  // We'll repurpose this button for a new action later.
                 }}
-                className={markedQuestions.has(currentQ._id) ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-gray-600'}
+                className="text-gray-400 hover:text-gray-600"
               >
-                <svg className="w-6 h-6" fill={markedQuestions.has(currentQ._id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
               </button>
