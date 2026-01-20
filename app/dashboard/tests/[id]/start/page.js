@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { FiClock, FiCheckCircle, FiArrowRight, FiAlertTriangle } from 'react-icons/fi'
+import { FiClock, FiCheckCircle, FiArrowRight, FiAlertTriangle, FiMoreVertical, FiHelpCircle, FiBookOpen, FiSlash, FiGrid, FiLayers } from 'react-icons/fi'
 
 export default function TakeTestPage() {
   const router = useRouter()
@@ -32,9 +32,104 @@ export default function TakeTestPage() {
   const [flagNote, setFlagNote] = useState('')
   const testContainerRef = useRef(null)
 
+  // New Features State
+  const [showMoreMenu, setShowMoreMenu] = useState(false)
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false)
+  const [lineReaderActive, setLineReaderActive] = useState(false)
+  const [lineReaderPos, setLineReaderPos] = useState(50) // Percentage from top
+  const [assistiveTechMode, setAssistiveTechMode] = useState(false)
+  const [eliminatedAnswers, setEliminatedAnswers] = useState({}) // { questionId: ['A', 'C'] }
+  const [eliminationMode, setEliminationMode] = useState(false)
+
   useEffect(() => {
     fetchTestData()
   }, [testId])
+
+  // Keyboard Shortcuts Handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (loading || testCompleted || showModuleSummary) return
+      
+      const key = e.key.toUpperCase()
+      const question = moduleQuestions[currentQuestion]
+      
+      // Toggle Shortcuts Modal
+      if (e.ctrlKey && e.key === '/') {
+        e.preventDefault()
+        setShowShortcutsModal(prev => !prev)
+        return
+      }
+
+      // If modal is open, don't process other shortcuts
+      if (showShortcutsModal || showFlagModal) return
+
+      // Navigation
+      if ((e.altKey && e.key === 'ArrowRight') || key === 'N') {
+        e.preventDefault()
+        if (currentQuestion < moduleQuestions.length - 1) {
+          setCurrentQuestion(prev => prev + 1)
+        }
+      }
+      
+      if ((e.altKey && e.key === 'ArrowLeft') || key === 'P') {
+        e.preventDefault()
+        if (currentQuestion > 0) {
+          setCurrentQuestion(prev => prev - 1)
+        }
+      }
+
+      // Answer Selection
+      if (['A', 'B', 'C', 'D'].includes(key) && question) {
+        // Check if we are typing in an input (like flag note)
+        if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return
+
+        e.preventDefault()
+        if (eliminationMode) {
+          toggleEliminateAnswer(question._id, key)
+        } else {
+          // Don't select if eliminated
+          if (!isEliminated(question._id, key)) {
+            handleAnswer(question._id, key)
+          }
+        }
+      }
+
+      // Actions
+      if (key === 'M') {
+        // Mark for review logic
+        e.preventDefault()
+        handleMarkForReview(question._id)
+      }
+      
+      if (key === 'E') {
+        e.preventDefault()
+        setEliminationMode(prev => !prev)
+      }
+      
+      if (key === 'H') {
+        // Toggle Line Reader
+        e.preventDefault()
+        setLineReaderActive(prev => !prev)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [currentQuestion, moduleQuestions, eliminationMode, showShortcutsModal, showFlagModal, loading, testCompleted, showModuleSummary])
+
+  // Line Reader Mouse Handler
+  useEffect(() => {
+    if (!lineReaderActive) return
+
+    const handleMouseMove = (e) => {
+      // Calculate percentage from top of the screen
+      const percentage = (e.clientY / window.innerHeight) * 100
+      setLineReaderPos(Math.min(Math.max(percentage, 5), 95))
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [lineReaderActive])
 
   // Fullscreen and tab change detection
   useEffect(() => {
@@ -254,6 +349,62 @@ export default function TakeTestPage() {
     }
   }
 
+  // Helper Functions for New Features
+  const toggleEliminateAnswer = (questionId, option) => {
+    setEliminatedAnswers(prev => {
+      const currentEliminations = prev[questionId] || []
+      if (currentEliminations.includes(option)) {
+        return { ...prev, [questionId]: currentEliminations.filter(o => o !== option) }
+      } else {
+        return { ...prev, [questionId]: [...currentEliminations, option] }
+      }
+    })
+  }
+
+  const isEliminated = (questionId, option) => {
+    return eliminatedAnswers[questionId]?.includes(option)
+  }
+
+  const handleMarkForReview = async (questionId) => {
+    const isMarked = markedQuestions.has(questionId)
+    const question = moduleQuestions.find(q => q._id === questionId)
+    if (!question) return
+
+    try {
+      const token = localStorage.getItem('token')
+      if (isMarked) {
+        await fetch(`/api/marked-questions?questionId=${questionId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        setMarkedQuestions(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(questionId)
+          return newSet
+        })
+      } else {
+        await fetch('/api/marked-questions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            questionId: questionId,
+            testId,
+            testDate: new Date(),
+            subject: question.subject,
+            difficulty: question.difficulty,
+            section: currentSection
+          })
+        })
+        setMarkedQuestions(prev => new Set([...prev, questionId]))
+      }
+    } catch (error) {
+      console.error('Error marking question:', error)
+    }
+  }
+
   const handleAnswer = (questionId, answer) => {
     setAnswers(prev => ({ ...prev, [questionId]: answer }))
   }
@@ -279,6 +430,8 @@ export default function TakeTestPage() {
 
   const handleNextModule = () => {
     setShowModuleSummary(false)
+    setEliminatedAnswers({}) // Clear eliminations for new module
+    setMarkedQuestions(new Set()) // Clear marks for new module
     
     if (currentModule === 1) {
       // Move to Module 2 of same section
@@ -582,26 +735,108 @@ export default function TakeTestPage() {
   return (
     <div ref={testContainerRef} className="h-screen flex flex-col bg-white">
       {/* Top Header */}
-      <div className="bg-white border-b px-6 py-3 flex items-center justify-between">
+      <div className="bg-white border-b px-6 py-3 flex items-center justify-between z-50 relative">
         <div className="text-base font-bold text-gray-900">
           Section 1, Module {currentModule}: {currentSection === 'rw' ? 'Reading and Writing' : 'Math'}
         </div>
         <div className="text-lg font-bold text-gray-900">
           {formatTime(timeRemaining)}
         </div>
-        <button 
-          onClick={() => setShowFlagModal(true)}
-          className="text-gray-600 hover:text-gray-800 p-2"
-          title="Flag Question"
-        >
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setShowFlagModal(true)}
+            className="text-gray-600 hover:text-gray-800 p-2"
+            title="Flag Question"
+          >
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" />
+            </svg>
+          </button>
+          
+          {/* More Menu */}
+          <div className="relative">
+            <button 
+              onClick={() => setShowMoreMenu(!showMoreMenu)}
+              className="flex flex-col items-center cursor-pointer hover:bg-gray-100 p-2 rounded"
+            >
+              <FiMoreVertical className="text-gray-600 mb-1" />
+              <span className="text-[10px] font-medium text-gray-600">More</span>
+            </button>
+            
+            {showMoreMenu && (
+              <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                <button 
+                  onClick={() => { setShowMoreMenu(false); /* Implement help */ }}
+                  className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50"
+                >
+                  <FiHelpCircle className="text-gray-500" />
+                  <span className="text-sm font-medium">Help</span>
+                </button>
+                <button 
+                  onClick={() => { setShowMoreMenu(false); setShowShortcutsModal(true) }}
+                  className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50"
+                >
+                  <FiGrid className="text-gray-500" />
+                  <span className="text-sm font-medium">Shortcuts</span>
+                </button>
+                <button 
+                  onClick={() => { 
+                    setShowMoreMenu(false); 
+                    setAssistiveTechMode(!assistiveTechMode);
+                  }}
+                  className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50"
+                >
+                  <FiLayers className="text-gray-500" />
+                  <span className="text-sm font-medium">Assistive Technology {assistiveTechMode ? '(On)' : '(Off)'}</span>
+                </button>
+                <button 
+                  onClick={() => { 
+                    setShowMoreMenu(false); 
+                    setLineReaderActive(!lineReaderActive);
+                  }}
+                  className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50"
+                >
+                  <FiBookOpen className="text-gray-500" />
+                  <span className="text-sm font-medium">Line Reader {lineReaderActive ? '(On)' : '(Off)'}</span>
+                </button>
+                <div className="border-t my-2"></div>
+                <button 
+                  onClick={() => { setShowMoreMenu(false); /* Implement Unscheduled Break */ }}
+                  className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50"
+                >
+                  <FiClock className="text-gray-500" />
+                  <span className="text-sm font-medium">Unscheduled Break</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Main Split Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className={`flex-1 flex overflow-hidden ${assistiveTechMode ? 'assistive-mode' : ''}`}>
+        
+        {/* Line Reader Overlay */}
+        {lineReaderActive && (
+          <div className="absolute inset-0 z-40 pointer-events-none">
+            {/* Top Mask */}
+            <div 
+              className="w-full bg-black bg-opacity-50 transition-none absolute top-0"
+              style={{ height: `${lineReaderPos - 5}%` }}
+            />
+            {/* Clear Window */}
+            <div 
+              className="w-full h-[10%] absolute bg-transparent border-y-2 border-yellow-400 shadow-lg" 
+              style={{ top: `${lineReaderPos - 5}%` }}
+            />
+            {/* Bottom Mask */}
+            <div 
+              className="w-full bg-black bg-opacity-50 transition-none absolute bottom-0"
+              style={{ height: `${100 - (lineReaderPos + 5)}%` }}
+            />
+          </div>
+        )}
+
         {/* Left Side - Passage + Question */}
         <div className="w-1/2 overflow-y-auto p-8 bg-gray-50 relative border-r border-gray-300">
           {/* Watermark */}
@@ -648,23 +883,47 @@ export default function TakeTestPage() {
                 {currentQuestion + 1}
               </div>
               <button 
-                onClick={() => {
-                  const qId = String(currentQ._id || currentQ.id)
-                  setMarkedQuestions(prev => {
-                    const next = new Set(prev)
-                    if (next.has(qId)) {
-                      next.delete(qId)
+                onClick={async () => {
+                  const qId = currentQ._id
+                  const isMarked = markedQuestions.has(qId)
+                  
+                  try {
+                    const token = localStorage.getItem('token')
+                    if (isMarked) {
+                      await fetch(`/api/marked-questions?questionId=${qId}`, {
+                        method: 'DELETE',
+                        headers: { Authorization: `Bearer ${token}` }
+                      })
+                      setMarkedQuestions(prev => {
+                        const newSet = new Set(prev)
+                        newSet.delete(qId)
+                        return newSet
+                      })
                     } else {
-                      next.add(qId)
+                      await fetch('/api/marked-questions', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          Authorization: `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                          questionId: qId,
+                          testId,
+                          testDate: new Date(),
+                          subject: currentQ.subject,
+                          difficulty: currentQ.difficulty,
+                          section: currentSection
+                        })
+                      })
+                      setMarkedQuestions(prev => new Set([...prev, qId]))
                     }
-                    return next
-                  })
+                  } catch (error) {
+                    console.error('Error marking question:', error)
+                  }
                 }}
-                className={markedQuestions.has(String(currentQ._id || currentQ.id))
-                  ? 'text-orange-500 hover:text-orange-600'
-                  : 'text-gray-400 hover:text-gray-600'}
+                className={markedQuestions.has(currentQ._id) ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-gray-600'}
               >
-                <svg className="w-6 h-6" fill={markedQuestions.has(String(currentQ._id || currentQ.id)) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6" fill={markedQuestions.has(currentQ._id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
               </button>
@@ -678,28 +937,58 @@ export default function TakeTestPage() {
 
             {/* Answer Options */}
             <div className="space-y-3">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  {eliminationMode ? 'ELIMINATION MODE ON' : 'Choose an Answer'}
+                </span>
+                {eliminationMode && (
+                  <span className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
+                    Click options to strike through
+                  </span>
+                )}
+              </div>
+              
               {['A', 'B', 'C', 'D'].map((option) => {
                 const isSelected = answers[currentQ._id] === option
+                const isElim = isEliminated(currentQ._id, option)
+                
                 return (
                   <button
                     key={option}
-                    onClick={() => handleAnswer(currentQ._id, option)}
-                    className={`w-full text-left border-2 rounded-lg p-4 transition-all ${
+                    onClick={() => {
+                      if (eliminationMode) {
+                        toggleEliminateAnswer(currentQ._id, option)
+                      } else {
+                        if (!isElim) handleAnswer(currentQ._id, option)
+                      }
+                    }}
+                    disabled={!eliminationMode && isElim}
+                    className={`w-full text-left border-2 rounded-lg p-4 transition-all relative ${
                       isSelected
-                        ? 'border-gray-400 bg-gray-50'
+                        ? 'border-gray-800 bg-gray-50'
+                        : isElim
+                        ? 'border-gray-200 bg-gray-100 opacity-60'
                         : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                    }`}
+                    } ${eliminationMode ? 'cursor-crosshair' : ''}`}
                   >
+                    {isElim && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="w-full h-0.5 bg-red-500 transform -rotate-1"></div>
+                      </div>
+                    )}
+                    
                     <div className="flex items-start gap-3">
                       <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold ${
                         isSelected
-                          ? 'border-gray-600 bg-gray-600 text-white'
+                          ? 'border-gray-800 bg-gray-800 text-white'
+                          : isElim
+                          ? 'border-gray-300 text-gray-300'
                           : 'border-gray-400 text-gray-700'
                       }`}>
                         {option}
                       </div>
-                      <div className="flex-1 pt-1">
-                        <span className="text-gray-900">{currentQ?.[`option${option}`]}</span>
+                      <div className={`flex-1 pt-1 ${isElim ? 'text-gray-400 line-through decoration-red-500' : 'text-gray-900'}`}>
+                        {currentQ?.[`option${option}`]}
                       </div>
                     </div>
                   </button>
@@ -731,49 +1020,55 @@ export default function TakeTestPage() {
             </button>
             
             {showQuestionNav && (
-              <div className={`absolute bottom-full mb-2 right-0 bg-white border-2 border-gray-300 rounded-lg shadow-xl p-4 max-h-96 overflow-y-auto z-50 ${
-                currentSection === 'rw' ? 'w-[28rem]' : 'w-[34rem]'
-              }`}>
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-gray-900">Questions</h3>
-                  <button onClick={() => setShowQuestionNav(false)} className="text-gray-500 hover:text-gray-700">✕</button>
+              <div className="absolute bottom-full mb-3 right-0 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 w-max max-w-[92vw] sm:max-w-lg md:max-w-3xl max-h-[80vh] overflow-y-auto z-50">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-gray-900 text-lg">Question Navigator</h3>
+                  <button onClick={() => setShowQuestionNav(false)} className="p-1 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
                 </div>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600 mb-3">
-                  <div className="flex items-center gap-1">
-                    <span className="w-3 h-3 rounded-full bg-blue-600" />
-                    <span>Current</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="w-3 h-3 rounded-full bg-green-500" />
-                    <span>Answered</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="w-3 h-3 rounded-full bg-orange-500" />
-                    <span>Marked</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="w-3 h-3 rounded-full bg-gray-300" />
-                    <span>Not answered</span>
+
+                {/* Color Legend */}
+                <div className="mb-5 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <div className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Status Guide</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-blue-600 ring-2 ring-blue-200"></div>
+                      <span className="font-medium text-gray-700">Current</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                      <span className="font-medium text-gray-700">Marked</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span className="font-medium text-gray-700">Answered</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-gray-200 border border-gray-300"></div>
+                      <span className="font-medium text-gray-700">Unanswered</span>
+                    </div>
                   </div>
                 </div>
-                <div className={`grid gap-2 ${currentSection === 'rw' ? 'grid-cols-9' : 'grid-cols-11'}`}>
+
+                <div className={`grid gap-3 ${currentSection === 'rw' ? 'grid-cols-5 sm:grid-cols-9' : 'grid-cols-5 sm:grid-cols-11'}`}>
                   {moduleQuestions.map((q, idx) => {
                     const qId = String(q._id || q.id)
                     const isAnswered = !!answers[qId]
                     const isCurrent = idx === currentQuestion
                     const isMarked = markedQuestions.has(qId)
+
                     return (
                       <button
                         key={idx}
                         onClick={() => { setCurrentQuestion(idx); setShowQuestionNav(false) }}
-                        className={`rounded-full font-semibold ${
-                          currentSection === 'rw' ? 'w-9 h-9 text-xs' : 'w-9 h-9 text-xs'
-                        } ${
-                          isCurrent ? 'bg-blue-600 text-white' :
+                        className={`w-10 h-10 rounded-full font-semibold text-sm transition-all ${
+                          isCurrent ? 'bg-blue-600 text-white ring-2 ring-blue-300 ring-offset-1' :
                           isMarked ? 'bg-orange-500 text-white' :
                           isAnswered ? 'bg-green-500 text-white' :
-                          'bg-gray-200 text-gray-700'
+                          'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
+                        title={`Question ${idx + 1}${isMarked ? ' (Marked)' : ''}${isAnswered ? ' (Answered)' : ''}`}
                       >
                         {idx + 1}
                       </button>
@@ -798,6 +1093,95 @@ export default function TakeTestPage() {
           </button>
         </div>
       </div>
+
+      {/* Shortcuts Modal */}
+      {showShortcutsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-0 max-w-2xl w-full mx-4 overflow-hidden">
+            <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900">Keyboard Shortcuts</h3>
+              <button onClick={() => setShowShortcutsModal(false)} className="text-gray-500 hover:text-gray-700">
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-6 grid grid-cols-2 gap-8">
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <FiArrowRight className="text-blue-600" /> Navigation
+                </h4>
+                <ul className="space-y-3 text-sm text-gray-600">
+                  <li className="flex justify-between">
+                    <span>Next Question</span>
+                    <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border">Alt + N</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>Previous Question</span>
+                    <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border">Alt + P</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>Jump to Question</span>
+                    <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border">Ctrl + G</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <FiCheckCircle className="text-green-600" /> Selection
+                </h4>
+                <ul className="space-y-3 text-sm text-gray-600">
+                  <li className="flex justify-between">
+                    <span>Select A, B, C, D</span>
+                    <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border">A, B, C, D</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>Mark for Review</span>
+                    <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border">M</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>Eliminate Answer</span>
+                    <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border">E</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="col-span-2 border-t pt-4">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <FiLayers className="text-purple-600" /> Tools
+                </h4>
+                <div className="grid grid-cols-2 gap-8">
+                  <ul className="space-y-3 text-sm text-gray-600">
+                    <li className="flex justify-between">
+                      <span>Toggle Line Reader</span>
+                      <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border">H</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Show/Hide Timer</span>
+                      <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border">T</span>
+                    </li>
+                  </ul>
+                  <ul className="space-y-3 text-sm text-gray-600">
+                    <li className="flex justify-between">
+                      <span>Show Shortcuts</span>
+                      <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border">Ctrl + /</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gray-50 px-6 py-4 border-t text-center">
+              <button
+                onClick={() => setShowShortcutsModal(false)}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Flag Question Modal */}
       {showFlagModal && (

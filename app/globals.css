@@ -18,3 +18,33 @@
 .font-\[Poppins\] {
   font-family: 'Poppins', sans-serif;
 }
+
+/* Assistive Technology Mode - High Contrast & Readability */
+.assistive-mode {
+  --tw-bg-opacity: 1 !important;
+}
+
+.assistive-mode .text-gray-500,
+.assistive-mode .text-gray-600,
+.assistive-mode .text-gray-700,
+.assistive-mode .text-gray-800,
+.assistive-mode .text-gray-900 {
+  color: #000000 !important;
+}
+
+.assistive-mode .bg-gray-50,
+.assistive-mode .bg-gray-100,
+.assistive-mode .bg-gray-200 {
+  background-color: #ffffff !important;
+  border: 1px solid #000000 !important;
+}
+
+.assistive-mode button {
+  border-width: 2px !important;
+  border-color: #000000 !important;
+}
+
+.assistive-mode .prose p {
+  line-height: 2 !important; /* Better line spacing */
+  font-size: 1.1em !important; /* Slightly larger text */
+}
