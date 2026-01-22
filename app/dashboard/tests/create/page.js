@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FiInfo, FiCheckSquare, FiSquare, FiChevronDown, FiChevronUp } from 'react-icons/fi'
 
 export default function CreatePracticePage() {
@@ -11,6 +11,32 @@ export default function CreatePracticePage() {
     personalize: true,
     domains: true
   })
+
+  const [domainStats, setDomainStats] = useState([])
+  const [difficultyStats, setDifficultyStats] = useState({ low: 0, medium: 0, high: 0 })
+  const [loadingStats, setLoadingStats] = useState(false)
+
+  // Fetch Domain Stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoadingStats(true)
+      try {
+        const res = await fetch(`/api/questions/stats?subject=${activeTab}`)
+        const data = await res.json()
+        if (data.domains) {
+          setDomainStats(data.domains)
+        }
+        if (data.difficulties) {
+          setDifficultyStats(data.difficulties)
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats', error)
+      } finally {
+        setLoadingStats(false)
+      }
+    }
+    fetchStats()
+  }, [activeTab])
   
   // Mock Data for Counts
   const counts = {
@@ -47,18 +73,7 @@ export default function CreatePracticePage() {
     high: true
   })
 
-  const [selectedDomains, setSelectedDomains] = useState({
-    // RW Domains
-    infoIdeas: false,
-    craftStructure: false,
-    expressionIdeas: false,
-    standardEnglish: false,
-    // Math Domains
-    algebra: false,
-    advancedMath: false,
-    problemSolving: false,
-    geometry: false
-  })
+  const [selectedDomains, setSelectedDomains] = useState({})
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
@@ -308,9 +323,9 @@ export default function CreatePracticePage() {
                     </div>
                     <div className="flex gap-4">
                       {[
-                        { key: 'low', label: 'Low', count: currentCounts.low },
-                        { key: 'medium', label: 'Medium', count: currentCounts.medium },
-                        { key: 'high', label: 'High', count: currentCounts.high },
+                        { key: 'low', label: 'Easy', count: difficultyStats.low },
+                        { key: 'medium', label: 'Medium', count: difficultyStats.medium },
+                        { key: 'high', label: 'Hard', count: difficultyStats.high },
                       ].map((item) => (
                         <button 
                           key={item.key}
@@ -354,58 +369,38 @@ export default function CreatePracticePage() {
 
                      {expandedSections.domains && (
                        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-8 animate-in slide-in-from-top-4 duration-300">
-                         {activeTab === 'rw' ? (
-                           <>
-                             {[
-                               { title: 'Information and Ideas', count: 131, subs: ['Explicit Meaning', 'Main Idea', 'Evidence', 'Inference', 'Graphic Displays'] },
-                               { title: 'Expression of Ideas', count: 60, subs: ['Transitions', 'Synthesis'] },
-                               { title: 'Craft and Structure', count: 119, subs: ['Vocabulary', 'Purpose', 'Connections'] },
-                               { title: 'Standard English Conventions', count: 149, subs: ['Agreement', 'Parts of Speech', 'Punctuation', 'Sentence Structure'] }
-                             ].map((domain, idx) => (
-                               <div key={idx} className="bg-gray-50/80 p-5 rounded-2xl border border-gray-100 hover:border-blue-100 transition-colors">
-                                 <label className="flex items-center gap-3 cursor-pointer mb-4">
-                                   <div className="w-5 h-5 rounded border-2 border-gray-300 bg-white flex items-center justify-center hover:border-blue-400 transition-colors">
-                                      {/* Checkbox logic here if state connected */}
-                                   </div>
-                                   <span className="text-sm font-bold text-gray-800">{domain.title}</span>
-                                   <span className="ml-auto text-xs bg-white px-2 py-1 rounded-md border text-gray-500 font-bold">{domain.count}</span>
-                                 </label>
-                                 <div className="space-y-2 pl-8">
-                                   {domain.subs.map(sub => (
-                                     <label key={sub} className="flex items-center gap-2 cursor-pointer group">
-                                       <div className="w-4 h-4 rounded border border-gray-300 bg-white group-hover:border-blue-400 transition-colors" />
-                                       <span className="text-xs font-medium text-gray-500 group-hover:text-blue-600 transition-colors">{sub}</span>
-                                     </label>
-                                   ))}
-                                 </div>
-                               </div>
-                             ))}
-                           </>
+                         {loadingStats ? (
+                           <div className="col-span-2 py-8 text-center text-gray-400 italic">Loading domain statistics...</div>
                          ) : (
-                           <>
-                             {[
-                               { title: 'Algebra', count: 376, subs: ['Linear Equations', 'Linear Functions', 'Systems', 'Inequalities'] },
-                               { title: 'Problem-Solving', count: 296, subs: ['Ratios', 'Percentages', 'Probability', 'Data Analysis'] },
-                               { title: 'Advanced Math', count: 364, subs: ['Quadratics', 'Polynomials', 'Exponentials', 'Radicals'] },
-                               { title: 'Geometry & Trig', count: 205, subs: ['Area/Volume', 'Angles', 'Triangles', 'Circles', 'Trigonometry'] }
-                             ].map((domain, idx) => (
-                               <div key={idx} className="bg-gray-50/80 p-5 rounded-2xl border border-gray-100 hover:border-blue-100 transition-colors">
-                                 <label className="flex items-center gap-3 cursor-pointer mb-4">
-                                   <div className="w-5 h-5 rounded border-2 border-gray-300 bg-white flex items-center justify-center hover:border-blue-400 transition-colors"></div>
-                                   <span className="text-sm font-bold text-gray-800">{domain.title}</span>
-                                   <span className="ml-auto text-xs bg-white px-2 py-1 rounded-md border text-gray-500 font-bold">{domain.count}</span>
-                                 </label>
-                                 <div className="space-y-2 pl-8">
-                                   {domain.subs.map(sub => (
-                                     <label key={sub} className="flex items-center gap-2 cursor-pointer group">
-                                       <div className="w-4 h-4 rounded border border-gray-300 bg-white group-hover:border-blue-400 transition-colors" />
-                                       <span className="text-xs font-medium text-gray-500 group-hover:text-blue-600 transition-colors">{sub}</span>
-                                     </label>
-                                   ))}
+                           domainStats.map((domain, idx) => (
+                             <div key={idx} className="bg-gray-50/80 p-5 rounded-2xl border border-gray-100 hover:border-blue-100 transition-colors">
+                               <label 
+                                 className="flex items-center gap-3 cursor-pointer mb-4"
+                                 onClick={(e) => {
+                                   e.preventDefault()
+                                   toggleDomain(domain.title)
+                                 }}
+                               >
+                                 <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                                   selectedDomains[domain.title] 
+                                     ? 'bg-blue-500 border-blue-500' 
+                                     : 'border-gray-300 bg-white hover:border-blue-400'
+                                 }`}>
+                                    {selectedDomains[domain.title] && <FiCheckSquare className="w-3.5 h-3.5 text-white" />}
                                  </div>
+                                 <span className="text-sm font-bold text-gray-800">{domain.title}</span>
+                                 <span className="ml-auto text-xs bg-white px-2 py-1 rounded-md border text-gray-500 font-bold">{domain.count}</span>
+                               </label>
+                               <div className="space-y-2 pl-8">
+                                 {domain.subs.map(sub => (
+                                   <label key={sub} className="flex items-center gap-2 cursor-pointer group">
+                                     <div className="w-4 h-4 rounded border border-gray-300 bg-white group-hover:border-blue-400 transition-colors" />
+                                     <span className="text-xs font-medium text-gray-500 group-hover:text-blue-600 transition-colors">{sub}</span>
+                                   </label>
+                                 ))}
                                </div>
-                             ))}
-                           </>
+                             </div>
+                           ))
                          )}
                        </div>
                      )}
