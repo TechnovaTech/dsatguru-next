@@ -40,7 +40,6 @@ export default function TakeTestPage() {
   const [lineReaderPos, setLineReaderPos] = useState(50) // Percentage from top
   const [assistiveTechMode, setAssistiveTechMode] = useState(false)
   const [eliminatedAnswers, setEliminatedAnswers] = useState({}) // { questionId: ['A', 'C'] }
-  const [eliminationMode, setEliminationMode] = useState(false)
   const [showRWInstructions, setShowRWInstructions] = useState(false)
   const [showMathInstructions, setShowMathInstructions] = useState(false)
   const [showCalculator, setShowCalculator] = useState(false)
@@ -168,14 +167,12 @@ export default function TakeTestPage() {
         if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return
 
         e.preventDefault()
-        if (eliminationMode) {
+        
+        // Auto-uneliminate if selecting
+        if (isEliminated(question._id, key)) {
           toggleEliminateAnswer(question._id, key)
-        } else {
-          // Don't select if eliminated
-          if (!isEliminated(question._id, key)) {
-            handleAnswer(question._id, key)
-          }
         }
+        handleAnswer(question._id, key)
       }
 
       // Actions
@@ -183,11 +180,6 @@ export default function TakeTestPage() {
         // Mark for review logic
         e.preventDefault()
         handleMarkForReview(question._id)
-      }
-      
-      if (key === 'E') {
-        e.preventDefault()
-        setEliminationMode(prev => !prev)
       }
       
       if (key === 'H') {
@@ -199,7 +191,7 @@ export default function TakeTestPage() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentQuestion, moduleQuestions, eliminationMode, showShortcutsModal, showFlagModal, loading, testCompleted, showModuleSummary])
+  }, [currentQuestion, moduleQuestions, showShortcutsModal, showFlagModal, loading, testCompleted, showModuleSummary])
 
   // Line Reader Mouse Handler
   useEffect(() => {
@@ -1054,17 +1046,16 @@ export default function TakeTestPage() {
                     console.error('Error marking question:', error)
                   }
                 }}
-                className={markedQuestions.has(currentQ._id) ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-gray-600'}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${
+                  markedQuestions.has(currentQ._id) 
+                    ? 'text-yellow-600 bg-yellow-50 hover:bg-yellow-100' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
               >
-                <svg className="w-6 h-6" fill={markedQuestions.has(currentQ._id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill={markedQuestions.has(currentQ._id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
-              </button>
-              <span className="text-gray-500 text-sm">Mark for Review</span>
-              <button className="ml-auto text-gray-400 hover:text-gray-600">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <span className="font-medium text-sm">Mark for Review</span>
               </button>
             </div>
 
@@ -1072,13 +1063,8 @@ export default function TakeTestPage() {
             <div className="space-y-3">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  {eliminationMode ? 'ELIMINATION MODE ON' : 'Choose an Answer'}
+                  Choose an Answer
                 </span>
-                {eliminationMode && (
-                  <span className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
-                    Click options to strike through
-                  </span>
-                )}
               </div>
               
               {['A', 'B', 'C', 'D'].map((option) => {
@@ -1086,45 +1072,64 @@ export default function TakeTestPage() {
                 const isElim = isEliminated(currentQ._id, option)
                 
                 return (
-                  <button
-                    key={option}
-                    onClick={() => {
-                      if (eliminationMode) {
-                        toggleEliminateAnswer(currentQ._id, option)
-                      } else {
-                        if (!isElim) handleAnswer(currentQ._id, option)
-                      }
-                    }}
-                    disabled={!eliminationMode && isElim}
-                    className={`w-full text-left border-2 rounded-lg p-4 transition-all relative ${
-                      isSelected
-                        ? 'border-gray-800 bg-gray-50'
-                        : isElim
-                        ? 'border-gray-200 bg-gray-100 opacity-60'
-                        : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                    } ${eliminationMode ? 'cursor-crosshair' : ''}`}
-                  >
-                    {isElim && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="w-full h-0.5 bg-red-500 transform -rotate-1"></div>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold ${
+                  <div key={option} className="flex items-stretch gap-3">
+                    <div
+                      className={`group flex-1 flex items-stretch border-2 rounded-lg transition-all overflow-hidden relative ${
                         isSelected
-                          ? 'border-gray-800 bg-gray-800 text-white'
+                          ? 'border-gray-800 bg-gray-50'
                           : isElim
-                          ? 'border-gray-300 text-gray-300'
-                          : 'border-gray-400 text-gray-700'
-                      }`}>
-                        {option}
-                      </div>
-                      <div className={`flex-1 pt-1 ${isElim ? 'text-gray-400 line-through decoration-red-500' : 'text-gray-900'}`}>
-                        {currentQ?.[`option${option}`]}
-                      </div>
+                          ? 'border-gray-200 bg-gray-50'
+                          : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                      }`}
+                    >
+                      {/* Main Selection Area */}
+                      <button
+                        onClick={() => {
+                           if (isElim) toggleEliminateAnswer(currentQ._id, option);
+                           handleAnswer(currentQ._id, option);
+                        }}
+                        className="flex-1 text-left p-3 sm:p-4 flex items-start gap-3 sm:gap-4 relative"
+                      >
+                        <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold transition-colors ${
+                          isSelected
+                            ? 'border-gray-800 bg-gray-800 text-white'
+                            : isElim
+                            ? 'border-gray-300 text-gray-300 bg-transparent'
+                            : 'border-gray-400 text-gray-700 bg-white group-hover:border-gray-600'
+                        }`}>
+                          {option}
+                        </div>
+                        <div className={`flex-1 pt-1 text-base sm:text-lg leading-relaxed ${
+                          isElim ? 'text-gray-400 line-through decoration-2 decoration-gray-400' : 'text-gray-900'
+                        }`}>
+                          {currentQ?.[`option${option}`]}
+                        </div>
+                      </button>
                     </div>
-                  </button>
+
+                    {/* Elimination Action Button - Outside Side Option */}
+                    <button
+                       onClick={(e) => {
+                         e.stopPropagation()
+                         toggleEliminateAnswer(currentQ._id, option)
+                       }}
+                       className={`group flex-shrink-0 w-10 sm:w-12 flex items-center justify-center rounded-lg border-2 transition-colors ${
+                         isElim 
+                           ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' 
+                           : 'bg-white text-gray-300 border-gray-200 hover:text-gray-500 hover:border-gray-300 hover:bg-gray-50'
+                       }`}
+                       title={isElim ? "Undo Elimination" : "Eliminate Answer"}
+                    >
+                      {isElim ? (
+                        <span className="text-xs font-bold">Undo</span>
+                      ) : (
+                        <div className="relative w-5 h-5 flex items-center justify-center font-bold text-[10px] border border-current rounded">
+                          ABC
+                          <div className={`absolute inset-0 border-t border-current transform -rotate-12 top-1/2 ${isElim ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}></div>
+                        </div>
+                      )}
+                    </button>
+                  </div>
                 )
               })}
             </div>
@@ -1271,10 +1276,6 @@ export default function TakeTestPage() {
                   <li className="flex justify-between">
                     <span>Mark for Review</span>
                     <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border">M</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>Eliminate Answer</span>
-                    <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border">E</span>
                   </li>
                 </ul>
               </div>
