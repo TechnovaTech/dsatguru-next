@@ -113,6 +113,7 @@ export default function CreatePracticePage() {
         },
         body: JSON.stringify({
           mode,
+          practiceMode,
           // For standard mode, we include both sections to ensure 4 modules
           sections: mode === 'standard' ? ['rw', 'math'] : [activeTab] 
         })

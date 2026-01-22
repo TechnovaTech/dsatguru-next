@@ -42,6 +42,7 @@ export default function TakeTestPage() {
   const [eliminatedAnswers, setEliminatedAnswers] = useState({}) // { questionId: ['A', 'C'] }
   const [showRWInstructions, setShowRWInstructions] = useState(false)
   const [showMathInstructions, setShowMathInstructions] = useState(false)
+  const [showAnswer, setShowAnswer] = useState(false) // For Tutor Mode
   const [showCalculator, setShowCalculator] = useState(false)
   const [calcPosition, setCalcPosition] = useState({ x: 50, y: 100 })
   const [isDraggingCalc, setIsDraggingCalc] = useState(false)
@@ -127,6 +128,11 @@ export default function TakeTestPage() {
   useEffect(() => {
     fetchTestData()
   }, [testId])
+
+  // Reset show answer when question changes
+  useEffect(() => {
+    setShowAnswer(false)
+  }, [currentQuestion])
 
   // Keyboard Shortcuts Handler
   useEffect(() => {
@@ -258,6 +264,7 @@ export default function TakeTestPage() {
   }
 
   useEffect(() => {
+    if (test?.practiceMode === 'tutor') return
     if (timeRemaining > 0 && !showModuleSummary && !testCompleted && !showRWInstructions && !showMathInstructions) {
       const timer = setInterval(() => {
         setTimeRemaining(prev => {
@@ -329,7 +336,7 @@ export default function TakeTestPage() {
         }
         
         setTest(testData)
-        setAllQuestions(finalQuestions)
+      setAllQuestions(finalQuestions)
         
         // Don't auto-load module, wait for user to start
         if (testData.sections?.rw) {
@@ -840,7 +847,7 @@ export default function TakeTestPage() {
           Section 1, Module {currentModule}: {currentSection === 'rw' ? 'Reading and Writing' : 'Math'}
         </div>
         <div className="text-lg font-bold text-gray-900">
-          {formatTime(timeRemaining)}
+          {test?.practiceMode === 'tutor' ? 'Untimed Practice' : formatTime(timeRemaining)}
         </div>
         <div className="flex items-center gap-4">
           {currentSection === 'math' && (
@@ -1152,6 +1159,53 @@ export default function TakeTestPage() {
                 )
               })}
             </div>
+
+            {/* Tutor Mode: Show Answer & Explanation */}
+            {test?.practiceMode === 'tutor' && (
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <button
+                  onClick={() => setShowAnswer(!showAnswer)}
+                  className={`w-full py-3.5 rounded-xl font-bold text-sm uppercase tracking-wide transition-all flex items-center justify-center gap-2.5 ${
+                    showAnswer 
+                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' 
+                      : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100 shadow-sm'
+                  }`}
+                >
+                  {showAnswer ? (
+                    <>
+                      <FiSlash className="w-4 h-4" /> Hide Answer
+                    </>
+                  ) : (
+                    <>
+                      <FiCheckCircle className="w-4 h-4" /> Show Answer & Explanation
+                    </>
+                  )}
+                </button>
+                
+                {showAnswer && (
+                  <div className="mt-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="bg-green-50 rounded-xl p-6 border border-green-100 shadow-sm mb-4">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold shadow-sm">
+                          {currentQ.correctAnswer}
+                        </div>
+                        <span className="font-bold text-green-800">Correct Answer</span>
+                      </div>
+                      <div className="h-px bg-green-200/50 w-full mb-4" />
+                      
+                      <div className="prose prose-sm max-w-none">
+                        <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                          <FiBookOpen className="text-green-600" /> Explanation
+                        </h4>
+                        <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                          {currentQ.explanation || 'No detailed explanation available for this question.'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

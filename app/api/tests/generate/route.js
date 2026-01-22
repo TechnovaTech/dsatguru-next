@@ -14,7 +14,7 @@ export async function POST(request) {
     }
 
     const body = await request.json()
-    const { mode, sections, questionCount, difficulty } = body
+    const { mode, practiceMode, sections, questionCount, difficulty } = body
 
     // Create a new Test document
     // We create a "virtual" test definition for this practice session
@@ -24,6 +24,7 @@ export async function POST(request) {
       testType: 'Practice',
       excludeUsedQuestions: true,
       configType: mode === 'standard' ? 'standard' : 'custom',
+      practiceMode: practiceMode || 'timed',
       isActive: true,
       duration: 180, // Standard duration
       totalQuestions: 98, // 54 RW + 44 Math
