@@ -1,11 +1,14 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { FiInfo, FiCheckSquare, FiSquare, FiChevronDown, FiChevronUp } from 'react-icons/fi'
 
 export default function CreatePracticePage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState('rw')
   const [practiceMode, setPracticeMode] = useState('tutor') // tutor or timed
   const [questionMode, setQuestionMode] = useState('standard')
+  const [isGenerating, setIsGenerating] = useState(false)
   const [expandedSections, setExpandedSections] = useState({
     quick: true,
     personalize: true,
@@ -89,6 +92,41 @@ export default function CreatePracticePage() {
 
   const currentCounts = activeTab === 'rw' ? counts.rw : counts.math
 
+  const handleStartTest = async (source) => {
+    setIsGenerating(true)
+    try {
+      // If Standard mode is selected (or Quick Start), we create a full 4-module test
+      // regardless of the active tab, as per "Standard" SAT structure.
+      const mode = source === 'quick' ? 'standard' : questionMode
+      const token = localStorage.getItem('token')
+      
+      const res = await fetch('/api/tests/generate', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          mode,
+          // For standard mode, we include both sections to ensure 4 modules
+          sections: mode === 'standard' ? ['rw', 'math'] : [activeTab] 
+        })
+      })
+      
+      const data = await res.json()
+      if (data.testId) {
+        router.push(`/dashboard/tests/${data.testId}/start`)
+      } else {
+        alert('Failed to create practice test')
+      }
+    } catch (error) {
+      console.error('Error starting test:', error)
+      alert('An error occurred while creating the test')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pb-32 font-sans text-gray-800">
       {/* Header */}
@@ -168,8 +206,12 @@ export default function CreatePracticePage() {
               
               {expandedSections.quick && (
                 <div className="p-6 bg-gray-50/50 border-t flex items-center gap-6 animate-in slide-in-from-top-2 duration-200">
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl text-sm font-bold uppercase tracking-wider shadow-lg shadow-blue-200 transition-all hover:shadow-blue-300 active:scale-95">
-                    Start Now
+                  <button 
+                    onClick={() => handleStartTest('quick')}
+                    disabled={isGenerating}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl text-sm font-bold uppercase tracking-wider shadow-lg shadow-blue-200 transition-all hover:shadow-blue-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isGenerating ? 'Starting...' : 'Start Now'}
                   </button>
                   <div className="flex items-center gap-3 bg-white px-4 py-2.5 rounded-xl border shadow-sm">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Count</span>
@@ -417,8 +459,16 @@ export default function CreatePracticePage() {
 
                   {/* Generate Button */}
                   <div className="pt-4 flex justify-end">
-                    <button className="bg-gray-100 text-gray-400 px-10 py-3.5 rounded-xl text-sm font-bold uppercase tracking-wide cursor-not-allowed shadow-none border border-gray-200">
-                      Generate Practice Set
+                    <button 
+                      onClick={() => handleStartTest('custom')}
+                      disabled={isGenerating || questionMode !== 'standard'}
+                      className={`px-10 py-3.5 rounded-xl text-sm font-bold uppercase tracking-wide transition-all ${
+                        questionMode === 'standard' && !isGenerating
+                          ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200 cursor-pointer active:scale-95' 
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                      }`}
+                    >
+                      {isGenerating ? 'Generating...' : 'Generate Practice Set'}
                     </button>
                   </div>
 
