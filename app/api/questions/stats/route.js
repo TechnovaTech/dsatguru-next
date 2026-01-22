@@ -127,7 +127,11 @@ export async function GET(request) {
         title: domainTitle,
         count: 0, // Available
         total: 0, // Total in bank
-        subs: mapping[domainTitle] // Just list the subs initially
+        subs: mapping[domainTitle].map(subName => ({
+          name: subName,
+          count: 0, // Available
+          total: 0  // Total in bank
+        }))
       }))
 
       const difficulties = {
@@ -144,7 +148,7 @@ export async function GET(request) {
 
       // Helper to find domain for a tag
       const findDomainIndex = (tag) => {
-        return domains.findIndex(d => d.subs.includes(tag))
+        return domains.findIndex(d => d.subs.some(s => s.name === tag))
       }
 
       // Count questions
@@ -178,6 +182,13 @@ export async function GET(request) {
           if (domainIdx !== -1) {
             domains[domainIdx].total++
             if (isAvailable) domains[domainIdx].count++
+            
+            // Find subtopic index
+            const subIdx = domains[domainIdx].subs.findIndex(s => s.name === tag)
+            if (subIdx !== -1) {
+              domains[domainIdx].subs[subIdx].total++
+              if (isAvailable) domains[domainIdx].subs[subIdx].count++
+            }
           }
         }
       }

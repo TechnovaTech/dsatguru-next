@@ -244,7 +244,7 @@ export default function CreatePracticePage() {
                     </svg>
                   </div>
                   <div className="text-left">
-                    <span className="block font-bold text-lg text-gray-800">Custom Practice</span>
+                    <span className="block font-bold text-lg text-gray-800">Customize Settings</span>
                     <span className="text-xs text-gray-500 font-medium">Tailor to your needs</span>
                   </div>
                 </div>
@@ -443,13 +443,22 @@ export default function CreatePracticePage() {
                                  <span className="ml-auto text-xs bg-white px-2 py-1 rounded-md border text-gray-500 font-bold">{domain.count}</span>
                                </label>
                                <div className="space-y-2 pl-8">
-                                 {domain.subs.map(sub => (
-                                   <label key={sub} className="flex items-center gap-2 cursor-pointer group">
-                                     <div className="w-4 h-4 rounded border border-gray-300 bg-white group-hover:border-blue-400 transition-colors" />
-                                     <span className="text-xs font-medium text-gray-500 group-hover:text-blue-600 transition-colors">{sub}</span>
-                                   </label>
-                                 ))}
-                               </div>
+                                {domain.subs.map((sub, sIdx) => {
+                                  const subName = typeof sub === 'string' ? sub : sub.name
+                                  const subCount = typeof sub === 'string' ? 0 : sub.count
+                                  return (
+                                    <label key={sIdx} className="flex items-center gap-2 cursor-pointer group w-full">
+                                      <div className="w-4 h-4 rounded border border-gray-300 bg-white group-hover:border-blue-400 transition-colors flex-shrink-0" />
+                                      <span className="text-xs font-medium text-gray-500 group-hover:text-blue-600 transition-colors flex-1">{subName}</span>
+                                      {typeof sub !== 'string' && (
+                                        <span className="text-[10px] bg-gray-50 text-gray-400 px-1.5 py-0.5 rounded-full font-medium border border-gray-100">
+                                          {subCount}
+                                        </span>
+                                      )}
+                                    </label>
+                                  )
+                                })}
+                              </div>
                              </div>
                            ))
                          )}
@@ -475,7 +484,7 @@ export default function CreatePracticePage() {
                   </div>
 
                   {/* Generate Button */}
-                  <div className="pt-4 flex justify-end">
+                  <div className="pt-4 flex flex-col items-end gap-2">
                     <button 
                       onClick={() => handleStartTest('custom')}
                       disabled={isGenerating || questionMode !== 'standard'}
@@ -485,8 +494,13 @@ export default function CreatePracticePage() {
                           : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
                       }`}
                     >
-                      {isGenerating ? 'Generating...' : 'Generate Practice Set'}
+                      {isGenerating ? 'Starting Test...' : 'Start Practice Test'}
                     </button>
+                    {questionMode !== 'standard' && (
+                      <p className="text-xs text-red-500 font-medium">
+                        * Custom mode is coming soon. Please select "Standard" to start.
+                      </p>
+                    )}
                   </div>
 
                 </div>
