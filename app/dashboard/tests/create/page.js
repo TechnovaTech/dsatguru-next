@@ -102,14 +102,6 @@ export default function CreatePracticePage() {
           <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Create Practice</h1>
           <p className="text-xs text-gray-500 font-medium mt-0.5">Customize your learning experience</p>
         </div>
-        <div className="ml-auto flex items-center gap-6 text-sm font-semibold text-gray-600">
-          <button className="hover:text-blue-600 transition-colors flex items-center gap-2">
-            <FiCheckSquare className="w-4 h-4" /> Checklist
-          </button>
-          <button className="hover:text-blue-600 transition-colors">Test Date</button>
-          <div className="h-6 w-px bg-gray-200"></div>
-          <button className="hover:text-blue-600 transition-colors">My Account</button>
-        </div>
       </header>
 
       <div className="max-w-5xl mx-auto p-8 space-y-8">
