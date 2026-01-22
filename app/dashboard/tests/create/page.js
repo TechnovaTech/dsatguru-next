@@ -499,7 +499,7 @@ export default function CreatePracticePage() {
                     </button>
                     {questionMode !== 'standard' && (
                       <p className="text-xs text-red-500 font-medium">
-                        * Custom mode is coming soon. Please select "Standard" to start.
+                        * Custom mode is coming soon. Please select &quot;Standard&quot; to start.
                       </p>
                     )}
                   </div>
