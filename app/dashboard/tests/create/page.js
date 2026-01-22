@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiInfo, FiCheckSquare, FiSquare, FiChevronDown, FiChevronUp } from 'react-icons/fi'
+import { FiInfo, FiCheckSquare, FiSquare, FiChevronDown, FiChevronUp, FiLock } from 'react-icons/fi'
 
 export default function CreatePracticePage() {
   const router = useRouter()
@@ -16,21 +16,34 @@ export default function CreatePracticePage() {
   })
 
   const [domainStats, setDomainStats] = useState([])
-  const [difficultyStats, setDifficultyStats] = useState({ low: 0, medium: 0, high: 0 })
+  const [difficultyStats, setDifficultyStats] = useState({ 
+    low: { available: 0, total: 0 }, 
+    medium: { available: 0, total: 0 }, 
+    high: { available: 0, total: 0 } 
+  })
+  const [globalCounts, setGlobalCounts] = useState({ unused: 0, total: 0 })
   const [loadingStats, setLoadingStats] = useState(false)
 
   // Fetch Domain Stats
   useEffect(() => {
     const fetchStats = async () => {
       setLoadingStats(true)
+      const token = localStorage.getItem('token')
       try {
-        const res = await fetch(`/api/questions/stats?subject=${activeTab}`)
+        const res = await fetch(`/api/questions/stats?subject=${activeTab}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
         const data = await res.json()
         if (data.domains) {
           setDomainStats(data.domains)
         }
         if (data.difficulties) {
           setDifficultyStats(data.difficulties)
+        }
+        if (data.counts) {
+          setGlobalCounts(data.counts)
         }
       } catch (error) {
         console.error('Failed to fetch stats', error)
@@ -41,27 +54,19 @@ export default function CreatePracticePage() {
     fetchStats()
   }, [activeTab])
   
-  // Mock Data for Counts
+  // Mock Data for other counts (placeholder)
   const counts = {
     rw: {
-      unused: 28,
       incorrect: 0,
       marked: 0,
       omitted: 0,
-      correct: 0,
-      low: 5,
-      medium: 14,
-      high: 9
+      correct: 0
     },
     math: {
-      unused: 28,
       incorrect: 0,
       marked: 0,
       omitted: 0,
-      correct: 0,
-      low: 1,
-      medium: 12,
-      high: 15
+      correct: 0
     }
   }
 
@@ -220,7 +225,7 @@ export default function CreatePracticePage() {
                       defaultValue={1} 
                       className="w-12 border-none bg-transparent font-bold text-center text-lg focus:ring-0 p-0 text-gray-800" 
                     />
-                    <span className="text-xs font-medium text-gray-400 border-l pl-3">Max: {currentCounts.unused}</span>
+                    <span className="text-xs font-medium text-gray-400 border-l pl-3">Max: {globalCounts.unused}</span>
                   </div>
                 </div>
               )}
@@ -316,11 +321,11 @@ export default function CreatePracticePage() {
                     </div>
                     <div className="flex flex-wrap gap-3">
                       {[
-                        { key: 'unused', label: 'Unused', count: currentCounts.unused, color: 'blue' },
-                        { key: 'incorrect', label: 'Incorrect', count: currentCounts.incorrect, color: 'red' },
-                        { key: 'marked', label: 'Marked', count: currentCounts.marked, color: 'yellow' },
-                        { key: 'omitted', label: 'Omitted', count: currentCounts.omitted, color: 'gray' },
-                        { key: 'correct', label: 'Correct', count: currentCounts.correct, color: 'green' },
+                        { key: 'unused', label: 'Unused', available: globalCounts.unused, total: globalCounts.total, color: 'blue' },
+                        { key: 'incorrect', label: 'Incorrect', available: currentCounts.incorrect, total: 0, color: 'red' },
+                        { key: 'marked', label: 'Marked', available: currentCounts.marked, total: 0, color: 'yellow' },
+                        { key: 'omitted', label: 'Omitted', available: currentCounts.omitted, total: 0, color: 'gray' },
+                        { key: 'correct', label: 'Correct', available: currentCounts.correct, total: 0, color: 'green' },
                       ].map((item) => (
                         <button 
                           key={item.key}
@@ -339,11 +344,18 @@ export default function CreatePracticePage() {
                           <span className={`text-sm font-medium ${selectedFilters[item.key] ? 'text-gray-900' : 'text-gray-600'}`}>
                             {item.label}
                           </span>
-                          <span className={`text-xs px-2 py-0.5 rounded-md font-bold ${
-                            selectedFilters[item.key] ? `bg-white text-${item.color}-600` : 'bg-gray-100 text-gray-500'
-                          }`}>
-                            {item.count}
-                          </span>
+                          <div className="flex items-center gap-1">
+                            <span className={`text-xs px-2 py-0.5 rounded-md font-bold ${
+                              selectedFilters[item.key] ? `bg-white text-${item.color}-600` : 'bg-gray-100 text-gray-500'
+                            }`}>
+                              {item.available}
+                            </span>
+                            {item.total > 0 && (
+                              <span className="flex items-center gap-0.5 text-[10px] text-gray-400 font-medium">
+                                ({item.total} <FiLock className="w-2.5 h-2.5" />)
+                              </span>
+                            )}
+                          </div>
                         </button>
                       ))}
                     </div>
@@ -357,9 +369,9 @@ export default function CreatePracticePage() {
                     </div>
                     <div className="flex gap-4">
                       {[
-                        { key: 'low', label: 'Easy', count: difficultyStats.low },
-                        { key: 'medium', label: 'Medium', count: difficultyStats.medium },
-                        { key: 'high', label: 'Hard', count: difficultyStats.high },
+                        { key: 'low', label: 'Easy', available: difficultyStats.low.available, total: difficultyStats.low.total },
+                        { key: 'medium', label: 'Medium', available: difficultyStats.medium.available, total: difficultyStats.medium.total },
+                        { key: 'high', label: 'Hard', available: difficultyStats.high.available, total: difficultyStats.high.total },
                       ].map((item) => (
                         <button 
                           key={item.key}
@@ -376,9 +388,14 @@ export default function CreatePracticePage() {
                             {selectedFilters[item.key] && <FiCheckSquare className="w-3.5 h-3.5" />}
                           </div>
                           <span className="text-sm font-bold text-gray-700">{item.label}</span>
-                          <span className="text-xs bg-white px-2 py-1 rounded-md border font-bold text-gray-500">
-                            {item.count}
-                          </span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs bg-white px-2 py-1 rounded-md border font-bold text-gray-500">
+                              {item.available}
+                            </span>
+                            <span className="flex items-center gap-0.5 text-[10px] text-gray-400 font-medium bg-gray-50 px-1.5 py-0.5 rounded border">
+                              {item.total} <FiLock className="w-2.5 h-2.5" />
+                            </span>
+                          </div>
                         </button>
                       ))}
                     </div>

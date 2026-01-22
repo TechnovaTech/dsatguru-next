@@ -291,6 +291,8 @@ export default function TakeTestPage() {
         const testData = await testRes.json()
         const questions = await questionsRes.json()
         
+        let finalQuestions = questions
+
         // Check if user already took this test
         if (historyRes.ok) {
           const historyData = await historyRes.json()
@@ -307,10 +309,27 @@ export default function TakeTestPage() {
             setLoading(false)
             return
           }
+
+          // Filter out used questions if requested by test configuration
+          if (testData.excludeUsedQuestions) {
+            const usedIds = new Set()
+            sessions.forEach(s => {
+              if (s.responses) s.responses.forEach(r => usedIds.add(String(r.questionId)))
+              if (s.adaptiveAssignedQuestionIds) s.adaptiveAssignedQuestionIds.forEach(id => usedIds.add(String(id)))
+              if (s.moduleAnswers) {
+                Object.values(s.moduleAnswers).forEach(m => {
+                  if (m.questionIds) m.questionIds.forEach(id => usedIds.add(String(id)))
+                })
+              }
+            })
+            
+            finalQuestions = questions.filter(q => !usedIds.has(String(q._id)))
+            console.log(`Filtered out used questions: ${questions.length} -> ${finalQuestions.length}`)
+          }
         }
         
         setTest(testData)
-        setAllQuestions(questions)
+        setAllQuestions(finalQuestions)
         
         // Don't auto-load module, wait for user to start
         if (testData.sections?.rw) {

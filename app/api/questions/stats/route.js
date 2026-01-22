@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import Question from '../../../../lib/models/Question'
+import TestSession from '../../../../lib/models/TestSession'
+import { verifyToken, getTokenFromRequest } from '../../../../lib/auth'
 
 const DOMAIN_MAPPING = {
   Math: {
@@ -88,6 +90,32 @@ export async function GET(request) {
       // Map 'rw' to 'Reading and Writing', 'math' to 'Math'
       const dbSubject = subjectParam.toLowerCase() === 'rw' ? 'Reading and Writing' : 'Math'
       
+      // Get User ID to calculate "Unused" counts
+      const token = getTokenFromRequest(request)
+      const decoded = verifyToken(token)
+      const userId = decoded ? decoded.userId : null
+      
+      const usedQuestionIds = new Set()
+      
+      if (userId) {
+        const sessions = await TestSession.find({ userId }).select('responses moduleAnswers adaptiveAssignedQuestionIds')
+        for (const session of sessions) {
+          if (session.responses) {
+            session.responses.forEach(r => usedQuestionIds.add(r.questionId?.toString()))
+          }
+          if (session.adaptiveAssignedQuestionIds) {
+            session.adaptiveAssignedQuestionIds.forEach(id => usedQuestionIds.add(id?.toString()))
+          }
+          if (session.moduleAnswers) {
+            Object.values(session.moduleAnswers).forEach(module => {
+              if (module.questionIds) {
+                module.questionIds.forEach(id => usedQuestionIds.add(id?.toString()))
+              }
+            })
+          }
+        }
+      }
+
       const questions = await Question.find({
         subject: dbSubject,
         isActive: true
@@ -97,14 +125,21 @@ export async function GET(request) {
       const mapping = DOMAIN_MAPPING[dbSubject] || {}
       const domains = Object.keys(mapping).map(domainTitle => ({
         title: domainTitle,
-        count: 0,
+        count: 0, // Available
+        total: 0, // Total in bank
         subs: mapping[domainTitle] // Just list the subs initially
       }))
 
       const difficulties = {
-        low: 0,
-        medium: 0,
-        high: 0
+        low: { available: 0, total: 0 },
+        medium: { available: 0, total: 0 },
+        high: { available: 0, total: 0 }
+      }
+      
+      // Also track total counts for the subject
+      const counts = {
+        unused: 0,
+        total: 0
       }
 
       // Helper to find domain for a tag
@@ -114,11 +149,20 @@ export async function GET(request) {
 
       // Count questions
       for (const q of questions) {
+        const isUsed = usedQuestionIds.has(q._id.toString())
+        const isAvailable = !isUsed
+        
+        counts.total++
+        if (isAvailable) counts.unused++
+
         // Count Difficulty
         const diff = q.difficulty || 'Medium'
-        if (diff === 'Easy') difficulties.low += 1
-        else if (diff === 'Medium') difficulties.medium += 1
-        else if (diff === 'Hard') difficulties.high += 1
+        let diffKey = 'medium'
+        if (diff === 'Easy') diffKey = 'low'
+        else if (diff === 'Hard') diffKey = 'high'
+        
+        difficulties[diffKey].total++
+        if (isAvailable) difficulties[diffKey].available++
 
         let tags = []
         try {
@@ -132,12 +176,13 @@ export async function GET(request) {
           const tag = tags[0]
           const domainIdx = findDomainIndex(tag)
           if (domainIdx !== -1) {
-            domains[domainIdx].count += 1
+            domains[domainIdx].total++
+            if (isAvailable) domains[domainIdx].count++
           }
         }
       }
 
-      return NextResponse.json({ domains, difficulties })
+      return NextResponse.json({ domains, difficulties, counts })
     }
 
     return NextResponse.json({ error: 'bankId or subject required' }, { status: 400 })

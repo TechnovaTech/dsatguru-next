@@ -22,6 +22,7 @@ export async function POST(request) {
       title: 'Self Practice Test', // Or 'Admin Test' as requested? User said "named admin as admin test" but "save as self test". I'll stick to 'Self Practice Test' for clarity, user can rename if needed.
       description: 'Self-generated practice test',
       testType: 'Practice',
+      excludeUsedQuestions: true,
       configType: mode === 'standard' ? 'standard' : 'custom',
       isActive: true,
       duration: 180, // Standard duration
