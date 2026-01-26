@@ -16,6 +16,7 @@ export async function GET(request) {
     
     const sessions = await TestSession.find({ userId: decoded.userId })
       .populate('questionBankId')
+      .populate('testId', 'title configType testType')
       .sort({ createdAt: -1 })
     
     return NextResponse.json({ sessions })

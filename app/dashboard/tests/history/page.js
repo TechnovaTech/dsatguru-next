@@ -71,11 +71,15 @@ export default function TestHistoryPage() {
             const mathScore = session.mathScore || 0
             const completedDate = session.completedAt || session.createdAt
             
+            // Determine title based on test source
+            const isSelfTest = session.testId?.title === 'Self Practice Test' || session.testId?.configType === 'custom'
+            const displayTitle = isSelfTest ? 'Self Test Practice Test' : 'Admin SAT Practice Test'
+            
             return (
               <div key={session._id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900">SAT Practice Test</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">{displayTitle}</h3>
                     <p className="text-sm text-gray-500">
                       {new Date(completedDate).toLocaleDateString()} at {new Date(completedDate).toLocaleTimeString()}
                     </p>
