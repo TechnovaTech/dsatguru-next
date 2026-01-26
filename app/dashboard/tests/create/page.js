@@ -148,7 +148,7 @@ export default function CreatePracticePage() {
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto p-8 space-y-8">
+      <div className="w-full px-8 py-8 space-y-8">
         {/* Top Actions */}
         <div className="flex justify-end gap-4">
           <button className="group bg-white hover:bg-blue-50 text-blue-600 border border-blue-100 px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2.5">
@@ -169,7 +169,7 @@ export default function CreatePracticePage() {
         </div>
 
         {/* Main Content Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-gray-100/50 border border-gray-100 overflow-hidden">
+        <div className="bg-white overflow-hidden">
           {/* Tabs */}
           <div className="flex border-b bg-gray-50/50 p-2 gap-2">
             {['rw', 'math'].map((tab) => (
@@ -441,7 +441,14 @@ export default function CreatePracticePage() {
                                     {selectedDomains[domain.title] && <FiCheckSquare className="w-3.5 h-3.5 text-white" />}
                                  </div>
                                  <span className="text-sm font-bold text-gray-800">{domain.title}</span>
-                                 <span className="ml-auto text-xs bg-white px-2 py-1 rounded-md border text-gray-500 font-bold">{domain.count}</span>
+                                 <div className="flex items-center gap-2 ml-auto">
+                                   <span className="text-xs bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full font-bold border border-blue-200" title="Available Questions">
+                                     {domain.count}
+                                   </span>
+                                   <span className="flex items-center gap-0.5 text-[10px] text-gray-400 font-medium bg-white px-1.5 py-0.5 rounded border" title="Total Questions">
+                                     {domain.total} <FiLock className="w-2.5 h-2.5" />
+                                   </span>
+                                 </div>
                                </label>
                                <div className="space-y-2 pl-8">
                                 {domain.subs.map((sub, sIdx) => {
@@ -452,7 +459,7 @@ export default function CreatePracticePage() {
                                       <div className="w-4 h-4 rounded border border-gray-300 bg-white group-hover:border-blue-400 transition-colors flex-shrink-0" />
                                       <span className="text-xs font-medium text-gray-500 group-hover:text-blue-600 transition-colors flex-1">{subName}</span>
                                       {typeof sub !== 'string' && (
-                                        <span className="text-[10px] bg-gray-50 text-gray-400 px-1.5 py-0.5 rounded-full font-medium border border-gray-100">
+                                        <span className="text-[10px] bg-white text-gray-600 px-2 py-0.5 rounded-full font-bold border border-gray-200 group-hover:border-blue-200 group-hover:text-blue-600">
                                           {subCount}
                                         </span>
                                       )}
