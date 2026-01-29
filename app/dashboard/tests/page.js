@@ -95,14 +95,31 @@ export default function TestsPage() {
           {tests.map((test) => {
             const isCompleted = completedTestIds.includes(String(test._id))
             
+            // Determine display info based on test source/type
+            const isSelfTest = test.title === 'Self Practice Test' || test.configType === 'custom'
+            let displayTitle = test.title
+            let category = 'Admin Practice'
+            let typeLabel = test.configType === 'standard' ? 'Standard SAT' : 'Custom'
+
+            if (isSelfTest) {
+              const type = test.configType === 'standard' ? 'Standard' : 'Custom'
+              const mode = test.practiceMode === 'tutor' ? 'Tutor' : 'Timed'
+              displayTitle = `${type} ${mode}`
+              category = 'Self Practice'
+              typeLabel = `${type} ${mode}`
+            }
+
             return (
               <div key={test._id} className={`bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow ${
                 isCompleted ? 'opacity-75 border-2 border-green-500' : ''
               }`}>
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <FiFileText className="text-blue-600" size={24} />
-                    <h3 className="text-lg font-semibold text-gray-900">{test.title}</h3>
+                    <FiFileText className={isSelfTest ? "text-purple-600" : "text-blue-600"} size={24} />
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">{displayTitle}</h3>
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{category}</p>
+                    </div>
                   </div>
                   <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                     isCompleted 
@@ -116,7 +133,7 @@ export default function TestsPage() {
                 <div className="space-y-3 mb-6">
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <FiClock size={16} />
-                    <span>Duration: {test.duration || 180} minutes</span>
+                    <span>Duration: {test.practiceMode === 'tutor' ? 'Untimed' : `${test.duration || 180} minutes`}</span>
                   </div>
                   
                   <div className="border-t pt-3">
@@ -135,11 +152,9 @@ export default function TestsPage() {
                     </div>
                   </div>
 
-                  {test.configType && (
-                    <div className="text-xs text-gray-500">
-                      Type: {test.configType === 'standard' ? 'Standard SAT' : 'Custom'}
-                    </div>
-                  )}
+                  <div className="text-xs text-gray-500">
+                    Type: {typeLabel}
+                  </div>
                 </div>
 
                 {isCompleted ? (

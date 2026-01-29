@@ -119,6 +119,7 @@ export default function TakeTestPage() {
       window.addEventListener('mousemove', handleMouseMove)
       window.addEventListener('mouseup', handleMouseUp)
     }
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
@@ -514,6 +515,9 @@ export default function TakeTestPage() {
 
   const handleAnswer = (questionId, answer) => {
     setAnswers(prev => ({ ...prev, [questionId]: answer }))
+    if (test?.practiceMode === 'tutor') {
+      setShowAnswer(true)
+    }
   }
 
   const handleModuleComplete = () => {
@@ -839,6 +843,104 @@ export default function TakeTestPage() {
     )
   }
 
+  const optionsList = (
+    <div className="space-y-3">
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Choose an Answer
+        </span>
+      </div>
+      
+      {['A', 'B', 'C', 'D'].map((option) => {
+        const isSelected = answers[currentQ._id] === option
+        const isElim = isEliminated(currentQ._id, option)
+        const isTutor = test?.practiceMode === 'tutor'
+        const isCorrect = currentQ.correctAnswer === option
+        
+        let containerStyle = ''
+        let circleStyle = ''
+        
+        if (isTutor && answers[currentQ._id]) {
+            if (isSelected) {
+                if (isCorrect) {
+                    containerStyle = 'border-green-500 bg-green-50'
+                    circleStyle = 'border-green-600 bg-green-600 text-white'
+                } else {
+                    containerStyle = 'border-red-500 bg-red-50'
+                    circleStyle = 'border-red-600 bg-red-600 text-white'
+                }
+            } else if (isElim) {
+                 containerStyle = 'border-gray-200 bg-gray-50'
+                 circleStyle = 'border-gray-300 text-gray-300 bg-transparent'
+            } else {
+                containerStyle = 'border-gray-300 opacity-60'
+                circleStyle = 'border-gray-400 text-gray-700 bg-white'
+            }
+        } else {
+            if (isSelected) {
+                containerStyle = 'border-gray-800 bg-gray-50'
+                circleStyle = 'border-gray-800 bg-gray-800 text-white'
+            } else if (isElim) {
+                containerStyle = 'border-gray-200 bg-gray-50'
+                circleStyle = 'border-gray-300 text-gray-300 bg-transparent'
+            } else {
+                containerStyle = 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                circleStyle = 'border-gray-400 text-gray-700 bg-white group-hover:border-gray-600'
+            }
+        }
+
+        return (
+          <div key={option} className="flex items-stretch gap-3">
+            <div
+              className={`group flex-1 flex items-stretch border-2 rounded-lg transition-all overflow-hidden relative ${containerStyle}`}
+            >
+              <button
+                onClick={() => {
+                   if (isElim) toggleEliminateAnswer(currentQ._id, option);
+                   handleAnswer(currentQ._id, option);
+                }}
+                className="flex-1 text-left p-3 sm:p-4 flex items-start gap-3 sm:gap-4 relative"
+                disabled={isTutor && answers[currentQ._id]}
+              >
+                <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold transition-colors ${circleStyle}`}>
+                  {option}
+                </div>
+                <div className={`flex-1 pt-1 text-base sm:text-lg leading-relaxed ${
+                  isElim ? 'text-gray-400 line-through decoration-2 decoration-gray-400' : 'text-gray-900'
+                }`}>
+                  {currentQ?.[`option${option}`]}
+                </div>
+              </button>
+            </div>
+
+            <button
+               onClick={(e) => {
+                 e.stopPropagation()
+                 toggleEliminateAnswer(currentQ._id, option)
+               }}
+               className={`group flex-shrink-0 w-10 sm:w-12 flex items-center justify-center rounded-lg border-2 transition-colors ${
+                 isElim 
+                   ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' 
+                   : 'bg-white text-gray-300 border-gray-200 hover:text-gray-500 hover:border-gray-300 hover:bg-gray-50'
+               }`}
+               title={isElim ? "Undo Elimination" : "Eliminate Answer"}
+               disabled={isTutor && answers[currentQ._id]}
+            >
+              {isElim ? (
+                <span className="text-xs font-bold">Undo</span>
+              ) : (
+                <div className="relative w-5 h-5 flex items-center justify-center font-bold text-[10px] border border-current rounded">
+                  ABC
+                  <div className={`absolute inset-0 border-t border-current transform -rotate-12 top-1/2 ${isElim ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}></div>
+                </div>
+              )}
+            </button>
+          </div>
+        )
+      })}
+    </div>
+  )
+
   return (
     <div ref={testContainerRef} className="h-screen flex flex-col bg-white">
       {/* Top Header */}
@@ -988,8 +1090,8 @@ export default function TakeTestPage() {
           </div>
         )}
 
-        {/* Left Side - Passage + Question */}
-        <div className="w-1/2 overflow-y-auto p-8 bg-gray-50 relative border-r border-gray-300">
+        {/* Left Side - Passage + Question + (Tutor: Options) */}
+        <div className="w-1/2 h-full overflow-y-auto p-8 bg-gray-50 relative border-r border-gray-300">
           {/* Watermark */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-gray-300 text-6xl font-bold transform -rotate-45 opacity-30 select-none">
@@ -1008,17 +1110,24 @@ export default function TakeTestPage() {
               </div>
             )}
             
-            {/* Question Text - No Card */}
+            {/* Question Text */}
             <div className="mt-6">
               <p className="text-gray-900 text-base leading-relaxed font-medium">
                 {currentQ?.question || currentQ?.content}
               </p>
             </div>
+
+            {/* TUTOR MODE: Options on Left Side */}
+            {test?.practiceMode === 'tutor' && (
+              <div className="mt-8">
+                {optionsList}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right Side - Question Number & Options */}
-        <div className="w-1/2 overflow-y-auto p-8 bg-gray-50 relative">
+        {/* Right Side */}
+        <div className="w-1/2 h-full overflow-y-auto p-8 bg-gray-50 relative">
           {/* Watermark */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-gray-300 text-6xl font-bold transform -rotate-45 opacity-30 select-none">
@@ -1028,162 +1137,11 @@ export default function TakeTestPage() {
           
           {/* Content */}
           <div className="max-w-2xl mx-auto relative z-10">
-            {/* Question Number & Actions */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className="bg-black text-white w-12 h-12 rounded flex items-center justify-center font-bold text-lg">
-                {currentQuestion + 1}
-              </div>
-              <button 
-                onClick={async () => {
-                  const qId = currentQ._id
-                  const isMarked = markedQuestions.has(qId)
-                  
-                  try {
-                    const token = localStorage.getItem('token')
-                    if (isMarked) {
-                      await fetch(`/api/marked-questions?questionId=${qId}`, {
-                        method: 'DELETE',
-                        headers: { Authorization: `Bearer ${token}` }
-                      })
-                      setMarkedQuestions(prev => {
-                        const newSet = new Set(prev)
-                        newSet.delete(qId)
-                        return newSet
-                      })
-                    } else {
-                      await fetch('/api/marked-questions', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `Bearer ${token}`
-                        },
-                        body: JSON.stringify({
-                          questionId: qId,
-                          testId,
-                          testDate: new Date(),
-                          subject: currentQ.subject,
-                          difficulty: currentQ.difficulty,
-                          section: currentSection
-                        })
-                      })
-                      setMarkedQuestions(prev => new Set([...prev, qId]))
-                    }
-                  } catch (error) {
-                    console.error('Error marking question:', error)
-                  }
-                }}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${
-                  markedQuestions.has(currentQ._id) 
-                    ? 'text-yellow-600 bg-yellow-50 hover:bg-yellow-100' 
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <svg className="w-5 h-5" fill={markedQuestions.has(currentQ._id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-                <span className="font-medium text-sm">Mark for Review</span>
-              </button>
-            </div>
-
-            {/* Answer Options */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Choose an Answer
-                </span>
-              </div>
-              
-              {['A', 'B', 'C', 'D'].map((option) => {
-                const isSelected = answers[currentQ._id] === option
-                const isElim = isEliminated(currentQ._id, option)
-                
-                return (
-                  <div key={option} className="flex items-stretch gap-3">
-                    <div
-                      className={`group flex-1 flex items-stretch border-2 rounded-lg transition-all overflow-hidden relative ${
-                        isSelected
-                          ? 'border-gray-800 bg-gray-50'
-                          : isElim
-                          ? 'border-gray-200 bg-gray-50'
-                          : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                      }`}
-                    >
-                      {/* Main Selection Area */}
-                      <button
-                        onClick={() => {
-                           if (isElim) toggleEliminateAnswer(currentQ._id, option);
-                           handleAnswer(currentQ._id, option);
-                        }}
-                        className="flex-1 text-left p-3 sm:p-4 flex items-start gap-3 sm:gap-4 relative"
-                      >
-                        <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold transition-colors ${
-                          isSelected
-                            ? 'border-gray-800 bg-gray-800 text-white'
-                            : isElim
-                            ? 'border-gray-300 text-gray-300 bg-transparent'
-                            : 'border-gray-400 text-gray-700 bg-white group-hover:border-gray-600'
-                        }`}>
-                          {option}
-                        </div>
-                        <div className={`flex-1 pt-1 text-base sm:text-lg leading-relaxed ${
-                          isElim ? 'text-gray-400 line-through decoration-2 decoration-gray-400' : 'text-gray-900'
-                        }`}>
-                          {currentQ?.[`option${option}`]}
-                        </div>
-                      </button>
-                    </div>
-
-                    {/* Elimination Action Button - Outside Side Option */}
-                    <button
-                       onClick={(e) => {
-                         e.stopPropagation()
-                         toggleEliminateAnswer(currentQ._id, option)
-                       }}
-                       className={`group flex-shrink-0 w-10 sm:w-12 flex items-center justify-center rounded-lg border-2 transition-colors ${
-                         isElim 
-                           ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' 
-                           : 'bg-white text-gray-300 border-gray-200 hover:text-gray-500 hover:border-gray-300 hover:bg-gray-50'
-                       }`}
-                       title={isElim ? "Undo Elimination" : "Eliminate Answer"}
-                    >
-                      {isElim ? (
-                        <span className="text-xs font-bold">Undo</span>
-                      ) : (
-                        <div className="relative w-5 h-5 flex items-center justify-center font-bold text-[10px] border border-current rounded">
-                          ABC
-                          <div className={`absolute inset-0 border-t border-current transform -rotate-12 top-1/2 ${isElim ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}></div>
-                        </div>
-                      )}
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Tutor Mode: Show Answer & Explanation */}
-            {test?.practiceMode === 'tutor' && (
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <button
-                  onClick={() => setShowAnswer(!showAnswer)}
-                  className={`w-full py-3.5 rounded-xl font-bold text-sm uppercase tracking-wide transition-all flex items-center justify-center gap-2.5 ${
-                    showAnswer 
-                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' 
-                      : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100 shadow-sm'
-                  }`}
-                >
-                  {showAnswer ? (
-                    <>
-                      <FiSlash className="w-4 h-4" /> Hide Answer
-                    </>
-                  ) : (
-                    <>
-                      <FiCheckCircle className="w-4 h-4" /> Show Answer & Explanation
-                    </>
-                  )}
-                </button>
-                
-                {showAnswer && (
-                  <div className="mt-6 animate-in fade-in slide-in-from-top-4 duration-300">
+            {test?.practiceMode === 'tutor' ? (
+              // TUTOR MODE: Explanation Only (on Right Side)
+              <div>
+                 {showAnswer ? (
+                  <div className="animate-in fade-in slide-in-from-top-4 duration-300">
                     <div className="bg-green-50 rounded-xl p-6 border border-green-100 shadow-sm mb-4">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold shadow-sm">
@@ -1203,8 +1161,146 @@ export default function TakeTestPage() {
                       </div>
                     </div>
                   </div>
-                )}
+                 ) : (
+                   <div className="flex flex-col items-center justify-center h-96 text-gray-400">
+                     <FiHelpCircle className="w-16 h-16 mb-4 opacity-50" />
+                     <p className="text-lg font-medium">Select an answer to see the explanation</p>
+                   </div>
+                 )}
               </div>
+            ) : (
+              // TIMED MODE: Question Number + Standard Options
+              <>
+                {/* Question Number & Actions */}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="bg-black text-white w-12 h-12 rounded flex items-center justify-center font-bold text-lg">
+                    {currentQuestion + 1}
+                  </div>
+                  <button 
+                    onClick={async () => {
+                      const qId = currentQ._id
+                      const isMarked = markedQuestions.has(qId)
+                      
+                      try {
+                        const token = localStorage.getItem('token')
+                        if (isMarked) {
+                          await fetch(`/api/marked-questions?questionId=${qId}`, {
+                            method: 'DELETE',
+                            headers: { Authorization: `Bearer ${token}` }
+                          })
+                          setMarkedQuestions(prev => {
+                            const newSet = new Set(prev)
+                            newSet.delete(qId)
+                            return newSet
+                          })
+                        } else {
+                          await fetch('/api/marked-questions', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              Authorization: `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                              questionId: qId,
+                              testId,
+                              testDate: new Date(),
+                              subject: currentQ.subject,
+                              difficulty: currentQ.difficulty,
+                              section: currentSection
+                            })
+                          })
+                          setMarkedQuestions(prev => new Set([...prev, qId]))
+                        }
+                      } catch (error) {
+                        console.error('Error marking question:', error)
+                      }
+                    }}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${
+                      markedQuestions.has(currentQ._id) 
+                        ? 'text-yellow-600 bg-yellow-50 hover:bg-yellow-100' 
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill={markedQuestions.has(currentQ._id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                    <span className="font-medium text-sm">Mark for Review</span>
+                  </button>
+                </div>
+
+                {/* Answer Options */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Choose an Answer
+                    </span>
+                  </div>
+                  
+                  {['A', 'B', 'C', 'D'].map((option) => {
+                    const isSelected = answers[currentQ._id] === option
+                    const isElim = isEliminated(currentQ._id, option)
+                    
+                    return (
+                      <div key={option} className="flex items-stretch gap-3">
+                        <div
+                          className={`group flex-1 flex items-stretch border-2 rounded-lg transition-all overflow-hidden relative ${
+                            isSelected
+                              ? 'border-gray-800 bg-gray-50'
+                              : isElim
+                              ? 'border-gray-200 bg-gray-50'
+                              : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                          }`}
+                        >
+                          <button
+                            onClick={() => {
+                               if (isElim) toggleEliminateAnswer(currentQ._id, option);
+                               handleAnswer(currentQ._id, option);
+                            }}
+                            className="flex-1 text-left p-3 sm:p-4 flex items-start gap-3 sm:gap-4 relative"
+                          >
+                            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold transition-colors ${
+                              isSelected
+                                ? 'border-gray-800 bg-gray-800 text-white'
+                                : isElim
+                                ? 'border-gray-300 text-gray-300 bg-transparent'
+                                : 'border-gray-400 text-gray-700 bg-white group-hover:border-gray-600'
+                            }`}>
+                              {option}
+                            </div>
+                            <div className={`flex-1 pt-1 text-base sm:text-lg leading-relaxed ${
+                              isElim ? 'text-gray-400 line-through decoration-2 decoration-gray-400' : 'text-gray-900'
+                            }`}>
+                              {currentQ?.[`option${option}`]}
+                            </div>
+                          </button>
+                        </div>
+
+                        <button
+                           onClick={(e) => {
+                             e.stopPropagation()
+                             toggleEliminateAnswer(currentQ._id, option)
+                           }}
+                           className={`group flex-shrink-0 w-10 sm:w-12 flex items-center justify-center rounded-lg border-2 transition-colors ${
+                             isElim 
+                               ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' 
+                               : 'bg-white text-gray-300 border-gray-200 hover:text-gray-500 hover:border-gray-300 hover:bg-gray-50'
+                           }`}
+                           title={isElim ? "Undo Elimination" : "Eliminate Answer"}
+                        >
+                          {isElim ? (
+                            <span className="text-xs font-bold">Undo</span>
+                          ) : (
+                            <div className="relative w-5 h-5 flex items-center justify-center font-bold text-[10px] border border-current rounded">
+                              ABC
+                              <div className={`absolute inset-0 border-t border-current transform -rotate-12 top-1/2 ${isElim ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}></div>
+                            </div>
+                          )}
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
             )}
           </div>
         </div>
