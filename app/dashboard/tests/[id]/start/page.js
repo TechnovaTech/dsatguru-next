@@ -861,14 +861,14 @@ export default function TakeTestPage() {
         let circleStyle = ''
         
         if (isTutor && answers[currentQ._id]) {
-            if (isSelected) {
-                if (isCorrect) {
-                    containerStyle = 'border-green-500 bg-green-50'
-                    circleStyle = 'border-green-600 bg-green-600 text-white'
-                } else {
-                    containerStyle = 'border-red-500 bg-red-50'
-                    circleStyle = 'border-red-600 bg-red-600 text-white'
-                }
+            if (isCorrect) {
+                 // Always highlight correct answer in green, whether selected or not
+                 containerStyle = 'border-green-500 bg-green-50'
+                 circleStyle = 'border-green-600 bg-green-600 text-white'
+            } else if (isSelected) {
+                // Wrong answer selected
+                containerStyle = 'border-red-500 bg-red-50'
+                circleStyle = 'border-red-600 bg-red-600 text-white'
             } else if (isElim) {
                  containerStyle = 'border-gray-200 bg-gray-50'
                  circleStyle = 'border-gray-300 text-gray-300 bg-transparent'
@@ -1140,20 +1140,12 @@ export default function TakeTestPage() {
             {test?.practiceMode === 'tutor' ? (
               // TUTOR MODE: Explanation Only (on Right Side)
               <div>
-                 {showAnswer ? (
+                {showAnswer ? (
                   <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div className="bg-green-50 rounded-xl p-6 border border-green-100 shadow-sm mb-4">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold shadow-sm">
-                          {currentQ.correctAnswer}
-                        </div>
-                        <span className="font-bold text-green-800">Correct Answer</span>
-                      </div>
-                      <div className="h-px bg-green-200/50 w-full mb-4" />
-                      
+                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 shadow-sm mb-4">
                       <div className="prose prose-sm max-w-none">
                         <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
-                          <FiBookOpen className="text-green-600" /> Explanation
+                          <FiBookOpen className="text-gray-600" /> Explanation
                         </h4>
                         <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                           {currentQ.explanation || 'No detailed explanation available for this question.'}

@@ -188,49 +188,7 @@ export default function CreatePracticePage() {
           </div>
 
           <div className="p-8 space-y-8">
-            {/* Quick Section */}
-            <div className="border rounded-2xl overflow-hidden transition-all duration-300 hover:border-blue-200 hover:shadow-md bg-white">
-              <button 
-                onClick={() => toggleSection('quick')}
-                className="w-full px-6 py-5 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`p-2.5 rounded-xl transition-colors ${expandedSections.quick ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-500'}`}>
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <div className="text-left">
-                    <span className="block font-bold text-lg text-gray-800">Quick Practice</span>
-                    <span className="text-xs text-gray-500 font-medium">Instantly start a session</span>
-                  </div>
-                </div>
-                <div className={`transform transition-transform duration-300 ${expandedSections.quick ? 'rotate-180' : ''}`}>
-                  <FiChevronDown className="w-5 h-5 text-gray-400" />
-                </div>
-              </button>
-              
-              {expandedSections.quick && (
-                <div className="p-6 bg-gray-50/50 border-t flex items-center gap-6 animate-in slide-in-from-top-2 duration-200">
-                  <button 
-                    onClick={() => handleStartTest('quick')}
-                    disabled={isGenerating}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl text-sm font-bold uppercase tracking-wider shadow-lg shadow-blue-200 transition-all hover:shadow-blue-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isGenerating ? 'Starting...' : 'Start Now'}
-                  </button>
-                  <div className="flex items-center gap-3 bg-white px-4 py-2.5 rounded-xl border shadow-sm">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Count</span>
-                    <input 
-                      type="number" 
-                      defaultValue={1} 
-                      className="w-12 border-none bg-transparent font-bold text-center text-lg focus:ring-0 p-0 text-gray-800" 
-                    />
-                    <span className="text-xs font-medium text-gray-400 border-l pl-3">Max: {globalCounts.unused}</span>
-                  </div>
-                </div>
-              )}
-            </div>
+
 
             {/* Personalize Section */}
             <div className="border rounded-2xl overflow-hidden transition-all duration-300 hover:border-blue-200 hover:shadow-md bg-white">
@@ -291,28 +249,7 @@ export default function CreatePracticePage() {
                     </div>
                   </div>
 
-                  {/* Question Mode */}
-                  <div>
-                    <div className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-4">
-                      <div className="w-1 h-4 bg-purple-500 rounded-full"></div>
-                      Question Mode
-                    </div>
-                    <div className="inline-flex bg-gray-100 p-1.5 rounded-xl">
-                      {['standard', 'custom'].map((mode) => (
-                        <button
-                          key={mode}
-                          onClick={() => setQuestionMode(mode)}
-                          className={`px-6 py-2 rounded-lg text-sm font-bold transition-all shadow-sm ${
-                            questionMode === mode 
-                              ? 'bg-white text-purple-600 shadow-sm' 
-                              : 'text-gray-500 hover:text-gray-700 shadow-none'
-                          }`}
-                        >
-                          {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+
 
                   {/* Status Filters */}
                   <div>
@@ -474,22 +411,7 @@ export default function CreatePracticePage() {
                      )}
                   </div>
 
-                  {/* Footer Input */}
-                  <div className="pt-8 border-t flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-1">
-                        Question Limit
-                      </div>
-                      <p className="text-xs text-gray-400">Max allowed for this set: 0</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <input 
-                        type="number" 
-                        defaultValue={0} 
-                        className="w-20 border-2 border-gray-200 rounded-xl px-3 py-2 text-center text-lg font-bold text-gray-700 focus:border-blue-500 focus:ring-0 transition-colors" 
-                      />
-                    </div>
-                  </div>
+
 
                   {/* Generate Button */}
                   <div className="pt-4 flex flex-col items-end gap-2">
