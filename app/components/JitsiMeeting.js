@@ -32,6 +32,16 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
     if (!window.JitsiMeetExternalAPI) return
 
     const domain = 'meet.jit.si'
+    
+    // Define restricted buttons for students
+    const studentToolbarButtons = [
+      'microphone', 'camera', 'desktop', 'fullscreen',
+      'fodeviceselection', 'hangup', 'profile', 'chat',
+      'settings', 'raisehand', 'videoquality', 'filmstrip', 
+      'feedback', 'stats', 'shortcuts', 'tileview', 
+      'videobackgroundblur', 'help', 'whiteboard'
+    ]
+
     const options = {
       roomName: roomName,
       width: '100%',
@@ -44,19 +54,24 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
       configOverwrite: {
         startWithAudioMuted: true,
         startWithVideoMuted: true,
-        prejoinPageEnabled: false
+        prejoinPageEnabled: false,
+        fileRecordingServiceEnabled: isAdmin,
+        liveStreamingEnabled: isAdmin,
+        localRecording: {
+          enabled: isAdmin,
+          format: 'flac'
+        },
+        transcription: {
+          enabled: isAdmin,
+          useAppLanguage: true
+        }
       },
       interfaceConfigOverwrite: {
         SHOW_JITSI_WATERMARK: false,
         SHOW_WATERMARK_FOR_GUESTS: false,
-        TOOLBAR_BUTTONS: [
-          'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
-          'fodeviceselection', 'hangup', 'profile', 'chat', 'recording',
-          'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
-          'videoquality', 'filmstrip', 'invite', 'feedback', 'stats', 'shortcuts',
-          'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone',
-          'security', 'whiteboard'
-        ]
+        // Only restrict toolbar for non-admins (students)
+        // Admins get the default full toolbar
+        TOOLBAR_BUTTONS: isAdmin ? undefined : studentToolbarButtons
       }
     }
 
