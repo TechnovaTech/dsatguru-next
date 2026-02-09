@@ -132,6 +132,7 @@ function CourseContentManager({ course, onBack }) {
     uploadMethod: 'link'
   })
   const [viewingAssignment, setViewingAssignment] = useState(null)
+  const [editingAssignmentIndex, setEditingAssignmentIndex] = useState(null)
 
   useEffect(() => {
     fetchContent()
@@ -599,10 +600,14 @@ function CourseContentManager({ course, onBack }) {
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Assignments</h2>
               <button
-                onClick={() => setCourseData(prev => ({
-                  ...prev,
-                  assignments: [...prev.assignments, { title: '', dueDate: '', status: 'Pending' }]
-                }))}
+                onClick={() => {
+                  const newIndex = courseData.assignments.length
+                  setCourseData(prev => ({
+                    ...prev,
+                    assignments: [...prev.assignments, { title: '', dueDate: '', status: 'Pending' }]
+                  }))
+                  setEditingAssignmentIndex(newIndex)
+                }}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
               >
                 Add Assignment
@@ -610,146 +615,218 @@ function CourseContentManager({ course, onBack }) {
             </div>
             <div className="space-y-3">
               {courseData.assignments.map((a, index) => (
-                <div key={a._id || index} className="border rounded-lg p-4">
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Assignment Title</label>
-                      <input
-                        type="text"
-                        value={a.title}
-                        onChange={(e) => {
-                          const updated = [...courseData.assignments]
-                          updated[index] = { ...updated[index], title: e.target.value }
-                          setCourseData(prev => ({ ...prev, assignments: updated }))
-                        }}
-                        className="w-full p-2 border rounded"
-                        placeholder="Enter assignment title"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Description</label>
-                      <textarea
-                        value={a.description || ''}
-                        onChange={(e) => {
-                          const updated = [...courseData.assignments]
-                          updated[index] = { ...updated[index], description: e.target.value }
-                          setCourseData(prev => ({ ...prev, assignments: updated }))
-                        }}
-                        className="w-full p-2 border rounded"
-                        placeholder="Enter assignment description"
-                        rows="3"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Due Date (dd-mm-yyyy)</label>
-                      <input
-                        type="date"
-                        value={a.dueDate}
-                        onChange={(e) => {
-                          const updated = [...courseData.assignments]
-                          updated[index] = { ...updated[index], dueDate: e.target.value }
-                          setCourseData(prev => ({ ...prev, assignments: updated }))
-                        }}
-                        className="w-full p-2 border rounded"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Status</label>
-                      <select
-                        value={a.status}
-                        onChange={(e) => {
-                          const updated = [...courseData.assignments]
-                          updated[index] = { ...updated[index], status: e.target.value }
-                          setCourseData(prev => ({ ...prev, assignments: updated }))
-                        }}
-                        className="w-full p-2 border rounded"
-                      >
-                        <option value="Pending">Pending</option>
-                        <option value="Active">Active</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Overdue">Overdue</option>
-                      </select>
-                    </div>
-                    
-                    {/* Assignment Materials */}
-                    <div className="border-t pt-3 mt-3">
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="block text-sm font-medium text-gray-700">Attached Materials</label>
-                        <button
-                          onClick={() => {
-                            setCurrentAssignmentIndex(index)
-                            setShowAssignmentMaterialModal(true)
-                          }}
-                          className="text-blue-600 text-sm flex items-center gap-1 hover:underline"
+                <div key={a._id || index} className="border rounded-lg bg-white shadow-sm overflow-hidden">
+                  {editingAssignmentIndex === index ? (
+                    /* Edit Mode - Full Form */
+                    <div className="p-4 bg-blue-50">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-semibold text-blue-800">Editing Assignment</h3>
+                        <button 
+                          onClick={() => setEditingAssignmentIndex(null)}
+                          className="text-sm bg-white border border-gray-300 px-3 py-1 rounded hover:bg-gray-50"
                         >
-                          <FiUpload size={14} /> Add Material
+                          Done Editing
                         </button>
                       </div>
-                      <div className="space-y-2 bg-gray-50 p-3 rounded">
-                        {a.materials && a.materials.length > 0 ? (
-                          a.materials.map((mat, matIndex) => (
-                            <div key={matIndex} className="flex items-center justify-between bg-white p-2 rounded border text-sm">
-                              <div className="flex items-center gap-2 overflow-hidden">
-                                <FiFileText className="text-gray-500 flex-shrink-0" />
-                                <a 
-                                  href={mat.link} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer" 
-                                  className="text-blue-600 hover:underline truncate"
-                                  title={mat.name}
-                                >
-                                  {mat.name || 'Untitled Material'}
-                                </a>
-                                <span className="text-xs text-gray-400 uppercase border px-1 rounded flex-shrink-0">{mat.type}</span>
-                              </div>
-                              <button
-                                onClick={() => {
-                                  const updated = [...courseData.assignments]
-                                  const updatedMaterials = updated[index].materials.filter((_, i) => i !== matIndex)
-                                  updated[index] = { ...updated[index], materials: updatedMaterials }
-                                  setCourseData(prev => ({ ...prev, assignments: updated }))
-                                }}
-                                className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 flex-shrink-0"
-                                title="Remove Material"
-                              >
-                                <FiTrash2 size={14} />
-                              </button>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="text-sm text-gray-400 italic text-center py-2">No materials attached to this assignment</div>
-                        )}
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Assignment Title</label>
+                          <input
+                            type="text"
+                            value={a.title}
+                            onChange={(e) => {
+                              const updated = [...courseData.assignments]
+                              updated[index] = { ...updated[index], title: e.target.value }
+                              setCourseData(prev => ({ ...prev, assignments: updated }))
+                            }}
+                            className="w-full p-2 border rounded"
+                            placeholder="Enter assignment title"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Description</label>
+                          <textarea
+                            value={a.description || ''}
+                            onChange={(e) => {
+                              const updated = [...courseData.assignments]
+                              updated[index] = { ...updated[index], description: e.target.value }
+                              setCourseData(prev => ({ ...prev, assignments: updated }))
+                            }}
+                            className="w-full p-2 border rounded"
+                            placeholder="Enter assignment description"
+                            rows="3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Due Date (dd-mm-yyyy)</label>
+                            <input
+                              type="date"
+                              value={a.dueDate}
+                              onChange={(e) => {
+                                const updated = [...courseData.assignments]
+                                updated[index] = { ...updated[index], dueDate: e.target.value }
+                                setCourseData(prev => ({ ...prev, assignments: updated }))
+                              }}
+                              className="w-full p-2 border rounded"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Status</label>
+                            <select
+                              value={a.status}
+                              onChange={(e) => {
+                                const updated = [...courseData.assignments]
+                                updated[index] = { ...updated[index], status: e.target.value }
+                                setCourseData(prev => ({ ...prev, assignments: updated }))
+                              }}
+                              className="w-full p-2 border rounded"
+                            >
+                              <option value="Pending">Pending</option>
+                              <option value="Active">Active</option>
+                              <option value="Completed">Completed</option>
+                              <option value="Overdue">Overdue</option>
+                            </select>
+                          </div>
+                        </div>
+                        
+                        {/* Assignment Materials */}
+                        <div className="border-t pt-3 mt-3">
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium text-gray-700">Attached Materials</label>
+                            <button
+                              onClick={() => {
+                                setCurrentAssignmentIndex(index)
+                                setShowAssignmentMaterialModal(true)
+                              }}
+                              className="text-blue-600 text-sm flex items-center gap-1 hover:underline"
+                            >
+                              <FiUpload size={14} /> Add Material
+                            </button>
+                          </div>
+                          <div className="space-y-2 bg-white p-3 rounded border">
+                            {a.materials && a.materials.length > 0 ? (
+                              a.materials.map((mat, matIndex) => (
+                                <div key={matIndex} className="flex items-center justify-between bg-gray-50 p-2 rounded border text-sm">
+                                  <div className="flex items-center gap-2 overflow-hidden">
+                                    <FiFileText className="text-gray-500 flex-shrink-0" />
+                                    <a 
+                                      href={mat.link} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer" 
+                                      className="text-blue-600 hover:underline truncate"
+                                      title={mat.name}
+                                    >
+                                      {mat.name || 'Untitled Material'}
+                                    </a>
+                                    <span className="text-xs text-gray-400 uppercase border px-1 rounded flex-shrink-0">{mat.type}</span>
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      const updated = [...courseData.assignments]
+                                      const updatedMaterials = updated[index].materials.filter((_, i) => i !== matIndex)
+                                      updated[index] = { ...updated[index], materials: updatedMaterials }
+                                      setCourseData(prev => ({ ...prev, assignments: updated }))
+                                    }}
+                                    className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 flex-shrink-0"
+                                    title="Remove Material"
+                                  >
+                                    <FiTrash2 size={14} />
+                                  </button>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="text-sm text-gray-400 italic text-center py-2">No materials attached to this assignment</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-4 pt-4 border-t border-blue-200">
+                        <button
+                          onClick={() => setEditingAssignmentIndex(null)}
+                          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 w-full"
+                        >
+                          Save & Close Editor
+                        </button>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      onClick={() => setViewingAssignment(a)}
-                      className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-                    >
-                      View
-                    </button>
-                    <button
-                      onClick={() => setCourseData(prev => ({
-                        ...prev,
-                        assignments: [...prev.assignments.slice(0, index + 1), { title: '', description: '', dueDate: '', status: 'Pending' }, ...prev.assignments.slice(index + 1)]
-                      }))}
-                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Add Below
-                    </button>
-                    <button
-                      onClick={() => {
-                        const updated = courseData.assignments.filter((_, i) => i !== index)
-                        setCourseData(prev => ({ ...prev, assignments: updated }))
-                      }}
-                      className="bg-red-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Remove
-                    </button>
-                  </div>
+                  ) : (
+                    /* View Mode - Summary List */
+                    <div className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                      <div className="flex-1 min-w-0 pr-4">
+                        <div className="flex items-center gap-3 mb-1">
+                          <h3 className="font-semibold text-gray-900 truncate" title={a.title}>
+                            {a.title || '(Untitled Assignment)'}
+                          </h3>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            a.status === 'Active' ? 'bg-green-100 text-green-800' :
+                            a.status === 'Completed' ? 'bg-blue-100 text-blue-800' :
+                            a.status === 'Overdue' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {a.status}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <FiCalendar size={14} /> 
+                            {a.dueDate ? `Due: ${a.dueDate}` : 'No due date'}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <FiFileText size={14} />
+                            {a.materials?.length || 0} Materials
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => setViewingAssignment(a)}
+                          className="bg-green-600 text-white px-3 py-1.5 rounded text-sm hover:bg-green-700 flex items-center gap-1"
+                        >
+                          <FiFileText /> View
+                        </button>
+                        <button
+                          onClick={() => setEditingAssignmentIndex(index)}
+                          className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 flex items-center gap-1"
+                        >
+                          <FiEdit /> Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm('Are you sure you want to delete this assignment?')) {
+                              const updated = courseData.assignments.filter((_, i) => i !== index)
+                              setCourseData(prev => ({ ...prev, assignments: updated }))
+                            }
+                          }}
+                          className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 flex items-center gap-1"
+                        >
+                          <FiTrash2 /> Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
+              
+              {courseData.assignments.length === 0 && (
+                <div className="text-center py-10 border-2 border-dashed rounded-lg text-gray-400">
+                  <FiFileText size={48} className="mx-auto mb-2 opacity-50" />
+                  <p>No assignments created yet.</p>
+                  <button
+                    onClick={() => {
+                      setCourseData(prev => ({
+                        ...prev,
+                        assignments: [...prev.assignments, { title: '', dueDate: '', status: 'Pending' }]
+                      }))
+                      setEditingAssignmentIndex(0)
+                    }}
+                    className="text-blue-600 hover:underline mt-2"
+                  >
+                    Create your first assignment
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
