@@ -122,6 +122,15 @@ function CourseContentManager({ course, onBack }) {
     accessType: 'lifetime',
     accessDuration: ''
   })
+  const [showAssignmentMaterialModal, setShowAssignmentMaterialModal] = useState(false)
+  const [currentAssignmentIndex, setCurrentAssignmentIndex] = useState(null)
+  const [assignmentMaterialForm, setAssignmentMaterialForm] = useState({
+    name: '',
+    file: null,
+    link: '',
+    type: 'pdf',
+    uploadMethod: 'link'
+  })
 
   useEffect(() => {
     fetchContent()
@@ -659,6 +668,57 @@ function CourseContentManager({ course, onBack }) {
                         <option value="Completed">Completed</option>
                         <option value="Overdue">Overdue</option>
                       </select>
+                    </div>
+                    
+                    {/* Assignment Materials */}
+                    <div className="border-t pt-3 mt-3">
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block text-sm font-medium text-gray-700">Attached Materials</label>
+                        <button
+                          onClick={() => {
+                            setCurrentAssignmentIndex(index)
+                            setShowAssignmentMaterialModal(true)
+                          }}
+                          className="text-blue-600 text-sm flex items-center gap-1 hover:underline"
+                        >
+                          <FiUpload size={14} /> Add Material
+                        </button>
+                      </div>
+                      <div className="space-y-2 bg-gray-50 p-3 rounded">
+                        {a.materials && a.materials.length > 0 ? (
+                          a.materials.map((mat, matIndex) => (
+                            <div key={matIndex} className="flex items-center justify-between bg-white p-2 rounded border text-sm">
+                              <div className="flex items-center gap-2 overflow-hidden">
+                                <FiFileText className="text-gray-500 flex-shrink-0" />
+                                <a 
+                                  href={mat.link} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="text-blue-600 hover:underline truncate"
+                                  title={mat.name}
+                                >
+                                  {mat.name || 'Untitled Material'}
+                                </a>
+                                <span className="text-xs text-gray-400 uppercase border px-1 rounded flex-shrink-0">{mat.type}</span>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const updated = [...courseData.assignments]
+                                  const updatedMaterials = updated[index].materials.filter((_, i) => i !== matIndex)
+                                  updated[index] = { ...updated[index], materials: updatedMaterials }
+                                  setCourseData(prev => ({ ...prev, assignments: updated }))
+                                }}
+                                className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 flex-shrink-0"
+                                title="Remove Material"
+                              >
+                                <FiTrash2 size={14} />
+                              </button>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-sm text-gray-400 italic text-center py-2">No materials attached to this assignment</div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-2 mt-3">
@@ -1283,6 +1343,161 @@ function CourseContentManager({ course, onBack }) {
                   className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                   Update Enrollment
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Assignment Material Modal */}
+      {showAssignmentMaterialModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Add Assignment Material</h2>
+            <form onSubmit={async (e) => {
+              e.preventDefault()
+              setUploading(true)
+              try {
+                let finalLink = assignmentMaterialForm.link
+                
+                if (assignmentMaterialForm.uploadMethod === 'upload' && assignmentMaterialForm.file) {
+                    const formData = new FormData()
+                    formData.append('file', assignmentMaterialForm.file)
+                    
+                    const uploadResponse = await fetch('/api/upload/materials', {
+                      method: 'POST',
+                      body: formData
+                    })
+                    
+                    if (uploadResponse.ok) {
+                      const uploadResult = await uploadResponse.json()
+                      finalLink = uploadResult.url
+                    } else {
+                      throw new Error('File upload failed')
+                    }
+                }
+
+                const newMaterial = {
+                    name: assignmentMaterialForm.name,
+                    link: finalLink,
+                    type: assignmentMaterialForm.type
+                }
+
+                const updated = [...courseData.assignments]
+                const currentMaterials = updated[currentAssignmentIndex].materials || []
+                updated[currentAssignmentIndex] = { 
+                    ...updated[currentAssignmentIndex], 
+                    materials: [...currentMaterials, newMaterial] 
+                }
+                setCourseData(prev => ({ ...prev, assignments: updated }))
+
+                setShowAssignmentMaterialModal(false)
+                setAssignmentMaterialForm({
+                    name: '',
+                    file: null,
+                    link: '',
+                    type: 'pdf',
+                    uploadMethod: 'link'
+                })
+                alert('Material added to assignment! Don\'t forget to save changes.')
+
+              } catch (error) {
+                console.error(error)
+                alert('Failed to add material: ' + error.message)
+              } finally {
+                setUploading(false)
+              }
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Material Name</label>
+                  <input
+                    type="text"
+                    value={assignmentMaterialForm.name}
+                    onChange={(e) => setAssignmentMaterialForm({...assignmentMaterialForm, name: e.target.value})}
+                    className="w-full border rounded px-3 py-2"
+                    placeholder="e.g. Question Paper, Reference Doc"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Source Type</label>
+                  <div className="flex gap-4 mb-2">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        checked={assignmentMaterialForm.uploadMethod === 'link'}
+                        onChange={() => setAssignmentMaterialForm({...assignmentMaterialForm, uploadMethod: 'link'})}
+                      />
+                      <span>External Link</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        checked={assignmentMaterialForm.uploadMethod === 'upload'}
+                        onChange={() => setAssignmentMaterialForm({...assignmentMaterialForm, uploadMethod: 'upload'})}
+                      />
+                      <span>File Upload</span>
+                    </label>
+                  </div>
+                </div>
+
+                {assignmentMaterialForm.uploadMethod === 'link' ? (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Link URL</label>
+                    <input
+                      type="url"
+                      value={assignmentMaterialForm.link}
+                      onChange={(e) => setAssignmentMaterialForm({...assignmentMaterialForm, link: e.target.value})}
+                      className="w-full border rounded px-3 py-2"
+                      placeholder="https://..."
+                      required
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Select File</label>
+                    <input
+                      type="file"
+                      onChange={(e) => setAssignmentMaterialForm({...assignmentMaterialForm, file: e.target.files[0]})}
+                      className="w-full border rounded px-3 py-2"
+                      required
+                    />
+                  </div>
+                )}
+
+                <div>
+                    <label className="block text-sm font-medium mb-1">File Type Label</label>
+                    <select
+                        value={assignmentMaterialForm.type}
+                        onChange={(e) => setAssignmentMaterialForm({...assignmentMaterialForm, type: e.target.value})}
+                        className="w-full border rounded px-3 py-2"
+                    >
+                        <option value="pdf">PDF Document</option>
+                        <option value="video">Video</option>
+                        <option value="doc">Word Document</option>
+                        <option value="link">Web Link</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowAssignmentMaterialModal(false)}
+                  className="flex-1 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploading}
+                  className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {uploading ? 'Uploading...' : 'Add Material'}
                 </button>
               </div>
             </form>
