@@ -38,9 +38,9 @@ export async function POST(request) {
       }, { status: 500 })
     }
 
-    // Return the download API URL for forced downloads
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    const fileUrl = `${baseUrl}/api/download/materials?file=${filename}`
+    // Return the static URL directly for better performance and reliability
+    // The download API route will still exist for backward compatibility
+    const fileUrl = `/uploads/materials/${filename}`
     
     return NextResponse.json({ 
       success: true, 

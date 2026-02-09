@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
+import { existsSync } from 'fs'
 import path from 'path'
 
 export async function GET(request) {
@@ -13,6 +14,14 @@ export async function GET(request) {
 
     const filepath = path.join(process.cwd(), 'public', 'uploads', 'materials', filename)
     
+    // Check if file exists before trying to read
+    if (!existsSync(filepath)) {
+      console.warn(`File not found at path: ${filepath}`)
+      // Fallback: Redirect to static path if file logic fails
+      // This handles cases where file exists but path resolution is tricky
+      return NextResponse.redirect(new URL(`/uploads/materials/${filename}`, request.url))
+    }
+
     try {
       const fileBuffer = await readFile(filepath)
       
@@ -39,7 +48,8 @@ export async function GET(request) {
       })
     } catch (fileError) {
       console.error('File read error:', fileError)
-      return NextResponse.json({ error: 'File not found' }, { status: 404 })
+      // Fallback to static redirect on read error
+      return NextResponse.redirect(new URL(`/uploads/materials/${filename}`, request.url))
     }
   } catch (error) {
     console.error('Download error:', error)

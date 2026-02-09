@@ -131,6 +131,7 @@ function CourseContentManager({ course, onBack }) {
     type: 'pdf',
     uploadMethod: 'link'
   })
+  const [viewingAssignment, setViewingAssignment] = useState(null)
 
   useEffect(() => {
     fetchContent()
@@ -722,6 +723,12 @@ function CourseContentManager({ course, onBack }) {
                     </div>
                   </div>
                   <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => setViewingAssignment(a)}
+                      className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                    >
+                      View
+                    </button>
                     <button
                       onClick={() => setCourseData(prev => ({
                         ...prev,
@@ -1501,6 +1508,112 @@ function CourseContentManager({ course, onBack }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Assignment Modal */}
+      {viewingAssignment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-xl font-bold">{viewingAssignment.title || 'Untitled Assignment'}</h2>
+                <div className="flex gap-2 mt-1">
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    viewingAssignment.status === 'Active' ? 'bg-green-100 text-green-800' :
+                    viewingAssignment.status === 'Completed' ? 'bg-blue-100 text-blue-800' :
+                    viewingAssignment.status === 'Overdue' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {viewingAssignment.status}
+                  </span>
+                  {viewingAssignment.dueDate && (
+                    <span className="text-xs text-gray-500 flex items-center gap-1 border px-2 py-1 rounded">
+                      <FiCalendar size={12} /> Due: {viewingAssignment.dueDate}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingAssignment(null)}
+                className="text-gray-500 hover:text-gray-700 p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Description */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Description</h3>
+                <p className="text-gray-600 whitespace-pre-wrap">
+                  {viewingAssignment.description || 'No description provided.'}
+                </p>
+              </div>
+
+              {/* Materials */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide flex items-center gap-2">
+                  <FiDownload /> Attached Materials ({viewingAssignment.materials?.length || 0})
+                </h3>
+                
+                <div className="space-y-3">
+                  {viewingAssignment.materials && viewingAssignment.materials.length > 0 ? (
+                    viewingAssignment.materials.map((mat, idx) => (
+                      <div key={idx} className="flex items-center justify-between border p-3 rounded hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-blue-100 p-2 rounded text-blue-600">
+                            {mat.type === 'video' ? <FiVideo /> : <FiFileText />}
+                          </div>
+                          <div>
+                            <div className="font-medium">{mat.name || 'Untitled Material'}</div>
+                            <div className="text-xs text-gray-500 uppercase">{mat.type}</div>
+                          </div>
+                        </div>
+                        
+                        {mat.link && (
+                          <a
+                            href={mat.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 transition-colors"
+                          >
+                            <FiDownload size={14} /> Download/View
+                          </a>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-6 border-2 border-dashed rounded-lg text-gray-400">
+                      No materials attached to this assignment.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between mt-8 pt-4 border-t">
+               <button
+                onClick={() => {
+                  if (confirm('Are you sure you want to delete this assignment?')) {
+                    const updated = courseData.assignments.filter(a => a !== viewingAssignment)
+                    setCourseData(prev => ({ ...prev, assignments: updated }))
+                    setViewingAssignment(null)
+                  }
+                }}
+                className="text-red-600 hover:text-red-800 flex items-center gap-2 px-3 py-2 rounded hover:bg-red-50"
+              >
+                <FiTrash2 /> Delete Assignment
+              </button>
+              
+              <button
+                onClick={() => setViewingAssignment(null)}
+                className="bg-gray-200 text-gray-800 px-6 py-2 rounded hover:bg-gray-300"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
