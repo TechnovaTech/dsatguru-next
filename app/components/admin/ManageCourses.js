@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2, FiFolder, FiUpload, FiFile } from 'react-icons/fi'
+import JitsiMeeting from '../JitsiMeeting'
 
 export default function ManageCourses() {
   const [courses, setCourses] = useState([])
@@ -133,6 +134,7 @@ function CourseContentManager({ course, onBack }) {
   })
   const [viewingAssignment, setViewingAssignment] = useState(null)
   const [editingAssignmentIndex, setEditingAssignmentIndex] = useState(null)
+  const [activeAdminMeeting, setActiveAdminMeeting] = useState(null)
 
   useEffect(() => {
     fetchContent()
@@ -416,7 +418,7 @@ function CourseContentManager({ course, onBack }) {
                     placeholder="Meeting title"
                   />
                   <input
-                    type="text"
+                    type="datetime-local"
                     value={m.date}
                     onChange={(e) => {
                       const updated = [...courseData.meetings]
@@ -426,17 +428,41 @@ function CourseContentManager({ course, onBack }) {
                     className="w-full mb-2 p-2 border rounded"
                     placeholder="Date & time"
                   />
-                  <input
-                    type="url"
-                    value={m.link}
-                    onChange={(e) => {
-                      const updated = [...courseData.meetings]
-                      updated[index] = { ...updated[index], link: e.target.value }
-                      setCourseData(prev => ({ ...prev, meetings: updated }))
-                    }}
-                    className="w-full mb-2 p-2 border rounded"
-                    placeholder="Meeting link"
-                  />
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={m.link}
+                      onChange={(e) => {
+                        const updated = [...courseData.meetings]
+                        updated[index] = { ...updated[index], link: e.target.value }
+                        setCourseData(prev => ({ ...prev, meetings: updated }))
+                      }}
+                      className="flex-1 p-2 border rounded"
+                      placeholder="Meeting link or Room Name"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = [...courseData.meetings]
+                        const randomId = Math.random().toString(36).substring(7)
+                        const roomName = `DSATGuru-${Date.now()}-${randomId}`
+                        updated[index] = { ...updated[index], link: roomName }
+                        setCourseData(prev => ({ ...prev, meetings: updated }))
+                      }}
+                      className="bg-purple-100 text-purple-700 px-3 py-2 rounded hover:bg-purple-200 text-sm whitespace-nowrap"
+                    >
+                      Generate Room
+                    </button>
+                    {m.link && (
+                      <button
+                        onClick={() => setActiveAdminMeeting(m)}
+                        className="bg-green-100 text-green-700 px-3 py-2 rounded hover:bg-green-200 text-sm whitespace-nowrap flex items-center"
+                        title="Join Meeting as Admin"
+                      >
+                        <FiVideo className="mr-1" /> Join
+                      </button>
+                    )}
+                  </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setCourseData(prev => ({
@@ -1693,6 +1719,17 @@ function CourseContentManager({ course, onBack }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Admin Jitsi Meeting Modal */}
+      {activeAdminMeeting && (
+        <JitsiMeeting
+          roomName={activeAdminMeeting.link}
+          displayName={`Admin (Host)`}
+          email="admin@dsatguru.com" // You might want to get real admin email if available
+          isAdmin={true}
+          onClose={() => setActiveAdminMeeting(null)}
+        />
       )}
     </div>
   )

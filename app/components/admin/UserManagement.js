@@ -7,6 +7,7 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('')
   const [showModal, setShowModal] = useState(false)
+  const [editingUser, setEditingUser] = useState(null)
   const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'Student' })
 
   useEffect(() => {
@@ -46,12 +47,15 @@ export default function UserManagement() {
     } catch {}
   }
 
-  const handleAddUser = async (e) => {
+  const handleSaveUser = async (e) => {
     e.preventDefault()
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch('/api/admin/users', {
-        method: 'POST',
+      const url = editingUser ? `/api/admin/users/${editingUser._id || editingUser.id}` : '/api/admin/users'
+      const method = editingUser ? 'PUT' : 'POST'
+      
+      const res = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
@@ -59,18 +63,36 @@ export default function UserManagement() {
         body: JSON.stringify(formData)
       })
       if (res.ok) {
-        const newUser = await res.json()
-        setUsers(prev => [...prev, newUser])
+        const savedUser = await res.json()
+        if (editingUser) {
+          setUsers(prev => prev.map(u => (u._id === savedUser._id || u.id === savedUser._id) ? savedUser : u))
+          alert('User updated successfully!')
+        } else {
+          setUsers(prev => [...prev, savedUser])
+          alert('User created successfully!')
+        }
         setShowModal(false)
         setFormData({ name: '', email: '', password: '', role: 'Student' })
-        alert('User created successfully!')
+        setEditingUser(null)
       } else {
         const error = await res.json()
-        alert(error.error || 'Failed to create user')
+        alert(error.error || `Failed to ${editingUser ? 'update' : 'create'} user`)
       }
     } catch (error) {
-      alert('Failed to create user')
+      alert(`Failed to ${editingUser ? 'update' : 'create'} user`)
     }
+  }
+
+  const openAddModal = () => {
+    setEditingUser(null)
+    setFormData({ name: '', email: '', password: '', role: 'Student' })
+    setShowModal(true)
+  }
+
+  const openEditModal = (user) => {
+    setEditingUser(user)
+    setFormData({ name: user.name, email: user.email, password: '', role: user.role })
+    setShowModal(true)
   }
 
   const handleDeleteUser = async (id) => {
@@ -114,7 +136,7 @@ export default function UserManagement() {
             <option value="Admin">Admins</option>
           </select>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={openAddModal}
             className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-700"
           >
             <FiPlus /> Add User
@@ -167,6 +189,13 @@ export default function UserManagement() {
                       {user.isActive ? <FiToggleRight /> : <FiToggleLeft />}
                     </button>
                     <button
+                      onClick={() => openEditModal(user)}
+                      className="text-indigo-600 hover:text-indigo-900 mr-3"
+                      title="Edit User"
+                    >
+                      <FiEdit />
+                    </button>
+                    <button
                       onClick={() => handleDeleteUser(user._id || user.id)}
                       className="text-red-600 hover:text-red-900"
                       title="Delete User"
@@ -180,12 +209,12 @@ export default function UserManagement() {
           </table>
         </div>
 
-        {/* Add User Modal */}
+        {/* Add/Edit User Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4">Add New User</h2>
-              <form onSubmit={handleAddUser}>
+              <h2 className="text-xl font-bold mb-4">{editingUser ? 'Edit User' : 'Add New User'}</h2>
+              <form onSubmit={handleSaveUser}>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Name</label>
@@ -208,14 +237,16 @@ export default function UserManagement() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Password</label>
+                    <label className="block text-sm font-medium mb-1">
+                      Password {editingUser && <span className="text-gray-400 font-normal text-xs">(Leave blank to keep current)</span>}
+                    </label>
                     <input
                       type="password"
                       value={formData.password}
                       onChange={(e) => setFormData({...formData, password: e.target.value})}
                       className="w-full border rounded px-3 py-2"
-                      required
-                      minLength="6"
+                      required={!editingUser}
+                      placeholder={editingUser ? "Unchanged" : ""}
                     />
                   </div>
                   <div>
@@ -231,22 +262,19 @@ export default function UserManagement() {
                     </select>
                   </div>
                 </div>
-                <div className="flex gap-3 mt-6">
+                <div className="flex justify-end gap-2 mt-6">
                   <button
                     type="button"
-                    onClick={() => {
-                      setShowModal(false)
-                      setFormData({ name: '', email: '', password: '', role: 'Student' })
-                    }}
-                    className="flex-1 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                    onClick={() => setShowModal(false)}
+                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                   >
-                    Create User
+                    {editingUser ? 'Update User' : 'Create User'}
                   </button>
                 </div>
               </form>

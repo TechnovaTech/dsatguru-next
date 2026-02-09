@@ -3,7 +3,7 @@ import { useAuth } from '../components/AuthContext'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useEffect } from 'react'
-import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock } from 'react-icons/fi'
+import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock, FiVideo } from 'react-icons/fi'
 import { useState } from 'react'
 
 const navItems = [
@@ -26,6 +26,7 @@ const navItems = [
       { name: "Practice History", icon: <FiClock />, path: "/dashboard/tests/history" },
     ]
   },
+  { name: "Live Classes", icon: <FiVideo />, path: "/dashboard/live-classes" },
   { name: "Live Courses", icon: <FiBook />, path: "/dashboard/courses" },
   { name: "Question Banks", icon: <FiDatabase />, path: "/dashboard/question-banks" },
   { name: "Study Plan", icon: <FiTarget />, path: "/dashboard/study-plan" },
