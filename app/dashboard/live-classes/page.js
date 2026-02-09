@@ -4,13 +4,15 @@ import { useAuth } from '../../components/AuthContext'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
 import JitsiMeeting from '../../components/JitsiMeeting'
-import { FiCalendar, FiVideo, FiClock, FiRefreshCw } from 'react-icons/fi'
+import { FiCalendar, FiVideo, FiClock, FiRefreshCw, FiBell } from 'react-icons/fi'
 
 export default function LiveClassesPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [meetings, setMeetings] = useState([])
+  const [notifications, setNotifications] = useState([])
+  const [showNotifications, setShowNotifications] = useState(false)
   const [activeMeeting, setActiveMeeting] = useState(null)
 
   useEffect(() => {
@@ -49,6 +51,17 @@ export default function LiveClassesPage() {
           })
         
         setMeetings(allMeetings)
+
+        const allNotifications = enrollments
+          .filter(e => e.type === 'course' && e.courseId && Array.isArray(e.courseId.calendarEvents))
+          .flatMap(e => e.courseId.calendarEvents.map(evt => ({
+            ...evt,
+            courseTitle: e.courseId.title,
+            parsedDate: new Date(evt.start || evt.date)
+          })))
+          .sort((a, b) => b.parsedDate - a.parsedDate)
+        
+        setNotifications(allNotifications)
       }
     } catch (error) {
       console.error('Error fetching meetings:', error)
@@ -89,12 +102,53 @@ export default function LiveClassesPage() {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Live Classes</h1>
-        <button 
-          onClick={fetchMeetings} 
-          className="flex items-center gap-2 text-sm text-blue-600 hover:bg-blue-50 px-3 py-2 rounded transition-colors"
-        >
-          <FiRefreshCw /> Refresh Schedule
-        </button>
+        <div className="flex gap-4">
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+              title="Notifications"
+            >
+              <FiBell size={24} />
+              {notifications.length > 0 && (
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {notifications.length}
+                </span>
+              )}
+            </button>
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl z-50 border border-gray-200 max-h-96 overflow-y-auto">
+                <div className="p-4 border-b">
+                  <h3 className="font-semibold text-gray-800">Notifications</h3>
+                </div>
+                {notifications.length > 0 ? (
+                  <div className="divide-y">
+                    {notifications.map((note, idx) => (
+                      <div key={idx} className="p-4 hover:bg-gray-50">
+                        <div className="font-medium text-gray-900">{note.title}</div>
+                        <div className="text-sm text-gray-600 mt-1">{note.description}</div>
+                        <div className="text-xs text-gray-400 mt-2 flex justify-between">
+                          <span>{note.courseTitle}</span>
+                          <span>{note.parsedDate.toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 text-center text-gray-500">
+                    No notifications
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <button 
+            onClick={fetchMeetings} 
+            className="flex items-center gap-2 text-sm text-blue-600 hover:bg-blue-50 px-3 py-2 rounded transition-colors"
+          >
+            <FiRefreshCw /> Refresh Schedule
+          </button>
+        </div>
       </div>
 
       {meetings.length === 0 ? (

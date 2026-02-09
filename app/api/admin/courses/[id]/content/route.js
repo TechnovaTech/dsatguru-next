@@ -29,7 +29,8 @@ export async function GET(request, { params }) {
         meetings: course.meetings || [],
         materials: course.materials || [],
         syllabus: course.syllabus || [],
-        assignments: course.assignments || []
+        assignments: course.assignments || [],
+        calendarEvents: course.calendarEvents || []
       }
     })
   } catch (error) {
@@ -63,7 +64,8 @@ export async function PUT(request, { params }) {
         meetings: content.meetings || [],
         materials: content.materials || [],
         syllabus: content.syllabus || [],
-        assignments: content.assignments || []
+        assignments: content.assignments || [],
+        calendarEvents: content.calendarEvents || []
       },
       { new: true }
     )

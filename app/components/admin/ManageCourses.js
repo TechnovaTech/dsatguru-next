@@ -1,7 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2, FiFolder, FiUpload, FiFile } from 'react-icons/fi'
+import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2, FiFolder, FiUpload, FiFile, FiBell } from 'react-icons/fi'
 import JitsiMeeting from '../JitsiMeeting'
+import CourseCalendar from './CourseCalendar'
+import moment from 'moment'
 
 export default function ManageCourses() {
   const [courses, setCourses] = useState([])
@@ -100,7 +102,8 @@ function CourseContentManager({ course, onBack }) {
     materials: [],
     materialCategories: [],
     syllabus: [],
-    assignments: []
+    assignments: [],
+    calendarEvents: []
   })
   const [enrolledUsers, setEnrolledUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -110,6 +113,8 @@ function CourseContentManager({ course, onBack }) {
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingEnrollment, setEditingEnrollment] = useState(null)
   const [showMaterialModal, setShowMaterialModal] = useState(false)
+  const [showEventModal, setShowEventModal] = useState(false)
+  const [eventForm, setEventForm] = useState({ title: '', start: '', end: '', description: '' })
   const [materialForm, setMaterialForm] = useState({
     mainName: '',
     hasSubMaterials: false,
@@ -156,7 +161,8 @@ function CourseContentManager({ course, onBack }) {
           materials: data.content?.materials || [],
           materialCategories: data.content?.materialCategories || [],
           syllabus: data.content?.syllabus || [],
-          assignments: data.content?.assignments || []
+          assignments: data.content?.assignments || [],
+          calendarEvents: data.content?.calendarEvents || []
         })
       } else {
         // Initialize with empty arrays if API fails
@@ -165,7 +171,8 @@ function CourseContentManager({ course, onBack }) {
           materials: [],
           materialCategories: [],
           syllabus: [],
-          assignments: []
+          assignments: [],
+          calendarEvents: []
         })
       }
     } catch (error) {
@@ -176,7 +183,8 @@ function CourseContentManager({ course, onBack }) {
         materials: [],
         materialCategories: [],
         syllabus: [],
-        assignments: []
+        assignments: [],
+        calendarEvents: []
       })
     } finally {
       setLoading(false)
@@ -363,6 +371,7 @@ function CourseContentManager({ course, onBack }) {
         <div className="flex border-b">
           {[
             { id: 'meetings', label: 'Live Meetings', icon: <FiVideo size={16} /> },
+            { id: 'calendar', label: 'Calendar', icon: <FiCalendar size={16} /> },
             { id: 'materials', label: 'Study Materials', icon: <FiDownload size={16} /> },
             { id: 'syllabus', label: 'Course Timeline', icon: <FiCalendar size={16} /> },
             { id: 'assignments', label: 'Assignments', icon: <FiFileText size={16} /> },
@@ -486,6 +495,33 @@ function CourseContentManager({ course, onBack }) {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'calendar' && (
+          <div className="space-y-4">
+            <CourseCalendar
+              events={courseData.calendarEvents.map(evt => ({
+                title: evt.title,
+                start: new Date(evt.start || evt.date),
+                end: new Date(evt.end || evt.date),
+                allDay: !evt.start,
+                resource: evt
+              }))}
+              onAddEvent={({ start, end } = {}) => {
+                const now = new Date()
+                const startStr = start ? moment(start).format('YYYY-MM-DDTHH:mm') : moment(now).format('YYYY-MM-DDTHH:mm')
+                const endStr = end ? moment(end).format('YYYY-MM-DDTHH:mm') : moment(now).add(1, 'hour').format('YYYY-MM-DDTHH:mm')
+                setEventForm({ title: '', start: startStr, end: endStr, description: '' })
+                setShowEventModal(true)
+              }}
+              onEventClick={(event) => {
+                if (confirm(`Delete event "${event.title}"?`)) {
+                  const updated = courseData.calendarEvents.filter(e => e !== event.resource)
+                  setCourseData(prev => ({ ...prev, calendarEvents: updated }))
+                }
+              }}
+            />
           </div>
         )}
 
@@ -1717,6 +1753,80 @@ function CourseContentManager({ course, onBack }) {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Event Modal */}
+      {showEventModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Add Calendar Event</h2>
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              setCourseData(prev => ({
+                ...prev,
+                calendarEvents: [...prev.calendarEvents, eventForm]
+              }))
+              setShowEventModal(false)
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={eventForm.title}
+                    onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Start Time</label>
+                  <input
+                    type="datetime-local"
+                    required
+                    value={eventForm.start}
+                    onChange={(e) => setEventForm({ ...eventForm, start: e.target.value })}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">End Time</label>
+                  <input
+                    type="datetime-local"
+                    required
+                    value={eventForm.end}
+                    onChange={(e) => setEventForm({ ...eventForm, end: e.target.value })}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Description</label>
+                  <textarea
+                    value={eventForm.description}
+                    onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
+                    className="w-full p-2 border rounded"
+                    rows={3}
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowEventModal(false)}
+                    className="px-4 py-2 border rounded hover:bg-gray-100"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Add Event
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
