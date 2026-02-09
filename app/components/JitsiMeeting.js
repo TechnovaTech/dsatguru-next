@@ -55,7 +55,7 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
           'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
           'videoquality', 'filmstrip', 'invite', 'feedback', 'stats', 'shortcuts',
           'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone',
-          'security'
+          'security', 'whiteboard'
         ]
       }
     }
