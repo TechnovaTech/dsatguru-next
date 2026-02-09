@@ -1,10 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { FiInfo, FiCheckSquare, FiSquare, FiChevronDown, FiChevronUp, FiLock } from 'react-icons/fi'
 
 export default function CreatePracticePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState('rw')
   const [practiceMode, setPracticeMode] = useState('tutor') // tutor or timed
   const [questionMode, setQuestionMode] = useState('standard')
@@ -82,6 +83,44 @@ export default function CreatePracticePage() {
   })
 
   const [selectedDomains, setSelectedDomains] = useState({})
+  const [selectedSubtopics, setSelectedSubtopics] = useState({})
+
+  useEffect(() => {
+    const subject = searchParams.get('subject')
+    const domain = searchParams.get('domain')
+    const subtopic = searchParams.get('subtopic')
+
+    if (subject) {
+      setActiveTab(subject)
+      // If specific topic is requested, switch to custom mode
+      if (domain || subtopic) {
+        setQuestionMode('custom')
+      }
+    }
+
+    if (domain) {
+      setSelectedDomains(prev => ({ ...prev, [domain]: true }))
+      
+      // Auto-select subtopics for the domain if stats are available
+      if (domainStats.length > 0) {
+         const domainData = domainStats.find(d => d.title === domain)
+         if (domainData) {
+           setSelectedSubtopics(prev => {
+             const next = { ...prev }
+             domainData.subs.forEach(s => {
+               const sName = typeof s === 'string' ? s : s.name
+               next[sName] = true
+             })
+             return next
+           })
+         }
+      }
+    }
+
+    if (subtopic) {
+      setSelectedSubtopics(prev => ({ ...prev, [subtopic]: true }))
+    }
+  }, [searchParams, domainStats])
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
@@ -91,8 +130,24 @@ export default function CreatePracticePage() {
     setSelectedFilters(prev => ({ ...prev, [filter]: !prev[filter] }))
   }
 
-  const toggleDomain = (domain) => {
-    setSelectedDomains(prev => ({ ...prev, [domain]: !prev[domain] }))
+  const toggleDomain = (domainTitle) => {
+    const isSelected = !selectedDomains[domainTitle]
+    setSelectedDomains(prev => ({ ...prev, [domainTitle]: isSelected }))
+
+    // Auto-select/deselect all subtopics for this domain
+    const domainData = domainStats.find(d => d.title === domainTitle)
+    if (domainData) {
+      const newSubtopics = { ...selectedSubtopics }
+      domainData.subs.forEach(sub => {
+        const subName = typeof sub === 'string' ? sub : sub.name
+        newSubtopics[subName] = isSelected
+      })
+      setSelectedSubtopics(newSubtopics)
+    }
+  }
+
+  const toggleSubtopic = (subtopic) => {
+    setSelectedSubtopics(prev => ({ ...prev, [subtopic]: !prev[subtopic] }))
   }
 
   const currentCounts = activeTab === 'rw' ? counts.rw : counts.math
@@ -105,6 +160,9 @@ export default function CreatePracticePage() {
       const mode = source === 'quick' ? 'standard' : questionMode
       const token = localStorage.getItem('token')
       
+      const domains = Object.keys(selectedDomains).filter(k => selectedDomains[k])
+      const subtopics = Object.keys(selectedSubtopics).filter(k => selectedSubtopics[k])
+
       const res = await fetch('/api/tests/generate', {
         method: 'POST',
         headers: { 
@@ -115,7 +173,9 @@ export default function CreatePracticePage() {
           mode,
           practiceMode,
           // For standard mode, we include both sections to ensure 4 modules
-          sections: mode === 'standard' ? ['rw', 'math'] : [activeTab] 
+          sections: mode === 'standard' ? ['rw', 'math'] : [activeTab],
+          domains,
+          subtopics
         })
       })
       
@@ -392,9 +452,26 @@ export default function CreatePracticePage() {
                                   const subName = typeof sub === 'string' ? sub : sub.name
                                   const subCount = typeof sub === 'string' ? 0 : sub.count
                                   return (
-                                    <label key={sIdx} className="flex items-center gap-2 cursor-pointer group w-full">
-                                      <div className="w-4 h-4 rounded border border-gray-300 bg-white group-hover:border-blue-400 transition-colors flex-shrink-0" />
-                                      <span className="text-xs font-medium text-gray-500 group-hover:text-blue-600 transition-colors flex-1">{subName}</span>
+                                    <label 
+                                      key={sIdx} 
+                                      className="flex items-center gap-2 cursor-pointer group w-full"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        toggleSubtopic(subName)
+                                      }}
+                                    >
+                                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${
+                                        selectedSubtopics[subName]
+                                          ? 'bg-blue-500 border-blue-500'
+                                          : 'border-gray-300 bg-white group-hover:border-blue-400'
+                                      }`}>
+                                        {selectedSubtopics[subName] && <FiCheckSquare className="w-3 h-3 text-white" />}
+                                      </div>
+                                      <span className={`text-xs font-medium transition-colors flex-1 ${
+                                        selectedSubtopics[subName] ? 'text-blue-700 font-bold' : 'text-gray-500 group-hover:text-blue-600'
+                                      }`}>
+                                        {subName}
+                                      </span>
                                       {typeof sub !== 'string' && (
                                         <span className="text-[10px] bg-white text-gray-600 px-2 py-0.5 rounded-full font-bold border border-gray-200 group-hover:border-blue-200 group-hover:text-blue-600">
                                           {subCount}
@@ -417,9 +494,9 @@ export default function CreatePracticePage() {
                   <div className="pt-4 flex flex-col items-end gap-2">
                     <button 
                       onClick={() => handleStartTest('custom')}
-                      disabled={isGenerating || questionMode !== 'standard'}
+                      disabled={isGenerating}
                       className={`px-10 py-3.5 rounded-xl text-sm font-bold uppercase tracking-wide transition-all ${
-                        questionMode === 'standard' && !isGenerating
+                        !isGenerating
                           ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200 cursor-pointer active:scale-95' 
                           : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
                       }`}
@@ -427,8 +504,8 @@ export default function CreatePracticePage() {
                       {isGenerating ? 'Starting Test...' : 'Start Practice Test'}
                     </button>
                     {questionMode !== 'standard' && (
-                      <p className="text-xs text-red-500 font-medium">
-                        * Custom mode is coming soon. Please select &quot;Standard&quot; to start.
+                      <p className="text-xs text-blue-500 font-medium">
+                        * Custom mode enabled. Selected filters will be applied.
                       </p>
                     )}
                   </div>

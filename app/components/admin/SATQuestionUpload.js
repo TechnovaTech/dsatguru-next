@@ -1,11 +1,14 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { FiUpload, FiFile, FiCheck, FiX, FiDownload, FiPlus, FiSearch, FiEdit, FiImage, FiArrowLeft } from 'react-icons/fi'
 
-export default function SATQuestionUpload() {
+export default function SATQuestionUpload({ isTutor: propIsTutor = false, managePath = '/admin/question-bank' }) {
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
+  const isTutor = propIsTutor || searchParams?.get('isTutor') === 'true'
+  const urlSubject = searchParams?.get('subject')
   const [view, setView] = useState('landing')
   const initialModeParam = searchParams?.get('mode')
   const initialMode = initialModeParam === 'single' ? 'single' : initialModeParam === 'bulk' ? 'bulk' : null
@@ -23,7 +26,7 @@ export default function SATQuestionUpload() {
     shortExplanation: '',
     longExplanation: '',
     difficulty: 'Medium',
-    subject: 'Math',
+    subject: urlSubject || 'Math',
     questionType: 'single',
     passageText: '',
     questionImage: null,
@@ -92,6 +95,7 @@ export default function SATQuestionUpload() {
   }
 
   const fetchQuestionBanks = async () => {
+    if (isTutor) return
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       const response = await fetch('/api/admin/question-banks', {
@@ -113,13 +117,15 @@ export default function SATQuestionUpload() {
 
   const handleFileUpload = async (e) => {
     e.preventDefault()
-    if (!file || !selectedQuestionBank) return
+    if (!file || (!isTutor && !selectedQuestionBank)) return
 
     setUploading(true)
     setBulkUpload(prev => ({ ...prev, progress: 10 }))
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('questionBankId', selectedQuestionBank)
+    if (!isTutor) formData.append('questionBankId', selectedQuestionBank)
+    formData.append('isTutor', isTutor)
+    if (isTutor) formData.append('defaultSubject', singleQuestion.subject)
     ;(bulkUpload.images || []).forEach(img => formData.append('images', img))
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
     let progressInterval = null
@@ -143,7 +149,7 @@ export default function SATQuestionUpload() {
       } else {
         const error = await response.json()
         console.error('Upload error response:', JSON.stringify(error, null, 2))
-        alert(`Upload failed: ${error.error || error.message || 'Unknown error'}`)
+        alert(`Upload failed: ${error.error || error.message || 'Unknown error'}\n${error.details || ''}`)
       }
     } catch (error) {
       console.error('Upload error:', error.message || error)
@@ -157,7 +163,7 @@ export default function SATQuestionUpload() {
 
   const handleSingleQuestionSubmit = async (e) => {
     e.preventDefault()
-    if (!selectedQuestionBank) return
+    if (!isTutor && !selectedQuestionBank) return
 
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
@@ -190,7 +196,8 @@ export default function SATQuestionUpload() {
         correctAnswer: answerLetter,
         options: singleQuestion.options,
         tags,
-        questionBankId: selectedQuestionBank,
+        questionBankId: isTutor ? null : selectedQuestionBank,
+        isTutor,
         questionParagraph: singleQuestion.questionParagraph || ''
       }
       const response = await fetch('/api/questions', {
@@ -370,7 +377,11 @@ export default function SATQuestionUpload() {
   const setModeAndView = (mode) => {
     setUploadType(mode)
     setView('forms')
-    router.replace(`/admin/sat-question-upload?mode=${mode}`)
+    const params = new URLSearchParams(searchParams ? searchParams.toString() : '')
+    params.set('mode', mode)
+    if (isTutor) params.set('isTutor', 'true')
+    if (singleQuestion.subject) params.set('subject', singleQuestion.subject)
+    router.replace(`${pathname}?${params.toString()}`)
   }
 
   const navigationCards = [
@@ -379,7 +390,7 @@ export default function SATQuestionUpload() {
       title: 'Single Question Upload',
       description: 'Upload individual SAT questions with detailed options and explanations',
       icon: FiPlus,
-      action: () => { setUploadType('single'); setView('forms'); router.replace('/admin/sat-question-upload?mode=single') },
+      action: () => setModeAndView('single'),
       color: 'blue',
       features: [
         'Individual question creation',
@@ -394,7 +405,7 @@ export default function SATQuestionUpload() {
       title: 'Bulk Upload',
       description: 'Upload multiple questions at once using CSV files with optional images',
       icon: FiUpload,
-      action: () => { setUploadType('bulk'); setView('forms'); router.replace('/admin/sat-question-upload?mode=bulk') },
+      action: () => setModeAndView('bulk'),
       color: 'green',
       features: [
         'CSV file upload',
@@ -409,7 +420,7 @@ export default function SATQuestionUpload() {
       title: 'Manage Questions',
       description: 'View, edit, and delete existing questions from your question banks',
       icon: FiSearch,
-      action: () => router.push('/admin/question-bank'),
+      action: () => router.push(managePath),
       color: 'purple',
       features: [
         'Search and filter',
@@ -435,14 +446,17 @@ export default function SATQuestionUpload() {
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">SAT Question Management</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">{isTutor ? 'Tutor Question Bank' : 'SAT Question Management'}</h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Choose how you&apos;d like to work with SAT questions. Upload individual questions, bulk upload from CSV files, or manage your existing question library.
+              {isTutor ? 'Upload questions specifically for Tutor Mode. These will be kept separate from the main SAT question bank.' : 'Choose how you\'d like to work with SAT questions. Upload individual questions, bulk upload from CSV files, or manage your existing question library.'}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {navigationCards.map((card) => {
+              // Hide "Manage Questions" card if in Tutor mode, since we have a dedicated page for that
+              if (isTutor && card.id === 'manage') return null
+
               const Icon = card.icon
               const colors = getColorClasses(card.color)
               return (
@@ -519,11 +533,11 @@ export default function SATQuestionUpload() {
           <div className="flex items-center justify-between mb-2">
             <button
               type="button"
-              onClick={() => { setView('landing'); router.replace('/admin/sat-question-upload') }}
+              onClick={() => { setView('landing'); router.replace(pathname) }}
               className="inline-flex items-center text-blue-600 hover:text-blue-800"
             >
               <FiArrowLeft className="mr-2" />
-              <span>Back to SAT Question Management</span>
+              <span>Back to {isTutor ? 'Tutor' : 'SAT'} Question Management</span>
             </button>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -536,23 +550,72 @@ export default function SATQuestionUpload() {
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Question Bank *</label>
-              <select
-                value={selectedQuestionBank}
-                onChange={(e) => setSelectedQuestionBank(e.target.value)}
-                className="w-full max-w-md px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">
-                  {questionBanks.length === 0 ? 'No question banks available' : 'Select Question Bank'}
-                </option>
-                {questionBanks.map(bank => (
-                  <option key={bank._id} value={bank._id}>{bank.name}</option>
-                ))}
-              </select>
-            </div>
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4">Select Question Bank</h2>
+            {!isTutor ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Choose Destination Bank
+                  </label>
+                  <select
+                    value={selectedQuestionBank}
+                    onChange={(e) => setSelectedQuestionBank(e.target.value)}
+                    className="w-full border rounded-md px-3 py-2"
+                    required
+                  >
+                    <option value="">Select a question bank...</option>
+                    {questionBanks.map((bank) => (
+                      <option key={bank._id} value={bank._id}>
+                        {bank.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white p-4 border border-blue-200 rounded-md">
+                <h3 className="text-lg font-medium text-blue-900 mb-2">Tutor Question Bank</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Select Subject Database
+                    </label>
+                    <div className="flex space-x-4">
+                      <label className={`flex items-center p-3 border rounded-md cursor-pointer transition-colors ${singleQuestion.subject === 'Math' ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500' : 'hover:bg-gray-50'}`}>
+                        <input
+                          type="radio"
+                          name="tutorSubject"
+                          value="Math"
+                          checked={singleQuestion.subject === 'Math'}
+                          onChange={(e) => setSingleQuestion(prev => ({ ...prev, subject: e.target.value }))}
+                          className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="ml-2 text-sm font-medium text-gray-900">Math</span>
+                      </label>
+                      <label className={`flex items-center p-3 border rounded-md cursor-pointer transition-colors ${singleQuestion.subject === 'Reading and Writing' ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500' : 'hover:bg-gray-50'}`}>
+                        <input
+                          type="radio"
+                          name="tutorSubject"
+                          value="Reading and Writing"
+                          checked={singleQuestion.subject === 'Reading and Writing'}
+                          onChange={(e) => setSingleQuestion(prev => ({ ...prev, subject: e.target.value }))}
+                          className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="ml-2 text-sm font-medium text-gray-900">Reading & Writing</span>
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Questions will be saved to the <strong>{singleQuestion.subject}</strong> section of the Tutor Question Bank.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="space-y-6">
 
             {uploadType === 'bulk' ? (
               <form onSubmit={handleFileUpload} className="space-y-6">
@@ -701,7 +764,7 @@ export default function SATQuestionUpload() {
                   </div>
                 )}
 
-                <button type="submit" disabled={!file || !selectedQuestionBank || uploading} className="w-full bg-blue-600 text-white py-2 rounded-md">
+                <button type="submit" disabled={!file || (!isTutor && !selectedQuestionBank) || uploading} className="w-full bg-blue-600 text-white py-2 rounded-md">
                   {uploading ? 'Uploading...' : 'Upload Questions'}
                 </button>
               </form>
@@ -926,7 +989,7 @@ export default function SATQuestionUpload() {
                   />
                 </div>
 
-                <button type="submit" disabled={!selectedQuestionBank} className="w-full bg-blue-600 text-white py-2 rounded-md">Add Question</button>
+                <button type="submit" disabled={!isTutor && !selectedQuestionBank} className="w-full bg-blue-600 text-white py-2 rounded-md">Add Question</button>
               </form>
             )}
           </div>
@@ -945,11 +1008,11 @@ export default function SATQuestionUpload() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {uploadHistory.map((upload) => (
-                  <tr key={upload._id}>
+                {uploadHistory.map((upload, index) => (
+                  <tr key={upload.id || upload._id || index}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(upload.createdAt).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{upload.fileName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{upload.questionCount}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{upload.fileName || upload.title || '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{upload.questionCount || 1}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${upload.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         {upload.status === 'success' ? <FiCheck className="inline mr-1" /> : <FiX className="inline mr-1" />}

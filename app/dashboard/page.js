@@ -16,7 +16,8 @@ export default function Dashboard() {
     totalAttempted: 0,
     correctAnswers: 0,
     accuracy: 0,
-    studyHours: 0
+    studyHours: 0,
+    latestScores: { math: 400, rw: 400 }
   })
   const [recentActivity, setRecentActivity] = useState([])
   const [bookmarks, setBookmarks] = useState([])
@@ -33,11 +34,13 @@ export default function Dashboard() {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      const [enrollmentsRes, questionsRes, sessionsRes] = await Promise.all([
+      const [enrollmentsRes, sessionsRes, analyticsRes] = await Promise.all([
         axios.get('/api/enrollment', { headers: token ? { Authorization: `Bearer ${token}` } : {} }),
-        axios.get('/api/questions'),
-        axios.get('/api/test-sessions', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+        axios.get('/api/test-sessions', { headers: token ? { Authorization: `Bearer ${token}` } : {} }),
+        axios.get('/api/user-results/analytics', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       ])
+
+      // Process Enrollments
       const enrollments = enrollmentsRes.data.enrollments || enrollmentsRes.data.data || []
       const enrolledOnlyCourses = enrollments
         .map(e => e.courseId)
@@ -49,23 +52,54 @@ export default function Dashboard() {
           type: c.type
         }))
       setEnrolledCourses(enrolledOnlyCourses)
+
+      // Process Stats from Analytics API
+      const analyticsData = analyticsRes.data
       setStats({
-        totalAttempted: 245,
-        correctAnswers: 189,
-        accuracy: 77,
-        studyHours: 24
+        totalAttempted: analyticsData.totalQuestions || 0,
+        correctAnswers: analyticsData.correctAnswers || 0,
+        accuracy: analyticsData.accuracy || 0,
+        studyHours: analyticsData.studyHours || 0,
+        latestScores: analyticsData.latestScores || { math: 400, rw: 400 }
       })
       
-      setRecentActivity([
-        { topic: "Algebra", attempted: 15, score: 80, date: "2024-01-20" },
-        { topic: "Reading Comprehension", attempted: 12, score: 75, date: "2024-01-19" },
-        { topic: "Geometry", attempted: 18, score: 85, date: "2024-01-18" }
-      ])
+      // Process Recent Activity from Sessions
+      const sessions = sessionsRes.data.sessions || sessionsRes.data || []
+      const recent = sessions.slice(0, 5).map(session => {
+        // Calculate score percentage if not directly available
+        let score = 0
+        if (session.score !== undefined) score = session.score
+        else if (session.result?.total !== undefined) score = session.result.total
+        else if (session.correctAnswers && session.totalQuestions) {
+          score = Math.round((session.correctAnswers / session.totalQuestions) * 100)
+        }
+
+        // Determine session type
+        let typeLabel = "Practice"
+        if (session.testId) {
+            if (session.testId.testType === 'Mock') typeLabel = "Admin Test"
+            else if (session.testId.testType === 'Adaptive') typeLabel = "Adaptive Test"
+            else if (session.testId.practiceMode === 'tutor') typeLabel = "Tutor Mode"
+            else if (session.testId.practiceMode === 'timed') typeLabel = "Timed Practice"
+        } else if (session.practiceMode === 'tutor') {
+            typeLabel = "Tutor Mode"
+        }
+
+        return {
+          id: session._id,
+          testId: session.testId?._id,
+          topic: session.testId?.title || session.subject || "Practice Session",
+          type: typeLabel,
+          attempted: session.totalQuestions || session.responses?.length || 0,
+          score: score,
+          date: new Date(session.createdAt || session.updatedAt).toLocaleDateString()
+        }
+      })
+      setRecentActivity(recent)
       
-      setBookmarks([
-        { id: 1, question: "Solve for x: 2x + 5 = 15", subject: "Math" },
-        { id: 2, question: "What is the main idea of the passage?", subject: "Reading" }
-      ])
+      // Bookmarks (Placeholder for now as backend doesn't support it yet)
+      setBookmarks([])
+
       
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
@@ -186,18 +220,18 @@ export default function Dashboard() {
             <div className="border rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium text-gray-900">Math Section</h3>
-                <span className="text-sm text-gray-600">Last Score: 650</span>
+                <span className="text-sm text-gray-600">Last Score: {stats.latestScores?.math ?? 400}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                <div className="bg-blue-600 h-2 rounded-full" style={{ width: '65%' }}></div>
+                <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${(((stats.latestScores?.math ?? 400) - 200) / 600) * 100}%` }}></div>
               </div>
               <div className="flex justify-between text-xs text-gray-600">
-                <span>400</span>
-                <span>Current: 650</span>
+                <span>200</span>
+                <span>Current: {stats.latestScores?.math ?? 400}</span>
                 <span>800</span>
               </div>
               <div className="mt-2 text-xs text-gray-500">
-                Target: 700 • 50 points to go
+                Target: 800 • {800 - (stats.latestScores?.math ?? 400)} points to go
               </div>
             </div>
             
@@ -205,18 +239,18 @@ export default function Dashboard() {
             <div className="border rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium text-gray-900">Reading & Writing</h3>
-                <span className="text-sm text-gray-600">Last Score: 620</span>
+                <span className="text-sm text-gray-600">Last Score: {stats.latestScores?.rw ?? 400}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                <div className="bg-green-600 h-2 rounded-full" style={{ width: '62%' }}></div>
+                <div className="bg-green-600 h-2 rounded-full" style={{ width: `${(((stats.latestScores?.rw ?? 400) - 200) / 600) * 100}%` }}></div>
               </div>
               <div className="flex justify-between text-xs text-gray-600">
-                <span>400</span>
-                <span>Current: 620</span>
+                <span>200</span>
+                <span>Current: {stats.latestScores?.rw ?? 400}</span>
                 <span>800</span>
               </div>
               <div className="mt-2 text-xs text-gray-500">
-                Target: 680 • 60 points to go
+                Target: 800 • {800 - (stats.latestScores?.rw ?? 400)} points to go
               </div>
             </div>
           </div>
@@ -225,11 +259,11 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm font-medium text-blue-900">Total SAT Score</div>
-                <div className="text-2xl font-bold text-blue-600">1270</div>
+                <div className="text-2xl font-bold text-blue-600">{(stats.latestScores?.math ?? 400) + (stats.latestScores?.rw ?? 400)}</div>
               </div>
               <div className="text-right">
-                <div className="text-sm text-blue-700">Target: 1380</div>
-                <div className="text-xs text-blue-600">110 points to go</div>
+                <div className="text-sm text-blue-700">Target: 1600</div>
+                <div className="text-xs text-blue-600">{1600 - ((stats.latestScores?.math ?? 400) + (stats.latestScores?.rw ?? 400))} points to go</div>
               </div>
             </div>
           </div>
@@ -239,12 +273,27 @@ export default function Dashboard() {
             {recentActivity.map((activity, index) => (
               <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div>
-                  <h3 className="font-medium text-gray-900">{activity.topic}</h3>
+                  <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                    {activity.topic}
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      activity.type === 'Admin Test' ? 'bg-purple-100 text-purple-700' :
+                      activity.type === 'Tutor Mode' ? 'bg-green-100 text-green-700' :
+                      activity.type === 'Timed Practice' ? 'bg-orange-100 text-orange-700' :
+                      'bg-blue-100 text-blue-700'
+                    }`}>
+                      {activity.type}
+                    </span>
+                  </h3>
                   <p className="text-sm text-gray-600">{activity.attempted} questions • {activity.date}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-semibold text-green-600">{activity.score}%</p>
-                  <button className="text-blue-600 text-sm hover:underline">Resume Practice</button>
+                  <button 
+                    onClick={() => activity.testId && router.push(`/dashboard/tests/${activity.testId}/start`)}
+                    className="text-blue-600 text-sm hover:underline"
+                  >
+                    Resume Practice
+                  </button>
                 </div>
               </div>
             ))}

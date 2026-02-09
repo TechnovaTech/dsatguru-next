@@ -1,11 +1,14 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { FiClock, FiCheckCircle, FiArrowRight, FiAlertTriangle, FiMoreVertical, FiHelpCircle, FiBookOpen, FiSlash, FiGrid, FiLayers, FiEdit2 } from 'react-icons/fi'
 
 export default function TakeTestPage() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
+  const sessionId = searchParams.get('sessionId')
+  const returnUrl = searchParams.get('returnUrl') || '/dashboard/tests'
   const testId = params.id
 
   const [test, setTest] = useState(null)
@@ -31,6 +34,7 @@ export default function TakeTestPage() {
   const [showFlagModal, setShowFlagModal] = useState(false)
   const [showHighlights, setShowHighlights] = useState(false)
   const [flagNote, setFlagNote] = useState('')
+  const [completedSessionId, setCompletedSessionId] = useState(null)
   const testContainerRef = useRef(null)
 
   // New Features State
@@ -47,7 +51,25 @@ export default function TakeTestPage() {
   const [calcPosition, setCalcPosition] = useState({ x: 50, y: 100 })
   const [isDraggingCalc, setIsDraggingCalc] = useState(false)
   const dragStartPos = useRef({ x: 0, y: 0 })
-  const calculatorRef = useRef(null)
+  const [calculatorRef, setCalculatorRef] = useState(null)
+  
+  // Time Tracking
+  const [questionTimes, setQuestionTimes] = useState({}) 
+
+  useEffect(() => {
+    if (!loading && !checkingHistory && !showModuleSummary && !testCompleted && !showRWInstructions && !showMathInstructions && moduleQuestions.length > 0) {
+      const timer = setInterval(() => {
+        const currentQ = moduleQuestions[currentQuestion]
+        if (currentQ) {
+          setQuestionTimes(prev => ({
+            ...prev,
+            [currentQ._id]: (prev[currentQ._id] || 0) + 1
+          }))
+        }
+      }, 1000)
+      return () => clearInterval(timer)
+    }
+  }, [currentQuestion, moduleQuestions, loading, checkingHistory, showModuleSummary, testCompleted, showRWInstructions, showMathInstructions])
   const [desmosLoaded, setDesmosLoaded] = useState(false)
   const [calculatorInstance, setCalculatorInstance] = useState(null)
 
@@ -219,14 +241,14 @@ export default function TakeTestPage() {
     const handleVisibilityChange = () => {
       if (document.hidden && isFullscreen && !testCompleted && !showModuleSummary) {
         alert('Test terminated: You switched tabs or left the test window.')
-        router.push('/dashboard/tests')
+        router.push(returnUrl)
       }
     }
 
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement && isFullscreen && !testCompleted && !showModuleSummary) {
         alert('Test terminated: You exited fullscreen mode.')
-        router.push('/dashboard/tests')
+        router.push(returnUrl)
       }
     }
 
@@ -237,7 +259,7 @@ export default function TakeTestPage() {
         if (document.fullscreenElement) {
           document.exitFullscreen()
         }
-        router.push('/dashboard/tests')
+        router.push(returnUrl)
       }
     }
 
@@ -283,11 +305,10 @@ export default function TakeTestPage() {
   const fetchTestData = async () => {
     try {
       const token = localStorage.getItem('token')
-      const [testRes, questionsRes, historyRes] = await Promise.all([
+      
+      // Step 1: Fetch Test Data and History first to determine mode
+      const [testRes, historyRes] = await Promise.all([
         fetch(`/api/admin/tests/${testId}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        }),
-        fetch('/api/questions', {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         }),
         fetch('/api/test-sessions', {
@@ -295,11 +316,23 @@ export default function TakeTestPage() {
         })
       ])
 
-      if (testRes.ok && questionsRes.ok) {
+      if (testRes.ok) {
         const testData = await testRes.json()
-        const questions = await questionsRes.json()
         
-        let finalQuestions = questions
+        // Step 2: Determine if we need Tutor questions
+        const isTutor = testData.practiceMode === 'tutor' || testData.isTutorTest === true
+        const questionsUrl = `/api/questions?isTutor=${isTutor}`
+        
+        console.log(`Fetching questions with isTutor=${isTutor}`)
+        
+        const questionsRes = await fetch(questionsUrl, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+
+        if (questionsRes.ok) {
+            const questions = await questionsRes.json()
+            let finalQuestions = questions
+
 
         // Check if user already took this test
         if (historyRes.ok) {
@@ -336,8 +369,105 @@ export default function TakeTestPage() {
           }
         }
         
+        // PRIORITY: Explicitly assigned questions (Admin Created Tests)
+        // If the test has specific questions assigned, use those directly and skip tag filtering
+        if (testData.questions && testData.questions.length > 0) {
+            console.log('Using explicitly assigned questions from test config:', testData.questions.length)
+            const assignedIds = new Set(testData.questions.map(q => typeof q === 'object' ? q._id : q))
+            finalQuestions = finalQuestions.filter(q => assignedIds.has(q._id))
+            
+            // If it's a tutor test, we still want to ensure we have questions
+            if (testData.practiceMode === 'tutor' && finalQuestions.length === 0) {
+                console.warn('Admin test has questions assigned but none were found in the full question bank.')
+            }
+        }
+        // PRIORITY: Tutor Mode must enforce strict filtering (Only if no specific questions assigned)
+        else if (testData.practiceMode === 'tutor') {
+             const { subtopics, domains } = testData.filters || {}
+             
+             // Normalize string helper - aggressive normalization for better matching
+             const normalize = (str) => str?.toLowerCase().trim().replace(/[^a-z0-9]/g, '') || ''
+
+             if (!subtopics || subtopics.length === 0) {
+                 console.error("Critical Error: Tutor mode active but no subtopics defined.")
+                 alert("Error: No topic specified for this practice session. Please try again.")
+                 finalQuestions = [] // Strict empty to prevent leaking all questions
+             } else {
+                 const normalizedSubtopics = subtopics.map(normalize)
+                 console.log('Tutor Mode Filtering for:', normalizedSubtopics)
+
+                 finalQuestions = finalQuestions.filter(q => {
+                     if (!q.tags) return false
+                     
+                     let tags = []
+                     try {
+                         if (Array.isArray(q.tags)) {
+                             tags = q.tags
+                         } else if (typeof q.tags === 'string') {
+                             if (q.tags.trim().startsWith('[')) {
+                                 tags = JSON.parse(q.tags)
+                             } else {
+                                 tags = q.tags.split(',')
+                             }
+                         }
+                     } catch (e) {
+                         if (typeof q.tags === 'string') tags = q.tags.split(',')
+                         else return false
+                     }
+                     
+                     const normalizedTags = tags.map(normalize)
+                     
+                     // Flexible matching:
+                     // 1. Exact match
+                     // 2. Subtopic contains Tag (e.g. "Linear Equations (1&2)" contains "Linear Equations")
+                     // 3. Tag contains Subtopic
+                     const match = normalizedSubtopics.some(sub => 
+                         normalizedTags.some(t => t && (t === sub || sub.includes(t) || t.includes(sub)))
+                     )
+                     return match
+                 })
+                 
+                 console.log(`Tutor Mode: Filtered ${questions.length} -> ${finalQuestions.length} questions`)
+                 
+                 if (finalQuestions.length === 0) {
+                     // Try fallback to domain if strictly no subtopic match found?
+                     // NO. User explicitly complained about "loading all questions" or "wrong questions".
+                     // Better to show 0 than wrong ones.
+                     console.warn(`No questions found matching topics: ${subtopics.join(', ')}`)
+                     alert(`No questions found matching the topic: ${subtopics[0]}. Please contact admin to add questions with this tag.`)
+                 }
+             }
+        }
+        // Standard/Custom Mode Filtering
+        else if (testData.filters && (testData.filters.domains?.length > 0 || testData.filters.subtopics?.length > 0)) {
+            const { subtopics, domains } = testData.filters
+            const normalize = (str) => str?.toLowerCase().trim()
+            
+            if (subtopics && subtopics.length > 0) {
+                const normalizedSubtopics = subtopics.map(normalize)
+                finalQuestions = finalQuestions.filter(q => {
+                    // ... (keep existing lenient logic for non-tutor if needed, or copy robust logic)
+                    // reusing the robust logic is better
+                    if (!q.tags) return false
+                    let tags = []
+                    try {
+                         if (Array.isArray(q.tags)) tags = q.tags
+                         else if (typeof q.tags === 'string') {
+                             if (q.tags.trim().startsWith('[')) tags = JSON.parse(q.tags)
+                             else tags = q.tags.split(',')
+                         }
+                    } catch (e) { return false }
+                    
+                    const normalizedTags = tags.map(normalize)
+                    return normalizedTags.some(tag => 
+                        normalizedSubtopics.some(sub => tag === sub || tag.includes(sub) || sub.includes(tag))
+                    )
+                })
+            }
+        }
+
         setTest(testData)
-      setAllQuestions(finalQuestions)
+        setAllQuestions(finalQuestions)
         
         // Don't auto-load module, wait for user to start
         if (testData.sections?.rw) {
@@ -345,7 +475,8 @@ export default function TakeTestPage() {
         } else if (testData.sections?.math) {
           setCurrentSection('math')
         }
-      }
+      } // End of questionsRes.ok check
+    } // End of testRes.ok check
     } catch (error) {
       console.error('Error fetching test:', error)
     } finally {
@@ -356,9 +487,15 @@ export default function TakeTestPage() {
 
   const loadModule = (section, moduleNum, questions, testData) => {
     const subject = section === 'rw' ? 'Reading and Writing' : 'Math'
-    const questionCount = section === 'rw' ? 27 : 22
+    let questionCount = section === 'rw' ? 27 : 22
     const duration = section === 'rw' ? 32 : 35
     
+    // For Tutor/Custom mode, don't force 22/27 questions if fewer are available
+    if (testData?.practiceMode === 'tutor' || testData?.configType === 'custom') {
+        // Just set a high limit or use actual count later
+        questionCount = 100 // We'll slice by actual length below
+    }
+
     console.log(`Loading ${subject} Module ${moduleNum}`)
     console.log('Total questions available:', questions.length)
     
@@ -379,7 +516,18 @@ export default function TakeTestPage() {
     
     let selectedQuestions = []
     
-    if (moduleNum === 1) {
+    if (testData?.configType === 'custom' || testData?.practiceMode === 'tutor') {
+      // For custom/tutor tests, just take available questions up to the count
+      // respecting the subject, but ignoring difficulty distribution
+      selectedQuestions = shuffleArray(filteredQuestions) // Take all available matching questions
+      
+      // If we still don't have enough, we just take what we have
+      if (selectedQuestions.length === 0) {
+        alert(`No questions available for ${subject} with current filters.`)
+        router.push(returnUrl)
+        return
+      }
+    } else if (moduleNum === 1) {
       // Module 1 (Baseline) - Balanced distribution
       if (section === 'rw') {
         setShowRWInstructions(true)
@@ -536,7 +684,16 @@ export default function TakeTestPage() {
         questionIds: moduleQuestions.map(q => q._id)
       }
     }))
-    setShowModuleSummary(true)
+    
+    // If Tutor Mode, skip summary and go straight to completion
+    if (test?.practiceMode === 'tutor') {
+      // Small delay to ensure state updates
+      setTimeout(() => {
+        calculateFinalScore()
+      }, 100)
+    } else {
+      setShowModuleSummary(true)
+    }
   }
 
   const handleNextModule = () => {
@@ -544,6 +701,12 @@ export default function TakeTestPage() {
     setEliminatedAnswers({}) // Clear eliminations for new module
     setMarkedQuestions(new Set()) // Clear marks for new module
     
+    if (test?.practiceMode === 'tutor') {
+        // Tutor mode should not have multiple modules
+        calculateFinalScore()
+        return
+    }
+
     if (currentModule === 1) {
       // Move to Module 2 of same section
       setCurrentModule(2)
@@ -563,7 +726,78 @@ export default function TakeTestPage() {
   }
 
   const calculateFinalScore = async () => {
-    let rwScore = 0, mathScore = 0
+    // Check if we are in tutor mode, if so, calculate simple score
+    if (test?.practiceMode === 'tutor') {
+        const correct = Object.keys(answers).filter(qId => {
+            const q = moduleQuestions.find(mq => mq._id === qId)
+            return q && answers[qId] === q.correctAnswer
+        }).length
+        
+        // For tutor mode, just save the session and redirect
+        setFinalScore({ total: correct }) // Simplified score
+        setTestCompleted(true)
+        
+        try {
+            const token = localStorage.getItem('token')
+            if (!token) return
+
+            // Calculate Total Time Spent (sum of all question times)
+            const totalTimeSpent = Object.values(questionTimes).reduce((a, b) => a + b, 0)
+
+            // Generate responses array with time tracking for Tutor Mode
+            const responses = []
+            Object.keys(answers).forEach(qId => {
+                const q = moduleQuestions.find(mq => mq._id === qId)
+                if (q) {
+                    responses.push({
+                        questionId: qId,
+                        selectedAnswer: answers[qId],
+                        isCorrect: answers[qId] === q.correctAnswer,
+                        timeSpent: questionTimes[qId] || 0,
+                        answeredAt: new Date()
+                    })
+                }
+            })
+
+            const sessionData = {
+                testId,
+                status: 'Completed',
+                moduleScores,
+                moduleAnswers, // This might be partial, but responses is key
+                responses,
+                rwScore: 0, // Not applicable for single topic
+                mathScore: 0, // Not applicable for single topic
+                totalScore: correct, // Just raw count for now or scaled if needed
+                timeSpent: totalTimeSpent, // Total duration in seconds
+                completedAt: new Date().toISOString()
+            }
+
+            console.log('Saving Tutor session:', sessionData)
+            const url = sessionId ? `/api/test-sessions/${sessionId}` : '/api/test-sessions'
+            const method = sessionId ? 'PUT' : 'POST'
+
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(sessionData)
+            })
+            
+            const responseData = await response.json()
+             if (response.ok) {
+                  // Redirect to the new result page with Session ID as query param or part of URL
+                  // The new result page expects to fetch data using session ID
+                  // Route: /dashboard/tests/[id]/results?session_id=SESSION_ID
+                  const finalSessionId = sessionId || responseData.session._id
+                  setCompletedSessionId(finalSessionId)
+                  // router.push(`/dashboard/tests/${testId}/results?session_id=${finalSessionId}&returnUrl=${encodeURIComponent(returnUrl)}`)
+             }
+         } catch (e) {
+             console.error(e)
+         }
+         return
+     }
+
+     let rwScore = 0, mathScore = 0
     
     // Calculate R/W score
     if (test.sections?.rw) {
@@ -594,11 +828,32 @@ export default function TakeTestPage() {
         return
       }
       
-      const sessionData = {
+    // Generate responses array with time tracking
+    const responses = []
+    if (moduleAnswers) {
+        Object.values(moduleAnswers).forEach(mod => {
+          const modAnswers = mod.answers || {}
+          Object.keys(modAnswers).forEach(qId => {
+             const q = allQuestions.find(qt => String(qt._id) === String(qId))
+             if (q) {
+               responses.push({
+                 questionId: qId,
+                 selectedAnswer: modAnswers[qId],
+                 isCorrect: modAnswers[qId] === q.correctAnswer,
+                 timeSpent: questionTimes[qId] || 0,
+                 answeredAt: new Date()
+               })
+             }
+          })
+        })
+    }
+
+    const sessionData = {
         testId,
         status: 'Completed',
         moduleScores,
         moduleAnswers,
+        responses,
         rwScore,
         mathScore,
         totalScore: total,
@@ -607,8 +862,11 @@ export default function TakeTestPage() {
       
       console.log('Saving test session:', sessionData)
       
-      const response = await fetch('/api/test-sessions', {
-        method: 'POST',
+      const url = sessionId ? `/api/test-sessions/${sessionId}` : '/api/test-sessions'
+      const method = sessionId ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
@@ -620,6 +878,8 @@ export default function TakeTestPage() {
       
       if (response.ok) {
         console.log('✅ Test session saved successfully:', responseData)
+        setCompletedSessionId(responseData.session._id)
+        // router.push(`/dashboard/tests/${testId}/results?returnUrl=${encodeURIComponent(returnUrl)}`)
       } else {
         console.error('❌ Failed to save test session:', responseData)
         alert(`Failed to save test: ${responseData.error || 'Unknown error'}`)
@@ -676,7 +936,7 @@ export default function TakeTestPage() {
                 📚 View Test History
               </button>
               <button
-                onClick={() => router.push('/dashboard/tests')}
+                onClick={() => router.push(returnUrl)}
                 className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
               >
                 Back to Tests
@@ -723,7 +983,7 @@ export default function TakeTestPage() {
                 Start Test in Fullscreen
               </button>
               <button
-                onClick={() => router.push('/dashboard/tests')}
+                onClick={() => router.push(returnUrl)}
                 className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
               >
                 Cancel
@@ -807,13 +1067,28 @@ export default function TakeTestPage() {
             
             <div className="space-y-3">
               <button
-                onClick={() => router.push('/dashboard/tests/history')}
-                className="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700"
+                disabled={!completedSessionId}
+                onClick={() => {
+                  if (!completedSessionId) return
+                  const url = `/dashboard/tests/${testId}/results?session_id=${completedSessionId}&returnUrl=${encodeURIComponent(returnUrl)}`
+                  router.push(url)
+                }}
+                className={`w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 flex items-center justify-center gap-2 ${!completedSessionId ? 'opacity-70 cursor-wait' : ''}`}
               >
-                📚 View Test History
+                {!completedSessionId ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Saving Results...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>📊</span>
+                    <span>View Detailed Analysis</span>
+                  </>
+                )}
               </button>
               <button
-                onClick={() => router.push('/dashboard/tests')}
+                onClick={() => router.push(returnUrl)}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700"
               >
                 Back to Tests
@@ -833,7 +1108,7 @@ export default function TakeTestPage() {
         <div className="text-center">
           <p className="text-gray-600 mb-4">No questions available</p>
           <button
-            onClick={() => router.push('/dashboard/tests')}
+            onClick={() => router.push(returnUrl)}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
           >
             Back to Tests
@@ -1053,7 +1328,7 @@ export default function TakeTestPage() {
                 <button 
                   onClick={() => { 
                     setShowMoreMenu(false); 
-                    router.push('/dashboard/tests');
+                    router.push(returnUrl);
                   }}
                   className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50"
                 >

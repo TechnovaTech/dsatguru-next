@@ -14,6 +14,14 @@ const navItems = [
     path: "/dashboard/tests",
     children: [
       { name: "Create Practice", icon: <FiFileText />, path: "/dashboard/tests/create" },
+      { 
+        name: "Tutor-led Sheets", 
+        icon: <FiBook />, 
+        children: [
+          { name: "Reading & Writing", path: "/dashboard/tutor/rw" },
+          { name: "Math", path: "/dashboard/tutor/math" }
+        ]
+      },
       { name: "Admin Practice", icon: <FiClipboard />, path: "/dashboard/tests" },
       { name: "Practice History", icon: <FiClock />, path: "/dashboard/tests/history" },
     ]
@@ -106,14 +114,42 @@ export default function DashboardLayout({ children }) {
                 {item.children && expandedItems.includes(item.name) && (
                   <div className="ml-4 space-y-1 mt-1 border-l-2 border-gray-100 pl-2">
                     {item.children.map((child) => (
-                      <Link
-                        key={child.name}
-                        href={child.path}
-                        onClick={() => setIsOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-blue-50 text-gray-600 hover:text-blue-700"
-                      >
-                        {child.icon} {child.name}
-                      </Link>
+                      child.children ? (
+                        <div key={child.name}>
+                          <div
+                            className="flex items-center justify-between px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-blue-50 text-gray-600 hover:text-blue-700 cursor-pointer"
+                            onClick={(e) => toggleExpand(child.name, e)}
+                          >
+                            <div className="flex items-center gap-3">
+                              {child.icon} {child.name}
+                            </div>
+                            {expandedItems.includes(child.name) ? <FiChevronDown /> : <FiChevronRight />}
+                          </div>
+                          {expandedItems.includes(child.name) && (
+                            <div className="ml-4 space-y-1 mt-1 border-l-2 border-gray-100 pl-2">
+                              {child.children.map((subChild) => (
+                                <Link
+                                  key={subChild.name}
+                                  href={subChild.path}
+                                  onClick={() => setIsOpen(false)}
+                                  className="flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-blue-50 text-gray-600 hover:text-blue-700"
+                                >
+                                  {subChild.name}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <Link
+                          key={child.name}
+                          href={child.path}
+                          onClick={() => setIsOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-blue-50 text-gray-600 hover:text-blue-700"
+                        >
+                          {child.icon} {child.name}
+                        </Link>
+                      )
                     ))}
                   </div>
                 )}

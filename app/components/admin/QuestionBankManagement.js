@@ -1,9 +1,9 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { FiSearch, FiEye, FiArrowLeft, FiPlus, FiEdit, FiX, FiCheck, FiEye as FiPreview, FiTrash, FiSettings, FiUserPlus, FiUserMinus } from 'react-icons/fi'
+import { FiSearch, FiEye, FiArrowLeft, FiPlus, FiEdit, FiX, FiCheck, FiEye as FiPreview, FiTrash, FiSettings, FiUserPlus, FiUserMinus, FiUpload } from 'react-icons/fi'
 import { useRouter } from 'next/navigation'
 
-export default function QuestionBankManagement() {
+export default function QuestionBankManagement({ isTutor = false }) {
   const router = useRouter()
   const [questionBanks, setQuestionBanks] = useState([])
   const [loading, setLoading] = useState(false)
@@ -12,7 +12,7 @@ export default function QuestionBankManagement() {
   const [selectedBank, setSelectedBank] = useState(null)
   const [questions, setQuestions] = useState([])
   const [qLoading, setQLoading] = useState(false)
-  const [filters, setFilters] = useState({ subject: '', difficulty: '', type: '', tag: '', isActive: '', mathTopic: '', mathSubtopic: '', readingWritingTopic: '' })
+  const [filters, setFilters] = useState({ subject: isTutor ? 'Math' : '', difficulty: '', type: '', tag: '', isActive: '', mathTopic: '', mathSubtopic: '', readingWritingTopic: '' })
   const [preview, setPreview] = useState(null)
   const [editItem, setEditItem] = useState(null)
   const [showAccessModal, setShowAccessModal] = useState(false)
@@ -63,7 +63,10 @@ export default function QuestionBankManagement() {
     const fetchBanks = async () => {
       try {
         setLoading(true)
-        const res = await fetch('/api/questions?question-banks=true')
+        let url = '/api/questions?question-banks=true'
+        if (isTutor) url += '&isTutor=true'
+        
+        const res = await fetch(url)
         const json = await res.json()
         const data = json.data || []
         setQuestionBanks(data)
@@ -72,20 +75,22 @@ export default function QuestionBankManagement() {
       }
     }
     fetchBanks()
-  }, [])
+  }, [isTutor])
 
   const filteredBanks = questionBanks.filter(b => (b.title || '').toLowerCase().includes(search.toLowerCase()))
 
-  const fetchQuestions = async (bankId) => {
+  const fetchQuestions = async (bankId, overrides = {}) => {
     try {
       setQLoading(true)
+      const currentFilters = { ...filters, ...overrides }
       const params = new URLSearchParams()
       if (bankId) params.set('bankId', bankId)
-      if (filters.subject) params.set('subject', filters.subject)
-      if (filters.difficulty) params.set('difficulty', filters.difficulty)
-      if (filters.type) params.set('type', filters.type)
-      if (filters.tag) params.set('tag', filters.tag)
-      if (filters.isActive !== '') params.set('isActive', String(filters.isActive === 'true'))
+      if (isTutor) params.set('isTutor', 'true')
+      if (currentFilters.subject) params.set('subject', currentFilters.subject)
+      if (currentFilters.difficulty) params.set('difficulty', currentFilters.difficulty)
+      if (currentFilters.type) params.set('type', currentFilters.type)
+      if (currentFilters.tag) params.set('tag', currentFilters.tag)
+      if (currentFilters.isActive !== '') params.set('isActive', String(currentFilters.isActive === 'true'))
       const res = await fetch(`/api/questions?${params.toString()}`)
       const json = await res.json()
       // Handle both response formats: direct array or {data: array}
@@ -188,7 +193,14 @@ export default function QuestionBankManagement() {
   const setBankAndView = (bank) => {
     setSelectedBank(bank)
     setCurrentView('questions')
-    fetchQuestions(bank.id)
+    if (isTutor) {
+      const subject = bank.title.includes('Math') ? 'Math' : 'Reading and Writing'
+      const nextFilters = { ...filters, subject }
+      setFilters(nextFilters)
+      fetchQuestions(null, nextFilters)
+    } else {
+      fetchQuestions(bank.id)
+    }
   }
 
   const handleFilterChange = (key, value) => {
@@ -205,7 +217,7 @@ export default function QuestionBankManagement() {
       next.tag = next.readingWritingTopic || next.tag
     }
     setFilters(next)
-    if (selectedBank) fetchQuestions(selectedBank.id)
+    if (selectedBank || isTutor) fetchQuestions(selectedBank?.id, next)
   }
 
   const toggleActive = async (q) => {
@@ -215,7 +227,7 @@ export default function QuestionBankManagement() {
       headers: token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isActive: !q.isActive })
     })
-    fetchQuestions(selectedBank.id)
+    fetchQuestions(selectedBank?.id)
   }
 
   const softDelete = async (q) => {
@@ -225,7 +237,7 @@ export default function QuestionBankManagement() {
       method: 'DELETE',
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     })
-    fetchQuestions(selectedBank.id)
+    fetchQuestions(selectedBank?.id)
   }
 
   const handleBulkDelete = async () => {
@@ -246,7 +258,7 @@ export default function QuestionBankManagement() {
         body: JSON.stringify({ questionIds: selectedQuestions })
       })
       setSelectedQuestions([])
-      fetchQuestions(selectedBank.id)
+      fetchQuestions(selectedBank?.id)
       alert(`${selectedQuestions.length} question(s) deleted successfully`)
     } catch (error) {
       console.error('Bulk delete failed:', error)
@@ -299,35 +311,79 @@ export default function QuestionBankManagement() {
       body: JSON.stringify(payload)
     })
     setEditItem(null)
-    fetchQuestions(selectedBank.id)
+    fetchQuestions(selectedBank?.id)
   }
 
-  if (currentView === 'questions' && selectedBank) {
+  if (currentView === 'questions' && (selectedBank || isTutor)) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
+          {!isTutor && (
           <div className="flex items-center justify-between mb-6">
             <button className="inline-flex items-center text-blue-600 hover:text-blue-800" onClick={() => { setCurrentView('banks'); setSelectedBank(null) }}>
               <FiArrowLeft className="mr-2" />
               <span>Back to Question Banks</span>
             </button>
           </div>
+          )}
 
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{selectedBank.title}</h1>
-            <p className="text-gray-600">Manage questions for this question bank</p>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">{isTutor ? 'Tutor Questions' : selectedBank.title}</h1>
+              <p className="text-gray-600">Manage questions for {isTutor ? 'tutors' : 'this question bank'}</p>
+            </div>
+            {isTutor && (
+              <button
+                onClick={() => router.push(`/admin/tutor/question-bank/upload?isTutor=true&subject=${filters.subject || 'Math'}`)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
+              >
+                <FiPlus className="mr-2" />
+                Add Question
+              </button>
+            )}
           </div>
+
+          {isTutor && (
+            <div className="mb-6">
+              <div className="border-b border-gray-200">
+                <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                  <button
+                    onClick={() => handleFilterChange('subject', 'Math')}
+                    className={`${
+                      filters.subject === 'Math'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                  >
+                    Math Database
+                  </button>
+                  <button
+                    onClick={() => handleFilterChange('subject', 'Reading and Writing')}
+                    className={`${
+                      filters.subject === 'Reading and Writing'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                  >
+                    Reading & Writing Database
+                  </button>
+                </nav>
+              </div>
+            </div>
+          )}
 
           <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
             <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Subject</label>
-                <select value={filters.subject} onChange={(e) => handleFilterChange('subject', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
-                  <option value="">All</option>
-                  <option value="Math">Math</option>
-                  <option value="Reading and Writing">Reading and Writing</option>
-                </select>
-              </div>
+              {!isTutor && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Subject</label>
+                  <select value={filters.subject} onChange={(e) => handleFilterChange('subject', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
+                    <option value="">All</option>
+                    <option value="Math">Math</option>
+                    <option value="Reading and Writing">Reading and Writing</option>
+                  </select>
+                </div>
+              )}
               {filters.subject === 'Math' && (
                 <>
                   <div>
@@ -719,27 +775,48 @@ export default function QuestionBankManagement() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <button
-              type="button"
-              onClick={() => router.replace('/admin/sat-question-upload')}
-              className="inline-flex items-center text-blue-600 hover:text-blue-800"
-            >
-              <FiArrowLeft className="mr-2" />
-              <span>Back to SAT Question Management</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push('/admin/flagged-questions')}
-              className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-            >
-              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" />
-              </svg>
-              Flagged Questions
-            </button>
+            {!isTutor ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => router.replace('/admin/sat-question-upload')}
+                  className="inline-flex items-center text-blue-600 hover:text-blue-800"
+                >
+                  <FiArrowLeft className="mr-2" />
+                  <span>Back to SAT Question Management</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push('/admin/flagged-questions')}
+                  className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" />
+                  </svg>
+                  Flagged Questions
+                </button>
+              </>
+            ) : (
+              <div className="flex gap-3 w-full justify-end">
+                 <button
+                  onClick={() => router.push('/admin/tutor/question-bank/upload?isTutor=true&subject=Math')}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
+                >
+                  <FiUpload className="mr-2" />
+                  Upload Math
+                </button>
+                <button
+                  onClick={() => router.push('/admin/tutor/question-bank/upload?isTutor=true&subject=Reading and Writing')}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 flex items-center"
+                >
+                  <FiUpload className="mr-2" />
+                  Upload R&W
+                </button>
+              </div>
+            )}
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Question Bank Management</h1>
-          <div className="text-gray-600 text-sm">{loading ? 'Loading question banks...' : `${questionBanks.length} Question Banks`}</div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{isTutor ? 'Tutor Databases' : 'Question Bank Management'}</h1>
+          <div className="text-gray-600 text-sm">{loading ? 'Loading...' : `${questionBanks.length} ${isTutor ? 'Databases' : 'Question Banks'}`}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -798,12 +875,24 @@ export default function QuestionBankManagement() {
                         <button className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded" onClick={() => setBankAndView(bank)}>
                           <FiEye className="mr-1" /> View
                         </button>
-                        <button className="inline-flex items-center px-3 py-1 text-green-600 hover:text-green-800 hover:bg-green-100 rounded" onClick={() => openAccessModal(bank)}>
-                          <FiSettings className="mr-1" /> Manage Access
-                        </button>
-                        <button className="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded" onClick={() => deleteQuestionBank(bank.id)}>
-                          <FiTrash className="mr-1" /> Delete
-                        </button>
+                        {isTutor && (
+                          <button 
+                            className="inline-flex items-center px-3 py-1 text-green-600 hover:text-green-800 hover:bg-green-100 rounded" 
+                            onClick={() => router.push(`/admin/tutor/question-bank/upload?isTutor=true&subject=${bank.title.includes('Math') ? 'Math' : 'Reading and Writing'}`)}
+                          >
+                            <FiUpload className="mr-1" /> Upload
+                          </button>
+                        )}
+                        {!isTutor && (
+                          <>
+                            <button className="inline-flex items-center px-3 py-1 text-green-600 hover:text-green-800 hover:bg-green-100 rounded" onClick={() => openAccessModal(bank)}>
+                              <FiSettings className="mr-1" /> Manage Access
+                            </button>
+                            <button className="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded" onClick={() => deleteQuestionBank(bank.id)}>
+                              <FiTrash className="mr-1" /> Delete
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

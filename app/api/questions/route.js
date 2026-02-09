@@ -4,6 +4,7 @@ import Question from '../../../lib/models/Question'
 import Course from '../../../lib/models/Course'
 import User from '../../../lib/models/User'
 import { verifyToken, getTokenFromRequest, hashPassword } from '../../../lib/auth'
+import { generateQuestionId } from '../../../lib/idGenerator'
 
 export async function GET(request) {
   try {
@@ -18,9 +19,47 @@ export async function GET(request) {
     const questionBanks = searchParams.get('question-banks')
     const bankId = searchParams.get('bankId')
     const tag = searchParams.get('tag')
+    const isTutor = searchParams.get('isTutor')
     
     // Handle question banks request
     if (questionBanks) {
+      if (isTutor === 'true') {
+        const mathTotal = await Question.countDocuments({ isTutor: true, subject: 'Math' })
+        const mathActive = await Question.countDocuments({ isTutor: true, subject: 'Math', isActive: true })
+        
+        const rwTotal = await Question.countDocuments({ isTutor: true, subject: 'Reading and Writing' })
+        const rwActive = await Question.countDocuments({ isTutor: true, subject: 'Reading and Writing', isActive: true })
+        
+        const tutorBanks = [
+          {
+            id: 'tutor-math',
+            title: 'Math Database',
+            questionBankType: 'Mathematics',
+            totalQuestions: mathTotal,
+            activeQuestions: mathActive,
+            draftQuestions: mathTotal - mathActive,
+            status: 'Active',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'tutor-rw',
+            title: 'Reading & Writing Database',
+            questionBankType: 'Reading and Writing',
+            totalQuestions: rwTotal,
+            activeQuestions: rwActive,
+            draftQuestions: rwTotal - rwActive,
+            status: 'Active',
+            createdAt: new Date().toISOString()
+          }
+        ]
+        
+        return NextResponse.json({
+          success: true,
+          data: tutorBanks,
+          message: 'Tutor question banks retrieved successfully'
+        })
+      }
+
       const courses = await Course.find({ type: 'question_bank' })
       const questionBanksData = await Promise.all(courses.map(async (course) => {
         const totalQuestions = await Question.countDocuments({ questionBankId: course._id })
@@ -57,6 +96,14 @@ export async function GET(request) {
     if (isActive !== null) filter.isActive = isActive === 'true'
     if (bankId) filter.questionBankId = bankId
     if (tag) filter.tags = { $regex: tag, $options: 'i' }
+    
+    // Filter by isTutor
+    if (isTutor === 'true') {
+      filter.isTutor = true
+    } else {
+      filter.isTutor = { $ne: true }
+    }
+
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -126,9 +173,16 @@ export async function POST(request) {
     
     const question = await Question.create({
       ...questionData,
+      questionId: generateQuestionId(
+        questionData.subject,
+        (questionData.tags && questionData.tags.length > 0) ? questionData.tags[0] : '',
+        questionData.difficulty,
+        1
+      ),
       createdBy: adminUser._id,
       options: JSON.stringify(questionData.options || []),
-      tags: JSON.stringify(questionData.tags || [])
+      tags: JSON.stringify(questionData.tags || []),
+      isTutor: questionData.isTutor || false
     })
     
     return NextResponse.json({ 

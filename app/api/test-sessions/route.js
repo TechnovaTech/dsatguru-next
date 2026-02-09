@@ -16,7 +16,7 @@ export async function GET(request) {
     
     const sessions = await TestSession.find({ userId: decoded.userId })
       .populate('questionBankId')
-      .populate('testId', 'title configType testType')
+      .populate('testId', 'title configType testType practiceMode totalQuestions questions difficulty subject sections isTutorTest')
       .sort({ createdAt: -1 })
     
     return NextResponse.json({ sessions })

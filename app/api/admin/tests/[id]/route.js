@@ -6,7 +6,9 @@ import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 export async function GET(request, { params }) {
   try {
     await connectDB()
-    const test = await Test.findById(params.id)
+    // Use .lean() to bypass Mongoose Schema strict mode in case of stale schema in dev
+    // ensuring we get all fields including new ones like 'filters'
+    const test = await Test.findById(params.id).lean()
     if (!test) {
       return NextResponse.json({ error: 'Test not found' }, { status: 404 })
     }

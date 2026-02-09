@@ -3,21 +3,47 @@ import { useState, useEffect } from 'react'
 import { FiTrendingUp, FiTarget, FiBook, FiClock } from 'react-icons/fi'
 
 export default function AnalyticsPage() {
+  const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
-    totalQuestions: 245,
-    correctAnswers: 189,
-    accuracy: 77,
-    studyHours: 24,
-    weeklyProgress: [
-      { day: 'Mon', score: 65 },
-      { day: 'Tue', score: 72 },
-      { day: 'Wed', score: 68 },
-      { day: 'Thu', score: 80 },
-      { day: 'Fri', score: 75 },
-      { day: 'Sat', score: 85 },
-      { day: 'Sun', score: 82 }
-    ]
+    totalQuestions: 0,
+    correctAnswers: 0,
+    accuracy: 0,
+    studyHours: 0,
+    weeklyProgress: [],
+    subjectPerformance: {
+      math: [],
+      rw: []
+    }
   })
+
+  useEffect(() => {
+    fetchAnalytics()
+  }, [])
+
+  const fetchAnalytics = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/user-results/analytics', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setStats(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch analytics', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="p-8 flex justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 space-y-8">
@@ -88,66 +114,42 @@ export default function AnalyticsPage() {
         <div className="bg-white rounded-lg p-6 shadow-md">
           <h2 className="text-xl font-semibold mb-4">Math Performance</h2>
           <div className="space-y-4">
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Algebra</span>
-                <span>85%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-600 h-2 rounded-full" style={{ width: '85%' }}></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Geometry</span>
-                <span>72%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-600 h-2 rounded-full" style={{ width: '72%' }}></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Statistics</span>
-                <span>68%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-600 h-2 rounded-full" style={{ width: '68%' }}></div>
-              </div>
-            </div>
+            {stats.subjectPerformance?.math?.length > 0 ? (
+              stats.subjectPerformance.math.map((item, idx) => (
+                <div key={idx}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>{item.name}</span>
+                    <span>{item.score}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${item.score}%` }}></div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm">No Math data available yet.</p>
+            )}
           </div>
         </div>
 
         <div className="bg-white rounded-lg p-6 shadow-md">
           <h2 className="text-xl font-semibold mb-4">Reading & Writing Performance</h2>
           <div className="space-y-4">
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Reading Comprehension</span>
-                <span>78%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-green-600 h-2 rounded-full" style={{ width: '78%' }}></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Grammar</span>
-                <span>82%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-green-600 h-2 rounded-full" style={{ width: '82%' }}></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Vocabulary</span>
-                <span>75%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-green-600 h-2 rounded-full" style={{ width: '75%' }}></div>
-              </div>
-            </div>
+            {stats.subjectPerformance?.rw?.length > 0 ? (
+              stats.subjectPerformance.rw.map((item, idx) => (
+                <div key={idx}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>{item.name}</span>
+                    <span>{item.score}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-green-600 h-2 rounded-full" style={{ width: `${item.score}%` }}></div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm">No Reading & Writing data available yet.</p>
+            )}
           </div>
         </div>
       </div>

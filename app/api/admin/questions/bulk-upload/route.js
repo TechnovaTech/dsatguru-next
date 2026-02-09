@@ -5,21 +5,9 @@ import Course from '../../../../../lib/models/Course'
 import User from '../../../../../lib/models/User'
 import { getTokenFromRequest, verifyToken, hashPassword } from '../../../../../lib/auth'
 import ExcelJS from 'exceljs'
+import { generateQuestionId } from '../../../../../lib/idGenerator'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
-
-function generateQuestionId(subject, tag, difficulty, rowNumber) {
-  // Subject code - single letter
-  const subjectCode = subject === 'Math' ? 'M' : 'R'
-  
-  // Tag/Topic code - first 2 letters only
-  const tagCode = tag ? tag.replace(/[^a-zA-Z]/g, '').substring(0, 2).toUpperCase() : 'GN'
-  
-  // Difficulty code - single letter
-  const diffCode = difficulty === 'Easy' ? 'E' : difficulty === 'Hard' ? 'H' : 'M'
-  
-  return `${subjectCode}${tagCode}-${diffCode}-${rowNumber}`
-}
 
 async function parseExcel(buffer) {
   const workbook = new ExcelJS.Workbook()
@@ -113,19 +101,24 @@ export async function POST(request) {
     const form = await request.formData()
     const file = form.get('file')
     const questionBankId = form.get('questionBankId')
+    const isTutor = form.get('isTutor') === 'true'
+    const defaultSubject = form.get('defaultSubject')
     const images = form.getAll('images') || []
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
-    if (!questionBankId) {
+    if (!questionBankId && !isTutor) {
       return NextResponse.json({ error: 'No question bank selected' }, { status: 400 })
     }
 
-    // Fetch question bank details
-    const questionBank = await Course.findById(questionBankId)
-    if (!questionBank) {
-      return NextResponse.json({ error: 'Question bank not found' }, { status: 404 })
+    // Fetch question bank details (only if not tutor mode)
+    let questionBank = null
+    if (!isTutor && questionBankId) {
+      questionBank = await Course.findById(questionBankId)
+      if (!questionBank) {
+        return NextResponse.json({ error: 'Question bank not found' }, { status: 404 })
+      }
     }
 
     const csvText = await file.text()
@@ -246,7 +239,10 @@ export async function POST(request) {
         continue
       }
       
-      const subject = idxSubject >= 0 ? (cols[idxSubject] || '').trim() : 'Math'
+      let subject = idxSubject >= 0 ? (cols[idxSubject] || '').trim() : ''
+      if (!subject && defaultSubject) subject = defaultSubject
+      if (!subject) subject = 'Math'
+
       let difficulty = idxDifficulty >= 0 ? (cols[idxDifficulty] || '').trim() : 'Medium'
       if (!difficulty || !['Easy', 'Medium', 'Hard'].includes(difficulty)) {
         difficulty = 'Medium'
@@ -289,7 +285,8 @@ export async function POST(request) {
         tags: JSON.stringify(tagsArr),
         points: 1,
         isActive: true,
-        questionBankId,
+        questionBankId: isTutor ? null : questionBankId,
+        isTutor: isTutor,
         createdBy: adminUser._id
       })
     }

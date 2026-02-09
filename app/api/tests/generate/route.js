@@ -14,12 +14,12 @@ export async function POST(request) {
     }
 
     const body = await request.json()
-    const { mode, practiceMode, sections, questionCount, difficulty } = body
+    const { mode, practiceMode, sections, questionCount, difficulty, domains, subtopics } = body
 
     // Create a new Test document
     // We create a "virtual" test definition for this practice session
     const testData = {
-      title: 'Self Practice Test', // Or 'Admin Test' as requested? User said "named admin as admin test" but "save as self test". I'll stick to 'Self Practice Test' for clarity, user can rename if needed.
+      title: 'Self Practice Test',
       description: 'Self-generated practice test',
       testType: 'Practice',
       excludeUsedQuestions: true,
@@ -32,6 +32,10 @@ export async function POST(request) {
       sections: {
         rw: sections?.includes('rw') || mode === 'standard',
         math: sections?.includes('math') || mode === 'standard'
+      },
+      filters: {
+        domains: domains || [],
+        subtopics: subtopics || []
       },
       // Standard adaptive configuration
       customConfig: {
@@ -62,7 +66,21 @@ export async function POST(request) {
       }
     }
 
+    // Use Mongoose create but force filters via direct update if needed, 
+    // or better, use create and rely on Schema being updated. 
+    // If Schema update is not picked up (dev mode issue), we might lose filters.
+    // To be safe, we can use findByIdAndUpdate with strict: false after creation,
+    // OR just use Test.collection.insertOne if we want to bypass Mongoose validation entirely.
+    // However, Mongoose middleware/defaults are useful.
+    
+    // Let's try creating normally first, then force-updating the filters field directly to ensure it sticks.
     const test = await Test.create(testData)
+    
+    // Force update filters to ensure they are saved even if Schema is stale in memory
+    await Test.collection.updateOne(
+        { _id: test._id },
+        { $set: { filters: { domains: domains || [], subtopics: subtopics || [] } } }
+    )
 
     return NextResponse.json({ testId: test._id }, { status: 201 })
   } catch (error) {
