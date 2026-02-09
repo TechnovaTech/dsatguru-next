@@ -21,7 +21,10 @@ export default function QuestionBankManagement() {
   const fetchQuestions = async () => {
     try {
       const response = await axios.get('/api/questions')
-      setQuestions(response.data.questions || [])
+      const data = response.data
+      // Handle both array and object response formats
+      const questionsList = Array.isArray(data) ? data : (data.questions || [])
+      setQuestions(questionsList)
     } catch (error) {
       console.error('Error fetching questions:', error)
     } finally {
@@ -57,6 +60,38 @@ export default function QuestionBankManagement() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Question Bank Management</h1>
         <p className="mt-2 text-sm text-gray-600">Create and manage SAT/PSAT questions</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div 
+          onClick={() => window.location.href = '/admin/sat-question-upload?subject=Math&mode=bulk'}
+          className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-shadow flex items-center justify-between group"
+        >
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600">Math Question Upload</h3>
+            <p className="text-sm text-gray-500 mt-1">Upload Mathematics questions (Algebra, Advanced Math, etc.)</p>
+          </div>
+          <div className="h-10 w-10 bg-blue-50 rounded-full flex items-center justify-center group-hover:bg-blue-100">
+            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+          </div>
+        </div>
+
+        <div 
+          onClick={() => window.location.href = '/admin/sat-question-upload?subject=Reading%20and%20Writing&mode=bulk'}
+          className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-shadow flex items-center justify-between group"
+        >
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-600">Reading & Writing Upload</h3>
+            <p className="text-sm text-gray-500 mt-1">Upload R/W questions (Reading comprehension, Grammar, etc.)</p>
+          </div>
+          <div className="h-10 w-10 bg-purple-50 rounded-full flex items-center justify-center group-hover:bg-purple-100">
+            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

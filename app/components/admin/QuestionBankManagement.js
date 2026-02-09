@@ -199,6 +199,11 @@ export default function QuestionBankManagement({ isTutor = false }) {
       setFilters(nextFilters)
       fetchQuestions(null, nextFilters)
     } else {
+      if (bank.id === 'admin-math') {
+        setFilters(prev => ({ ...prev, subject: 'Math' }))
+      } else if (bank.id === 'admin-rw') {
+        setFilters(prev => ({ ...prev, subject: 'Reading and Writing' }))
+      }
       fetchQuestions(bank.id)
     }
   }
@@ -374,7 +379,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
 
           <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
             <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-              {!isTutor && (
+              {!isTutor && (!selectedBank || (selectedBank.id !== 'admin-math' && selectedBank.id !== 'admin-rw')) && (
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Subject</label>
                   <select value={filters.subject} onChange={(e) => handleFilterChange('subject', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">

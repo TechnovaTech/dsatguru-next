@@ -77,6 +77,9 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
     if (initialMode) {
       setView('forms')
     }
+    if (urlSubject === 'Math') setSelectedQuestionBank('MATH_DIRECT')
+    else if (urlSubject === 'Reading and Writing') setSelectedQuestionBank('RW_DIRECT')
+
     fetchUploadHistory()
     fetchQuestionBanks()
   }, [])
@@ -108,7 +111,12 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
           : Array.isArray(data?.courses)
             ? data.courses.map(c => ({ _id: c.id, name: c.title }))
             : []
-        setQuestionBanks(mapped)
+        
+        const staticOptions = [
+          { _id: 'MATH_DIRECT', name: 'Direct Upload - Math' },
+          { _id: 'RW_DIRECT', name: 'Direct Upload - Reading & Writing' }
+        ]
+        setQuestionBanks([...staticOptions, ...mapped])
       }
     } catch (error) {
       console.error('Error fetching question banks:', error)
@@ -123,7 +131,16 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
     setBulkUpload(prev => ({ ...prev, progress: 10 }))
     const formData = new FormData()
     formData.append('file', file)
-    if (!isTutor) formData.append('questionBankId', selectedQuestionBank)
+    
+    if (!isTutor) {
+      if (selectedQuestionBank === 'MATH_DIRECT' || selectedQuestionBank === 'RW_DIRECT') {
+        const subject = selectedQuestionBank === 'MATH_DIRECT' ? 'Math' : 'Reading and Writing'
+        formData.append('defaultSubject', subject)
+      } else {
+        formData.append('questionBankId', selectedQuestionBank)
+      }
+    }
+    
     formData.append('isTutor', isTutor)
     if (isTutor) formData.append('defaultSubject', singleQuestion.subject)
     ;(bulkUpload.images || []).forEach(img => formData.append('images', img))
@@ -196,7 +213,7 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
         correctAnswer: answerLetter,
         options: singleQuestion.options,
         tags,
-        questionBankId: isTutor ? null : selectedQuestionBank,
+        questionBankId: (isTutor || selectedQuestionBank === 'MATH_DIRECT' || selectedQuestionBank === 'RW_DIRECT') ? null : selectedQuestionBank,
         isTutor,
         questionParagraph: singleQuestion.questionParagraph || ''
       }

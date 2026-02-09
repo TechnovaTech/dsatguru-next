@@ -108,13 +108,13 @@ export async function POST(request) {
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
-    if (!questionBankId && !isTutor) {
-      return NextResponse.json({ error: 'No question bank selected' }, { status: 400 })
-    }
+    // if (!questionBankId && !isTutor) {
+    //   return NextResponse.json({ error: 'No question bank selected' }, { status: 400 })
+    // }
 
-    // Fetch question bank details (only if not tutor mode)
+    // Fetch question bank details (only if not tutor mode and questionBankId is provided)
     let questionBank = null
-    if (!isTutor && questionBankId) {
+    if (!isTutor && questionBankId && questionBankId.length === 24) {
       questionBank = await Course.findById(questionBankId)
       if (!questionBank) {
         return NextResponse.json({ error: 'Question bank not found' }, { status: 404 })

@@ -80,10 +80,40 @@ export async function GET(request) {
           status: 'Active'
         }
       }))
+
+      // Add Admin Subject-based Banks (Old Logic) - Strictly for Direct Uploads (No Question Bank)
+      const adminMathTotal = await Question.countDocuments({ isTutor: { $ne: true }, subject: 'Math', questionBankId: null })
+      const adminMathActive = await Question.countDocuments({ isTutor: { $ne: true }, subject: 'Math', isActive: true, questionBankId: null })
+      
+      const adminRwTotal = await Question.countDocuments({ isTutor: { $ne: true }, subject: 'Reading and Writing', questionBankId: null })
+      const adminRwActive = await Question.countDocuments({ isTutor: { $ne: true }, subject: 'Reading and Writing', isActive: true, questionBankId: null })
+
+      const adminBanks = [
+        {
+          id: 'admin-math',
+          title: 'Math Database',
+          questionBankType: 'Mathematics',
+          totalQuestions: adminMathTotal,
+          activeQuestions: adminMathActive,
+          draftQuestions: adminMathTotal - adminMathActive,
+          status: 'Active',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 'admin-rw',
+          title: 'Reading & Writing Database',
+          questionBankType: 'Reading and Writing',
+          totalQuestions: adminRwTotal,
+          activeQuestions: adminRwActive,
+          draftQuestions: adminRwTotal - adminRwActive,
+          status: 'Active',
+          createdAt: new Date().toISOString()
+        }
+      ]
       
       return NextResponse.json({
         success: true,
-        data: questionBanksData,
+        data: [...adminBanks, ...questionBanksData],
         message: 'Question banks retrieved successfully'
       })
     }
@@ -94,14 +124,41 @@ export async function GET(request) {
     if (testType) filter.testType = testType
     if (type) filter.type = type
     if (isActive !== null) filter.isActive = isActive === 'true'
-    if (bankId) filter.questionBankId = bankId
+    if (bankId) {
+      if (bankId === 'admin-math') {
+        filter.subject = 'Math'
+        filter.isTutor = { $ne: true }
+        filter.questionBankId = null
+      } else if (bankId === 'admin-rw') {
+        filter.subject = 'Reading and Writing'
+        filter.isTutor = { $ne: true }
+        filter.questionBankId = null
+      } else if (bankId === 'tutor-math') {
+        filter.subject = 'Math'
+        filter.isTutor = true
+      } else if (bankId === 'tutor-rw') {
+        filter.subject = 'Reading and Writing'
+        filter.isTutor = true
+      } else {
+        filter.questionBankId = bankId
+      }
+    }
     if (tag) filter.tags = { $regex: tag, $options: 'i' }
     
     // Filter by isTutor
     if (isTutor === 'true') {
       filter.isTutor = true
-    } else {
-      filter.isTutor = { $ne: true }
+    } else if (!bankId || (bankId !== 'admin-math' && bankId !== 'admin-rw')) {
+      // Only apply default isTutor exclusion if not already handled by virtual bankId
+      // Actually, we should be careful here. 
+      // If bankId is admin-math/rw, we already set isTutor condition.
+      // If bankId is standard ObjectId, we still want to ensure we don't accidentally get tutor questions if we are admin?
+      // But typically questionBankId implies specific bank.
+      // Let's rely on the explicit isTutor param if provided, otherwise default to non-tutor for standard requests
+      
+      if (!filter.hasOwnProperty('isTutor')) {
+         filter.isTutor = { $ne: true }
+      }
     }
 
     if (search) {
