@@ -36,8 +36,8 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
     
     // Define restricted buttons for students - Restored features
     const studentToolbarButtons = [
-      'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
-      'fodeviceselection', 'hangup', 'profile', 'chat',
+      'hangup', 'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
+      'fodeviceselection', 'profile', 'chat',
       'settings', 'raisehand', 'videoquality', 'filmstrip', 
       'feedback', 'stats', 'shortcuts', 'tileview', 
       'videobackgroundblur', 'help', 'whiteboard'
@@ -45,8 +45,8 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
 
     // Define full toolbar for admins with explicit buttons - Restored Security & Stats
     const adminToolbarButtons = [
-      'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
-      'fodeviceselection', 'hangup', 'profile', 'chat', 
+      'hangup', 'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
+      'fodeviceselection', 'profile', 'chat', 
       'security', 'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
       'videoquality', 'filmstrip', 'feedback', 'stats', 'shortcuts',
       'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone'
@@ -171,7 +171,7 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
 
         {/* Debug/Version Indicator - Proves file is updating */}
         <div className="absolute top-0 left-0 z-50 bg-green-400 text-black text-[10px] px-2 py-0.5 opacity-60 hover:opacity-100 pointer-events-none font-mono">
-          v2.6 - Login Fix (Mod Check)
+          v2.7 - Toolbar Fixed
         </div>
 
         {loading && (
