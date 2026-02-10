@@ -6,46 +6,102 @@ import User from '../../../../../lib/models/User'
 import { getTokenFromRequest, verifyToken, hashPassword } from '../../../../../lib/auth'
 import ExcelJS from 'exceljs'
 import { generateQuestionId } from '../../../../../lib/idGenerator'
-import { writeFile, mkdir } from 'fs/promises'
+import { writeFile, mkdir, appendFile } from 'fs/promises'
 import path from 'path'
 
+async function logDebug(message) {
+  const logPath = path.join(process.cwd(), 'debug_upload.log')
+  const timestamp = new Date().toISOString()
+  await appendFile(logPath, `[${timestamp}] ${message}\n`)
+}
+
 async function parseExcel(buffer) {
+  await logDebug('Starting parseExcel')
   const workbook = new ExcelJS.Workbook()
   await workbook.xlsx.load(buffer)
   
-  // Get first worksheet (ignore sheet name issues)
-  const worksheet = workbook.worksheets[0]
+  // Find first worksheet with data
+  const worksheet = workbook.worksheets.find(sheet => sheet.actualRowCount > 0) || workbook.worksheets[0]
+  
   if (!worksheet) {
     throw new Error('No worksheet found in Excel file')
   }
+  console.log(`Using worksheet: ${worksheet.name} (Rows: ${worksheet.actualRowCount})`)
+  await logDebug(`Using worksheet: ${worksheet.name} (Rows: ${worksheet.actualRowCount})`)
   
-  const rows = []
-  worksheet.eachRow((row, rowNumber) => {
-    const values = []
-    let hasContent = false
-    row.eachCell({ includeEmpty: true }, (cell) => {
-      // Handle different cell types
-      let value = ''
-      if (cell.value !== null && cell.value !== undefined) {
-        if (typeof cell.value === 'object' && cell.value.richText) {
-          // Handle rich text
-          value = cell.value.richText.map(t => t.text).join('')
-        } else if (typeof cell.value === 'object' && cell.value.text) {
-          value = cell.value.text
-        } else {
-          value = String(cell.value)
+  // Extract embedded images
+          const imagesByRow = {} // Key: rowNumber (number), Value: string[] (markdowns)
+          const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'questions')
+          await mkdir(uploadDir, { recursive: true })
+
+          const images = worksheet.getImages() || []
+          await logDebug(`Found ${images.length} embedded images`)
+          
+          if (images.length > 0) {
+            console.log(`Found ${images.length} embedded images`)
+            for (const image of images) {
+               // exceljs range.tl is 0-based { col, row }
+               const row = Math.floor(image.range.tl.row) + 1
+               const col = Math.floor(image.range.tl.col) + 1
+               
+               await logDebug(`Image found at raw TL: row=${image.range.tl.row}, col=${image.range.tl.col} -> Mapped to Row ${row}`)
+               
+               const mediaId = image.imageId
+               const media = workbook.model.media ? workbook.model.media.find(m => m.index === mediaId) : null
+               
+               if (media && media.buffer) {
+                 const extension = media.extension || 'png'
+                 const filename = `${Date.now()}-${Math.floor(Math.random() * 10000)}.${extension}`
+                 const filepath = path.join(uploadDir, filename)
+                 await writeFile(filepath, media.buffer)
+                 
+                 const publicUrl = `/uploads/questions/${filename}`
+                 const md = `![image](${publicUrl})`
+                 
+                 if (!imagesByRow[row]) imagesByRow[row] = []
+                 imagesByRow[row].push(md)
+                 
+                 console.log(`Extracted embedded image at Row ${row} -> ${publicUrl}`)
+                 await logDebug(`Saved image to ${publicUrl} and mapped to Row ${row}`)
+               } else {
+                 await logDebug(`Image media not found or empty buffer for imageId ${mediaId}`)
+               }
+            }
+          }
+          
+          const rows = []
+          const maxCols = Math.max(worksheet.columnCount, 20) // Ensure we cover enough columns
+          
+          // We need to ensure rows align with 1-based index
+          // worksheet.rowCount gives max row.
+          const rowCount = worksheet.rowCount
+          
+          for (let i = 1; i <= rowCount; i++) {
+             const row = worksheet.getRow(i)
+             const values = []
+             let hasContent = false
+             
+             for (let colNumber = 1; colNumber <= maxCols; colNumber++) {
+                const cell = row.getCell(colNumber)
+                let value = ''
+                if (cell.value !== null && cell.value !== undefined) {
+                    if (typeof cell.value === 'object' && cell.value.richText) {
+                        value = cell.value.richText.map(t => t.text).join('')
+                    } else if (typeof cell.value === 'object' && cell.value.text) {
+                        value = cell.value.text
+                    } else {
+                        value = String(cell.value)
+                    }
+                    if (value.trim()) hasContent = true
+                }
+                values.push(value)
+             }
+             rows.push(values)
+          }
+
+          await logDebug(`Parsed ${rows.length} rows from Excel`)
+          return { rows, imagesByRow }
         }
-        if (value.trim()) hasContent = true
-      }
-      values.push(value)
-    })
-    // Only add rows that have some content
-    if (hasContent || rowNumber === 1) {
-      rows.push(values)
-    }
-  })
-  return rows
-}
 
 function parseCsv(text) {
   const lines = text.split(/\r?\n/).filter(line => line.trim())
@@ -126,12 +182,16 @@ export async function POST(request) {
     console.log('File size:', file.size)
     
     let rows
+    let imagesByRow = {}
+    
     if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
       // Handle Excel file
       console.log('Parsing as Excel file')
       try {
         const buffer = await file.arrayBuffer()
-        rows = await parseExcel(Buffer.from(buffer))
+        const result = await parseExcel(Buffer.from(buffer))
+        rows = result.rows
+        imagesByRow = result.imagesByRow
         console.log('Excel parsed, rows:', rows.length)
         if (rows.length > 0) console.log('First Excel row:', rows[0])
         if (rows.length > 1) console.log('Second Excel row:', rows[1])
@@ -163,9 +223,11 @@ export async function POST(request) {
     
     if (!rows || rows.length < 2) {
       console.error('Not enough rows. Total rows:', rows.length)
+      await logDebug(`Not enough rows. Total rows: ${rows.length}`)
       return NextResponse.json({ error: 'File must have header and at least one data row' }, { status: 400 })
     }
     const header = rows[0].map(h => (h || '').trim().toLowerCase())
+    await logDebug(`Header row: ${JSON.stringify(header)}`)
     const idx = (name) => header.findIndex(h => h === name.toLowerCase())
     
     // Match exact column names from Excel file
@@ -189,16 +251,24 @@ export async function POST(request) {
       console.log('Upload directory exists or created')
     }
 
+    console.log(`Received ${images.length} images`)
     const imageNameMap = new Map()
     for (const img of images) {
-      if (!img || !img.name) continue
+      if (!img || !img.name) {
+        console.warn('Skipping invalid image object:', img)
+        continue
+      }
       try {
         const buffer = Buffer.from(await img.arrayBuffer())
-        const filename = `${Date.now()}-${img.name}`
+        // Sanitize filename to avoid filesystem issues
+        const safeName = img.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+        const filename = `${Date.now()}-${safeName}`
         const filepath = path.join(uploadDir, filename)
         await writeFile(filepath, buffer)
+        
+        // Map original name (lowercase) to the new URL
         imageNameMap.set(img.name.toLowerCase(), `/uploads/questions/${filename}`)
-        console.log(`Saved image: ${filename}`)
+        console.log(`Saved image: ${img.name} -> ${filename}`)
       } catch (err) {
         console.error(`Failed to save image ${img.name}:`, err)
       }
@@ -232,9 +302,25 @@ export async function POST(request) {
       if (!cols || cols.length === 0) continue
       
       const content = idxContent >= 0 ? (cols[idxContent] || '').trim() : ''
-      console.log(`Row ${r} content:`, content)
       
-      if (!content || content.trim().length === 0) {
+      // Append images found in this row (regardless of column)
+      // rowNumber corresponds to r + 1 (Header is r=0, so Data Row 1 is r=1 -> Excel Row 2)
+      // parseExcel returns rows 0..N, where rows[0] is Header.
+      // So r=1 is rows[1] (Excel Row 2).
+      // imagesByRow is 1-based. So we look for imagesByRow[r + 1]
+      const rowNum = r + 1
+      const rowImages = imagesByRow[rowNum] || []
+      let additionalImages = ''
+      
+      if (rowImages.length > 0) {
+        additionalImages = '\n' + rowImages.join('\n')
+        await logDebug(`Row ${rowNum}: Appending ${rowImages.length} images to content`)
+      }
+
+      const finalContent = content + additionalImages
+      console.log(`Row ${r} content:`, finalContent.substring(0, 50) + '...')
+      
+      if (!finalContent || finalContent.trim().length === 0) {
         console.warn(`Skipping row ${r}: empty content`)
         continue
       }
@@ -256,7 +342,29 @@ export async function POST(request) {
       const longExplanation = idxLongExpl >= 0 ? (cols[idxLongExpl] || '').trim() : ''
       const tagsRaw = idxTags >= 0 ? (cols[idxTags] || '').trim() : ''
 
-      const optionsArr = [optionA, optionB, optionC, optionD]
+      // Helper to replace [filename] with image URL
+      const replaceImages = (text) => {
+        if (!text) return text
+        let processed = text
+        for (const [name, url] of imageNameMap.entries()) {
+          // Replace [filename] case-insensitive
+          // Escape regex special characters in filename
+          const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          const regex = new RegExp(`\\[${escapedName}\\]`, 'gi')
+          processed = processed.replace(regex, `![${name}](${url})`)
+        }
+        return processed
+      }
+
+      const contentProc = replaceImages(finalContent)
+      const optionAProc = replaceImages(optionA)
+      const optionBProc = replaceImages(optionB)
+      const optionCProc = replaceImages(optionC)
+      const optionDProc = replaceImages(optionD)
+      const shortExplProc = replaceImages(shortExplanation)
+      const longExplProc = replaceImages(longExplanation)
+
+      const optionsArr = [optionAProc, optionBProc, optionCProc, optionDProc]
       const tagsArr = tagsRaw
         ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean)
         : []
@@ -271,11 +379,11 @@ export async function POST(request) {
       
       toCreate.push({
         questionId,
-        title: content.substring(0, 100),
-        content,
-        explanation: shortExplanation || longExplanation,
-        shortExplanation,
-        longExplanation,
+        title: contentProc.substring(0, 100),
+        content: contentProc,
+        explanation: shortExplProc || longExplProc,
+        shortExplanation: shortExplProc,
+        longExplanation: longExplProc,
         subject,
         difficulty,
         type: 'MultipleChoice',
@@ -302,12 +410,22 @@ export async function POST(request) {
     console.log('Sample question data:', JSON.stringify(toCreate[0], null, 2))
     
     try {
-      const created = await Question.insertMany(toCreate)
-      console.log(`Successfully created ${created.length} questions`)
+      // Use bulkWrite with upsert to handle updates/duplicates gracefully
+      const operations = toCreate.map(q => ({
+        updateOne: {
+          filter: { questionId: q.questionId },
+          update: { $set: q },
+          upsert: true
+        }
+      }))
+
+      const result = await Question.bulkWrite(operations)
+      console.log(`Bulk write result: Matched ${result.matchedCount}, Modified ${result.modifiedCount}, Upserted ${result.upsertedCount}`)
+      
       return NextResponse.json({
         success: true,
         message: 'Questions uploaded successfully',
-        count: created.length
+        count: result.upsertedCount + result.modifiedCount + result.matchedCount
       })
     } catch (dbError) {
       console.error('Database insertion error:', dbError)

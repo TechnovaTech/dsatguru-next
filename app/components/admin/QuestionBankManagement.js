@@ -1,7 +1,104 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { FiSearch, FiEye, FiArrowLeft, FiPlus, FiEdit, FiX, FiCheck, FiEye as FiPreview, FiTrash, FiSettings, FiUserPlus, FiUserMinus, FiUpload } from 'react-icons/fi'
+import { useEffect, useState, useRef } from 'react'
+import { FiSearch, FiEye, FiArrowLeft, FiPlus, FiEdit, FiX, FiCheck, FiEye as FiPreview, FiTrash, FiSettings, FiUserPlus, FiUserMinus, FiUpload, FiImage } from 'react-icons/fi'
 import { useRouter } from 'next/navigation'
+
+const renderWithImages = (text) => {
+  if (!text) return null
+  // Match ![alt](url)
+  const regex = /(!\[.*?\]\(.*?\))/g
+  const parts = text.split(regex)
+  
+  return parts.map((part, index) => {
+    const match = part.match(/!\[(.*?)\]\((.*?)\)/)
+    if (match) {
+      return (
+        <img 
+          key={index} 
+          src={match[2]} 
+          alt={match[1]} 
+          className="max-w-full h-auto my-2 rounded border block" 
+          style={{ maxHeight: '400px' }}
+        />
+      )
+    }
+    return <span key={index}>{part}</span>
+  })
+}
+
+const ImageUploadButton = ({ onUpload }) => {
+  const fileInputRef = useRef(null)
+  const [uploading, setUploading] = useState(false)
+  
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    setUploading(true)
+    const formData = new FormData()
+    formData.append('file', file)
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    
+    try {
+      const res = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData
+      })
+      const data = await res.json()
+      if (data.success) {
+        onUpload(`![${data.filename}](${data.url})`)
+      } else {
+        alert('Upload failed: ' + (data.error || 'Unknown error'))
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Upload error')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  return (
+    <>
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        className="hidden" 
+        accept="image/*"
+        onChange={handleFile} 
+      />
+      <button 
+        type="button"
+        className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded flex items-center gap-1 mb-1 disabled:opacity-50"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploading}
+      >
+        <FiImage /> {uploading ? 'Uploading...' : 'Add Image'}
+      </button>
+    </>
+  )
+}
+
+const ImagePreview = ({ text }) => {
+  if (!text) return null
+  const regex = /!\[(.*?)\]\((.*?)\)/g
+  const images = []
+  let match
+  while ((match = regex.exec(text)) !== null) {
+    images.push({ alt: match[1], src: match[2] })
+  }
+  if (images.length === 0) return null
+  return (
+    <div className="flex flex-wrap gap-2 mt-1 p-2 bg-gray-50 rounded border border-dashed border-gray-200">
+      <span className="text-xs text-gray-500 w-full">Image Preview:</span>
+      {images.map((img, i) => (
+        <img key={i} src={img.src} alt={img.alt} title={img.alt} className="h-20 w-auto object-contain rounded border bg-white" />
+      ))}
+    </div>
+  )
+}
 
 export default function QuestionBankManagement({ isTutor = false }) {
   const router = useRouter()
@@ -572,8 +669,8 @@ export default function QuestionBankManagement({ isTutor = false }) {
                   <button className="text-gray-600 hover:text-gray-800" onClick={() => setPreview(null)}><FiX /></button>
                 </div>
                 <div className="p-4 space-y-4">
-                  {preview.questionParagraph && <div className="text-gray-700 whitespace-pre-line">{preview.questionParagraph}</div>}
-                  <div className="text-gray-900 whitespace-pre-line">{preview.content || preview.question}</div>
+                  {preview.questionParagraph && <div className="text-gray-700 whitespace-pre-line">{renderWithImages(preview.questionParagraph)}</div>}
+                  <div className="text-gray-900 whitespace-pre-line">{renderWithImages(preview.content || preview.question)}</div>
                   {(() => {
                     const opts = typeof preview.options === 'string' ? JSON.parse(preview.options) : (Array.isArray(preview.options) ? preview.options : [])
                     return opts.length > 0 && (
@@ -581,7 +678,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
                       {opts.map((opt, i) => (
                         <div key={i} className="flex items-start gap-2">
                           <span className="font-medium">{String.fromCharCode(65 + i)}.</span>
-                          <span>{opt}</span>
+                          <span>{renderWithImages(opt)}</span>
                         </div>
                       ))}
                     </div>
@@ -591,19 +688,19 @@ export default function QuestionBankManagement({ isTutor = false }) {
                   {preview.explanation && (
                     <div className="mt-2 text-sm">
                       <span className="font-medium text-gray-700">Explanation:</span>
-                      <p className="text-gray-600 whitespace-pre-line">{preview.explanation}</p>
+                      <div className="text-gray-600 whitespace-pre-line">{renderWithImages(preview.explanation)}</div>
                     </div>
                   )}
                   {preview.shortExplanation && (
                     <div className="mt-2 text-sm">
                       <span className="font-medium text-gray-700">Short Explanation:</span>
-                      <p className="text-gray-600 whitespace-pre-line">{preview.shortExplanation}</p>
+                      <div className="text-gray-600 whitespace-pre-line">{renderWithImages(preview.shortExplanation)}</div>
                     </div>
                   )}
                   {preview.longExplanation && (
                     <div className="mt-2 text-sm">
                       <span className="font-medium text-gray-700">Long Explanation:</span>
-                      <p className="text-gray-600 whitespace-pre-line">{preview.longExplanation}</p>
+                      <div className="text-gray-600 whitespace-pre-line">{renderWithImages(preview.longExplanation)}</div>
                     </div>
                   )}
                 </div>
@@ -673,49 +770,69 @@ export default function QuestionBankManagement({ isTutor = false }) {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Question Paragraph</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-medium text-gray-700">Question Paragraph</label>
+                      <ImageUploadButton onUpload={(md) => setEditItem(prev => ({ ...prev, questionParagraph: (prev.questionParagraph || '') + '\n' + md }))} />
+                    </div>
                     <textarea
                       value={editItem.questionParagraph || ''}
                       onChange={(e) => setEditItem({ ...editItem, questionParagraph: e.target.value })}
                       rows={3}
                       className="w-full border rounded px-2 py-1 text-sm"
                     />
+                    <ImagePreview text={editItem.questionParagraph} />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Question Text</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-medium text-gray-700">Question Text</label>
+                      <ImageUploadButton onUpload={(md) => setEditItem(prev => ({ ...prev, content: (prev.content || '') + '\n' + md }))} />
+                    </div>
                     <textarea
                       value={editItem.content || ''}
                       onChange={(e) => setEditItem({ ...editItem, content: e.target.value })}
                       rows={4}
                       className="w-full border rounded px-2 py-1 text-sm"
                     />
+                    <ImagePreview text={editItem.content} />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Explanation</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-medium text-gray-700">Explanation</label>
+                      <ImageUploadButton onUpload={(md) => setEditItem(prev => ({ ...prev, explanation: (prev.explanation || '') + '\n' + md }))} />
+                    </div>
                     <textarea
                       value={editItem.explanation || ''}
                       onChange={(e) => setEditItem({ ...editItem, explanation: e.target.value })}
                       rows={3}
                       className="w-full border rounded px-2 py-1 text-sm"
                     />
+                    <ImagePreview text={editItem.explanation} />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Short Explanation</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-medium text-gray-700">Short Explanation</label>
+                      <ImageUploadButton onUpload={(md) => setEditItem(prev => ({ ...prev, shortExplanation: (prev.shortExplanation || '') + '\n' + md }))} />
+                    </div>
                     <textarea
                       value={editItem.shortExplanation || ''}
                       onChange={(e) => setEditItem({ ...editItem, shortExplanation: e.target.value })}
                       rows={2}
                       className="w-full border rounded px-2 py-1 text-sm"
                     />
+                    <ImagePreview text={editItem.shortExplanation} />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Long Explanation</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-medium text-gray-700">Long Explanation</label>
+                      <ImageUploadButton onUpload={(md) => setEditItem(prev => ({ ...prev, longExplanation: (prev.longExplanation || '') + '\n' + md }))} />
+                    </div>
                     <textarea
                       value={editItem.longExplanation || ''}
                       onChange={(e) => setEditItem({ ...editItem, longExplanation: e.target.value })}
                       rows={4}
                       className="w-full border rounded px-2 py-1 text-sm"
                     />
+                    <ImagePreview text={editItem.longExplanation} />
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-gray-700 mb-2">Options</label>
@@ -724,7 +841,15 @@ export default function QuestionBankManagement({ isTutor = false }) {
                         const opts = typeof editItem.options === 'string' ? JSON.parse(editItem.options) : (Array.isArray(editItem.options) && editItem.options.length > 0 ? editItem.options : ['', '', '', ''])
                         return opts.map((opt, idx) => (
                         <div key={idx}>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Option {String.fromCharCode(65 + idx)}</label>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-xs font-medium text-gray-700">Option {String.fromCharCode(65 + idx)}</label>
+                            <ImageUploadButton onUpload={(md) => {
+                                const currentOpts = typeof editItem.options === 'string' ? JSON.parse(editItem.options) : (Array.isArray(editItem.options) && editItem.options.length > 0 ? editItem.options : ['', '', '', ''])
+                                const next = [...currentOpts]
+                                next[idx] = (next[idx] || '') + ' ' + md
+                                setEditItem(prev => ({ ...prev, options: next }))
+                            }} />
+                          </div>
                           <input
                             value={opt || ''}
                             onChange={(e) => {
@@ -735,6 +860,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
                             }}
                             className="w-full border rounded px-2 py-1 text-sm"
                           />
+                          <ImagePreview text={opt} />
                         </div>
                       ))
                       })()}

@@ -667,11 +667,14 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Images (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Images (required if placeholders used)</label>
                   <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
                     <input id="images-upload" type="file" accept="image/*" multiple onChange={handleImagesChange} className="hidden" />
                     <label htmlFor="images-upload" className="cursor-pointer inline-flex items-center px-4 py-2 bg-gray-800 text-white rounded-md"><FiImage className="mr-2" /> Upload Images</label>
-                    <p className="text-xs text-gray-500 mt-2">Upload optional images referenced by filename in the CSV</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      <strong>Note:</strong> Images embedded directly inside Excel cells will be automatically extracted.
+                      <br />If you prefer using <code>[filename.png]</code> placeholders, upload the matching files here.
+                    </p>
                     {bulkUpload.images.length > 0 && (
                       <div className="mt-4">
                         <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Images:</h4>

@@ -2,6 +2,28 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import Question from '../../../../lib/models/Question'
 import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
+import { unlink } from 'fs/promises'
+import path from 'path'
+
+// Helper to delete images extracted from content
+async function deleteImagesFromContent(content) {
+  if (!content) return
+  const regex = /!\[.*?\]\((.*?)\)/g
+  let match
+  while ((match = regex.exec(content)) !== null) {
+    const imageUrl = match[1]
+    if (imageUrl.startsWith('/uploads/questions/')) {
+      const filename = imageUrl.split('/').pop()
+      const filepath = path.join(process.cwd(), 'public', 'uploads', 'questions', filename)
+      try {
+        await unlink(filepath)
+        console.log(`Deleted image file: ${filepath}`)
+      } catch (err) {
+        console.error(`Failed to delete image file: ${filepath}`, err.message)
+      }
+    }
+  }
+}
 
 export async function DELETE(request, { params }) {
   try {
@@ -19,11 +41,30 @@ export async function DELETE(request, { params }) {
 
     const { id } = params
     
-    const question = await Question.findByIdAndDelete(id)
-    
+    const question = await Question.findById(id)
     if (!question) {
       return NextResponse.json({ error: 'Question not found' }, { status: 404 })
     }
+
+    // Delete associated images
+    await deleteImagesFromContent(question.content)
+    await deleteImagesFromContent(question.questionParagraph)
+    await deleteImagesFromContent(question.explanation)
+    await deleteImagesFromContent(question.shortExplanation)
+    await deleteImagesFromContent(question.longExplanation)
+    if (question.options) {
+        let opts = []
+        try {
+            opts = typeof question.options === 'string' ? JSON.parse(question.options) : question.options
+        } catch (e) {}
+        if (Array.isArray(opts)) {
+            for (const opt of opts) {
+                await deleteImagesFromContent(opt)
+            }
+        }
+    }
+
+    await Question.findByIdAndDelete(id)
     
     return NextResponse.json({
       success: true,

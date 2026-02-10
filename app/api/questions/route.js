@@ -234,7 +234,7 @@ export async function POST(request) {
         questionData.subject,
         (questionData.tags && questionData.tags.length > 0) ? questionData.tags[0] : '',
         questionData.difficulty,
-        1
+        Math.floor(10000 + Math.random() * 90000) // Random 5-digit for manual creation
       ),
       createdBy: adminUser._id,
       options: JSON.stringify(questionData.options || []),
