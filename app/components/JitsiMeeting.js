@@ -49,7 +49,7 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
       'fodeviceselection', 'profile', 'chat', 
       'security', 'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
       'videoquality', 'filmstrip', 'feedback', 'stats', 'shortcuts',
-      'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone'
+      'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone', 'whiteboard'
     ]
 
     const options = {
@@ -171,7 +171,7 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
 
         {/* Debug/Version Indicator - Proves file is updating */}
         <div className="absolute top-0 left-0 z-50 bg-green-400 text-black text-[10px] px-2 py-0.5 opacity-60 hover:opacity-100 pointer-events-none font-mono">
-          v2.7 - Toolbar Fixed
+          v2.8 - Whiteboard Restored
         </div>
 
         {loading && (
