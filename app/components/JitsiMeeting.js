@@ -122,6 +122,12 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
         }
 
         if (isAdmin) {
+            // If admin is not yet moderator, they might be authenticating (clicking 'Login' on waiting screen).
+            // In this case, we SHOULD NOT redirect, but let Jitsi handle the auth flow.
+            if (!isModerator) {
+                console.log('Admin not moderator yet - ignoring exit (likely login flow)')
+                return
+            }
             window.location.href = '/admin/manage-courses'
         } else {
             window.location.href = '/dashboard/live-classes'
@@ -148,9 +154,24 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
   return (
     <div className="fixed inset-0 z-[9999] bg-black flex flex-col top-0 left-0 h-screen w-screen">
       <div className="flex-1 relative bg-gray-900 h-full w-full">
+        {/* Manual Exit Button - Safety net */}
+        <button 
+          onClick={() => {
+             if (confirm('Are you sure you want to exit?')) {
+                 if (onClose) onClose();
+                 // Fallback redirect
+                 if (isAdmin) window.location.href = '/admin/manage-courses';
+                 else window.location.href = '/dashboard/live-classes';
+             }
+          }}
+          className="absolute top-4 right-4 z-[60] bg-red-600/90 hover:bg-red-700 text-white px-3 py-1.5 rounded shadow-lg text-sm font-medium flex items-center gap-2 backdrop-blur-sm transition-all"
+        >
+          <FiX /> Exit
+        </button>
+
         {/* Debug/Version Indicator - Proves file is updating */}
-        <div className="absolute top-0 right-0 z-50 bg-yellow-300 text-black text-xs px-2 py-1 opacity-50 hover:opacity-100 pointer-events-none">
-          v2.5 - File Sharing & Rec Enabled
+        <div className="absolute top-0 left-0 z-50 bg-green-400 text-black text-[10px] px-2 py-0.5 opacity-60 hover:opacity-100 pointer-events-none font-mono">
+          v2.6 - Login Fix (Mod Check)
         </div>
 
         {loading && (
