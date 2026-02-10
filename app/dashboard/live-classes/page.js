@@ -155,7 +155,7 @@ export default function LiveClassesPage() {
         <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-100">
           <FiCalendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900">No scheduled classes</h3>
-          <p className="mt-2 text-gray-500">You don't have any live classes scheduled at the moment.</p>
+          <p className="mt-2 text-gray-500">You don&apos;t have any live classes scheduled at the moment.</p>
         </div>
       ) : (
         <div className="space-y-8">

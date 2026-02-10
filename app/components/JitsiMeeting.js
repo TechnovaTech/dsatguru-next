@@ -33,13 +33,22 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
 
     const domain = 'meet.jit.si'
     
-    // Define restricted buttons for students
+    // Define restricted buttons for students - Restored features
     const studentToolbarButtons = [
-      'microphone', 'camera', 'desktop', 'fullscreen',
+      'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
       'fodeviceselection', 'hangup', 'profile', 'chat',
       'settings', 'raisehand', 'videoquality', 'filmstrip', 
       'feedback', 'stats', 'shortcuts', 'tileview', 
       'videobackgroundblur', 'help', 'whiteboard'
+    ]
+
+    // Define full toolbar for admins with explicit buttons - Restored Security & Stats
+    const adminToolbarButtons = [
+      'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
+      'fodeviceselection', 'hangup', 'profile', 'chat', 
+      'security', 'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
+      'videoquality', 'filmstrip', 'feedback', 'stats', 'shortcuts',
+      'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone'
     ]
 
     const options = {
@@ -55,36 +64,65 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
         startWithAudioMuted: true,
         startWithVideoMuted: true,
         prejoinPageEnabled: false,
-        fileRecordingServiceEnabled: isAdmin,
-        liveStreamingEnabled: isAdmin,
+        disableDeepLinking: true,
+        enableWelcomePage: false,
+        enableClosePage: false,
+        // Enable recording and file sharing
+        fileRecordingServiceEnabled: true,
+        liveStreamingEnabled: true,
+        enableTranscription: true,
+        enableFileSharing: true,
+        hiddenPremeetingButtons: [],
+        toolbarButtons: isAdmin ? adminToolbarButtons : studentToolbarButtons,
+        
+        // Critical for captions to appear
+        transcription: {
+          enabled: true,
+          useAppLanguage: true,
+          preferredLanguage: 'en-US',
+          disableStartForAll: false,
+          enableCaptionChange: true
+        },
+        
         localRecording: {
-          enabled: isAdmin,
+          enabled: true,
           format: 'flac'
         },
-        transcription: {
-          enabled: isAdmin,
-          useAppLanguage: true
-        }
+        
+        // Force file sharing in chat
+        enableFeaturesBasedOnToken: false,
+        fileRecordingsEnabled: true,
+        // dropbox: {
+        //    appKey: 'dummy-key-to-force-ui' 
+        // }
       },
       interfaceConfigOverwrite: {
         SHOW_JITSI_WATERMARK: false,
         SHOW_WATERMARK_FOR_GUESTS: false,
-        // Only restrict toolbar for non-admins (students)
-        // Admins get the default full toolbar
-        TOOLBAR_BUTTONS: isAdmin ? undefined : studentToolbarButtons
+        SHOW_PROMOTIONAL_CLOSE_PAGE: false,
+        // Explicitly define toolbar buttons for both roles (Legacy support)
+        TOOLBAR_BUTTONS: isAdmin ? adminToolbarButtons : studentToolbarButtons,
+        SETTINGS_SECTIONS: ['devices', 'language', 'moderator', 'profile', 'calendar', 'sounds'],
+        // Enable file sharing UI
+        ENABLE_FILE_SHARING: true
       }
     }
 
     const api = new window.JitsiMeetExternalAPI(domain, options)
     window.jitsiApi = api
 
+    // Handle redirection logic
+    const handleExit = () => {
+        if (isAdmin) {
+            window.location.href = '/admin/manage-courses'
+        } else {
+            window.location.href = '/dashboard/live-classes'
+        }
+    }
+
     api.addEventListeners({
-      // videoConferenceLeft: () => {
-      //   if (onClose) onClose()
-      // },
-      // readyToClose: () => {
-      //   if (onClose) onClose()
-      // },
+      videoConferenceLeft: handleExit,
+      readyToClose: handleExit,
       participantRoleChanged: (event) => {
         if (event.role === 'moderator') {
           setIsModerator(true)
@@ -96,25 +134,13 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col">
-      <div className="bg-gray-900 p-4 flex justify-between items-center text-white border-b border-gray-800">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold">Live Class: {roomName}</h2>
-          <button 
-            onClick={() => setShowHelp(!showHelp)}
-            className="flex items-center gap-2 text-sm bg-blue-900/50 hover:bg-blue-900 text-blue-200 px-3 py-1.5 rounded transition-colors"
-          >
-            <FiInfo /> {showHelp ? 'Hide Help' : 'Show Help'}
-          </button>
+    <div className="fixed inset-0 z-[9999] bg-black flex flex-col top-0 left-0 h-screen w-screen">
+      <div className="flex-1 relative bg-gray-900 h-full w-full">
+        {/* Debug/Version Indicator - Proves file is updating */}
+        <div className="absolute top-0 right-0 z-50 bg-yellow-300 text-black text-xs px-2 py-1 opacity-50 hover:opacity-100 pointer-events-none">
+          v2.5 - File Sharing & Rec Enabled
         </div>
-        <button 
-          onClick={onClose}
-          className="px-4 py-2 bg-red-600 rounded hover:bg-red-700 transition-colors"
-        >
-          Exit Class
-        </button>
-      </div>
-      <div className="flex-1 relative bg-gray-900">
+
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center text-white">
             <div className="text-center">
@@ -146,7 +172,7 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
                 <div className="bg-blue-50 p-3 rounded border border-blue-100">
                   <p className="font-bold text-blue-900 mb-1">👨‍🏫 You are the Host</p>
                   <p className="text-blue-800">
-                    If you see <span className="font-semibold">"Waiting for moderator"</span>:
+                    If you see <span className="font-semibold">&quot;Waiting for moderator&quot;</span>:
                     <br/>
                     1. Click the blue <span className="font-bold bg-blue-200 px-1 rounded text-blue-900">Log-in</span> button in the center.
                     <br/>
@@ -173,7 +199,7 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
               )}
               
               <p className="text-xs text-gray-500 italic mt-2 border-t pt-2">
-                * If the login popup is blocked, please check your browser's address bar.
+                * If the login popup is blocked, please check your browser&apos;s address bar.
               </p>
             </div>
           </div>

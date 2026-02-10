@@ -126,7 +126,7 @@ export default function TutorRWPage() {
                   <FiFileText className="w-6 h-6 text-gray-400" />
                 </div>
                 <h3 className="text-gray-900 font-medium">No tests assigned</h3>
-                <p className="text-gray-500 text-sm mt-1">You don't have any pending Reading & Writing tests.</p>
+                <p className="text-gray-500 text-sm mt-1">You don&apos;t have any pending Reading & Writing tests.</p>
               </div>
             )
           )}

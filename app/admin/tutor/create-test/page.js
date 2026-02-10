@@ -757,7 +757,7 @@ export default function CreateTutorTest() {
                         ) : (
                             <tr>
                                 <td colSpan="6" className="p-12 text-center text-gray-400 italic">
-                                    No tests created yet. Click "Create New Test" to begin.
+                                    No tests created yet. Click &quot;Create New Test&quot; to begin.
                                 </td>
                             </tr>
                         )}
