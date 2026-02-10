@@ -7,6 +7,7 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
   const [loading, setLoading] = useState(true)
   const [showHelp, setShowHelp] = useState(true)
   const [isModerator, setIsModerator] = useState(false)
+  const [hasJoined, setHasJoined] = useState(false)
 
   useEffect(() => {
     // Load Jitsi script
@@ -113,6 +114,13 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
 
     // Handle redirection logic
     const handleExit = () => {
+        // Only redirect if user has actually joined the conference to prevent
+        // premature redirects during login/auth flow
+        if (!hasJoined) {
+            console.log('Ignored exit event - User has not joined yet')
+            return
+        }
+
         if (isAdmin) {
             window.location.href = '/admin/manage-courses'
         } else {
@@ -121,6 +129,10 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
     }
 
     api.addEventListeners({
+      videoConferenceJoined: () => {
+        console.log('User joined conference')
+        setHasJoined(true)
+      },
       videoConferenceLeft: handleExit,
       readyToClose: handleExit,
       participantRoleChanged: (event) => {
