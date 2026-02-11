@@ -180,7 +180,7 @@ export async function GET(request) {
       data.id = data._id.toString()
       
       // Handle potential string-encoded JSON fields
-      if (typeof data.options === 'string') {
+      if (typeof data.options === 'string' && data.options.trim()) {
         try {
           data.options = JSON.parse(data.options)
         } catch (e) {
@@ -188,7 +188,14 @@ export async function GET(request) {
         }
       }
       
-      if (typeof data.tags === 'string') {
+      // Ensure options is an array of 4 strings for the frontend
+      const rawOptions = Array.isArray(data.options) ? data.options : []
+      data.options = ['', '', '', '']
+      for (let i = 0; i < 4; i++) {
+        data.options[i] = rawOptions[i] !== undefined && rawOptions[i] !== null ? String(rawOptions[i]) : ''
+      }
+      
+      if (typeof data.tags === 'string' && data.tags.trim()) {
         try {
           data.tags = JSON.parse(data.tags)
         } catch (e) {

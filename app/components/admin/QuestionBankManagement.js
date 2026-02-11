@@ -4,10 +4,15 @@ import { FiSearch, FiEye, FiArrowLeft, FiPlus, FiEdit, FiX, FiCheck, FiEye as Fi
 import { useRouter } from 'next/navigation'
 
 const renderWithImages = (text) => {
-  if (!text) return null
+  if (text === null || text === undefined) return null
+  
+  // Ensure text is a string
+  const stringText = String(text)
+  if (!stringText) return null
+
   // Match ![alt](url)
   const regex = /(!\[.*?\]\(.*?\))/g
-  const parts = text.split(regex)
+  const parts = stringText.split(regex)
   
   return parts.map((part, index) => {
     const match = part.match(/!\[(.*?)\]\((.*?)\)/)
@@ -396,12 +401,17 @@ export default function QuestionBankManagement({ isTutor = false }) {
       tags = []
     }
 
-    // Safe parse options
+    // Safe parse options and ensure they are strings
     let options = ['', '', '', '']
     try {
-      options = typeof q.options === 'string' ? JSON.parse(q.options) : (Array.isArray(q.options) && q.options.length > 0 ? q.options : ['', '', '', ''])
+      const rawOptions = q.options
+      const parsed = typeof rawOptions === 'string' ? JSON.parse(rawOptions) : (Array.isArray(rawOptions) ? rawOptions : [])
+      // Ensure we have 4 options and they are all strings
+      for (let i = 0; i < 4; i++) {
+        options[i] = (parsed[i] !== undefined && parsed[i] !== null) ? String(parsed[i]) : ''
+      }
     } catch (e) {
-      console.error('Error parsing options:', e)
+      console.error('Error parsing options in handleOpenEdit:', e)
     }
 
     let mathTopic = ''
@@ -803,10 +813,18 @@ export default function QuestionBankManagement({ isTutor = false }) {
                       </div>
                       
                       {(() => {
-                        let opts = []
+                        let opts = ['', '', '', '']
                         try {
-                           opts = typeof preview.options === 'string' ? JSON.parse(preview.options) : (Array.isArray(preview.options) ? preview.options : [])
-                        } catch { opts = [] }
+                           // Use q.options if it exists, otherwise use empty array
+                           const rawOptions = preview.options
+                           const parsed = typeof rawOptions === 'string' ? JSON.parse(rawOptions) : (Array.isArray(rawOptions) ? rawOptions : [])
+                           for (let i = 0; i < 4; i++) {
+                             opts[i] = (parsed[i] !== undefined && parsed[i] !== null) ? String(parsed[i]) : ''
+                           }
+                        } catch (e) { 
+                           console.error('Error parsing preview options:', e)
+                           opts = ['', '', '', ''] 
+                        }
                         
                         return ['A', 'B', 'C', 'D'].map((letter, i) => (
                           <div key={letter} className="flex items-stretch gap-3">
@@ -1036,29 +1054,28 @@ export default function QuestionBankManagement({ isTutor = false }) {
                     <label className="block text-xs font-medium text-gray-700 mb-2">Options</label>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                       {(() => {
-                        const opts = typeof editItem.options === 'string' ? JSON.parse(editItem.options) : (Array.isArray(editItem.options) && editItem.options.length > 0 ? editItem.options : ['', '', '', ''])
+                        // editItem.options is already ensured to be an array of 4 strings in handleOpenEdit
+                        const opts = Array.isArray(editItem.options) ? editItem.options : ['', '', '', '']
                         return opts.map((opt, idx) => (
                         <div key={idx}>
                           <div className="flex items-center justify-between mb-1">
                             <label className="block text-xs font-medium text-gray-700">Option {String.fromCharCode(65 + idx)}</label>
                             <ImageUploadButton onUpload={(md) => {
-                                const currentOpts = typeof editItem.options === 'string' ? JSON.parse(editItem.options) : (Array.isArray(editItem.options) && editItem.options.length > 0 ? editItem.options : ['', '', '', ''])
-                                const next = [...currentOpts]
-                                next[idx] = (next[idx] || '') + ' ' + md
+                                const next = [...opts]
+                                next[idx] = String((next[idx] || '') + ' ' + md)
                                 setEditItem(prev => ({ ...prev, options: next }))
                             }} />
                           </div>
                           <input
-                            value={opt || ''}
+                            value={String(opt || '')}
                             onChange={(e) => {
-                              const currentOpts = typeof editItem.options === 'string' ? JSON.parse(editItem.options) : (Array.isArray(editItem.options) && editItem.options.length > 0 ? editItem.options : ['', '', '', ''])
-                              const next = [...currentOpts]
-                              next[idx] = e.target.value
+                              const next = [...opts]
+                              next[idx] = String(e.target.value)
                               setEditItem({ ...editItem, options: next })
                             }}
                             className="w-full border rounded px-2 py-1 text-sm"
                           />
-                          <ImagePreview text={opt} />
+                          <ImagePreview text={String(opt || '')} />
                         </div>
                       ))
                       })()}
