@@ -173,29 +173,33 @@ export async function GET(request) {
       .sort({ createdAt: -1 })
     
     const questionsData = questions.map(q => {
-      const options = q.options ? JSON.parse(q.options) : []
-      return {
-        _id: q._id,
-        id: q._id,
-        questionId: q.questionId,
-        question: q.content || q.title,
-        subject: q.subject,
-        difficulty: q.difficulty,
-        type: q.type,
-        correctAnswer: q.correctAnswer,
-        optionA: options[0] || '',
-        optionB: options[1] || '',
-        optionC: options[2] || '',
-        optionD: options[3] || '',
-        explanation: q.explanation,
-        shortExplanation: q.shortExplanation,
-        longExplanation: q.longExplanation,
-        imageUrl: q.imageUrl,
-        tags: q.tags ? JSON.parse(q.tags) : [],
-        points: q.points,
-        isActive: q.isActive,
-        createdAt: q.createdAt
+      // Return the full question object but ensure options and tags are parsed if they are strings
+      const data = q.toObject ? q.toObject() : { ...q }
+      
+      // Ensure IDs are consistent
+      data.id = data._id.toString()
+      
+      // Handle potential string-encoded JSON fields
+      if (typeof data.options === 'string') {
+        try {
+          data.options = JSON.parse(data.options)
+        } catch (e) {
+          data.options = []
+        }
       }
+      
+      if (typeof data.tags === 'string') {
+        try {
+          data.tags = JSON.parse(data.tags)
+        } catch (e) {
+          data.tags = []
+        }
+      }
+
+      // For backward compatibility with some frontend components that expect 'question' field
+      data.question = data.content || data.title || ''
+      
+      return data
     })
     
     return NextResponse.json(questionsData)

@@ -230,18 +230,27 @@ export async function POST(request) {
     await logDebug(`Header row: ${JSON.stringify(header)}`)
     const idx = (name) => header.findIndex(h => h === name.toLowerCase())
     
-    // Match exact column names from Excel file
-    const idxContent = idx('question')
-    const idxA = idx('option a')
-    const idxB = idx('option b')
-    const idxC = idx('option c')
-    const idxD = idx('option d')
-    const idxCorrect = idx('correct answer')
-    const idxShortExpl = idx('short explanation')
-    const idxLongExpl = idx('long explanation')
-    const idxDifficulty = idx('difficulty')
-    const idxTags = idx('tag')
-    const idxSubject = idx('subject')
+    // Helper to find index by multiple possible names
+    const findIdx = (possibleNames) => {
+      for (const name of possibleNames) {
+        const i = idx(name)
+        if (i >= 0) return i
+      }
+      return -1
+    }
+
+    // Match exact column names from Excel file (with fallbacks)
+    const idxContent = findIdx(['question', 'content', 'question text', 'q', 'ques', 'questiontext'])
+    const idxA = findIdx(['option a', 'a', '(a)', 'choice a', 'answer a', 'optiona', 'choicea', 'answera', 'option 1', 'choice 1', '1', 'opt a', 'opt 1'])
+    const idxB = findIdx(['option b', 'b', '(b)', 'choice b', 'answer b', 'optionb', 'choiceb', 'answerb', 'option 2', 'choice 2', '2', 'opt b', 'opt 2'])
+    const idxC = findIdx(['option c', 'c', '(c)', 'choice c', 'answer c', 'optionc', 'choicec', 'answerc', 'option 3', 'choice 3', '3', 'opt c', 'opt 3'])
+    const idxD = findIdx(['option d', 'd', '(d)', 'choice d', 'answer d', 'optiond', 'choiced', 'answerd', 'option 4', 'choice 4', '4', 'opt d', 'opt 4'])
+    const idxCorrect = findIdx(['correct answer', 'answer', 'correct', 'key', 'correctanswer', 'ans'])
+    const idxShortExpl = findIdx(['short explanation', 'explanation', 'short expl', 'shortexplanation', 'expl'])
+    const idxLongExpl = findIdx(['long explanation', 'long expl', 'detailed explanation', 'longexplanation', 'detailedexplanation', 'detailed'])
+    const idxDifficulty = findIdx(['difficulty', 'level', 'diff'])
+    const idxTags = findIdx(['tag', 'tags', 'topic', 'subtopic', 'tags/topic'])
+    const idxSubject = findIdx(['subject', 'category', 'subj'])
 
     // Save uploaded images to public/uploads/questions/
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'questions')

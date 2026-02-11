@@ -386,9 +386,101 @@ export default function QuestionBankManagement({ isTutor = false }) {
     )
   }
 
+  const handleOpenEdit = (q) => {
+    // Safe parse tags
+    let tags = []
+    try {
+      tags = typeof q.tags === 'string' ? JSON.parse(q.tags) : (Array.isArray(q.tags) ? q.tags : [])
+    } catch (e) {
+      console.error('Error parsing tags:', e)
+      tags = []
+    }
+
+    // Safe parse options
+    let options = ['', '', '', '']
+    try {
+      options = typeof q.options === 'string' ? JSON.parse(q.options) : (Array.isArray(q.options) && q.options.length > 0 ? q.options : ['', '', '', ''])
+    } catch (e) {
+      console.error('Error parsing options:', e)
+    }
+
+    let mathTopic = ''
+    let mathSubtopic = ''
+    let readingWritingTopic = ''
+    
+    if (q.subject === 'Math') {
+      // Find topic
+      for (const [key, val] of Object.entries(mathSubtopics)) {
+        if (tags.includes(key)) {
+          mathTopic = key
+          break
+        }
+      }
+      // Find subtopic
+      if (mathTopic) {
+         for (const [key, val] of Object.entries(mathSubtopics[mathTopic].subtopics || {})) {
+            if (tags.includes(key)) {
+              mathSubtopic = key
+              break
+            }
+         }
+      } else {
+         // Try to find subtopic globally if topic not found
+         for (const [tKey, tVal] of Object.entries(mathSubtopics)) {
+            for (const [sKey, sVal] of Object.entries(tVal.subtopics || {})) {
+               if (tags.includes(sKey)) {
+                  mathSubtopic = sKey
+                  mathTopic = tKey
+                  break
+               }
+            }
+            if (mathSubtopic) break
+         }
+      }
+    } else if (q.subject === 'Reading and Writing') {
+      for (const [key, val] of Object.entries(readingWritingTopics)) {
+        if (tags.includes(key)) {
+          readingWritingTopic = key
+          break
+        }
+      }
+    }
+
+    const usedTags = [mathTopic, mathSubtopic, readingWritingTopic].filter(Boolean)
+    const otherTags = tags.filter(t => !usedTags.includes(t))
+
+    setEditItem({ 
+      ...q, 
+      content: q.content || q.question || '',
+      tags: otherTags, 
+      options: options,
+      mathTopic, 
+      mathSubtopic, 
+      readingWritingTopic 
+    })
+  }
+
   const saveEdit = async () => {
     if (!editItem) return
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    
+    // Parse current free tags
+    let freeTags = []
+    try {
+        freeTags = typeof editItem.tags === 'string' ? JSON.parse(editItem.tags) : (Array.isArray(editItem.tags) ? editItem.tags : [])
+    } catch (e) {
+        freeTags = []
+    }
+
+    const topicTags = []
+    if (editItem.subject === 'Math') {
+      if (editItem.mathTopic) topicTags.push(editItem.mathTopic)
+      if (editItem.mathSubtopic) topicTags.push(editItem.mathSubtopic)
+    } else if (editItem.subject === 'Reading and Writing') {
+      if (editItem.readingWritingTopic) topicTags.push(editItem.readingWritingTopic)
+    }
+    const allTags = [...topicTags, ...freeTags]
+
     const payload = {
       title: editItem.title || '',
       questionParagraph: editItem.questionParagraph || '',
@@ -399,9 +491,16 @@ export default function QuestionBankManagement({ isTutor = false }) {
       subject: editItem.subject,
       difficulty: editItem.difficulty,
       type: editItem.type,
+      testType: editItem.testType || 'Base',
       correctAnswer: editItem.correctAnswer || 'A',
-      options: Array.isArray(editItem.options) ? editItem.options : ['', '', '', ''],
-      tags: editItem.tags || [],
+      options: (() => {
+          try {
+              return typeof editItem.options === 'string' ? JSON.parse(editItem.options) : (Array.isArray(editItem.options) ? editItem.options : ['', '', '', ''])
+          } catch {
+              return ['', '', '', '']
+          }
+      })(),
+      tags: allTags,
       points: typeof editItem.points === 'number' ? editItem.points : 1
     }
     await fetch(`/api/admin/questions/${editItem.id}`, {
@@ -634,7 +733,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
                         </td>
                       <td className="px-6 py-4 text-sm">
                         <div className="flex items-center gap-2">
-                          <button className="inline-flex items-center px-2 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded" onClick={() => setEditItem({ ...q })}>
+                          <button className="inline-flex items-center px-2 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded" onClick={() => handleOpenEdit(q)}>
                             <FiEdit className="mr-1" /> Edit
                           </button>
                           <button className="inline-flex items-center px-2 py-1 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded" onClick={() => setPreview(q)}>
@@ -662,50 +761,115 @@ export default function QuestionBankManagement({ isTutor = false }) {
           </div>
 
           {preview && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-lg shadow-lg max-w-[1200px] w-[90vw]">
-                <div className="p-4 border-b flex items-center justify-between">
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg shadow-lg w-[95vw] h-[90vh] flex flex-col overflow-hidden">
+                {/* Header */}
+                <div className="p-4 border-b flex items-center justify-between bg-white shrink-0">
                   <h3 className="text-lg font-semibold">Preview Question</h3>
-                  <button className="text-gray-600 hover:text-gray-800" onClick={() => setPreview(null)}><FiX /></button>
+                  <button className="text-gray-600 hover:text-gray-800" onClick={() => setPreview(null)}><FiX size={24} /></button>
                 </div>
-                <div className="p-4 space-y-4">
-                  {preview.questionParagraph && <div className="text-gray-700 whitespace-pre-line">{renderWithImages(preview.questionParagraph)}</div>}
-                  <div className="text-gray-900 whitespace-pre-line">{renderWithImages(preview.content || preview.question)}</div>
-                  {(() => {
-                    const opts = typeof preview.options === 'string' ? JSON.parse(preview.options) : (Array.isArray(preview.options) ? preview.options : [])
-                    return opts.length > 0 && (
-                    <div className="space-y-2">
-                      {opts.map((opt, i) => (
-                        <div key={i} className="flex items-start gap-2">
-                          <span className="font-medium">{String.fromCharCode(65 + i)}.</span>
-                          <span>{renderWithImages(opt)}</span>
+                
+                {/* Body - Split View (Test UI) */}
+                <div className="flex-1 flex overflow-hidden">
+                  {/* Left Column - Passage & Question */}
+                  <div className="w-1/2 border-r border-gray-200 p-8 overflow-y-auto bg-gray-50">
+                    {preview.questionParagraph && (
+                      <div className="prose max-w-none mb-8 text-gray-800 leading-relaxed whitespace-pre-line font-serif">
+                        {renderWithImages(preview.questionParagraph)}
+                      </div>
+                    )}
+                    <div className="text-gray-900 text-base leading-relaxed font-medium">
+                      {renderWithImages(preview.content || preview.question)}
+                    </div>
+                  </div>
+
+                  {/* Right Column - Options */}
+                  <div className="w-1/2 p-8 overflow-y-auto bg-gray-50">
+                    {/* Question Number Placeholder */}
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="bg-black text-white w-12 h-12 rounded flex items-center justify-center font-bold text-lg">
+                        1
+                      </div>
+                      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Preview Mode
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Choose an Answer
+                        </span>
+                      </div>
+                      
+                      {(() => {
+                        let opts = []
+                        try {
+                           opts = typeof preview.options === 'string' ? JSON.parse(preview.options) : (Array.isArray(preview.options) ? preview.options : [])
+                        } catch { opts = [] }
+                        
+                        return ['A', 'B', 'C', 'D'].map((letter, i) => (
+                          <div key={letter} className="flex items-stretch gap-3">
+                            <div className="group flex-1 flex items-stretch border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 rounded-lg transition-all overflow-hidden relative cursor-pointer">
+                              <div className="flex-1 text-left p-3 sm:p-4 flex items-start gap-3 sm:gap-4 relative">
+                                <div className="w-8 h-8 rounded-full border-2 border-gray-400 text-gray-700 bg-white group-hover:border-gray-600 flex items-center justify-center flex-shrink-0 font-semibold transition-colors">
+                                  {letter}
+                                </div>
+                                <div className="flex-1 pt-1 text-base sm:text-lg leading-relaxed text-gray-900">
+                                  {renderWithImages(opts[i] || '')}
+                                </div>
+                              </div>
+                            </div>
+                            {/* Eliminate Button Placeholder */}
+                            <button className="group flex-shrink-0 w-10 sm:w-12 flex items-center justify-center rounded-lg border-2 border-gray-200 bg-white text-gray-300 hover:text-gray-500 hover:border-gray-300 hover:bg-gray-50 transition-colors">
+                              <div className="relative w-5 h-5 flex items-center justify-center font-bold text-[10px] border border-current rounded">
+                                ABC
+                              </div>
+                            </button>
+                          </div>
+                        ))
+                      })()}
+                    </div>
+
+                    {/* Explanation */}
+                    <div className="mt-8 pt-8 border-t">
+                      <h4 className="font-bold text-gray-900 mb-4 text-sm uppercase tracking-wider text-gray-500">Explanation (Hidden in Test)</h4>
+                      
+                      {preview.shortExplanation && (
+                        <div className="mb-4">
+                          <h5 className="font-semibold text-gray-700 text-xs uppercase mb-1">Short Explanation</h5>
+                          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                             <div className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
+                                {renderWithImages(preview.shortExplanation)}
+                             </div>
+                          </div>
                         </div>
-                      ))}
+                      )}
+
+                      {preview.longExplanation && (
+                        <div className="mb-4">
+                          <h5 className="font-semibold text-gray-700 text-xs uppercase mb-1">Long Explanation</h5>
+                          <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                             <div className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
+                                {renderWithImages(preview.longExplanation)}
+                             </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {!preview.shortExplanation && !preview.longExplanation && (
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                           <div className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
+                              {renderWithImages(preview.explanation || 'No explanation provided.')}
+                           </div>
+                        </div>
+                      )}
+
+                      <div className="mt-4 text-sm text-gray-800 bg-green-50 px-4 py-2 rounded border border-green-200 inline-block">
+                         <strong>Correct Answer:</strong> <span className="font-bold text-green-700">{preview.correctAnswer}</span>
+                      </div>
                     </div>
-                  )
-                  })()}
-                  <div className="text-sm text-gray-600">Correct Answer: <span className="font-semibold">{preview.correctAnswer}</span></div>
-                  {preview.explanation && (
-                    <div className="mt-2 text-sm">
-                      <span className="font-medium text-gray-700">Explanation:</span>
-                      <div className="text-gray-600 whitespace-pre-line">{renderWithImages(preview.explanation)}</div>
-                    </div>
-                  )}
-                  {preview.shortExplanation && (
-                    <div className="mt-2 text-sm">
-                      <span className="font-medium text-gray-700">Short Explanation:</span>
-                      <div className="text-gray-600 whitespace-pre-line">{renderWithImages(preview.shortExplanation)}</div>
-                    </div>
-                  )}
-                  {preview.longExplanation && (
-                    <div className="mt-2 text-sm">
-                      <span className="font-medium text-gray-700">Long Explanation:</span>
-                      <div className="text-gray-600 whitespace-pre-line">{renderWithImages(preview.longExplanation)}</div>
-                    </div>
-                  )}
-                </div>
-                <div className="p-4 border-t text-right">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded" onClick={() => setPreview(null)}>Close</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -726,9 +890,45 @@ export default function QuestionBankManagement({ isTutor = false }) {
                       <option value="Reading and Writing">Reading and Writing</option>
                     </select>
                   </div>
+
+                  {editItem.subject === 'Math' && (
+                    <>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Math Topic</label>
+                        <select value={editItem.mathTopic || ''} onChange={(e) => setEditItem({ ...editItem, mathTopic: e.target.value, mathSubtopic: '' })} className="w-full border rounded px-2 py-1 text-sm">
+                          <option value="">Select Topic</option>
+                          {Object.entries(mathSubtopics).map(([key, topic]) => (
+                            <option key={key} value={key}>{topic.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Math Subtopic</label>
+                        <select value={editItem.mathSubtopic || ''} onChange={(e) => setEditItem({ ...editItem, mathSubtopic: e.target.value })} className="w-full border rounded px-2 py-1 text-sm">
+                          <option value="">Select Subtopic</option>
+                          {editItem.mathTopic && mathSubtopics[editItem.mathTopic] && Object.entries(mathSubtopics[editItem.mathTopic].subtopics || {}).map(([key, sub]) => (
+                            <option key={key} value={key}>{sub}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </>
+                  )}
+
+                  {editItem.subject === 'Reading and Writing' && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">R&W Topic</label>
+                      <select value={editItem.readingWritingTopic || ''} onChange={(e) => setEditItem({ ...editItem, readingWritingTopic: e.target.value })} className="w-full border rounded px-2 py-1 text-sm">
+                        <option value="">Select Topic</option>
+                        {Object.entries(readingWritingTopics).map(([key, label]) => (
+                          <option key={key} value={key}>{label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Module Type</label>
-                    <select value={editItem.testType} onChange={(e) => setEditItem({ ...editItem, testType: e.target.value })} className="w-full border rounded px-2 py-1 text-sm">
+                    <select value={editItem.testType || 'Base'} onChange={(e) => setEditItem({ ...editItem, testType: e.target.value })} className="w-full border rounded px-2 py-1 text-sm">
                       <option value="Base">Base</option>
                       <option value="Adaptive">Adaptive</option>
                     </select>
@@ -751,46 +951,44 @@ export default function QuestionBankManagement({ isTutor = false }) {
                     </select>
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Other Tags (comma-separated)</label>
                     <input
                       value={(() => {
-                        const tags = typeof editItem.tags === 'string' ? JSON.parse(editItem.tags) : (Array.isArray(editItem.tags) ? editItem.tags : [])
-                        return tags.join(', ')
+                        try {
+                           const tags = typeof editItem.tags === 'string' ? JSON.parse(editItem.tags) : (Array.isArray(editItem.tags) ? editItem.tags : [])
+                           return tags.join(', ')
+                        } catch { return '' }
                       })()}
                       onChange={(e) => setEditItem({ ...editItem, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}
                       className="w-full border rounded px-2 py-1 text-sm"
                     />
                   </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Title</label>
-                    <input
-                      value={editItem.title || ''}
-                      onChange={(e) => setEditItem({ ...editItem, title: e.target.value })}
-                      className="w-full border rounded px-2 py-1 text-sm"
-                    />
-                  </div>
+                  {/* Title field removed */}
+                  
                   <div className="md:col-span-2">
                     <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-medium text-gray-700">Question Paragraph</label>
+                      <label className="block text-xs font-medium text-gray-700">Passage (Optional)</label>
                       <ImageUploadButton onUpload={(md) => setEditItem(prev => ({ ...prev, questionParagraph: (prev.questionParagraph || '') + '\n' + md }))} />
                     </div>
                     <textarea
                       value={editItem.questionParagraph || ''}
                       onChange={(e) => setEditItem({ ...editItem, questionParagraph: e.target.value })}
                       rows={3}
+                      placeholder="Enter passage or context here (mainly for Reading/Writing sections)..."
                       className="w-full border rounded px-2 py-1 text-sm"
                     />
                     <ImagePreview text={editItem.questionParagraph} />
                   </div>
                   <div className="md:col-span-2">
                     <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-medium text-gray-700">Question Text</label>
+                      <label className="block text-xs font-medium text-gray-700">Question</label>
                       <ImageUploadButton onUpload={(md) => setEditItem(prev => ({ ...prev, content: (prev.content || '') + '\n' + md }))} />
                     </div>
                     <textarea
                       value={editItem.content || ''}
                       onChange={(e) => setEditItem({ ...editItem, content: e.target.value })}
                       rows={4}
+                      placeholder="Enter the main question text here..."
                       className="w-full border rounded px-2 py-1 text-sm"
                     />
                     <ImagePreview text={editItem.content} />
