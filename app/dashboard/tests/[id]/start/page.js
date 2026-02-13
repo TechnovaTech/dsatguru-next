@@ -51,7 +51,7 @@ export default function TakeTestPage() {
   const [calcPosition, setCalcPosition] = useState({ x: 50, y: 100 })
   const [isDraggingCalc, setIsDraggingCalc] = useState(false)
   const dragStartPos = useRef({ x: 0, y: 0 })
-  const [calculatorRef, setCalculatorRef] = useState(null)
+  const calculatorRef = useRef(null)
   
   // Time Tracking
   const [questionTimes, setQuestionTimes] = useState({}) 
