@@ -117,6 +117,29 @@ export default function TakeTestPage() {
   const [isDraggingRef, setIsDraggingRef] = useState(false)
   const dragStartRefPos = useRef({ x: 0, y: 0 })
 
+  const renderWithImages = (text) => {
+    if (!text) return null
+    const str = String(text)
+    const regex = /(!\[.*?\]\(.*?\))/g
+    const parts = str.split(regex)
+    return parts.map((part, i) => {
+      const match = part.match(/!\[(.*?)\]\((.*?)\)/)
+      if (match) {
+        const alt = match[1] || ''
+        const url = match[2] || ''
+        return (
+          <img
+            key={`img-${i}`}
+            src={url}
+            alt={alt}
+            className="max-w-full h-auto my-3 rounded border"
+          />
+        )
+      }
+      return <span key={`txt-${i}`}>{part}</span>
+    })
+  }
+
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (isDraggingCalc) {
@@ -287,7 +310,8 @@ export default function TakeTestPage() {
   }
 
   useEffect(() => {
-    if (test?.practiceMode === 'tutor') return
+    const isTutorTimed = test?.practiceMode === 'tutor' && Number(test?.duration) > 0
+    if (test?.practiceMode === 'tutor' && !isTutorTimed) return
     if (timeRemaining > 0 && !showModuleSummary && !testCompleted && !showRWInstructions && !showMathInstructions) {
       const timer = setInterval(() => {
         setTimeRemaining(prev => {
@@ -300,7 +324,7 @@ export default function TakeTestPage() {
       }, 1000)
       return () => clearInterval(timer)
     }
-  }, [timeRemaining, showModuleSummary, testCompleted, showRWInstructions, showMathInstructions])
+  }, [timeRemaining, showModuleSummary, testCompleted, showRWInstructions, showMathInstructions, test?.practiceMode, test?.duration])
 
   const fetchTestData = async () => {
     try {
@@ -488,10 +512,12 @@ export default function TakeTestPage() {
   const loadModule = (section, moduleNum, questions, testData) => {
     const subject = section === 'rw' ? 'Reading and Writing' : 'Math'
     let questionCount = section === 'rw' ? 27 : 22
-    const duration = section === 'rw' ? 32 : 35
+    let duration = section === 'rw' ? 32 : 35
     
     // For Tutor/Custom mode, don't force 22/27 questions if fewer are available
     if (testData?.practiceMode === 'tutor' || testData?.configType === 'custom') {
+        // Use tutor-configured duration (in minutes) when available
+        duration = Number(testData?.duration) > 0 ? Number(testData.duration) : duration
         // Just set a high limit or use actual count later
         questionCount = 100 // We'll slice by actual length below
     }
@@ -1224,7 +1250,7 @@ export default function TakeTestPage() {
           Section 1, Module {currentModule}: {currentSection === 'rw' ? 'Reading and Writing' : 'Math'}
         </div>
         <div className="text-lg font-bold text-gray-900">
-          {test?.practiceMode === 'tutor' ? 'Untimed Practice' : formatTime(timeRemaining)}
+          {test?.practiceMode === 'tutor' && !(Number(test?.duration) > 0) ? 'Untimed Practice' : formatTime(timeRemaining)}
         </div>
         <div className="flex items-center gap-4">
           {currentSection === 'math' && (
@@ -1418,13 +1444,31 @@ export default function TakeTestPage() {
                 {showAnswer ? (
                   <div className="animate-in fade-in slide-in-from-top-4 duration-300">
                     <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 shadow-sm mb-4">
-                      <div className="prose prose-sm max-w-none">
-                        <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
-                          <FiBookOpen className="text-gray-600" /> Explanation
-                        </h4>
-                        <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                          {currentQ.explanation || 'No detailed explanation available for this question.'}
+                      <div className="prose prose-sm max-w-none space-y-6">
+                        <div>
+                          <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                            <FiBookOpen className="text-gray-600" /> Explanation
+                          </h4>
+                          <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                            {currentQ.explanation ? renderWithImages(currentQ.explanation) : 'No detailed explanation available for this question.'}
+                          </div>
                         </div>
+                        {currentQ.shortExplanation ? (
+                          <div>
+                            <h4 className="font-bold text-gray-900 mb-2">Short Explanation</h4>
+                            <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                              {renderWithImages(currentQ.shortExplanation)}
+                            </div>
+                          </div>
+                        ) : null}
+                        {currentQ.longExplanation ? (
+                          <div>
+                            <h4 className="font-bold text-gray-900 mb-2">Detailed Explanation</h4>
+                            <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                              {renderWithImages(currentQ.longExplanation)}
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </div>

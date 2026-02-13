@@ -51,7 +51,7 @@ export async function GET(request, { params }) {
     
     if (questionIds.length > 0) {
       sessionQuestions = await Question.find({ _id: { $in: questionIds } })
-        .select('_id content options subject difficulty questionParagraph imageUrl domain skill correctAnswer optionA optionB optionC optionD')
+        .select('_id content options subject difficulty questionParagraph imageUrl domain skill correctAnswer optionA optionB optionC optionD explanation shortExplanation longExplanation')
     }
 
     // Transform questions for frontend consistency
@@ -79,7 +79,10 @@ export async function GET(request, { params }) {
          domain: q.domain || q.subject,
          skill: q.skill,
          questionParagraph: q.questionParagraph,
-        imageUrl: q.imageUrl
+        imageUrl: q.imageUrl,
+        explanation: q.explanation,
+        shortExplanation: q.shortExplanation,
+        longExplanation: q.longExplanation
       }
     })
 
