@@ -83,7 +83,7 @@ export default function DashboardLayout({ children }) {
         <div>
           <div className="flex items-center justify-between gap-3 mb-8">
             <Link href="/" className="flex items-center gap-2">
-              <div className="relative h-12 w-44">
+              <div className="relative h-16 w-56">
                 <Image
                   src="/logo.png"
                   alt="DSATGURU"

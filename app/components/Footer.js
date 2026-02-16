@@ -20,7 +20,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10">
         <div>
           <div className="mb-3">
-            <div className="relative h-12 w-44">
+            <div className="relative h-16 w-56">
               <Image
                 src="/logo.png"
                 alt="DSATGURU"
