@@ -20,6 +20,8 @@ export default function Header() {
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [dropdownHover, setDropdownHover] = useState(false)
   const [questionBankHover, setQuestionBankHover] = useState(false)
+  const [dsatHover, setDsatHover] = useState(false)
+  const [psatHover, setPsatHover] = useState(false)
   const [questionBanks, setQuestionBanks] = useState([])
 
   const toggleMenu = () => setIsOpen(!isOpen)
@@ -65,6 +67,30 @@ export default function Header() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const dsatLinks = [
+    { title: 'Digital SAT Live Bootcamp Course', href: '/programs/dsat/live-bootcamp-course' },
+    { title: 'Digital SAT Live Prep Course', href: '/programs/dsat/live-prep-course' },
+    { title: 'Digital SAT Individual Tutoring', href: '/programs/dsat/individual-tutoring' },
+    { title: 'Reading and Writing Section', href: '/programs/dsat/reading-and-writing-section' },
+    { title: 'Diagnostic Test', href: '/programs/dsat/diagnostic-test' },
+    { title: 'Practice Test', href: '/programs/dsat/practice-test' },
+    { title: 'Mock Test', href: '/programs/dsat/mock-test' },
+    { title: 'Math Section', href: '/programs/dsat/math-section' },
+    { title: 'Study-Guide', href: '/programs/dsat/study-guide' },
+  ]
+
+  const psatLinks = [
+    { title: 'PSAT Live Bootcamp Course', href: '/programs/psat/live-bootcamp-course' },
+    { title: 'PSAT Live Prep Course', href: '/programs/psat/live-prep-course' },
+    { title: 'PSAT Individual Tutoring', href: '/programs/psat/individual-tutoring' },
+    { title: 'Reading and Writing Section', href: '/programs/psat/reading-and-writing-section' },
+    { title: 'Diagnostic Test', href: '/programs/psat/diagnostic-test' },
+    { title: 'Practice Test', href: '/programs/psat/practice-test' },
+    { title: 'Mock Test', href: '/programs/psat/mock-test' },
+    { title: 'Math Section', href: '/programs/psat/math-section' },
+    { title: 'Study-Guide', href: '/programs/psat/study-guide' },
+  ]
+
   return (
     <div className="font-[Poppins]">
       <nav
@@ -89,6 +115,88 @@ export default function Header() {
               >
                 <FiHome /> Home
               </Link>
+
+              <div
+                className="relative"
+                onMouseEnter={() => setDsatHover(true)}
+                onMouseLeave={() => setDsatHover(false)}
+              >
+                <button
+                  className="flex items-center gap-1 text-sm hover:text-blue-600 transition-colors duration-300 text-gray-700"
+                >
+                  <FiBookOpen /> DSAT
+                </button>
+                <AnimatePresence>
+                  {dsatHover && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-full left-1/2 transform -translate-x-1/2 mt-3 w-80 p-2 grid gap-2 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto"
+                    >
+                      {dsatLinks.map((item, idx) => {
+                        const color = colors[idx % colors.length]
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`flex items-center gap-3 p-4 ${color.bg} ${color.border} border rounded-lg ${color.text} hover:shadow-md transition-all truncate`}
+                          >
+                            <FiBookOpen size={20} />
+                            <span
+                              className="text-sm font-semibold truncate w-full"
+                              title={item.title}
+                            >
+                              {item.title}
+                            </span>
+                          </Link>
+                        )
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div
+                className="relative"
+                onMouseEnter={() => setPsatHover(true)}
+                onMouseLeave={() => setPsatHover(false)}
+              >
+                <button
+                  className="flex items-center gap-1 text-sm hover:text-blue-600 transition-colors duration-300 text-gray-700"
+                >
+                  <FiBookOpen /> PSAT
+                </button>
+                <AnimatePresence>
+                  {psatHover && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-full left-1/2 transform -translate-x-1/2 mt-3 w-80 p-2 grid gap-2 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto"
+                    >
+                      {psatLinks.map((item, idx) => {
+                        const color = colors[idx % colors.length]
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`flex items-center gap-3 p-4 ${color.bg} ${color.border} border rounded-lg ${color.text} hover:shadow-md transition-all truncate`}
+                          >
+                            <FiBookOpen size={20} />
+                            <span
+                              className="text-sm font-semibold truncate w-full"
+                              title={item.title}
+                            >
+                              {item.title}
+                            </span>
+                          </Link>
+                        )
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               <div
                 className="relative"
@@ -257,6 +365,32 @@ export default function Header() {
                     >
                       <FiHome /> Home
                     </Link>
+                    <div className="pt-2 border-t">
+                      <p className="text-xs font-semibold text-gray-500 uppercase mb-2">DSAT Programs</p>
+                      {dsatLinks.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={closeMenu}
+                          className="block text-sm text-gray-700 hover:text-blue-600 border-b py-2"
+                        >
+                          {item.title}
+                        </Link>
+                      ))}
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase mb-2 mt-4">PSAT Programs</p>
+                      {psatLinks.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={closeMenu}
+                          className="block text-sm text-gray-700 hover:text-blue-600 border-b py-2"
+                        >
+                          {item.title}
+                        </Link>
+                      ))}
+                    </div>
                     <Link
                       href="/about"
                       onClick={closeMenu}

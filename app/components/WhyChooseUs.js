@@ -122,7 +122,7 @@ export default function WhyChooseUs({ landingPlanRef }) {
           ))}
         </div>
         <div>
-          <motion.h2
+          <motion.h3
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
@@ -130,7 +130,7 @@ export default function WhyChooseUs({ landingPlanRef }) {
             className="text-blue-600 text-3xl font-bold uppercase mb-2"
           >
             WHY CHOOSE US
-          </motion.h2>
+          </motion.h3>
           <motion.h3
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}

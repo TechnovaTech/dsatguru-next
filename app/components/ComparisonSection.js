@@ -77,7 +77,7 @@ export default function ComparisonSection() {
         variants={fadeInUp}
         className="max-w-7xl mx-auto text-center mb-10 px-4"
       >
-        <h2 className="text-blue-600 text-3xl font-bold uppercase mb-2">{comparisonData.title}</h2>
+        <h3 className="text-blue-600 text-3xl font-bold uppercase mb-2">{comparisonData.title}</h3>
         <h3 className="text-3xl md:text-4xl font-extrabold mb-4">{comparisonData.subtitle}</h3>
         <p className="max-w-3xl mx-auto text-base md:text-lg">
           {comparisonData.description}

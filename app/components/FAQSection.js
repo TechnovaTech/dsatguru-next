@@ -38,9 +38,9 @@ export default function FAQSection() {
         <h3 className="text-blue-600 text-3xl font-bold uppercase mb-2">
           Frequently Asked Questions
         </h3>
-        <h2 className="text-3xl md:text-4xl font-extrabold mb-4">
+        <h3 className="text-3xl md:text-4xl font-extrabold mb-4">
           Clear Answers to Your Queries
-        </h2>
+        </h3>
       </div>
 
       <div className="max-w-3xl mx-auto divide-y divide-gray-200">

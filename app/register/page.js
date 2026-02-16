@@ -100,9 +100,9 @@ export default function Register() {
             <FiArrowLeft className="mr-1" /> Go Back to Home
           </Link>
         </div>
-        <h2 className="text-2xl font-bold text-center text-blue-700 mb-6">
+        <h1 className="text-2xl font-bold text-center text-blue-700 mb-6">
           Create Your DSATGURU Account
-        </h2>
+        </h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
@@ -247,6 +247,23 @@ export default function Register() {
             </Link>
           </p>
         </form>
+        <div className="mt-8 border-t pt-6">
+          <h2 className="text-lg font-bold text-gray-800 mb-2 text-center">What You Get</h2>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>Realistic multistage adaptive tests</li>
+            <li>Personalized study plans tailored to your needs</li>
+            <li>Progress dashboards and performance analytics</li>
+          </ul>
+          <div className="mt-4 text-sm text-gray-600">
+            <p className="font-semibold mb-1">Questions?</p>
+            <p>
+              Email <a className="text-blue-600 underline" href="mailto:info@dsatguru.com">info@dsatguru.com</a> or call <span className="font-medium">1-329-239-8577</span>.
+            </p>
+            <p className="mt-2 text-xs text-gray-500">
+              Your information is used to create and secure your account only.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   )

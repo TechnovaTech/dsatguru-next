@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { FaRegStar } from 'react-icons/fa'
 import { BsCheck2Circle } from 'react-icons/bs'
 import { SlGraph } from 'react-icons/sl'
+import Image from 'next/image'
 
 const heroGradients = [
   "from-yellow-400/10 via-amber-600/90 to-orange-900",
@@ -131,10 +132,14 @@ export default function HeroSection({ landingPlanRef }) {
         >
           {/* Background */}
           <div className="absolute inset-0 flex md:justify-end justify-center">
-            <img
+            <Image
               src={slidesData[current].image}
-              alt="Background"
+              alt="Hero background"
+              width={1600}
+              height={900}
               className="w-full md:w-1/2 h-full object-cover object-center"
+              sizes="(min-width: 768px) 50vw, 100vw"
+              priority
             />
             <div className={`absolute inset-0 bg-gradient-to-l ${slidesData[current].background}`}></div>
           </div>

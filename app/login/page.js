@@ -96,9 +96,9 @@ export default function Login() {
             <FiArrowLeft className="mr-1" /> Go Back to Home
           </Link>
         </div>
-        <h2 className="text-2xl font-bold text-center text-blue-700 mb-6">
+        <h1 className="text-2xl font-bold text-center text-blue-700 mb-6">
           Login to DSATGURU
-        </h2>
+        </h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
@@ -174,6 +174,23 @@ export default function Login() {
             </a>
           </p>
         </form>
+        <div className="mt-8 border-t pt-6">
+          <h2 className="text-lg font-bold text-gray-800 mb-2 text-center">Why Login</h2>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>Access 4000+ questions with explanations</li>
+            <li>Take adaptive practice tests</li>
+            <li>Track progress and analytics</li>
+          </ul>
+          <div className="mt-4 text-sm text-gray-600">
+            <p className="font-semibold mb-1">Need help?</p>
+            <p>
+              Contact <a className="text-blue-600 underline" href="mailto:info@dsatguru.com">info@dsatguru.com</a> or call <span className="font-medium">1-329-239-8577</span>.
+            </p>
+            <p className="mt-2 text-xs text-gray-500">
+              For your security, never share your password over email or phone.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   )

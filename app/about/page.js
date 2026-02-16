@@ -22,9 +22,9 @@ export default function About() {
           variants={fadeInUp}
           className="text-center"
         >
-          <h2 className="text-blue-600 text-xl font-bold uppercase mb-2">
+          <h1 className="text-blue-600 text-xl font-bold uppercase mb-2">
             About DSATGURU
-          </h2>
+          </h1>
           <h3 className="text-3xl md:text-4xl font-extrabold mb-4">
             Helping You Achieve Academic Excellence
           </h3>

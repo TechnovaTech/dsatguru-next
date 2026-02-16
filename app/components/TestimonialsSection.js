@@ -28,7 +28,7 @@ export default function TestimonialsSection() {
     <section className="w-full bg-gradient-to-br from-indigo-50 via-white to-blue-100 py-20 px-4 sm:px-6 lg:px-16 font-[Poppins] text-gray-800">
       <div className="max-w-6xl mx-auto text-center mb-12">
         <h3 className="text-blue-600 text-3xl font-bold uppercase mb-2">TESTIMONIALS (PILOT PROGRAM)</h3>
-        <h2 className="text-3xl md:text-4xl font-extrabold mb-4">Success Stories from Our Students</h2>
+        <h3 className="text-3xl md:text-4xl font-extrabold mb-4">Success Stories from Our Students</h3>
       </div>
       <div className="grid gap-10 md:grid-cols-3 max-w-6xl mx-auto">
         {testimonials.map((t, idx) => (

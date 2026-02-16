@@ -118,13 +118,41 @@ export default function Contact() {
             <FiHeadphones />
           </div>
           <div>
-            <h3 className="text-xl md:text-2xl font-bold text-gray-800">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800">
               CONTACT US
-            </h3>
+            </h1>
             <p className="text-sm text-gray-600 mt-1">We&apos;re Here to Help</p>
             <p className="text-sm text-gray-600 mt-1">
               Have questions? Reach out to us by email or call us and we&apos;ll be
               happy to assist you on your DSAT/PSAT journey.
+            </p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="w-full grid md:grid-cols-3 gap-6"
+        >
+          <div className="bg-white rounded-xl shadow p-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-2">How We Can Help</h2>
+            <p className="text-sm text-gray-600">
+              Whether you are a student, parent, or school, reach out for help with course options, enrollment, billing, or technical issues. We guide you toward the best DSAT/PSAT prep path.
+            </p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-2">Support Channels</h2>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>Phone: <span className="font-medium">1-329-239-8577</span></li>
+              <li>Email: <span className="font-medium">info@dsatguru.com</span></li>
+            </ul>
+          </div>
+          <div className="bg-white rounded-xl shadow p-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-2">Your Privacy</h2>
+            <p className="text-sm text-gray-600">
+              We use your contact details only to respond to your inquiry. Sensitive information is never requested on this page.
             </p>
           </div>
         </motion.div>

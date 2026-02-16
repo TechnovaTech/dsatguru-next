@@ -1,6 +1,7 @@
 'use client'
 import { motion } from 'framer-motion'
 import { FaLaptopCode, FaVideo, FaUserGraduate } from 'react-icons/fa'
+import Image from 'next/image'
 
 const features = [
   {
@@ -26,9 +27,9 @@ export default function FeaturesSection() {
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-start lg:items-stretch gap-12 lg:gap-20">
         <div className="w-full lg:w-7/12">
           <div className="text-left mb-10 lg:mb-8">
-            <h2 className="text-blue-600 text-3xl font-bold uppercase mb-2">
+            <h3 className="text-blue-600 text-3xl font-bold uppercase mb-2">
               Why DSATGURU is Superior Prep
-            </h2>
+            </h3>
             <h3 className="text-3xl md:text-4xl font-extrabold mb-4">
               Elevate Your SAT Preparation
             </h3>
@@ -73,10 +74,14 @@ export default function FeaturesSection() {
           className="w-full lg:w-5/12 flex items-center justify-center"
         >
           <div className="w-full h-full flex items-center justify-center">
-            <img
+            <Image
               src="/feature.jpg"
               alt="DSAT Feature Graphic"
+              width={1200}
+              height={800}
               className="max-h-full shadow-md shadow-gray-400 rounded-xl object-contain"
+              sizes="(min-width: 1024px) 40vw, 90vw"
+              priority
             />
           </div>
         </motion.div>

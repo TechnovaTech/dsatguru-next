@@ -96,9 +96,9 @@ export default function PersonalizedLearningSection({ landingPlanRef }) {
         <h3 className="text-blue-600 text-3xl font-bold uppercase mb-2">
           PERSONALIZED LEARNING
         </h3>
-        <h2 className="text-3xl md:text-4xl font-extrabold mb-4">
+        <h3 className="text-3xl md:text-4xl font-extrabold mb-4">
           Your Digital SAT Journey, Your Way
-        </h2>
+        </h3>
         <p className="text-base md:text-lg text-gray-600">
           Experience a truly personalized prep program that evolves with you to
           maximize your score improvement
