@@ -2,6 +2,7 @@
 import { useAuth } from '../components/AuthContext'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect } from 'react'
 import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock, FiVideo } from 'react-icons/fi'
 import { useState } from 'react'
@@ -81,7 +82,16 @@ export default function DashboardLayout({ children }) {
       <aside className={`h-screen fixed z-50 md:static top-0 right-0 bg-white text-gray-800 w-64 p-6 space-y-6 flex flex-col justify-between overflow-y-auto transform transition-transform duration-300 ease-in-out shadow-lg ${isOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"}`}>
         <div>
           <div className="flex items-center justify-between gap-3 mb-8">
-            <Link href="/" className="text-2xl font-bold text-blue-700 tracking-wide">DSATGURU</Link>
+            <Link href="/" className="flex items-center gap-2">
+              <div className="relative h-12 w-44">
+                <Image
+                  src="/logo.png"
+                  alt="DSATGURU"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            </Link>
             <button
               onClick={() => setIsOpen(false)}
               className="text-gray-600 hover:text-gray-800 md:hidden"

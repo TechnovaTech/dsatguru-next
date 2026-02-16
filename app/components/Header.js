@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useAuth } from './AuthContext'
 import { useCourses } from './CourseContext'
 import { FiMenu, FiX, FiHome, FiBookOpen, FiInfo, FiPhone, FiArrowUp } from 'react-icons/fi'
@@ -102,9 +103,16 @@ export default function Header() {
           <Link
             href="/"
             onClick={scrollToTop}
-            className="text-3xl font-extrabold text-blue-700 tracking-wide"
+            className="flex items-center gap-3"
           >
-            DSATGURU
+            <div className="relative h-12 w-44">
+              <Image
+                src="/logo.png"
+                alt="DSATGURU"
+                fill
+                className="object-contain"
+              />
+            </div>
           </Link>
 
           <div className="hidden md:flex items-center space-x-10">

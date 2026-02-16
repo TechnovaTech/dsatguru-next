@@ -1,6 +1,7 @@
 'use client'
 import { useCourses } from './CourseContext'
 import { FaPhone, FaMessage } from 'react-icons/fa6'
+import Image from 'next/image'
 
 export default function Footer() {
   const { courses } = useCourses()
@@ -18,7 +19,16 @@ export default function Footer() {
     <footer className="bg-blue-950 text-gray-200 px-6 sm:px-10 lg:px-16 pt-14 pb-6">
       <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10">
         <div>
-          <h4 className="text-2xl font-bold text-white mb-3">DSATGURU</h4>
+          <div className="mb-3">
+            <div className="relative h-12 w-44">
+              <Image
+                src="/logo.png"
+                alt="DSATGURU"
+                fill
+                className="object-contain"
+              />
+            </div>
+          </div>
           <p className="text-sm text-gray-300">
             Empowering students with cutting-edge test preparation tools and
             strategies for academic success.
