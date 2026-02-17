@@ -81,7 +81,7 @@ const ProgramCard = ({ data, index, headerHeight, isEnrolled }) => {
           <h4 className="text-lg font-bold text-gray-800 uppercase mt-4 text-center">
             {data.title}
           </h4>
-          <p className="text-sm font-semibold text-gray-500 text-center">
+          <p className="text-sm font-semibold text-gray-700 text-center">
             {data.subtitle}
           </p>
           {data.batch && (
@@ -95,22 +95,22 @@ const ProgramCard = ({ data, index, headerHeight, isEnrolled }) => {
 
         <div className="flex flex-col items-center justify-center p-4">
           {discountPercentage && (
-            <div className={`mb-2 inline-block ${bgColor} text-black px-3 py-1 text-xs font-semibold rounded-full`}>
+            <div className={`mb-2 inline-block ${bgColor} text-gray-900 px-3 py-1 text-xs font-semibold rounded-full`}>
               {discountPercentage}% OFF
             </div>
           )}
           {data.originalPrice ? (
             <>
-              <p className="text-sm line-through text-gray-400">
+              <p className="text-sm line-through text-gray-500">
                 ${data.originalPrice}
               </p>
               <p className="text-2xl font-extrabold text-blue-600">
                 ${data.discountedPrice}
               </p>
-              <p className="text-xs text-gray-500">{data.priceNote}</p>
+              <p className="text-xs text-gray-700">{data.priceNote}</p>
             </>
           ) : (
-            <p className="text-sm text-gray-400 italic my-10">Contact for Pricing</p>
+            <p className="text-sm text-gray-600 italic my-10">Contact for Pricing</p>
           )}
         </div>
 
@@ -207,7 +207,7 @@ export default function ProgramSection({ landingPlanRef }) {
         ))}
       </motion.div>
 
-      <p className="text-sm text-gray-500 mt-10 text-center">
+      <p className="text-sm text-gray-700 mt-10 text-center">
         Score increase guarantee applies to students who complete all course
         requirements and practice tests.
         <br />

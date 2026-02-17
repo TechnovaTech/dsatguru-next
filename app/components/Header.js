@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from './AuthContext'
 import { useCourses } from './CourseContext'
-import { FiMenu, FiX, FiHome, FiBookOpen, FiInfo, FiPhone, FiArrowUp } from 'react-icons/fi'
+import { FiMenu, FiX, FiHome, FiBookOpen, FiInfo, FiPhone, FiArrowUp, FiChevronDown } from 'react-icons/fi'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const colors = [
@@ -24,6 +24,10 @@ export default function Header() {
   const [dsatHover, setDsatHover] = useState(false)
   const [psatHover, setPsatHover] = useState(false)
   const [questionBanks, setQuestionBanks] = useState([])
+  const [mobileDsatOpen, setMobileDsatOpen] = useState(false)
+  const [mobilePsatOpen, setMobilePsatOpen] = useState(false)
+  const [mobileCoursesOpen, setMobileCoursesOpen] = useState(false)
+  const [mobileQbOpen, setMobileQbOpen] = useState(false)
 
   const toggleMenu = () => setIsOpen(!isOpen)
   const closeMenu = () => setIsOpen(false)
@@ -341,7 +345,12 @@ export default function Header() {
           </div>
 
           <div className="md:hidden">
-            <button onClick={toggleMenu}>
+            <button
+              onClick={toggleMenu}
+              aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={isOpen}
+              aria-controls="mobile-menu"
+            >
               {isOpen ? <FiX size={28} /> : <FiMenu size={28} />}
             </button>
           </div>
@@ -364,68 +373,171 @@ export default function Header() {
                 transition={{ duration: 0.3 }}
                 className="fixed top-0 right-0 h-full w-3/4 bg-white shadow-lg z-50 flex flex-col justify-between px-8 py-12 overflow-y-auto"
               >
-                <div>
+                <div id="mobile-menu">
                   <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold text-blue-700">Menu</h2>
-                    <button onClick={toggleMenu}>
+                    <button onClick={toggleMenu} aria-label="Close navigation menu">
                       <FiX size={28} className="text-gray-700" />
                     </button>
                   </div>
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <Link
                       href="/"
                       onClick={closeMenu}
-                      className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 font-medium border-b pb-2"
+                      className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 font-medium border-b pb-3"
                     >
                       <FiHome /> Home
                     </Link>
-                    <div className="pt-2 border-t">
-                      <p className="text-xs font-semibold text-gray-500 uppercase mb-2">DSAT Programs</p>
-                      {dsatLinks.map((item) => (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={closeMenu}
-                          className="block text-sm text-gray-700 hover:text-blue-600 border-b py-2"
-                        >
-                          {item.title}
-                        </Link>
-                      ))}
+
+                    <div className="border-t pt-3">
+                      <button
+                        type="button"
+                        onClick={() => setMobileDsatOpen(!mobileDsatOpen)}
+                        className="w-full flex items-center justify-between text-sm text-gray-700 hover:text-blue-600 font-medium py-2"
+                      >
+                        <span className="flex items-center gap-2">
+                          <FiBookOpen /> DSAT
+                        </span>
+                        <FiChevronDown
+                          className={`transition-transform ${mobileDsatOpen ? 'rotate-180' : ''}`}
+                        />
+                      </button>
+                      {mobileDsatOpen && (
+                        <div className="mt-1 space-y-1">
+                          {dsatLinks.map((item) => (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              onClick={closeMenu}
+                              className="block pl-6 text-sm text-gray-700 hover:text-blue-600 py-1.5 border-b last:border-b-0"
+                            >
+                              {item.title}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase mb-2 mt-4">PSAT Programs</p>
-                      {psatLinks.map((item) => (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={closeMenu}
-                          className="block text-sm text-gray-700 hover:text-blue-600 border-b py-2"
-                        >
-                          {item.title}
-                        </Link>
-                      ))}
+
+                    <div className="border-t pt-3">
+                      <button
+                        type="button"
+                        onClick={() => setMobilePsatOpen(!mobilePsatOpen)}
+                        className="w-full flex items-center justify-between text-sm text-gray-700 hover:text-blue-600 font-medium py-2"
+                      >
+                        <span className="flex items-center gap-2">
+                          <FiBookOpen /> PSAT
+                        </span>
+                        <FiChevronDown
+                          className={`transition-transform ${mobilePsatOpen ? 'rotate-180' : ''}`}
+                        />
+                      </button>
+                      {mobilePsatOpen && (
+                        <div className="mt-1 space-y-1">
+                          {psatLinks.map((item) => (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              onClick={closeMenu}
+                              className="block pl-6 text-sm text-gray-700 hover:text-blue-600 py-1.5 border-b last:border-b-0"
+                            >
+                              {item.title}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <Link
-                      href="/about"
-                      onClick={closeMenu}
-                      className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 font-medium border-b pb-2"
-                    >
-                      <FiInfo /> About Us
-                    </Link>
-                    <Link
-                      href="/blog"
-                      onClick={closeMenu}
-                      className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 font-medium border-b pb-2"
-                    >
-                      Blog
-                    </Link>
-                    <Link
-                      href="/contact"
-                      onClick={closeMenu}
-                      className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 font-medium border-b pb-2"
-                    >
-                      <FiPhone /> Contact Us
-                    </Link>
+
+                    <div className="border-t pt-3">
+                      <button
+                        type="button"
+                        onClick={() => setMobileCoursesOpen(!mobileCoursesOpen)}
+                        className="w-full flex items-center justify-between text-sm text-gray-700 hover:text-blue-600 font-medium py-2"
+                      >
+                        <span className="flex items-center gap-2">
+                          <FiBookOpen /> Courses
+                        </span>
+                        <FiChevronDown
+                          className={`transition-transform ${mobileCoursesOpen ? 'rotate-180' : ''}`}
+                        />
+                      </button>
+                      {mobileCoursesOpen && (
+                        <div className="mt-1 space-y-1">
+                          {courses.map((course) => {
+                            if (!course.slug || course.slug === 'individual-tutoring') return null
+                            const id = course.courseId || course.id
+                            return (
+                              <Link
+                                key={course.id}
+                                href={`/enrollment/${id}`}
+                                onClick={closeMenu}
+                                className="block pl-6 text-sm text-gray-700 hover:text-blue-600 py-1.5 border-b last:border-b-0"
+                              >
+                                {course.title}
+                              </Link>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="border-t pt-3">
+                      <button
+                        type="button"
+                        onClick={() => setMobileQbOpen(!mobileQbOpen)}
+                        className="w-full flex items-center justify-between text-sm text-gray-700 hover:text-blue-600 font-medium py-2"
+                      >
+                        <span className="flex items-center gap-2">
+                          <FiBookOpen /> Question Banks
+                        </span>
+                        <FiChevronDown
+                          className={`transition-transform ${mobileQbOpen ? 'rotate-180' : ''}`}
+                        />
+                      </button>
+                      {mobileQbOpen && (
+                        <div className="mt-1 space-y-1">
+                          {questionBanks.length > 0 ? (
+                            questionBanks.map((qBank) => (
+                              <Link
+                                key={qBank.id}
+                                href={`/question-bank/${qBank.id}`}
+                                onClick={closeMenu}
+                                className="block pl-6 text-sm text-gray-700 hover:text-blue-600 py-1.5 border-b last:border-b-0"
+                              >
+                                {qBank.title}
+                              </Link>
+                            ))
+                          ) : (
+                            <p className="pl-6 text-xs text-gray-500 py-1.5">
+                              No question banks available
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="border-t pt-3 space-y-2">
+                      <Link
+                        href="/about"
+                        onClick={closeMenu}
+                        className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 font-medium pb-2"
+                      >
+                        <FiInfo /> About Us
+                      </Link>
+                      <Link
+                        href="/blog"
+                        onClick={closeMenu}
+                        className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 font-medium pb-2"
+                      >
+                        <FiBookOpen /> Blog
+                      </Link>
+                      <Link
+                        href="/contact"
+                        onClick={closeMenu}
+                        className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 font-medium pb-2"
+                      >
+                        <FiPhone /> Contact Us
+                      </Link>
+                    </div>
                   </div>
                 </div>
                 <div className="flex flex-col gap-4">
