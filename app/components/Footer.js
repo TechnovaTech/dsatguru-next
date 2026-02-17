@@ -20,14 +20,13 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10">
         <div>
           <div className="mb-3">
-            <div className="relative h-16 w-56">
-              <Image
-                src="/logo (2).png"
-                alt="DSATGURU"
-                fill
-                className="object-contain"
-              />
-            </div>
+            <Image
+              src="/logo (2).png"
+              alt="DSATGURU"
+              width={151}
+              height={64}
+              className="object-contain h-12 w-auto"
+            />
           </div>
           <p className="text-sm text-gray-300">
             Empowering students with cutting-edge test preparation tools and

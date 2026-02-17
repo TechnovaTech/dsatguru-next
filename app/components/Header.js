@@ -109,14 +109,14 @@ export default function Header() {
             onClick={scrollToTop}
             className="flex items-center gap-3"
           >
-            <div className="relative h-10 w-40 sm:h-12 sm:w-48 lg:h-16 lg:w-56">
-              <Image
-                src="/logo (2).png"
-                alt="DSATGURU"
-                fill
-                className="object-contain"
-              />
-            </div>
+            <Image
+              src="/logo (2).png"
+              alt="DSATGURU"
+              width={151}
+              height={64}
+              priority
+              className="object-contain h-10 w-auto sm:h-12 lg:h-16"
+            />
           </Link>
 
           <div className="hidden md:flex items-center space-x-10">

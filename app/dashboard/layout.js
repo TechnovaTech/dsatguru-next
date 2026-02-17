@@ -83,14 +83,14 @@ export default function DashboardLayout({ children }) {
         <div>
           <div className="flex items-center justify-between gap-3 mb-8">
             <Link href="/" className="flex items-center gap-2">
-              <div className="relative h-16 w-56">
-                <Image
-                  src="/logo (2).png"
-                  alt="DSATGURU"
-                  fill
-                  className="object-contain"
-                />
-              </div>
+              <Image
+                src="/logo (2).png"
+                alt="DSATGURU"
+                width={151}
+                height={64}
+                priority
+                className="object-contain h-10 w-auto"
+              />
             </Link>
             <button
               onClick={() => setIsOpen(false)}
