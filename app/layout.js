@@ -5,6 +5,13 @@ import AppShell from './components/AppShell'
 
 const BASE_URL = 'https://www.dsatguru.com'
 
+export const metadata = {
+  title: 'DSATGURU | Digital SAT & PSAT Prep Platform',
+  description:
+    'DSATGURU helps students boost their Digital SAT and PSAT scores with live classes, mock tests, question banks, and smart study plans.',
+  metadataBase: new URL(BASE_URL),
+}
+
 export default function RootLayout({ children }) {
   const canonicalUrl = BASE_URL
 
