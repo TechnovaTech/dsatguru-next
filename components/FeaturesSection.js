@@ -1,6 +1,7 @@
 'use client'
 import { motion } from 'framer-motion'
 import { FaLaptopCode, FaVideo, FaUserGraduate } from 'react-icons/fa'
+import Image from 'next/image'
 
 const features = [
   {
@@ -73,9 +74,14 @@ export default function FeaturesSection() {
           className="w-full lg:w-5/12 flex items-center justify-center"
         >
           <div className="w-full h-full flex items-center justify-center">
-            <div className="w-96 h-96 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl shadow-lg flex items-center justify-center">
-              <span className="text-6xl">📚</span>
-            </div>
+            <Image
+              src="/feature.jpg"
+              alt="DSAT Feature Graphic"
+              width={1200}
+              height={800}
+              className="max-h-full shadow-md shadow-gray-400 rounded-xl object-contain"
+              sizes="(min-width: 1024px) 40vw, 90vw"
+            />
           </div>
         </motion.div>
       </div>

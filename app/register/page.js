@@ -90,19 +90,64 @@ export default function Register() {
   }
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 relative">
-        <div className="mb-4">
-          <Link
-            href="/"
-            className="text-blue-600 flex items-center text-sm hover:underline mb-4"
-          >
-            <FiArrowLeft className="mr-1" /> Go Back to Home
-          </Link>
+    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
+      <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+        <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 text-white p-10 flex-col justify-between">
+          <div>
+            <Link
+              href="/"
+              className="inline-flex items-center text-xs font-medium text-blue-100 hover:text-white mb-6"
+            >
+              <FiArrowLeft className="mr-1" /> Back to home
+            </Link>
+            <p className="inline-flex items-center text-xs uppercase tracking-[0.2em] bg-white/10 px-3 py-1 rounded-full mb-4">
+              Create your DSAT profile
+            </p>
+            <h1 className="text-3xl font-bold leading-tight mb-4">
+              One account for all your DSAT learning
+            </h1>
+            <p className="text-sm text-blue-100/90 mb-6">
+              Build a personalized prep journey with live courses, adaptive tests, and clear score
+              tracking so you always know what to do next.
+            </p>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                <span>Unlock full access to DSAT and PSAT programs, live classes, and schedules.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-300" />
+                <span>Get a personalized study plan and see exactly what to practice each day.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-sky-300" />
+                <span>Track improvements with detailed dashboards, analytics, and test history.</span>
+              </li>
+            </ul>
+          </div>
+          <div className="mt-8 text-xs text-blue-100/80">
+            <p className="font-semibold">Questions before you sign up?</p>
+            <p>
+              Email <a className="underline" href="mailto:info@dsatguru.com">info@dsatguru.com</a> or call <span className="font-medium">1-329-239-8577</span>.
+            </p>
+          </div>
         </div>
-        <h1 className="text-2xl font-bold text-center text-blue-700 mb-6">
-          Create Your DSATGURU Account
-        </h1>
+
+        <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center">
+          <div className="mb-6 md:hidden">
+            <Link
+              href="/"
+              className="text-blue-600 flex items-center text-sm hover:underline mb-3"
+            >
+              <FiArrowLeft className="mr-1" /> Back to home
+            </Link>
+            <h1 className="text-2xl font-bold text-blue-700">
+              Create Your DSATGURU Account
+            </h1>
+            <p className="text-xs text-gray-500 mt-1">
+              Sign up to start structured prep with tests, courses, and analytics.
+            </p>
+          </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
@@ -247,22 +292,6 @@ export default function Register() {
             </Link>
           </p>
         </form>
-        <div className="mt-8 border-t pt-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-2 text-center">What You Get</h2>
-          <ul className="text-sm text-gray-600 space-y-1">
-            <li>Realistic multistage adaptive tests</li>
-            <li>Personalized study plans tailored to your needs</li>
-            <li>Progress dashboards and performance analytics</li>
-          </ul>
-          <div className="mt-4 text-sm text-gray-600">
-            <p className="font-semibold mb-1">Questions?</p>
-            <p>
-              Email <a className="text-blue-600 underline" href="mailto:info@dsatguru.com">info@dsatguru.com</a> or call <span className="font-medium">1-329-239-8577</span>.
-            </p>
-            <p className="mt-2 text-xs text-gray-500">
-              Your information is used to create and secure your account only.
-            </p>
-          </div>
         </div>
       </div>
     </section>

@@ -71,7 +71,7 @@ export default function DashboardLayout({ children }) {
             <Link href="/" className="flex items-center gap-2">
               <div className="relative h-16 w-56">
                 <Image
-                  src="/logo.png"
+                  src="/logo (2).png"
                   alt="DSATGURU"
                   fill
                   className="object-contain"

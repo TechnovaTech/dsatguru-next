@@ -27,7 +27,7 @@ const highlightCards = [
   {
     icon: <MdScore size={28} className="text-blue-600" />,
     title: "Score Guarantee",
-    description: "We guarantee a 200+ point boost if you&apos;re below 1220 or a score above 1420+ for first-time test takers*.",
+    description: "We guarantee a 200+ point boost if you're below 1220 or a score above 1420+ for first-time test takers*.",
   },
   {
     icon: <MdViewInAr size={28} className="text-purple-600" />,
@@ -37,7 +37,7 @@ const highlightCards = [
   {
     icon: <MdVerified size={28} className="text-green-600" />,
     title: "Focused Topic Coverage",
-    description: "We tailor our prep to exactly what&apos;s needed on the Digital SAT—nothing more, nothing less.",
+    description: "We tailor our prep to exactly what's needed on the Digital SAT—nothing more, nothing less.",
   },
   {
     icon: <MdLiveTv size={28} className="text-rose-600" />,

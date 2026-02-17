@@ -405,7 +405,10 @@ function CourseContentManager({ course, onBack }) {
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
-                  meetings: [...prev.meetings, { title: '', date: '', link: '' }]
+                  meetings: [
+                    ...prev.meetings,
+                    { title: '', date: '', link: '', transcript: '', transcriptSummary: '' }
+                  ]
                 }))}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
               >
@@ -472,25 +475,53 @@ function CourseContentManager({ course, onBack }) {
                       </button>
                     )}
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setCourseData(prev => ({
-                        ...prev,
-                        meetings: [...prev.meetings.slice(0, index + 1), { title: '', date: '', link: '' }, ...prev.meetings.slice(index + 1)]
-                      }))}
-                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Add Below
-                    </button>
-                    <button
-                      onClick={() => {
-                        const updated = courseData.meetings.filter((_, i) => i !== index)
+                  <div className="flex flex-col gap-3 mt-2">
+                    <textarea
+                      value={m.transcript || ''}
+                      onChange={(e) => {
+                        const updated = [...courseData.meetings]
+                        updated[index] = { ...updated[index], transcript: e.target.value }
                         setCourseData(prev => ({ ...prev, meetings: updated }))
                       }}
-                      className="bg-red-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Remove
-                    </button>
+                      className="w-full p-2 border rounded text-sm"
+                      rows={4}
+                      placeholder="Paste or write meeting transcript here"
+                    />
+                    <textarea
+                      value={m.transcriptSummary || ''}
+                      onChange={(e) => {
+                        const updated = [...courseData.meetings]
+                        updated[index] = { ...updated[index], transcriptSummary: e.target.value }
+                        setCourseData(prev => ({ ...prev, meetings: updated }))
+                      }}
+                      className="w-full p-2 border rounded text-sm"
+                      rows={3}
+                      placeholder="Short summary of key points (optional)"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setCourseData(prev => ({
+                          ...prev,
+                          meetings: [
+                            ...prev.meetings.slice(0, index + 1),
+                            { title: '', date: '', link: '', transcript: '', transcriptSummary: '' },
+                            ...prev.meetings.slice(index + 1)
+                          ]
+                        }))}
+                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Add Below
+                      </button>
+                      <button
+                        onClick={() => {
+                          const updated = courseData.meetings.filter((_, i) => i !== index)
+                          setCourseData(prev => ({ ...prev, meetings: updated }))
+                        }}
+                        className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

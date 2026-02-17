@@ -8,6 +8,7 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
   const [showHelp, setShowHelp] = useState(true)
   const [isModerator, setIsModerator] = useState(false)
   const [hasJoined, setHasJoined] = useState(false)
+  const [transcriptionActive, setTranscriptionActive] = useState(false)
 
   useEffect(() => {
     // Load Jitsi script
@@ -144,8 +145,12 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
       participantRoleChanged: (event) => {
         if (event.role === 'moderator') {
           setIsModerator(true)
-          // Auto-hide help when they become moderator
           if (isAdmin) setShowHelp(false)
+        }
+      },
+      recordingStatusChanged: (event) => {
+        if (typeof event?.transcription === 'boolean') {
+          setTranscriptionActive(event.transcription)
         }
       }
     })
@@ -212,6 +217,9 @@ export default function JitsiMeeting({ roomName, displayName, email, onClose, is
                     2. Sign in with Google/GitHub to claim host rights.
                     <br/>
                     3. Once logged in, the class will start automatically.
+                  </p>
+                  <p className="mt-2 text-blue-800 text-xs">
+                    Live captions: {transcriptionActive ? 'ON (Subtitles running)' : 'Use the CC button in the toolbar to start captions'}
                   </p>
                   {isModerator && (
                     <div className="mt-2 p-2 bg-green-100 text-green-800 rounded font-bold text-center">

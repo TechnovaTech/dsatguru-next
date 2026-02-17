@@ -105,9 +105,13 @@ export default function Header() {
             onClick={scrollToTop}
             className="flex items-center gap-3"
           >
+<<<<<<< HEAD
             <div className="relative h-16 w-56">
+=======
+            <div className="relative h-10 w-40 sm:h-12 sm:w-48 lg:h-16 lg:w-56">
+>>>>>>> b0324e3 (Blog pages, logo update, SEO fixes)
               <Image
-                src="/logo.png"
+                src="/logo (2).png"
                 alt="DSATGURU"
                 fill
                 className="object-contain"
@@ -301,6 +305,12 @@ export default function Header() {
                 <FiInfo /> About Us
               </a>
 
+              <Link
+                href="/blog"
+                className="flex items-center gap-1 text-sm hover:text-blue-600 transition-colors duration-300 text-gray-700"
+              >
+                Blog
+              </Link>
               <a
                 href="/contact"
                 className="flex items-center gap-1 text-sm hover:text-blue-600 transition-colors duration-300 text-gray-700"
@@ -405,6 +415,13 @@ export default function Header() {
                       className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 font-medium border-b pb-2"
                     >
                       <FiInfo /> About Us
+                    </Link>
+                    <Link
+                      href="/blog"
+                      onClick={closeMenu}
+                      className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 font-medium border-b pb-2"
+                    >
+                      Blog
                     </Link>
                     <Link
                       href="/contact"

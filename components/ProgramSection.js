@@ -198,10 +198,10 @@ export default function ProgramSection({ landingPlanRef }) {
       </motion.div>
 
       <p className="text-sm text-gray-500 mt-10 text-center">
-        *Score increase guarantee applies to students who complete all course
+        Score increase guarantee applies to students who complete all course
         requirements and practice tests.
         <br />
-        ***Concept videos provide comprehensive review of core DSAT/PSAT topics.
+        Concept videos provide comprehensive review of core DSAT/PSAT topics.
       </p>
     </section>
   )

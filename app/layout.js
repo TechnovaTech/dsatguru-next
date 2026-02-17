@@ -13,6 +13,9 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/logo (2).png" sizes="32x32" />
+      </head>
       <body className="font-[Poppins]">
         <AuthProvider>
           <CourseProvider>

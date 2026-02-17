@@ -5,6 +5,7 @@ import { FaRegStar } from 'react-icons/fa'
 import { BsCheck2Circle } from 'react-icons/bs'
 import { SlGraph } from 'react-icons/sl'
 import Image from 'next/image'
+import FloatingContactButtons from './FloatingContactButtons'
 
 const heroGradients = [
   "from-yellow-400/10 via-amber-600/90 to-orange-900",
@@ -106,20 +107,7 @@ export default function HeroSection({ landingPlanRef }) {
 
   return (
     <section className="relative w-full min-h-[70vh] h-auto overflow-hidden">
-      <a
-        href="https://wa.me/13292398577"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="absolute left-0 top-[30%] bg-green-600 text-white px-3 py-2 rounded-r-md shadow z-50 hover:bg-green-700 [writing-mode:vertical-rl] [text-orientation:mixed] text-sm font-semibold"
-      >
-        Chat on WhatsApp
-      </a>
-      <a
-        href="tel:+13292398577"
-        className="absolute left-0 top-[65%] bg-red-600 text-white px-3 py-2 rounded-r-md shadow z-50 hover:bg-red-700 [writing-mode:vertical-rl] [text-orientation:mixed] text-sm font-semibold"
-      >
-        Call +1 329-239-8577
-      </a>
+      <FloatingContactButtons />
       <AnimatePresence initial={false} custom={direction} mode="sync">
         <motion.div
           key={current}

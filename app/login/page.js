@@ -86,21 +86,66 @@ export default function Login() {
   }
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 relative">
-        <div className="mb-4">
-          <Link
-            href="/"
-            className="text-blue-600 flex items-center text-sm hover:underline mb-4"
-          >
-            <FiArrowLeft className="mr-1" /> Go Back to Home
-          </Link>
+    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
+      <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+        <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 text-white p-10 flex-col justify-between">
+          <div>
+            <Link
+              href="/"
+              className="inline-flex items-center text-xs font-medium text-blue-100 hover:text-white mb-6"
+            >
+              <FiArrowLeft className="mr-1" /> Back to home
+            </Link>
+            <p className="inline-flex items-center text-xs uppercase tracking-[0.2em] bg-white/10 px-3 py-1 rounded-full mb-4">
+              Secure student portal
+            </p>
+            <h1 className="text-3xl font-bold leading-tight mb-4">
+              Login to continue your DSAT prep journey
+            </h1>
+            <p className="text-sm text-blue-100/90 mb-6">
+              Sign in to unlock your personalized dashboard, adaptive practice tests, and detailed analytics
+              that help you move closer to your target score with every session.
+            </p>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                <span>Resume where you left off in live classes and practice tests.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-300" />
+                <span>Track strengths, weaknesses, and score improvements over time.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-sky-300" />
+                <span>Access premium question banks, assignments, and course material 24/7.</span>
+              </li>
+            </ul>
+          </div>
+          <div className="mt-8 text-xs text-blue-100/80">
+            <p className="font-semibold">Need help logging in?</p>
+            <p>
+              Email <a className="underline" href="mailto:info@dsatguru.com">info@dsatguru.com</a> or call <span className="font-medium">1-329-239-8577</span>.
+            </p>
+          </div>
         </div>
-        <h1 className="text-2xl font-bold text-center text-blue-700 mb-6">
-          Login to DSATGURU
-        </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center">
+          <div className="mb-6 md:hidden">
+            <Link
+              href="/"
+              className="text-blue-600 flex items-center text-sm hover:underline mb-3"
+            >
+              <FiArrowLeft className="mr-1" /> Back to home
+            </Link>
+            <h1 className="text-2xl font-bold text-blue-700">
+              Login to DSATGURU
+            </h1>
+            <p className="text-xs text-gray-500 mt-1">
+              Access your dashboard, tests, and course progress in one place.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email Address
@@ -174,22 +219,6 @@ export default function Login() {
             </a>
           </p>
         </form>
-        <div className="mt-8 border-t pt-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-2 text-center">Why Login</h2>
-          <ul className="text-sm text-gray-600 space-y-1">
-            <li>Access 4000+ questions with explanations</li>
-            <li>Take adaptive practice tests</li>
-            <li>Track progress and analytics</li>
-          </ul>
-          <div className="mt-4 text-sm text-gray-600">
-            <p className="font-semibold mb-1">Need help?</p>
-            <p>
-              Contact <a className="text-blue-600 underline" href="mailto:info@dsatguru.com">info@dsatguru.com</a> or call <span className="font-medium">1-329-239-8577</span>.
-            </p>
-            <p className="mt-2 text-xs text-gray-500">
-              For your security, never share your password over email or phone.
-            </p>
-          </div>
         </div>
       </div>
     </section>

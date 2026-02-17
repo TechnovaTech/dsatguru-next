@@ -1,14 +1,18 @@
 'use client'
 import { useRef } from 'react'
+import dynamic from 'next/dynamic'
 import HeroSection from './components/HeroSection'
 import ProgramSection from './components/ProgramSection'
-import ComparisonSection from './components/ComparisonSection'
-import BenefitSection from './components/BenefitSection'
-import FeaturesSection from './components/FeaturesSection'
-import WhyChooseUs from './components/WhyChooseUs'
-import PersonalizedLearningSection from './components/PersonalizedLearningSection'
-import TestimonialsSection from './components/TestimonialsSection'
-import FAQSection from './components/FAQSection'
+
+const ComparisonSection = dynamic(() => import('./components/ComparisonSection'))
+const BenefitSection = dynamic(() => import('./components/BenefitSection'))
+const FeaturesSection = dynamic(() => import('./components/FeaturesSection'))
+const WhyChooseUs = dynamic(() => import('./components/WhyChooseUs'))
+const PersonalizedLearningSection = dynamic(
+  () => import('./components/PersonalizedLearningSection')
+)
+const TestimonialsSection = dynamic(() => import('./components/TestimonialsSection'))
+const FAQSection = dynamic(() => import('./components/FAQSection'))
 
 export default function Home() {
   const landingPlanRef = useRef(null)

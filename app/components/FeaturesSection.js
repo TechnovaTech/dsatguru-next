@@ -81,7 +81,6 @@ export default function FeaturesSection() {
               height={800}
               className="max-h-full shadow-md shadow-gray-400 rounded-xl object-contain"
               sizes="(min-width: 1024px) 40vw, 90vw"
-              priority
             />
           </div>
         </motion.div>
