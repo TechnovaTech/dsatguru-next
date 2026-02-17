@@ -19,11 +19,11 @@ const borderColors = [
   "border-amber-300",
 ]
 const buttonColors = [
-  "bg-blue-500 hover:bg-blue-600",
-  "bg-teal-500 hover:bg-teal-600",
-  "bg-rose-500 hover:bg-rose-600",
-  "bg-indigo-500 hover:bg-indigo-600",
-  "bg-amber-500 hover:bg-amber-600",
+  "bg-blue-700 hover:bg-blue-800",
+  "bg-teal-700 hover:bg-teal-800",
+  "bg-rose-700 hover:bg-rose-800",
+  "bg-indigo-700 hover:bg-indigo-800",
+  "bg-amber-700 hover:bg-amber-800",
 ]
 const textColors = [
   "text-blue-700",
