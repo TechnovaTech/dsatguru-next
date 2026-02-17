@@ -1,21 +1,12 @@
 export default function Head() {
   return (
     <>
-      <title>DSATGURU – Digital SAT/PSAT Prep | 4000+ Questions, Adaptive Tests, Score Guarantee</title>
-      <link rel="canonical" href="https://dsatguru.com/" />
+      <title>DSATGURU | Digital SAT &amp; PSAT Prep Platform</title>
       <meta
         name="description"
-        content="Digital SAT/PSAT prep with 4000+ practice questions, 25+ adaptive tests, personalized study plans, analytics, and a score guarantee."
+        content="DSATGURU helps students boost their Digital SAT and PSAT scores with live classes, mock tests, question banks, and smart study plans."
       />
-      <meta name="robots" content="index,follow" />
-      <meta property="og:type" content="website" />
-      <meta property="og:site_name" content="DSATGURU" />
-      <meta property="og:title" content="DSATGURU – Digital SAT/PSAT Prep | 4000+ Questions, Adaptive Tests, Score Guarantee" />
-      <meta property="og:description" content="Digital SAT/PSAT prep with 4000+ practice questions, 25+ adaptive tests, personalized study plans, analytics, and a score guarantee." />
-      <meta property="og:url" content="https://dsatguru.com/" />
-      <meta name="twitter:card" content="summary" />
-      <meta name="twitter:title" content="DSATGURU – Digital SAT/PSAT Prep | 4000+ Questions, Adaptive Tests, Score Guarantee" />
-      <meta name="twitter:description" content="Digital SAT/PSAT prep with 4000+ practice questions, 25+ adaptive tests, personalized study plans, analytics, and a score guarantee." />
+      <link rel="icon" href="/logo (2).png" sizes="32x32" />
     </>
   )
 }
