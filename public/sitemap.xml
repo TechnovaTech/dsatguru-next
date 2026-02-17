@@ -5,11 +5,87 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://www.dsatguru.com/about</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.dsatguru.com/blog</loc>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.dsatguru.com/contact</loc>
     <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/dsat/live-bootcamp-course</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/dsat/live-prep-course</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/dsat/individual-tutoring</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/dsat/reading-and-writing-section</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/dsat/diagnostic-test</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/dsat/practice-test</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/dsat/mock-test</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/dsat/math-section</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/dsat/study-guide</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/psat/live-bootcamp-course</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/psat/live-prep-course</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/psat/individual-tutoring</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/psat/reading-and-writing-section</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/psat/diagnostic-test</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/psat/practice-test</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/psat/mock-test</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/psat/math-section</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.dsatguru.com/programs/psat/study-guide</loc>
+    <priority>0.7</priority>
   </url>
 </urlset>

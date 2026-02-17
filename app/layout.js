@@ -10,6 +10,11 @@ export const metadata = {
   description:
     'DSATGURU helps students boost their Digital SAT and PSAT scores with live classes, mock tests, question banks, and smart study plans.',
   metadataBase: new URL(BASE_URL),
+  icons: {
+    icon: '/logo (2).png',
+    shortcut: '/logo (2).png',
+    apple: '/logo (2).png',
+  },
 }
 
 export default function RootLayout({ children }) {

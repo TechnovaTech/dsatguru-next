@@ -90,7 +90,9 @@ export default function Footer() {
           <span>•</span>
           <span>Refund Policy</span>
           <span>•</span>
-          <span>Site Map</span>
+          <a href="/sitemap.xml" className="underline underline-offset-2">
+            Site Map
+          </a>
         </p>
       </div>
     </footer>
