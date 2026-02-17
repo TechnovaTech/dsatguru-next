@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /api
+Allow: /
+
+Sitemap: https://www.dsatguru.com/sitemap.xml
+
