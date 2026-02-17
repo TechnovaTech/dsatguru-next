@@ -105,11 +105,7 @@ export default function Header() {
             onClick={scrollToTop}
             className="flex items-center gap-3"
           >
-<<<<<<< HEAD
-            <div className="relative h-16 w-56">
-=======
             <div className="relative h-10 w-40 sm:h-12 sm:w-48 lg:h-16 lg:w-56">
->>>>>>> b0324e3 (Blog pages, logo update, SEO fixes)
               <Image
                 src="/logo (2).png"
                 alt="DSATGURU"
