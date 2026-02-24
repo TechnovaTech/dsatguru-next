@@ -53,15 +53,11 @@ export default function BenefitsSection() {
     <section className="relative py-20 px-6 sm:px-8 lg:px-10 font-[Poppins] bg-gradient-to-tr from-[#e0eafc] via-white to-[#cfdef3]">
       <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-white/5 rounded-3xl blur-3xl -z-10" />
       <div className="relative max-w-7xl mx-auto text-center">
-        <h3 className="text-blue-600 text-3xl font-bold uppercase mb-2">
-          BENEFITS
-        </h3>
         <h3 className="text-3xl md:text-4xl font-extrabold mb-4">
-          Affordable Prep with Higher Scores
+          Benefits of Affordable SAT Exam Preparation
         </h3>
         <p className="max-w-3xl mx-auto text-base md:text-lg text-gray-700 mb-10">
-          We have the most budget friendly options for you to Achieve Your Higher
-          Score.
+          We offer a budget-friendly SAT study course designed to help students achieve higher scores without compromising on quality, structure, or expert guidance.
         </p>
         <div className="flex flex-wrap justify-center gap-6 md:gap-10">
           {benefits.map((benefit, idx) => (

@@ -27,17 +27,12 @@ export default function ComparisonSection() {
     try {
       const res = await fetch('/api/admin/comparison')
       const data = await res.json()
-      console.log('API Response:', data)
-      
       if (data.success && data.data) {
-        console.log('Using database data')
         setComparisonData(data.data)
       } else {
-        console.log('No database data found')
         setComparisonData(null)
       }
     } catch (error) {
-      console.error('Error fetching comparison:', error)
       setComparisonData(null)
     } finally {
       setLoading(false)
@@ -68,6 +63,11 @@ export default function ComparisonSection() {
     )
   }
 
+  const overrideTitle = 'Compare DSATGURU vs. Other Prep Services'
+  const overrideSubtitle = ''
+  const overrideDescription =
+    'DSATGURU helps students improve their SAT scores with our high-quality courses at a lower cost. Our SAT preparation classes include live support, smart practice tests, and clear explanations that make learning simple and effective.'
+
   return (
     <section className="w-full bg-white py-16 pt-4 px-4 sm:px-6 lg:px-8 font-[Poppins] text-gray-800">
       <motion.div
@@ -77,11 +77,11 @@ export default function ComparisonSection() {
         variants={fadeInUp}
         className="max-w-7xl mx-auto text-center mb-10 px-4"
       >
-        <h3 className="text-blue-600 text-3xl font-bold uppercase mb-2">{comparisonData.title}</h3>
-        <h3 className="text-3xl md:text-4xl font-extrabold mb-4">{comparisonData.subtitle}</h3>
-        <p className="max-w-3xl mx-auto text-base md:text-lg">
-          {comparisonData.description}
-        </p>
+        <h3 className="text-blue-600 text-3xl font-bold uppercase mb-2">{overrideTitle}</h3>
+        {overrideSubtitle ? (
+          <h3 className="text-3xl md:text-4xl font-extrabold mb-4">{overrideSubtitle}</h3>
+        ) : null}
+        <p className="max-w-3xl mx-auto text-base md:text-lg">{overrideDescription}</p>
       </motion.div>
       <motion.div
         initial="hidden"

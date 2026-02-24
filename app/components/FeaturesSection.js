@@ -27,16 +27,14 @@ export default function FeaturesSection() {
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-start lg:items-stretch gap-12 lg:gap-20">
         <div className="w-full lg:w-7/12">
           <div className="text-left mb-10 lg:mb-8">
-            <h3 className="text-blue-600 text-3xl font-bold uppercase mb-2">
-              Why DSATGURU is Superior Prep
-            </h3>
             <h3 className="text-3xl md:text-4xl font-extrabold mb-4">
               Elevate Your SAT Preparation
             </h3>
-            <p className="max-w-xl text-base md:text-lg text-gray-700 mb-6">
-              DSATGURU&apos;s intuitive platform and interactive tools optimize study
-              efficiency, ensuring a strategic and comprehensive approach to
-              mastering the exam.
+            <p className="max-w-xl text-base md:text-lg text-gray-700 mb-4">
+              SAT exam preparation becomes much easier if you follow the right method. At DSATGURU, we focus on effective and organized methods that actually work, helping you study smarter, not harder.
+            </p>
+            <p className="max-w-xl text-base md:text-lg text-gray-700">
+              Our live online SAT study courses let you practice at your own pace while building strong fundamentals. With interactive SAT test prep methods, we guide you step by step to build your confidence and perform your best on the exam.
             </p>
           </div>
 

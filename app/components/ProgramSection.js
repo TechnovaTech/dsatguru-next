@@ -178,15 +178,11 @@ export default function ProgramSection({ landingPlanRef }) {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="max-w-7xl mx-auto text-center"
       >
-        <h2 className="text-gray-600 text-6xl font-bold uppercase mb-2">
-          SCORE EVEN HIGHER!!!
-        </h2>
-        <h3 className="text-4xl md:text-5xl font-extrabold mb-4">
+        <h2 className="text-4xl md:text-5xl font-extrabold mb-4">
           Choose Your Path to Success
-        </h3>
+        </h2>
         <p className="max-w-2xl mx-auto text-lg text-gray-500 mb-10">
-          Select the program that best fits your needs and learning style. All
-          options are designed to maximize your score improvement.
+          Select the sat preparation course that best fits your needs and learning style. All options are designed to maximize your score improvement.
         </p>
       </motion.div>
 

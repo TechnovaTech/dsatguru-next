@@ -4,24 +4,39 @@ import { motion } from 'framer-motion'
 
 const faqs = [
   {
-    question: "What is the guarantee policy?",
-    answer: "We guarantee a score improvement of at least 120 points or higher (for Bootcamp) and least 200 points or a final score of 1420 or higher for our DSAT/PSAT LIVE PREP COURSE and ULTIMATE PREP PACKAGE. We know you will achieve this result after completing our program requirements. Please see our terms and conditions for full details on the guaranteed requirements. We believe in our teaching methods and you.",
+    question: "Do the practice tests match the real SAT or PSAT?",
+    answer:
+      "Yes! All our practice tests are designed to mirror the real SAT and PSAT in format, timing, and difficulty. This way, you get a realistic experience and know exactly what to expect on exam day.",
   },
   {
-    question: "How do the adaptive practice tests work?",
-    answer: "Our multistage adaptive tests mimic the actual DSAT format. They adjust the difficulty of questions based on your performance, just like the real exam. This provides the most realistic practice experience and accurate score prediction available.",
+    question: "Can you provide full-length SAT or PSAT practice tests online?",
+    answer:
+      "Absolutely! You can take full-length, timed practice tests online just like the real exams. It’s a great way to practice pacing, build confidence, and see where you need to improve.",
   },
   {
-    question: "Can I switch between different prep plans?",
-    answer: "Yes! You can upgrade your plan at any time. We'll credit the amount you've already paid toward your new plan. Contact our customer support team to help you with the transition and ensure you get the most appropriate preparation for your needs.",
+    question: "How do I get started with a SAT preparation course?",
+    answer:
+      "It’s simple! Just create an account, pick the exam you want to prepare for, choose any SAT preparation course, and you can start practicing right away. You’ll get instant access to lessons, practice questions, and study plans tailored to your goals.",
   },
   {
-    question: "How long do I have access to the course materials?",
-    answer: "For the Live Prep and Bootcamp options, you'll have access to all materials for 3 months from your starting date, you will access all your tests and recorded classes. For the ULTIMATE PREP PACKAGE, you get 4 months of access to the complete website Plus the recorded classes. Monthly subscription plans are automatically renewed until canceled.",
+    question: "Are the sat live classes recorded?",
+    answer:
+      "Yes, all sat live classes are recorded and available for review until your access period ends. This allows you to revisit any concepts you'd like to reinforce or make up sessions if you miss a live class.",
   },
   {
-    question: "Are the live classes recorded?",
-    answer: "Yes, all live classes are recorded and available for review until your access period ends. This allows you to revisit any concepts you'd like to reinforce or make up sessions if you miss a live class.",
+    question: "Do you help with AP exam scoring and college credit?",
+    answer:
+      "Definitely! We guide you through AP scoring, strategies to earn college credit, and tips to maximize your scores. Our goal is to help you make the most of your AP exams and get ahead in college.",
+  },
+  {
+    question: "Can I switch between different sat preparation course plans?",
+    answer:
+      "Yes! You can upgrade your sat preparation course plan at any time. We'll credit the amount you've already paid toward your new plan. Contact our customer support team to help you with the transition and ensure you get the most appropriate preparation for your needs.",
+  },
+  {
+    question: "How long do I have access to the sat course materials?",
+    answer:
+      "For the Live SAT Prep and SAT Bootcamp options, you'll have access to all SAT course materials for 3 months from your start date, including full-length SAT practice tests and recorded classes. For the Ultimate SAT Prep Package, you receive 4 months of access to the complete SAT prep platform, along with all recorded sessions.",
   },
 ]
 

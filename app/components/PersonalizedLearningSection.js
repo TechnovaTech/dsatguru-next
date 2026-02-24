@@ -93,14 +93,11 @@ export default function PersonalizedLearningSection({ landingPlanRef }) {
   return (
     <section className="w-full bg-white py-20 px-4 sm:px-6 lg:px-16 font-[Poppins] text-gray-800">
       <div className="max-w-7xl mx-auto text-center mb-12">
-        <h3 className="text-blue-600 text-3xl font-bold uppercase mb-2">
-          PERSONALIZED LEARNING
-        </h3>
         <h3 className="text-3xl md:text-4xl font-extrabold mb-4">
           Your Digital SAT Journey, Your Way
         </h3>
         <p className="text-base md:text-lg text-gray-600">
-          Experience a truly personalized prep program that evolves with you to
+          Experience a truly personalized sat exam preparation program that evolves with you to
           maximize your score improvement
         </p>
       </div>

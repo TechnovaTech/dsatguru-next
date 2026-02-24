@@ -6,7 +6,6 @@ import {
   MdViewInAr,
   MdVerified,
   MdLiveTv,
-  MdStars,
   MdQuiz,
   MdOutlineSchool,
   MdPerson,
@@ -15,6 +14,7 @@ import {
   MdTimeline,
   MdArrowForward,
 } from 'react-icons/md'
+import ComparisonSection from './ComparisonSection'
 
 const points = [
   "Comprehensive research-backed content specifically tailored for the Digital SAT",
@@ -77,21 +77,6 @@ const featuresBottom = [
     icon: <MdTimeline size={36} className="text-green-600" />,
     title: "Track Progress Effectively",
     description: "Visual dashboards and performance trends help guide your next study steps and goals.",
-  },
-]
-
-const neomorphCards = [
-  {
-    icon: <MdViewInAr size={24} className="text-blue-600" />,
-    title: "Realistic Adaptive Practice",
-  },
-  {
-    icon: <MdVerified size={24} className="text-purple-600" />,
-    title: "Focused Topic Coverage",
-  },
-  {
-    icon: <MdLiveTv size={24} className="text-green-600" />,
-    title: "Expert Instruction",
   },
 ]
 
@@ -178,61 +163,16 @@ export default function WhyChooseUs({ landingPlanRef }) {
         </div>
       </div>
 
-      {/* Neomorphism Rectangle moved here */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        viewport={{ once: true }}
-        className="mt-20 mx-auto max-w-7xl rounded-2xl bg-white/30 backdrop-blur-md border border-gray-300 shadow-inner shadow-gray-200 w-full"
-      >
-        <div className="max-w-7xl mx-auto px-6 sm:px-10 py-10">
-          <div className="flex flex-col items-center justify-center mb-6">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white flex items-center justify-center shadow-lg">
-              <MdStars size={24} />
-            </div>
-            <h4 className="text-xl font-bold mt-4 mb-2 text-gray-800">
-              We Guarantee a Higher Score
-            </h4>
-            <p className="text-sm md:text-base text-gray-700 text-center max-w-3xl">
-              We are confident in the quality of our content and teaching methods.
-              DSATGURU guarantees an improvement in your score. Our platform is
-              simple, efficient, and affordable.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6 max-w-4xl mx-auto">
-            {neomorphCards.map((item, idx) => (
-              <div
-                key={idx}
-                className="flex flex-col items-center bg-white rounded-xl shadow p-4"
-              >
-                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-2">
-                  {item.icon}
-                </div>
-                <p className="text-sm font-semibold text-gray-800 text-center">
-                  {item.title}
-                </p>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-gray-500 text-center mt-6">
-            *Score improvement guarantee applies to students who complete the
-            recommended program requirements.
-          </p>
-        </div>
-      </motion.div>
+      <div className="mt-16">
+        <ComparisonSection />
+      </div>
 
-      {/* Feature Section Heading */}
       <div className="max-w-3xl mx-auto text-center mt-24 mb-10">
-        <h3 className="text-blue-600 text-3xl font-bold uppercase mb-1">
-          Features That Make the Difference
+        <h3 className="text-blue-600 text-3xl font-bold mb-1">
+          Features that make the difference
         </h3>
-        <h4 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
-          Effective Tools for a Great Score
-        </h4>
         <p className="text-sm md:text-base text-gray-600">
-          Our comprehensive toolkit is designed to optimize your study time and
-          maximize your results.
+          Our comprehensive toolkit is designed to optimize your study time and maximize your results through structured SAT prep strategies and data-driven performance insights.
         </p>
       </div>
 
@@ -288,8 +228,7 @@ export default function WhyChooseUs({ landingPlanRef }) {
           Experience our power learning tool
         </h4>
         <p className="text-sm md:text-base mb-6 max-w-xl mx-auto">
-          Our comprehensive DSAT/PSAT prep tools are designed to maximize your
-          score and ensure your success.
+          If you&apos;re looking for the best online sat prep resources without overspending, DSATGuru stands out from the rest.
         </p>
         <motion.button
           whileHover={{ scale: 1.05 }}
