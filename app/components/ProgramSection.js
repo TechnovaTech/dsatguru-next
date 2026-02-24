@@ -110,10 +110,15 @@ const ProgramCard = ({ data, index, headerHeight, isEnrolled }) => {
               <p className="text-xs text-gray-700">{data.priceNote}</p>
             </>
           ) : (
-            <p className="text-sm text-gray-600 italic my-10">Contact for Pricing</p>
+            <button
+              onClick={() => router.push('/contact')}
+              className="mt-4 px-5 py-2 rounded-md font-semibold text-sm text-white bg-blue-600 hover:bg-blue-700 transition cursor-pointer"
+            >
+              Contact Us
+            </button>
           )}
         </div>
-
+        
         <div className="flex-1 p-6">
           <ul className="space-y-2 text-sm text-gray-700 text-left">
             {data.included?.map((f, idx) => (
