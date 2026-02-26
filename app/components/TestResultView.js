@@ -73,10 +73,32 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
       if (sessionRes.ok) {
         const sessionData = await sessionRes.json()
         let allQuestions = []
+        let testQuestions = []
+
+        // Get all questions from the test
+        const actualTestId = sessionData.testId?._id || sessionData.testId || testId
+        if (actualTestId) {
+          try {
+            const testRes = await fetch(`/api/tests/${actualTestId}`, {
+              headers: token ? { Authorization: `Bearer ${token}` } : {}
+            })
+            if (testRes.ok) {
+              const testData = await testRes.json()
+              if (testData.questions && testData.questions.length > 0) {
+                testQuestions = testData.questions
+                console.log('Fetched test questions:', testQuestions.length)
+              }
+            }
+          } catch (err) {
+            console.error('Error fetching test questions:', err)
+          }
+        }
 
         // Use pre-fetched questions if available (Performance optimization)
         if (sessionData.questions && sessionData.questions.length > 0) {
              allQuestions = sessionData.questions
+        } else if (testQuestions.length > 0) {
+             allQuestions = testQuestions
         } else {
              // Fallback to fetching all questions
              const questionsRes = await fetch('/api/questions', {
@@ -87,60 +109,82 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
              }
         }
         
-        const reviewQuestions = []
-        // Merge session responses with question details
+        // Create a map of responses for quick lookup
+        const responsesMap = {}
+        const visitedQuestions = new Set()
+        
         if (sessionData.responses && sessionData.responses.length > 0) {
             sessionData.responses.forEach(resp => {
-                const q = allQuestions.find(q => String(q._id) === String(resp.questionId))
-                if (q) {
-                    // Normalize options if they come as optionA, optionB etc
-                    const options = q.options || {
-                        A: q.optionA,
-                        B: q.optionB,
-                        C: q.optionC,
-                        D: q.optionD
-                    }
-
-                    reviewQuestions.push({
-                        ...q,
-                        options,
-                        userAnswer: resp.selectedAnswer,
-                        isCorrect: resp.isCorrect,
-                        timeSpent: resp.timeSpent,
-                        _id: q._id
-                    })
-                }
+                const qId = String(resp.questionId)
+                responsesMap[qId] = resp
+                visitedQuestions.add(qId) // Mark as visited
             })
         } else if (sessionData.moduleAnswers) {
-            // Fallback for older sessions or structure
+            // Fallback for older sessions
             Object.keys(sessionData.moduleAnswers).forEach(moduleKey => {
                 const moduleData = sessionData.moduleAnswers[moduleKey]
                 let answers = moduleData.answers || moduleData
-                
                 Object.keys(answers).forEach(qId => {
-                     const q = allQuestions.find(curr => String(curr._id) === String(qId))
-                     if (q) {
-                         const uAns = answers[qId]
-                         // Normalize options
-                         const options = q.options || {
-                            A: q.optionA,
-                            B: q.optionB,
-                            C: q.optionC,
-                            D: q.optionD
-                         }
-
-                         reviewQuestions.push({
-                             ...q,
-                             options,
-                             userAnswer: uAns,
-                             isCorrect: uAns === q.correctAnswer,
-                             timeSpent: 0, // Fallback
-                             _id: q._id
-                         })
-                     }
+                    responsesMap[qId] = {
+                        questionId: qId,
+                        selectedAnswer: answers[qId],
+                        isCorrect: false, // Will be calculated
+                        timeSpent: 0
+                    }
+                    visitedQuestions.add(qId)
                 })
             })
         }
+        
+        // Also check for visited questions without answers (omitted)
+        if (sessionData.visitedQuestions && Array.isArray(sessionData.visitedQuestions)) {
+            sessionData.visitedQuestions.forEach(qId => {
+                visitedQuestions.add(String(qId))
+            })
+        }
+
+        // Get all questions from test (if available) or use all questions
+        const questionsToShow = testQuestions.length > 0 ? testQuestions : allQuestions
+        
+        console.log('Questions to show:', questionsToShow.length)
+        console.log('Responses count:', Object.keys(responsesMap).length)
+        
+        const reviewQuestions = []
+        // Show ALL questions from the test
+        questionsToShow.forEach(q => {
+            const qId = String(q._id)
+            const resp = responsesMap[qId]
+            const wasVisited = visitedQuestions.has(qId) || !!resp
+            
+            // Normalize options
+            const options = q.options || {
+                A: q.optionA,
+                B: q.optionB,
+                C: q.optionC,
+                D: q.optionD
+            }
+
+            const questionData = {
+                ...q,
+                options,
+                userAnswer: resp ? resp.selectedAnswer : null,
+                isCorrect: resp ? resp.isCorrect : false,
+                timeSpent: resp ? resp.timeSpent : 0,
+                wasVisited: wasVisited, // Track if question was visited
+                _id: q._id
+            }
+            
+            reviewQuestions.push(questionData)
+            
+            // Debug log
+            if (!wasVisited) {
+                console.log('Unvisited question:', q._id, 'Title:', q.title || q.content?.substring(0, 50))
+            } else if (!resp) {
+                console.log('Visited but omitted:', q._id, 'Title:', q.title || q.content?.substring(0, 50))
+            }
+        })
+        
+        console.log('Total review questions:', reviewQuestions.length)
 
         setSession(sessionData)
         setQuestions(reviewQuestions)
@@ -213,7 +257,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
   const totalQuestions = questions.length
   const correctCount = questions.filter(q => q.isCorrect).length
   const incorrectCount = questions.filter(q => !q.isCorrect && q.userAnswer).length
-  const omittedCount = questions.filter(q => !q.userAnswer).length
+  const omittedCount = questions.filter(q => !q.userAnswer && q.wasVisited).length
+  const unvisitedCount = questions.filter(q => !q.wasVisited).length
   const accuracy = totalQuestions > 0 ? ((correctCount / totalQuestions) * 100).toFixed(2) : 0
   const totalTime = session.timeSpent || 0
   const formattedTime = `${Math.floor(totalTime / 60)}:${(totalTime % 60).toString().padStart(2, '0')}`
@@ -223,8 +268,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
     if (filterStatus === 'all') return true
     if (filterStatus === 'correct') return q.isCorrect
     if (filterStatus === 'incorrect') return !q.isCorrect && q.userAnswer
-    if (filterStatus === 'omitted') return !q.userAnswer
-    if (filterStatus === 'unattempted') return !q.userAnswer // Same as omitted for now
+    if (filterStatus === 'omitted') return !q.userAnswer && q.wasVisited
+    if (filterStatus === 'unattempted') return !q.wasVisited
     return true
   })
 
@@ -233,6 +278,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
     { value: 'correct', label: 'Correct', count: correctCount, color: 'green' },
     { value: 'incorrect', label: 'Incorrect', count: incorrectCount, color: 'red' },
     { value: 'omitted', label: 'Omitted', count: omittedCount, color: 'orange' },
+    { value: 'unattempted', label: 'Unvisited', count: unvisitedCount, color: 'gray' },
   ]
 
   return (
@@ -310,7 +356,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                         <span>{omittedCount} Omitted</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-400 font-bold">
-                        <span>0 Unvisited</span>
+                        <span>{unvisitedCount} Unvisited</span>
                     </div>
                     <div className="bg-gray-100 px-3 py-1 rounded-full text-gray-700 font-bold">
                         {accuracy}% Accuracy
@@ -473,6 +519,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                                 {option.value === 'correct' && <FiCheckCircle className="w-4 h-4 text-green-600" />}
                                                 {option.value === 'incorrect' && <FiXCircle className="w-4 h-4 text-red-600" />}
                                                 {option.value === 'omitted' && <FiAlertCircle className="w-4 h-4 text-orange-600" />}
+                                                {option.value === 'unattempted' && <FiAlertCircle className="w-4 h-4 text-gray-400" />}
                                                 {option.value === 'all' && <FiCheckSquare className="w-4 h-4 text-gray-600" />}
                                                 {option.label}
                                             </span>
@@ -480,6 +527,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                                 option.value === 'correct' ? 'bg-green-100 text-green-700' :
                                                 option.value === 'incorrect' ? 'bg-red-100 text-red-700' :
                                                 option.value === 'omitted' ? 'bg-orange-100 text-orange-700' :
+                                                option.value === 'unattempted' ? 'bg-gray-100 text-gray-600' :
                                                 'bg-gray-100 text-gray-700'
                                             }`}>
                                                 {option.count}
@@ -522,9 +570,11 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                             ? 'bg-green-100 text-green-700' 
                                             : q.userAnswer 
                                                 ? 'bg-red-100 text-red-700'
-                                                : 'bg-gray-100 text-gray-500'
+                                                : q.wasVisited
+                                                    ? 'bg-orange-100 text-orange-700'
+                                                    : 'bg-gray-100 text-gray-500'
                                     }`}>
-                                        {q.isCorrect ? 'Correct' : q.userAnswer ? 'Incorrect' : 'Omitted'}
+                                        {q.isCorrect ? 'Correct' : q.userAnswer ? 'Incorrect' : q.wasVisited ? 'Omitted' : 'Unvisited'}
                                     </span>
                                     <span className="flex items-center gap-1 text-xs font-medium text-gray-500">
                                         <FiClock className="w-3 h-3" /> {q.timeSpent ? `${Math.floor(q.timeSpent/60)}:${(q.timeSpent%60).toString().padStart(2,'0')} Mins` : '00:00'}
