@@ -19,6 +19,8 @@ export default function CreateTutorTest() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTests, setSelectedTests] = useState([])
+  const [showStudentsModal, setShowStudentsModal] = useState(false)
+  const [selectedTestForStudents, setSelectedTestForStudents] = useState(null)
 
   const [formData, setFormData] = useState({
     title: '',
@@ -358,6 +360,16 @@ export default function CreateTutorTest() {
       console.error('Delete error:', err)
       setError('Failed to delete tests')
     }
+  }
+
+  const handleShowStudents = (test) => {
+    setSelectedTestForStudents(test)
+    setShowStudentsModal(true)
+  }
+
+  const handleCloseStudentsModal = () => {
+    setShowStudentsModal(false)
+    setSelectedTestForStudents(null)
   }
 
   return (
@@ -745,7 +757,6 @@ export default function CreateTutorTest() {
                             <th className="p-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">Test Title</th>
                             <th className="p-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">Subject</th>
                             <th className="p-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">Stats</th>
-                            <th className="p-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">Assigned To</th>
                             <th className="p-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">Date</th>
                             <th className="p-4 font-semibold text-gray-600 text-xs uppercase tracking-wider text-right">Actions</th>
                         </tr>
@@ -801,12 +812,20 @@ export default function CreateTutorTest() {
                                         {new Date(test.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="p-4 text-right">
-                                        <Link 
-                                            href={`/admin/tutor/tests/${test._id}/analytics`}
-                                            className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center justify-end gap-1"
-                                        >
-                                            <FiBarChart /> View Analytics
-                                        </Link>
+                                        <div className="flex items-center justify-end gap-2">
+                                            <button
+                                                onClick={() => handleShowStudents(test)}
+                                                className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1 px-2 py-1 hover:bg-blue-50 rounded transition-colors"
+                                            >
+                                                <FiUsers /> Assigned Students
+                                            </button>
+                                            <Link 
+                                                href={`/admin/tutor/tests/${test._id}/analytics`}
+                                                className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center gap-1 px-2 py-1 hover:bg-purple-50 rounded transition-colors"
+                                            >
+                                                <FiBarChart /> View Analytics
+                                            </Link>
+                                        </div>
                                     </td>
                                 </tr>
                             ))
@@ -821,6 +840,79 @@ export default function CreateTutorTest() {
                 </table>
             </div>
         </div>
+
+        {/* Assigned Students Modal */}
+        {showStudentsModal && selectedTestForStudents && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={handleCloseStudentsModal}>
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                      <FiUsers className="text-blue-600" />
+                      Assigned Students
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">{selectedTestForStudents.title}</p>
+                  </div>
+                  <button
+                    onClick={handleCloseStudentsModal}
+                    className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-white rounded-lg"
+                  >
+                    <FiX className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
+                {selectedTestForStudents.assignedTo && selectedTestForStudents.assignedTo.length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm text-gray-600">
+                        Total: <span className="font-semibold text-gray-900">{selectedTestForStudents.assignedTo.length}</span> student{selectedTestForStudents.assignedTo.length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    <div className="grid gap-3">
+                      {selectedTestForStudents.assignedTo.map((student, index) => (
+                        <div 
+                          key={student._id || index} 
+                          className="flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+                            {(student.name || 'U').charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">{student.name || 'Unknown User'}</p>
+                            {student.email && (
+                              <p className="text-sm text-gray-500">{student.email}</p>
+                            )}
+                          </div>
+                          <div className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
+                            #{index + 1}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <FiUsers className="mx-auto text-5xl text-gray-300 mb-4" />
+                    <p className="text-gray-500 font-medium">No students assigned to this test</p>
+                    <p className="text-sm text-gray-400 mt-1">Edit the test to assign students</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end">
+                <button
+                  onClick={handleCloseStudentsModal}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
