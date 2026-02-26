@@ -790,24 +790,6 @@ export default function CreateTutorTest() {
                                             </span>
                                         </div>
                                     </td>
-                                    <td className="p-4 text-gray-600">
-                                        <div className="flex flex-wrap gap-1">
-                                            {test.assignedTo && test.assignedTo.length > 0 ? (
-                                                <>
-                                                    {test.assignedTo.slice(0, 2).map(u => (
-                                                        <span key={u._id || u} className="text-xs bg-gray-100 px-2 py-0.5 rounded border border-gray-200 text-gray-700">
-                                                            {u.name || 'User'}
-                                                        </span>
-                                                    ))}
-                                                    {test.assignedTo.length > 2 && (
-                                                        <span className="text-xs text-gray-500 flex items-center">+{test.assignedTo.length - 2}</span>
-                                                    )}
-                                                </>
-                                            ) : (
-                                                <span className="text-gray-400 italic text-xs">Unassigned</span>
-                                            )}
-                                        </div>
-                                    </td>
                                     <td className="p-4 text-gray-500 text-sm whitespace-nowrap">
                                         {new Date(test.createdAt).toLocaleDateString()}
                                     </td>
