@@ -14,6 +14,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
   const [filterStatus, setFilterStatus] = useState('all') // 'all', 'correct', 'incorrect', 'omitted', 'unattempted'
   const [showFilterDropdown, setShowFilterDropdown] = useState(false)
   const [testAnalytics, setTestAnalytics] = useState(null) // For admin view - aggregated stats
+  const [incorrectReasons, setIncorrectReasons] = useState({}) // { questionId: { reason: '', otherText: '' } }
+  const [showReasonModal, setShowReasonModal] = useState(null) // questionId of modal being shown
 
   useEffect(() => {
     fetchResult()
@@ -170,11 +172,18 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                 userAnswer: resp ? resp.selectedAnswer : null,
                 isCorrect: resp ? resp.isCorrect : false,
                 timeSpent: resp ? resp.timeSpent : 0,
-                wasVisited: wasVisited, // Track if question was visited
+                wasVisited: wasVisited,
+                incorrectReason: resp?.incorrectReason || null,
+                incorrectReasonOther: resp?.incorrectReasonOther || null,
                 _id: q._id
             }
             
             reviewQuestions.push(questionData)
+            
+            // Debug log for incorrect questions with reasons
+            if (!questionData.isCorrect && questionData.userAnswer) {
+                console.log('Incorrect question:', q._id, 'Reason:', questionData.incorrectReason)
+            }
             
             // Debug log
             if (!wasVisited) {
@@ -188,6 +197,18 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
 
         setSession(sessionData)
         setQuestions(reviewQuestions)
+        
+        // Load saved reasons
+        const savedReasons = {}
+        reviewQuestions.forEach(q => {
+          if (q.incorrectReason) {
+            savedReasons[q._id] = {
+              reason: q.incorrectReason,
+              otherText: q.incorrectReasonOther || ''
+            }
+          }
+        })
+        setIncorrectReasons(savedReasons)
         
         // Auto-expand all questions and explanations initially
         const initialExpanded = {}
@@ -241,6 +262,72 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
   const getQuestionAnalytics = (questionId) => {
     if (!testAnalytics || !testAnalytics.questions) return null
     return testAnalytics.questions.find(q => String(q.questionId) === String(questionId))
+  }
+
+  const reasonOptions = [
+    "I did not know the concept clearly",
+    "I did not use desmos or made a mistake in desmos",
+    "I did not understand what the question was asking clearly",
+    "Made a silly mistake like wrong calculation or + or – sign",
+    "Other"
+  ]
+
+  const handleReasonChange = (questionId, reason) => {
+    setIncorrectReasons(prev => ({
+      ...prev,
+      [questionId]: {
+        reason: reason,
+        otherText: reason === 'Other' ? (prev[questionId]?.otherText || '') : ''
+      }
+    }))
+  }
+
+  const handleOtherTextChange = (questionId, text) => {
+    setIncorrectReasons(prev => ({
+      ...prev,
+      [questionId]: {
+        ...prev[questionId],
+        otherText: text
+      }
+    }))
+  }
+
+  const canSubmitAnalysis = () => {
+    const incorrectQuestions = questions.filter(q => !q.isCorrect && q.userAnswer)
+    return incorrectQuestions.every(q => {
+      const reason = incorrectReasons[q._id]
+      if (!reason || !reason.reason) return false
+      if (reason.reason === 'Other' && !reason.otherText?.trim()) return false
+      return true
+    })
+  }
+
+  const handleSubmitAnalysis = async () => {
+    if (!canSubmitAnalysis()) {
+      alert('Please provide reasons for all incorrect answers before submitting.')
+      return
+    }
+
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`/api/test-sessions/${sessionId}/reasons`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ reasons: incorrectReasons })
+      })
+
+      if (res.ok) {
+        alert('Analysis submitted successfully!')
+      } else {
+        alert('Failed to submit analysis')
+      }
+    } catch (error) {
+      console.error('Error submitting analysis:', error)
+      alert('Failed to submit analysis')
+    }
   }
 
   if (loading) {
@@ -302,7 +389,16 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                 <div className="flex gap-3">
                     {viewMode !== 'admin' && (
                         <>
-                            <button className="px-4 py-2 bg-purple-900 text-white text-sm font-bold rounded-lg hover:bg-purple-800">
+                            <button 
+                                onClick={handleSubmitAnalysis}
+                                disabled={!canSubmitAnalysis()}
+                                className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
+                                    canSubmitAnalysis() 
+                                        ? 'bg-purple-900 text-white hover:bg-purple-800' 
+                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                }`}
+                                title={!canSubmitAnalysis() ? 'Please provide reasons for all incorrect answers' : 'Submit Analysis'}
+                            >
                                 Submit Analysis
                             </button>
                             <button className="px-4 py-2 border border-purple-200 text-purple-900 text-sm font-bold rounded-lg hover:bg-purple-50">
@@ -764,6 +860,65 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                             </div>
                                         </div>
                                     </div>
+
+                                    {/* Tell Reason Section - Only for incorrect answers and non-admin */}
+                                    {!q.isCorrect && q.userAnswer && viewMode !== 'admin' && (
+                                        <div className="p-5 bg-red-50 rounded-xl border border-red-200">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <FiAlertCircle className="w-4 h-4 text-red-600" />
+                                                <h4 className="text-sm font-bold text-red-900">Tell us why you got this wrong *</h4>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {reasonOptions.map((option, idx) => (
+                                                    <label key={idx} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-red-100 hover:border-red-300 cursor-pointer transition-colors">
+                                                        <input
+                                                            type="radio"
+                                                            name={`reason-${q._id}`}
+                                                            value={option}
+                                                            checked={incorrectReasons[q._id]?.reason === option}
+                                                            onChange={(e) => handleReasonChange(q._id, e.target.value)}
+                                                            className="mt-1 w-4 h-4 text-red-600"
+                                                        />
+                                                        <span className="text-sm text-gray-700">{option}</span>
+                                                    </label>
+                                                ))}
+                                                
+                                                {incorrectReasons[q._id]?.reason === 'Other' && (
+                                                    <textarea
+                                                        placeholder="Please explain your reason..."
+                                                        value={incorrectReasons[q._id]?.otherText || ''}
+                                                        onChange={(e) => handleOtherTextChange(q._id, e.target.value)}
+                                                        className="w-full p-3 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-sm"
+                                                        rows="3"
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Show submitted reason for admin */}
+                                    {!q.isCorrect && q.userAnswer && viewMode === 'admin' && (
+                                        <div className={`p-5 rounded-xl border ${q.incorrectReason ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <FiAlertCircle className={`w-4 h-4 ${q.incorrectReason ? 'text-blue-600' : 'text-gray-400'}`} />
+                                                <h4 className={`text-sm font-bold ${q.incorrectReason ? 'text-blue-900' : 'text-gray-600'}`}>
+                                                    Student's Reason for Incorrect Answer
+                                                </h4>
+                                            </div>
+                                            {q.incorrectReason ? (
+                                                <div className="p-3 bg-white rounded-lg border border-blue-100">
+                                                    <p className="text-sm text-gray-700 font-medium">{q.incorrectReason}</p>
+                                                    {q.incorrectReasonOther && (
+                                                        <p className="text-sm text-gray-600 mt-2 italic">"{q.incorrectReasonOther}"</p>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="p-3 bg-white rounded-lg border border-gray-200">
+                                                    <p className="text-sm text-gray-500 italic">Student has not provided a reason yet</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
