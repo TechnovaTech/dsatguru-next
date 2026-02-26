@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiSave, FiAlertCircle, FiCheck, FiUsers, FiBook, FiPieChart, FiLoader, FiClock, FiList, FiPlus, FiX, FiChevronDown, FiChevronUp, FiEdit, FiTrash2 } from 'react-icons/fi'
+import { FiSave, FiAlertCircle, FiCheck, FiUsers, FiBook, FiPieChart, FiLoader, FiClock, FiList, FiPlus, FiX, FiChevronDown, FiChevronUp, FiEdit, FiTrash2, FiBarChart } from 'react-icons/fi'
+import Link from 'next/link'
 
 export default function CreateTutorTest() {
   const router = useRouter()
@@ -746,6 +747,7 @@ export default function CreateTutorTest() {
                             <th className="p-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">Stats</th>
                             <th className="p-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">Assigned To</th>
                             <th className="p-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">Date</th>
+                            <th className="p-4 font-semibold text-gray-600 text-xs uppercase tracking-wider text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -797,6 +799,14 @@ export default function CreateTutorTest() {
                                     </td>
                                     <td className="p-4 text-gray-500 text-sm whitespace-nowrap">
                                         {new Date(test.createdAt).toLocaleDateString()}
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        <Link 
+                                            href={`/admin/tutor/tests/${test._id}/analytics`}
+                                            className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center justify-end gap-1"
+                                        >
+                                            <FiBarChart /> View Analytics
+                                        </Link>
                                     </td>
                                 </tr>
                             ))

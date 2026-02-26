@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevronDown, FiChevronUp, FiActivity, FiMonitor, FiMaximize, FiCheckSquare } from 'react-icons/fi'
+import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevronDown, FiChevronUp, FiActivity, FiMonitor, FiMaximize, FiCheckSquare, FiUsers } from 'react-icons/fi'
 
 export default function TestResultView({ testId, sessionId, returnUrl, viewMode }) {
   const router = useRouter()
@@ -13,10 +13,15 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
   const [showExplanation, setShowExplanation] = useState({}) // { questionId: true/false }
   const [filterStatus, setFilterStatus] = useState('all') // 'all', 'correct', 'incorrect', 'omitted', 'unattempted'
   const [showFilterDropdown, setShowFilterDropdown] = useState(false)
+  const [testAnalytics, setTestAnalytics] = useState(null) // For admin view - aggregated stats
 
   useEffect(() => {
     fetchResult()
-  }, [testId, sessionId])
+    // Fetch test analytics for both admin and student views
+    if (testId) {
+      fetchTestAnalytics()
+    }
+  }, [testId, sessionId, viewMode])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -160,6 +165,35 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
     setShowExplanation(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
+  const fetchTestAnalytics = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      // Try admin endpoint first, if fails try student endpoint
+      let res = await fetch(`/api/admin/tutor/tests/${testId}/analytics`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
+      
+      // If admin endpoint fails (403/401), try student endpoint
+      if (!res.ok && (res.status === 401 || res.status === 403)) {
+        res = await fetch(`/api/tests/${testId}/analytics`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+      }
+      
+      if (res.ok) {
+        const data = await res.json()
+        setTestAnalytics(data)
+      }
+    } catch (error) {
+      console.error('Error fetching test analytics:', error)
+    }
+  }
+
+  const getQuestionAnalytics = (questionId) => {
+    if (!testAnalytics || !testAnalytics.questions) return null
+    return testAnalytics.questions.find(q => String(q.questionId) === String(questionId))
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -281,6 +315,65 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                     </div>
                 </div>
             </div>
+
+            {/* Overall Test Analytics - Show for everyone if data available */}
+            {testAnalytics && testAnalytics.totalStudents > 0 && (
+                <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 rounded-xl shadow-md border border-purple-200 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <FiUsers className="text-purple-600" />
+                            Overall Test Analytics
+                        </h2>
+                        <span className="px-4 py-2 bg-white rounded-lg border border-purple-200 text-sm font-bold text-purple-900">
+                            {testAnalytics.totalStudents} Students Completed
+                        </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Average Correct */}
+                        <div className="bg-white rounded-lg p-5 border border-green-100 shadow-sm">
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-sm font-semibold text-gray-700">Average Correct Rate</span>
+                                <FiCheckCircle className="w-5 h-5 text-green-600" />
+                            </div>
+                            <div className="text-3xl font-bold text-green-600 mb-2">
+                                {Math.round(testAnalytics.questions.reduce((sum, q) => sum + q.correctPercentage, 0) / testAnalytics.questions.length)}%
+                            </div>
+                            <div className="text-xs text-gray-500">
+                                Across all {testAnalytics.questions.length} questions
+                            </div>
+                        </div>
+
+                        {/* Average Incorrect */}
+                        <div className="bg-white rounded-lg p-5 border border-red-100 shadow-sm">
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-sm font-semibold text-gray-700">Average Incorrect Rate</span>
+                                <FiXCircle className="w-5 h-5 text-red-600" />
+                            </div>
+                            <div className="text-3xl font-bold text-red-600 mb-2">
+                                {Math.round(testAnalytics.questions.reduce((sum, q) => sum + q.incorrectPercentage, 0) / testAnalytics.questions.length)}%
+                            </div>
+                            <div className="text-xs text-gray-500">
+                                Across all {testAnalytics.questions.length} questions
+                            </div>
+                        </div>
+
+                        {/* Average Omitted */}
+                        <div className="bg-white rounded-lg p-5 border border-orange-100 shadow-sm">
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-sm font-semibold text-gray-700">Average Omitted Rate</span>
+                                <FiAlertCircle className="w-5 h-5 text-orange-600" />
+                            </div>
+                            <div className="text-3xl font-bold text-orange-600 mb-2">
+                                {Math.round(testAnalytics.questions.reduce((sum, q) => sum + q.omittedPercentage, 0) / testAnalytics.questions.length)}%
+                            </div>
+                            <div className="text-xs text-gray-500">
+                                Across all {testAnalytics.questions.length} questions
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Analytics */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -437,6 +530,47 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                     <span className="px-3 py-1 bg-gray-50 text-gray-500 text-xs font-bold rounded-full border border-gray-200">Visited</span>
                                 </div>
                             </div>
+
+                            {/* Student Analytics - Show for everyone */}
+                            {testAnalytics && testAnalytics.totalStudents > 0 && (() => {
+                                const analytics = getQuestionAnalytics(q._id)
+                                if (!analytics) return null
+                                
+                                const attemptedCount = analytics.correctCount + analytics.incorrectCount
+                                const attemptedPercentage = Math.round((attemptedCount / testAnalytics.totalStudents) * 100)
+                                
+                                return (
+                                    <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                                                Student Analysis ({testAnalytics.totalStudents} Students)
+                                            </h4>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            {/* Attempted */}
+                                            <div className="bg-white rounded-lg p-3 text-center">
+                                                <div className="text-xs text-gray-600 mb-1 font-medium">Attempted</div>
+                                                <div className="text-2xl font-bold text-blue-600">{attemptedPercentage}%</div>
+                                                <div className="text-xs text-gray-500 mt-1">({attemptedCount} students)</div>
+                                            </div>
+
+                                            {/* Correct */}
+                                            <div className="bg-white rounded-lg p-3 text-center">
+                                                <div className="text-xs text-gray-600 mb-1 font-medium">Correct</div>
+                                                <div className="text-2xl font-bold text-green-600">{analytics.correctPercentage}%</div>
+                                                <div className="text-xs text-gray-500 mt-1">({analytics.correctCount} students)</div>
+                                            </div>
+
+                                            {/* Incorrect */}
+                                            <div className="bg-white rounded-lg p-3 text-center">
+                                                <div className="text-xs text-gray-600 mb-1 font-medium">Incorrect</div>
+                                                <div className="text-2xl font-bold text-red-600">{analytics.incorrectPercentage}%</div>
+                                                <div className="text-xs text-gray-500 mt-1">({analytics.incorrectCount} students)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            })()}
 
                             {/* Question Content */}
                             <div className="mb-6">
