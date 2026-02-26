@@ -145,10 +145,15 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
         setSession(sessionData)
         setQuestions(reviewQuestions)
         
-        // Auto-expand all questions initially like the image
+        // Auto-expand all questions and explanations initially
         const initialExpanded = {}
-        reviewQuestions.forEach(q => initialExpanded[q._id] = true)
+        const initialExplanations = {}
+        reviewQuestions.forEach(q => {
+          initialExpanded[q._id] = true
+          initialExplanations[q._id] = true // Auto-show all explanations
+        })
         setExpandedQuestions(initialExpanded)
+        setShowExplanation(initialExplanations)
       }
     } catch (error) {
       console.error('Error fetching result:', error)
