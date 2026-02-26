@@ -16,7 +16,7 @@ export async function GET(request, { params }) {
     if (!session) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
-    if (String(session.userId) !== String(decoded.userId) && decoded.role !== 'Admin') {
+    if (String(session.userId) !== String(decoded.userId) && decoded.role !== 'Admin' && decoded.role !== 'Tutor') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -148,7 +148,7 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
 
-    if (String(session.userId) !== String(decoded.userId) && decoded.role !== 'Admin') {
+    if (String(session.userId) !== String(decoded.userId) && decoded.role !== 'Admin' && decoded.role !== 'Tutor') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

@@ -11,7 +11,7 @@ export async function GET(request, { params }) {
     const token = getTokenFromRequest(request)
     const decoded = verifyToken(token)
     
-    if (!decoded || decoded.role !== 'Admin') {
+    if (!decoded || (decoded.role !== 'Admin' && decoded.role !== 'Tutor')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

@@ -3,10 +3,17 @@ import { connectDB } from '../../../../../lib/db'
 import TestSession from '../../../../../lib/models/TestSession'
 import User from '../../../../../lib/models/User'
 import Test from '../../../../../lib/models/Test'
+import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 
-export async function GET() {
+export async function GET(request) {
   try {
     await connectDB()
+    const token = getTokenFromRequest(request)
+    const decoded = verifyToken(token)
+    
+    if (!decoded || (decoded.role !== 'Admin' && decoded.role !== 'Tutor')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     
     const sessions = await TestSession.aggregate([
       { 
