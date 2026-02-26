@@ -11,10 +11,23 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
   const [loading, setLoading] = useState(true)
   const [expandedQuestions, setExpandedQuestions] = useState({}) // { questionId: true/false }
   const [showExplanation, setShowExplanation] = useState({}) // { questionId: true/false }
+  const [filterStatus, setFilterStatus] = useState('all') // 'all', 'correct', 'incorrect', 'omitted', 'unattempted'
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false)
 
   useEffect(() => {
     fetchResult()
   }, [testId, sessionId])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showFilterDropdown && !event.target.closest('.filter-dropdown-container')) {
+        setShowFilterDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showFilterDropdown])
 
   const fetchResult = async () => {
     try {
@@ -166,6 +179,23 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
   const totalTime = session.timeSpent || 0
   const formattedTime = `${Math.floor(totalTime / 60)}:${(totalTime % 60).toString().padStart(2, '0')}`
 
+  // Filter questions based on selected filter
+  const filteredQuestions = questions.filter(q => {
+    if (filterStatus === 'all') return true
+    if (filterStatus === 'correct') return q.isCorrect
+    if (filterStatus === 'incorrect') return !q.isCorrect && q.userAnswer
+    if (filterStatus === 'omitted') return !q.userAnswer
+    if (filterStatus === 'unattempted') return !q.userAnswer // Same as omitted for now
+    return true
+  })
+
+  const filterOptions = [
+    { value: 'all', label: 'All Questions', count: totalQuestions, color: 'gray' },
+    { value: 'correct', label: 'Correct', count: correctCount, color: 'green' },
+    { value: 'incorrect', label: 'Incorrect', count: incorrectCount, color: 'red' },
+    { value: 'omitted', label: 'Omitted', count: omittedCount, color: 'orange' },
+  ]
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-800 pb-20">
         {/* Header */}
@@ -295,20 +325,98 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
             {/* Question Wise Report */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
-                    <h2 className="text-sm font-bold text-gray-900">Question wise report</h2>
-                    <div className="flex gap-2">
-                        <button className="px-3 py-1 text-xs font-medium bg-white border rounded hover:bg-gray-50">Filter By</button>
+                    <h2 className="text-sm font-bold text-gray-900">
+                        Question wise report 
+                        {filterStatus !== 'all' && (
+                            <span className="ml-2 text-xs font-normal text-gray-500">
+                                (Showing {filteredQuestions.length} of {totalQuestions})
+                            </span>
+                        )}
+                    </h2>
+                    <div className="flex gap-2 relative filter-dropdown-container">
+                        <button 
+                            onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                            className="px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                        >
+                            <span>Filter By</span>
+                            {filterStatus !== 'all' && (
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                                    filterStatus === 'correct' ? 'bg-green-100 text-green-700' :
+                                    filterStatus === 'incorrect' ? 'bg-red-100 text-red-700' :
+                                    'bg-orange-100 text-orange-700'
+                                }`}>
+                                    {filterOptions.find(f => f.value === filterStatus)?.label}
+                                </span>
+                            )}
+                            <FiChevronDown className={`w-4 h-4 transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {/* Filter Dropdown */}
+                        {showFilterDropdown && (
+                            <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                                <div className="p-2 bg-gray-50 border-b">
+                                    <p className="text-xs font-bold text-gray-600 uppercase">Filter Questions By Status</p>
+                                </div>
+                                <div className="p-1">
+                                    {filterOptions.map(option => (
+                                        <button
+                                            key={option.value}
+                                            onClick={() => {
+                                                setFilterStatus(option.value)
+                                                setShowFilterDropdown(false)
+                                            }}
+                                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                                                filterStatus === option.value 
+                                                    ? 'bg-purple-50 text-purple-900 border border-purple-200' 
+                                                    : 'hover:bg-gray-50 text-gray-700'
+                                            }`}
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                {option.value === 'correct' && <FiCheckCircle className="w-4 h-4 text-green-600" />}
+                                                {option.value === 'incorrect' && <FiXCircle className="w-4 h-4 text-red-600" />}
+                                                {option.value === 'omitted' && <FiAlertCircle className="w-4 h-4 text-orange-600" />}
+                                                {option.value === 'all' && <FiCheckSquare className="w-4 h-4 text-gray-600" />}
+                                                {option.label}
+                                            </span>
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                                                option.value === 'correct' ? 'bg-green-100 text-green-700' :
+                                                option.value === 'incorrect' ? 'bg-red-100 text-red-700' :
+                                                option.value === 'omitted' ? 'bg-orange-100 text-orange-700' :
+                                                'bg-gray-100 text-gray-700'
+                                            }`}>
+                                                {option.count}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 <div className="divide-y">
-                    {questions.map((q, idx) => (
+                    {filteredQuestions.length === 0 ? (
+                        <div className="p-12 text-center">
+                            <FiAlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                            <p className="text-gray-500 font-medium">No questions found for this filter</p>
+                            <button 
+                                onClick={() => setFilterStatus('all')}
+                                className="mt-3 text-sm text-purple-600 hover:text-purple-800 font-medium"
+                            >
+                                Clear filter
+                            </button>
+                        </div>
+                    ) : (
+                        filteredQuestions.map((q, idx) => {
+                            // Find original question number
+                            const originalIndex = questions.findIndex(question => question._id === q._id)
+                            return (
                         <div key={q._id} className="p-6">
                             {/* Question Header */}
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
                                     <div className="bg-red-50 text-red-600 font-bold w-8 h-8 flex items-center justify-center rounded border border-red-100">
-                                        {idx + 1}
+                                        {originalIndex + 1}
                                     </div>
                                     <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-bold rounded uppercase">MCQ</span>
                                     <span className={`px-2 py-0.5 text-xs font-bold rounded uppercase ${
@@ -470,7 +578,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                 </div>
                             )}
                         </div>
-                    ))}
+                        )
+                    }))}
                 </div>
             </div>
         </div>
