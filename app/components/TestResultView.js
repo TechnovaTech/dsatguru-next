@@ -321,6 +321,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
 
       if (res.ok) {
         alert('Analysis submitted successfully!')
+        // Update session to mark as submitted
+        setSession(prev => ({ ...prev, analysisSubmitted: true }))
       } else {
         alert('Failed to submit analysis')
       }
@@ -389,18 +391,26 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                 <div className="flex gap-3">
                     {viewMode !== 'admin' && (
                         <>
-                            <button 
-                                onClick={handleSubmitAnalysis}
-                                disabled={!canSubmitAnalysis()}
-                                className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
-                                    canSubmitAnalysis() 
-                                        ? 'bg-purple-900 text-white hover:bg-purple-800' 
-                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                }`}
-                                title={!canSubmitAnalysis() ? 'Please provide reasons for all incorrect answers' : 'Submit Analysis'}
-                            >
-                                Submit Analysis
-                            </button>
+                            {session?.analysisSubmitted ? (
+                                <button 
+                                    className="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 flex items-center gap-2"
+                                >
+                                    <FiCheckCircle /> Analysis Submitted
+                                </button>
+                            ) : (
+                                <button 
+                                    onClick={handleSubmitAnalysis}
+                                    disabled={!canSubmitAnalysis()}
+                                    className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
+                                        canSubmitAnalysis() 
+                                            ? 'bg-purple-900 text-white hover:bg-purple-800' 
+                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    }`}
+                                    title={!canSubmitAnalysis() ? 'Please provide reasons for all incorrect answers' : 'Submit Analysis'}
+                                >
+                                    Submit Analysis
+                                </button>
+                            )}
                             <button className="px-4 py-2 border border-purple-200 text-purple-900 text-sm font-bold rounded-lg hover:bg-purple-50">
                                 View Scaled Score
                             </button>

@@ -41,6 +41,10 @@ export async function POST(request, { params }) {
         }
         return resp
       })
+      
+      // Mark analysis as submitted
+      session.analysisSubmitted = true
+      session.analysisSubmittedAt = new Date()
     }
 
     await session.save()

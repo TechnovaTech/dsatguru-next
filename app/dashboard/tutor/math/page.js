@@ -149,18 +149,31 @@ export default function TutorMathPage() {
                       
                       <div className="flex items-center gap-3">
                          <span className={`px-3 py-1 border text-xs font-semibold rounded uppercase tracking-wider ${
-                           session.completed 
+                           session.status === 'Completed'
                              ? 'bg-green-50 border-green-200 text-green-600' 
                              : 'bg-yellow-50 border-yellow-200 text-yellow-600'
                          }`}>
-                           {session.completed ? 'Completed' : 'In Progress'}
+                           {session.status === 'Completed' ? 'Completed' : 'In Progress'}
                          </span>
-                         <button
-                           onClick={() => router.push(`/dashboard/tests/${session.testId?._id || session._id}/start`)}
-                           className="px-6 py-2 bg-purple-900 text-white text-sm font-semibold rounded-lg hover:bg-purple-800 transition-colors shadow-sm"
-                         >
-                           {session.completed ? 'Review' : 'Resume'}
-                         </button>
+                         {session.status === 'Completed' ? (
+                           <button
+                             onClick={() => router.push(`/dashboard/tests/${session.testId?._id}/results?session_id=${session._id}&returnUrl=/dashboard/tutor/math`)}
+                             className={`px-6 py-2 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm ${
+                               session.analysisSubmitted 
+                                 ? 'bg-green-600 hover:bg-green-700' 
+                                 : 'bg-purple-900 hover:bg-purple-800'
+                             }`}
+                           >
+                             {session.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
+                           </button>
+                         ) : (
+                           <button
+                             onClick={() => router.push(`/dashboard/tests/${session.testId?._id}/start?sessionId=${session._id}&returnUrl=/dashboard/tutor/math`)}
+                             className="px-6 py-2 bg-purple-900 text-white text-sm font-semibold rounded-lg hover:bg-purple-800 transition-colors shadow-sm"
+                           >
+                             Resume
+                           </button>
+                         )}
                       </div>
                     </div>
                   </div>
