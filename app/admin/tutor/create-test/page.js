@@ -23,6 +23,7 @@ export default function CreateTutorTest() {
     title: '',
     subject: 'Math', 
     totalQuestions: 10,
+    isTimed: true, // New field for timed/untimed toggle
     duration: 30, // Default duration in minutes
     topicConfig: {}, // { "TopicName": 50 }
     difficultyConfig: {
@@ -257,6 +258,11 @@ export default function CreateTutorTest() {
       return
     }
 
+    if (formData.isTimed && (!formData.duration || formData.duration < 5)) {
+      setError('Please enter a valid time limit (minimum 5 minutes)')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -267,7 +273,10 @@ export default function CreateTutorTest() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          duration: formData.isTimed ? parseInt(formData.duration) : null
+        })
       })
 
       const data = await res.json()
@@ -287,6 +296,7 @@ export default function CreateTutorTest() {
             title: '',
             subject: 'Math', 
             totalQuestions: 10,
+            isTimed: true,
             duration: 30,
             topicConfig: {},
             difficultyConfig: { 'Easy': 0, 'Medium': 0, 'Hard': 0 },
@@ -434,20 +444,50 @@ export default function CreateTutorTest() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Questions</label>
+                      <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                          value={formData.totalQuestions}
+                          onChange={e => setFormData({...formData, totalQuestions: e.target.value})}
+                      />
+                  </div>
+
+                  {/* Timed/Untimed Toggle */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Test Mode</label>
+                    <div className="flex gap-3">
+                        <label className={`flex-1 flex items-center justify-center p-2.5 border rounded-lg cursor-pointer transition-all ${formData.isTimed ? 'bg-green-50 border-green-500 text-green-700 ring-1 ring-green-500' : 'border-gray-300 hover:bg-gray-50'}`}>
+                            <input 
+                                type="radio" 
+                                name="testMode" 
+                                checked={formData.isTimed} 
+                                onChange={() => setFormData({...formData, isTimed: true, duration: 30})}
+                                className="hidden"
+                            />
+                            <FiClock className="mr-2" />
+                            <span className="font-medium text-sm">Timed</span>
+                        </label>
+                        <label className={`flex-1 flex items-center justify-center p-2.5 border rounded-lg cursor-pointer transition-all ${!formData.isTimed ? 'bg-orange-50 border-orange-500 text-orange-700 ring-1 ring-orange-500' : 'border-gray-300 hover:bg-gray-50'}`}>
+                            <input 
+                                type="radio" 
+                                name="testMode" 
+                                checked={!formData.isTimed} 
+                                onChange={() => setFormData({...formData, isTimed: false, duration: null})}
+                                className="hidden"
+                            />
+                            <span className="font-medium text-sm">Untimed</span>
+                        </label>
+                    </div>
+                  </div>
+
+                  {/* Duration Input - Only show when Timed is selected */}
+                  {formData.isTimed && (
                       <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Questions</label>
-                          <input
-                              type="number"
-                              min="1"
-                              max="100"
-                              className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                              value={formData.totalQuestions}
-                              onChange={e => setFormData({...formData, totalQuestions: e.target.value})}
-                          />
-                      </div>
-                      <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Duration (min)</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Time Limit (minutes)</label>
                           <div className="relative">
                               <FiClock className="absolute left-3 top-3 text-gray-400" />
                               <input
@@ -455,12 +495,15 @@ export default function CreateTutorTest() {
                                   min="5"
                                   max="180"
                                   className="w-full pl-9 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                  value={formData.duration}
+                                  value={formData.duration || ''}
                                   onChange={e => setFormData({...formData, duration: e.target.value})}
+                                  placeholder="Enter time limit"
+                                  required
                               />
                           </div>
+                          <p className="text-xs text-gray-500 mt-1">Recommended: 30-60 minutes</p>
                       </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Difficulty Levels */}
@@ -728,7 +771,10 @@ export default function CreateTutorTest() {
                                     <td className="p-4 text-gray-600 text-sm">
                                         <div className="flex flex-col gap-1">
                                             <span className="flex items-center gap-1"><FiBook className="w-3 h-3" /> {test.totalQuestions} Qs</span>
-                                            <span className="flex items-center gap-1"><FiClock className="w-3 h-3" /> {test.duration || 30} m</span>
+                                            <span className="flex items-center gap-1">
+                                                <FiClock className="w-3 h-3" /> 
+                                                {test.duration ? `${test.duration} m` : <span className="text-orange-600 font-medium">Untimed</span>}
+                                            </span>
                                         </div>
                                     </td>
                                     <td className="p-4 text-gray-600">

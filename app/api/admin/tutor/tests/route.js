@@ -97,7 +97,8 @@ export async function POST(request) {
       title, 
       subject, 
       totalQuestions, 
-      duration,
+      duration, // Can be null for untimed tests
+      isTimed, // New field to indicate if test is timed
       topicConfig, // { "Algebra": 50, "Geometry": 50 } (percentages)
       difficultyConfig, // { "Easy": 25, "Medium": 50, "Hard": 25 } (percentages)
       assignedUsers // [userId1, userId2]
@@ -196,7 +197,7 @@ export async function POST(request) {
       testType: 'Practice',
       practiceMode: 'tutor', 
       totalQuestions: selectedQuestionIds.length,
-      duration: parseInt(duration) || 30, // Default to 30 mins if not provided
+      duration: duration ? parseInt(duration) : null, // null for untimed tests
       configType: 'custom',
       difficulty: 'Medium', // Default
       isActive: true,
