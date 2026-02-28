@@ -141,9 +141,9 @@ export default function Register() {
             >
               <FiArrowLeft className="mr-1" /> Back to home
             </Link>
-            <h1 className="text-2xl font-bold text-blue-700">
+            <h2 className="text-2xl font-bold text-blue-700">
               Create Your DSATGURU Account
-            </h1>
+            </h2>
             <p className="text-xs text-gray-500 mt-1">
               Sign up to start structured prep with tests, courses, and analytics.
             </p>

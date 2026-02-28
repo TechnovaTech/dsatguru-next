@@ -137,9 +137,9 @@ export default function Login() {
             >
               <FiArrowLeft className="mr-1" /> Back to home
             </Link>
-            <h1 className="text-2xl font-bold text-blue-700">
+            <h2 className="text-2xl font-bold text-blue-700">
               Login to DSATGURU
-            </h1>
+            </h2>
             <p className="text-xs text-gray-500 mt-1">
               Access your dashboard, tests, and course progress in one place.
             </p>
