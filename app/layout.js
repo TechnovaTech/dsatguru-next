@@ -7,9 +7,9 @@ import AppShell from './components/AppShell'
 const BASE_URL = 'https://www.dsatguru.com'
 
 export const metadata = {
-  title: 'DSATGURU | Digital SAT & PSAT Prep Platform',
+  title: 'Best SAT Preparation Online | Digital SAT Exam Prep',
   description:
-    'DSATGURU helps students boost their Digital SAT and PSAT scores with live classes, mock tests, question banks, and smart study plans.',
+    'Get comprehensive SAT exam preparation with online SAT classes, top-rated SAT review courses, and powerful study tools designed to boost your score.',
   metadataBase: new URL(BASE_URL),
   verification: {
     google: 'oiH_6dKW-lPMKtoR8WH7sQDkqZ-_3Oe6uy7BxLZdhWA',
