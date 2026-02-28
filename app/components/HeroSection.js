@@ -78,7 +78,7 @@ export default function HeroSection({ landingPlanRef }) {
     const timeout = setInterval(() => {
       setDirection(1)
       setCurrent((prev) => (prev + 1) % slidesData.length)
-    }, current == 0 ? 6000 : 5000)
+    }, current == 0 ? 10000 : 8000)
     return () => clearInterval(timeout)
   }, [])
 
