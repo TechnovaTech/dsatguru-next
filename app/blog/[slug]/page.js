@@ -4,11 +4,32 @@ import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { getPostBySlug } from '../data'
 import { FiArrowLeft } from 'react-icons/fi'
+import { useEffect } from 'react'
 
 export default function BlogDetailPage() {
   const params = useParams()
   const slug = params?.slug
   const post = getPostBySlug(slug)
+
+  // Add noindex, nofollow meta tag
+  useEffect(() => {
+    // Create meta tag if it doesn't exist
+    let metaRobots = document.querySelector('meta[name="robots"]')
+    if (!metaRobots) {
+      metaRobots = document.createElement('meta')
+      metaRobots.name = 'robots'
+      document.head.appendChild(metaRobots)
+    }
+    metaRobots.content = 'noindex, nofollow'
+
+    // Cleanup function to remove the tag when component unmounts
+    return () => {
+      const meta = document.querySelector('meta[name="robots"]')
+      if (meta && meta.content === 'noindex, nofollow') {
+        meta.remove()
+      }
+    }
+  }, [])
 
   if (!post) {
     return (
