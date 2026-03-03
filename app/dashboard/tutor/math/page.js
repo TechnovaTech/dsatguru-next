@@ -157,7 +157,10 @@ export default function TutorMathPage() {
                          </span>
                          {session.status === 'Completed' ? (
                            <button
-                             onClick={() => router.push(`/dashboard/tests/${session.testId?._id}/results?session_id=${session._id}&returnUrl=/dashboard/tutor/math`)}
+                             onClick={() => {
+                               console.log('Session:', session._id, 'analysisSubmitted:', session.analysisSubmitted)
+                               router.push(`/dashboard/tests/${session.testId?._id}/results?session_id=${session._id}&returnUrl=/dashboard/tutor/math`)
+                             }}
                              className={`px-6 py-2 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm ${
                                session.analysisSubmitted 
                                  ? 'bg-green-600 hover:bg-green-700' 

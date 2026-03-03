@@ -323,7 +323,14 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
       if (res.ok) {
         alert('Analysis submitted successfully!')
         // Update session to mark as submitted
-        setSession(prev => ({ ...prev, analysisSubmitted: true }))
+        setSession(prev => ({ ...prev, analysisSubmitted: true, analysisSubmittedAt: new Date() }))
+        
+        // Optionally redirect back to the test list after a short delay
+        setTimeout(() => {
+          if (returnUrl) {
+            router.push(returnUrl)
+          }
+        }, 1500)
       } else {
         alert('Failed to submit analysis')
       }

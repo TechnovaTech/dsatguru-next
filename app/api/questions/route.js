@@ -195,6 +195,12 @@ export async function GET(request) {
         data.options[i] = rawOptions[i] !== undefined && rawOptions[i] !== null ? String(rawOptions[i]) : ''
       }
       
+      // Also create optionA, optionB, optionC, optionD fields for frontend compatibility
+      data.optionA = data.options[0] || ''
+      data.optionB = data.options[1] || ''
+      data.optionC = data.options[2] || ''
+      data.optionD = data.options[3] || ''
+      
       if (typeof data.tags === 'string' && data.tags.trim()) {
         try {
           data.tags = JSON.parse(data.tags)
