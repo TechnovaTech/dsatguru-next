@@ -1253,11 +1253,12 @@ export default function TakeTestPage() {
         <div className="text-base font-bold text-gray-900">
           Section 1, Module {currentModule}: {currentSection === 'rw' ? 'Reading and Writing' : 'Math'}
         </div>
-        <div className="text-lg font-bold text-gray-900">
-          {(test?.practiceMode === 'tutor' && !(Number(test?.duration) > 0)) || test?.practiceMode === 'untimed' 
-            ? 'Untimed Practice' 
-            : formatTime(timeRemaining)}
-        </div>
+        {/* Hide timer completely for untimed mode and tutor mode without duration */}
+        {!((test?.practiceMode === 'tutor' && !(Number(test?.duration) > 0)) || test?.practiceMode === 'untimed') && (
+          <div className="text-lg font-bold text-gray-900">
+            {formatTime(timeRemaining)}
+          </div>
+        )}
         <div className="flex items-center gap-4">
           {currentSection === 'math' && (
             <>
