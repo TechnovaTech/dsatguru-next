@@ -311,7 +311,11 @@ export default function TakeTestPage() {
 
   useEffect(() => {
     const isTutorTimed = test?.practiceMode === 'tutor' && Number(test?.duration) > 0
-    if (test?.practiceMode === 'tutor' && !isTutorTimed) return
+    const isUntimed = test?.practiceMode === 'untimed'
+    
+    // Skip timer for tutor mode (unless timed) and untimed mode
+    if ((test?.practiceMode === 'tutor' && !isTutorTimed) || isUntimed) return
+    
     if (timeRemaining > 0 && !showModuleSummary && !testCompleted && !showRWInstructions && !showMathInstructions) {
       const timer = setInterval(() => {
         setTimeRemaining(prev => {
@@ -988,7 +992,7 @@ export default function TakeTestPage() {
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-left">
               <ul className="space-y-2 text-sm text-gray-700">
                 <li>✓ Test will run in fullscreen mode</li>
-                <li>✓ Timer will start immediately</li>
+                {test?.practiceMode !== 'untimed' && <li>✓ Timer will start immediately</li>}
                 <li>⚠️ Switching tabs will terminate the test</li>
                 <li>⚠️ Exiting fullscreen will terminate the test</li>
               </ul>
@@ -1250,7 +1254,9 @@ export default function TakeTestPage() {
           Section 1, Module {currentModule}: {currentSection === 'rw' ? 'Reading and Writing' : 'Math'}
         </div>
         <div className="text-lg font-bold text-gray-900">
-          {test?.practiceMode === 'tutor' && !(Number(test?.duration) > 0) ? 'Untimed Practice' : formatTime(timeRemaining)}
+          {(test?.practiceMode === 'tutor' && !(Number(test?.duration) > 0)) || test?.practiceMode === 'untimed' 
+            ? 'Untimed Practice' 
+            : formatTime(timeRemaining)}
         </div>
         <div className="flex items-center gap-4">
           {currentSection === 'math' && (

@@ -7,7 +7,7 @@ export default function CreatePracticePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState('rw')
-  const [practiceMode, setPracticeMode] = useState('tutor') // tutor or timed
+  const [practiceMode, setPracticeMode] = useState('tutor') // tutor, timed, or untimed
   const [questionMode, setQuestionMode] = useState('standard')
   const [isGenerating, setIsGenerating] = useState(false)
   const [expandedSections, setExpandedSections] = useState({
@@ -281,10 +281,14 @@ export default function CreatePracticePage() {
                       <div className="w-1 h-4 bg-blue-500 rounded-full"></div>
                       Practice Mode
                     </div>
-                    <div className="grid grid-cols-2 gap-4 max-w-md">
-                      {['tutor', 'timed'].map((mode) => (
-                        <label key={mode} className={`relative flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                          practiceMode === mode 
+                    <div className="grid grid-cols-3 gap-4 max-w-3xl">
+                      {[
+                        { mode: 'tutor', label: 'Tutor', desc: 'Untimed, see answers' },
+                        { mode: 'timed', label: 'Timed', desc: 'Simulate test conditions' },
+                        { mode: 'untimed', label: 'Untimed', desc: 'Test conditions, no timer' }
+                      ].map((item) => (
+                        <label key={item.mode} className={`relative flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                          practiceMode === item.mode 
                             ? 'border-blue-500 bg-blue-50/50' 
                             : 'border-gray-100 hover:border-blue-200 hover:bg-gray-50'
                         }`}>
@@ -292,16 +296,16 @@ export default function CreatePracticePage() {
                             type="radio" 
                             name="practiceMode" 
                             className="hidden" 
-                            checked={practiceMode === mode}
-                            onChange={() => setPracticeMode(mode)} 
+                            checked={practiceMode === item.mode}
+                            onChange={() => setPracticeMode(item.mode)} 
                           />
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${practiceMode === mode ? 'border-blue-500' : 'border-gray-300'}`}>
-                            {practiceMode === mode && <div className="w-2.5 h-2.5 bg-blue-500 rounded-full" />}
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${practiceMode === item.mode ? 'border-blue-500' : 'border-gray-300'}`}>
+                            {practiceMode === item.mode && <div className="w-2.5 h-2.5 bg-blue-500 rounded-full" />}
                           </div>
                           <div>
-                            <span className="block font-bold text-gray-800 capitalize">{mode}</span>
+                            <span className="block font-bold text-gray-800 capitalize">{item.label}</span>
                             <span className="text-xs text-gray-500 font-medium">
-                              {mode === 'tutor' ? 'Untimed, see answers' : 'Simulate test conditions'}
+                              {item.desc}
                             </span>
                           </div>
                         </label>
