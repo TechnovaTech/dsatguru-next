@@ -124,7 +124,9 @@ export async function GET(request, { params }) {
         selectedAnswer: r.selectedAnswer,
         isCorrect: r.isCorrect,
         timeSpent: r.timeSpent,
-        answeredAt: r.answeredAt
+        answeredAt: r.answeredAt,
+        incorrectReason: r.incorrectReason || null,
+        incorrectReasonOther: r.incorrectReasonOther || null
       }))
     })
   } catch (error) {

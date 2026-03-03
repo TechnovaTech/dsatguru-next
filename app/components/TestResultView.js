@@ -182,7 +182,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
             
             // Debug log for incorrect questions with reasons
             if (!questionData.isCorrect && questionData.userAnswer) {
-                console.log('Incorrect question:', q._id, 'Reason:', questionData.incorrectReason)
+                console.log('Incorrect question:', q._id, 'Reason:', questionData.incorrectReason, 'Other:', questionData.incorrectReasonOther)
+                console.log('Response data:', resp)
             }
             
             // Debug log
@@ -966,25 +967,34 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                         </div>
                                     )}
 
-                                    {/* Show submitted reason for admin */}
+                                    {/* Show submitted reason for admin - Always visible for incorrect answers */}
                                     {!q.isCorrect && q.userAnswer && viewMode === 'admin' && (
-                                        <div className={`p-5 rounded-xl border ${q.incorrectReason ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}>
+                                        <div className={`p-5 rounded-xl border-2 ${q.incorrectReason ? 'bg-blue-50 border-blue-400' : 'bg-yellow-50 border-yellow-400'}`}>
                                             <div className="flex items-center gap-2 mb-3">
-                                                <FiAlertCircle className={`w-4 h-4 ${q.incorrectReason ? 'text-blue-600' : 'text-gray-400'}`} />
-                                                <h4 className={`text-sm font-bold ${q.incorrectReason ? 'text-blue-900' : 'text-gray-600'}`}>
+                                                <FiAlertCircle className={`w-5 h-5 ${q.incorrectReason ? 'text-blue-600' : 'text-yellow-600'}`} />
+                                                <h4 className={`text-sm font-bold ${q.incorrectReason ? 'text-blue-900' : 'text-yellow-900'}`}>
                                                     Student's Reason for Incorrect Answer
                                                 </h4>
                                             </div>
                                             {q.incorrectReason ? (
-                                                <div className="p-3 bg-white rounded-lg border border-blue-100">
-                                                    <p className="text-sm text-gray-700 font-medium">{q.incorrectReason}</p>
+                                                <div className="space-y-2">
+                                                    <div className="p-4 bg-white rounded-lg border-2 border-blue-200 shadow-sm">
+                                                        <p className="text-xs text-gray-500 font-bold uppercase mb-1">Selected Reason:</p>
+                                                        <p className="text-sm text-gray-900 font-semibold">{q.incorrectReason}</p>
+                                                    </div>
                                                     {q.incorrectReasonOther && (
-                                                        <p className="text-sm text-gray-600 mt-2 italic">"{q.incorrectReasonOther}"</p>
+                                                        <div className="p-4 bg-white rounded-lg border-2 border-blue-200 shadow-sm">
+                                                            <p className="text-xs text-gray-500 font-bold uppercase mb-1">Additional Details:</p>
+                                                            <p className="text-sm text-gray-700 italic">"{q.incorrectReasonOther}"</p>
+                                                        </div>
                                                     )}
                                                 </div>
                                             ) : (
-                                                <div className="p-3 bg-white rounded-lg border border-gray-200">
-                                                    <p className="text-sm text-gray-500 italic">Student has not provided a reason yet</p>
+                                                <div className="p-4 bg-white rounded-lg border-2 border-yellow-200">
+                                                    <p className="text-sm text-yellow-700 font-medium flex items-center gap-2">
+                                                        <FiAlertCircle className="w-4 h-4" />
+                                                        Student has not submitted their analysis yet
+                                                    </p>
                                                 </div>
                                             )}
                                         </div>
