@@ -838,22 +838,65 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                             {/* Explanation Content */}
                             {showExplanation[q._id] && (
                                 <div className="mt-4 space-y-4 animate-in slide-in-from-top-2">
-                                    {/* Explanation Text */}
-                                    <div className="p-5 bg-gray-50 rounded-xl border border-gray-200">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <div className="p-1 bg-purple-100 text-purple-700 rounded">
-                                                <FiActivity className="w-3 h-3" />
+                                    {/* Short Explanation */}
+                                    {q.shortExplanation && (
+                                        <div className="p-5 bg-blue-50 rounded-xl border border-blue-200">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <div className="p-1 bg-blue-100 text-blue-700 rounded">
+                                                    <FiActivity className="w-3 h-3" />
+                                                </div>
+                                                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wide">Short Explanation</h4>
                                             </div>
-                                            <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wide">Detailed Explanation</h4>
+                                            <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                                                <div dangerouslySetInnerHTML={{ __html: q.shortExplanation }} />
+                                            </div>
                                         </div>
-                                        <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
-                                            {q.explanation ? (
+                                    )}
+
+                                    {/* Detailed/Main Explanation */}
+                                    {q.explanation && (
+                                        <div className="p-5 bg-gray-50 rounded-xl border border-gray-200">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <div className="p-1 bg-purple-100 text-purple-700 rounded">
+                                                    <FiActivity className="w-3 h-3" />
+                                                </div>
+                                                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wide">Explanation</h4>
+                                            </div>
+                                            <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
                                                 <div dangerouslySetInnerHTML={{ __html: q.explanation }} />
-                                            ) : (
-                                                <p>No explanation available for this question.</p>
-                                            )}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
+
+                                    {/* Long Explanation */}
+                                    {q.longExplanation && (
+                                        <div className="p-5 bg-green-50 rounded-xl border border-green-200">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <div className="p-1 bg-green-100 text-green-700 rounded">
+                                                    <FiActivity className="w-3 h-3" />
+                                                </div>
+                                                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wide">Detailed Explanation</h4>
+                                            </div>
+                                            <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                                                <div dangerouslySetInnerHTML={{ __html: q.longExplanation }} />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* No explanation available message */}
+                                    {!q.shortExplanation && !q.explanation && !q.longExplanation && (
+                                        <div className="p-5 bg-gray-50 rounded-xl border border-gray-200">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <div className="p-1 bg-gray-100 text-gray-500 rounded">
+                                                    <FiActivity className="w-3 h-3" />
+                                                </div>
+                                                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wide">Explanation</h4>
+                                            </div>
+                                            <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                                                <p>No explanation available for this question.</p>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Additional Stats Grid */}
                                     <div className="grid grid-cols-2 gap-4">
