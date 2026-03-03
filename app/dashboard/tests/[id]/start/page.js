@@ -693,9 +693,8 @@ export default function TakeTestPage() {
 
   const handleAnswer = (questionId, answer) => {
     setAnswers(prev => ({ ...prev, [questionId]: answer }))
-    if (test?.practiceMode === 'tutor') {
-      setShowAnswer(true)
-    }
+    // Removed immediate answer feedback for tutor mode
+    // Students will see results only on the analysis page after completing the test
   }
 
   const handleModuleComplete = () => {
@@ -1253,8 +1252,8 @@ export default function TakeTestPage() {
         <div className="text-base font-bold text-gray-900">
           Section 1, Module {currentModule}: {currentSection === 'rw' ? 'Reading and Writing' : 'Math'}
         </div>
-        {/* Hide timer completely for untimed mode and tutor mode without duration */}
-        {!((test?.practiceMode === 'tutor' && !(Number(test?.duration) > 0)) || test?.practiceMode === 'untimed') && (
+        {/* Hide timer for untimed mode OR tutor mode without duration */}
+        {!(test?.practiceMode === 'untimed' || (test?.practiceMode === 'tutor' && !test?.duration)) && (
           <div className="text-lg font-bold text-gray-900">
             {formatTime(timeRemaining)}
           </div>
@@ -1425,12 +1424,7 @@ export default function TakeTestPage() {
               </p>
             </div>
 
-            {/* TUTOR MODE: Options on Left Side */}
-            {test?.practiceMode === 'tutor' && (
-              <div className="mt-8">
-                {optionsList}
-              </div>
-            )}
+            {/* Removed tutor mode options from left side - all tests now use standard layout */}
           </div>
         </div>
 
@@ -1445,49 +1439,8 @@ export default function TakeTestPage() {
           
           {/* Content */}
           <div className="max-w-2xl mx-auto relative z-10">
-            {test?.practiceMode === 'tutor' ? (
-              // TUTOR MODE: Explanation Only (on Right Side)
-              <div>
-                {showAnswer ? (
-                  <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 shadow-sm mb-4">
-                      <div className="prose prose-sm max-w-none space-y-6">
-                        <div>
-                          <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
-                            <FiBookOpen className="text-gray-600" /> Explanation
-                          </h4>
-                          <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                            {currentQ.explanation ? renderWithImages(currentQ.explanation) : 'No detailed explanation available for this question.'}
-                          </div>
-                        </div>
-                        {currentQ.shortExplanation ? (
-                          <div>
-                            <h4 className="font-bold text-gray-900 mb-2">Short Explanation</h4>
-                            <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                              {renderWithImages(currentQ.shortExplanation)}
-                            </div>
-                          </div>
-                        ) : null}
-                        {currentQ.longExplanation ? (
-                          <div>
-                            <h4 className="font-bold text-gray-900 mb-2">Detailed Explanation</h4>
-                            <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                              {renderWithImages(currentQ.longExplanation)}
-                            </div>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-                 ) : (
-                   <div className="flex flex-col items-center justify-center h-96 text-gray-400">
-                     <FiHelpCircle className="w-16 h-16 mb-4 opacity-50" />
-                     <p className="text-lg font-medium">Select an answer to see the explanation</p>
-                   </div>
-                 )}
-              </div>
-            ) : (
-              // TIMED MODE: Question Number + Standard Options
+            {/* All tests now use standard timed mode layout - no immediate answers */}
+            {/* STANDARD MODE: Question Number + Options */}
               <>
                 {/* Question Number & Actions */}
                 <div className="flex items-center gap-4 mb-6">
@@ -1619,7 +1572,6 @@ export default function TakeTestPage() {
                   })}
                 </div>
               </>
-            )}
           </div>
         </div>
       </div>

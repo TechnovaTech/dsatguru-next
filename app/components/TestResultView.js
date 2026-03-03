@@ -687,8 +687,15 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-200">Answered</span>
-                                    <span className="px-3 py-1 bg-gray-50 text-gray-500 text-xs font-bold rounded-full border border-gray-200">Visited</span>
+                                    {q.userAnswer && (
+                                        <span className="px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-200">Answered</span>
+                                    )}
+                                    {!q.userAnswer && q.wasVisited && (
+                                        <span className="px-3 py-1 bg-orange-50 text-orange-600 text-xs font-bold rounded-full border border-orange-200">Omitted</span>
+                                    )}
+                                    {!q.wasVisited && (
+                                        <span className="px-3 py-1 bg-gray-50 text-gray-500 text-xs font-bold rounded-full border border-gray-200">Not Attempted</span>
+                                    )}
                                 </div>
                             </div>
 
@@ -779,6 +786,16 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                     ) : (
                                         <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                                             <div className="text-sm text-gray-500">Options not available</div>
+                                        </div>
+                                    )}
+                                    
+                                    {/* Show "No answer selected" for unattempted questions */}
+                                    {!q.userAnswer && (
+                                        <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-300 flex items-center gap-2">
+                                            <FiAlertCircle className="w-4 h-4 text-gray-500" />
+                                            <span className="text-sm font-medium text-gray-600">
+                                                {q.wasVisited ? 'No answer selected (Omitted)' : 'Not attempted'}
+                                            </span>
                                         </div>
                                     )}
                                 </div>
