@@ -168,11 +168,46 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
             const wasVisited = visitedQuestions.has(qId) || !!resp
             
             // Normalize options
-            const options = q.options || {
-                A: q.optionA,
-                B: q.optionB,
-                C: q.optionC,
-                D: q.optionD
+            let options = q.options
+            
+            // If options is an array, convert to object with A, B, C, D keys
+            if (Array.isArray(q.options)) {
+                options = {
+                    A: q.options[0] || '',
+                    B: q.options[1] || '',
+                    C: q.options[2] || '',
+                    D: q.options[3] || ''
+                }
+            } else if (typeof q.options === 'string') {
+                // If options is a JSON string, parse it
+                try {
+                    const parsed = JSON.parse(q.options)
+                    if (Array.isArray(parsed)) {
+                        options = {
+                            A: parsed[0] || '',
+                            B: parsed[1] || '',
+                            C: parsed[2] || '',
+                            D: parsed[3] || ''
+                        }
+                    } else {
+                        options = parsed
+                    }
+                } catch (e) {
+                    options = {
+                        A: q.optionA || '',
+                        B: q.optionB || '',
+                        C: q.optionC || '',
+                        D: q.optionD || ''
+                    }
+                }
+            } else if (!options || typeof options !== 'object') {
+                // Fallback to individual option fields
+                options = {
+                    A: q.optionA || '',
+                    B: q.optionB || '',
+                    C: q.optionC || '',
+                    D: q.optionD || ''
+                }
             }
 
             const questionData = {
@@ -185,6 +220,11 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                 incorrectReason: resp?.incorrectReason || null,
                 incorrectReasonOther: resp?.incorrectReasonOther || null,
                 _id: q._id
+            }
+            
+            // Debug log for options
+            if (!options || !options.A) {
+                console.log('Question with missing options:', q._id, 'Options:', options, 'Original:', q.options)
             }
             
             reviewQuestions.push(questionData)
@@ -784,11 +824,14 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                 <p className="text-gray-800 text-sm leading-relaxed mb-4">{q.content || q.questionText}</p>
                                 {/* Options */}
                                 <div className="space-y-2">
-                                    {q.options ? (
+                                    {q.options && (typeof q.options === 'object') && (q.options.A || q.options.B || q.options.C || q.options.D) ? (
                                         ['A', 'B', 'C', 'D'].map((opt) => {
                                             const isCorrect = q.correctAnswer === opt
                                             const isSelected = q.userAnswer === opt
                                             const isWrongSelection = isSelected && !q.isCorrect
+                                            
+                                            // Get option text
+                                            const optionText = q.options[opt] || q[`option${opt}`] || ''
 
                                             // Determine styles
                                             let containerStyle = 'bg-white border-gray-200'
@@ -810,21 +853,37 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                                     <div className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold flex-shrink-0 ${badgeStyle}`}>
                                                         {opt}
                                                     </div>
-                                                    <span className={`text-sm ${textStyle}`}>
-                                                        {q.options[opt]}
+                                                    <span className={`text-sm ${textStyle} flex-1`}>
+                                                        {optionText || <span className="text-gray-400 italic">No text</span>}
                                                     </span>
                                                     {isCorrect && (
-                                                        <FiCheckCircle className="ml-auto text-green-600 w-5 h-5" />
+                                                        <FiCheckCircle className="ml-auto text-green-600 w-5 h-5 flex-shrink-0" />
                                                     )}
                                                     {isWrongSelection && (
-                                                        <FiXCircle className="ml-auto text-red-600 w-5 h-5" />
+                                                        <FiXCircle className="ml-auto text-red-600 w-5 h-5 flex-shrink-0" />
                                                     )}
                                                 </div>
                                             )
                                         })
                                     ) : (
-                                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                            <div className="text-sm text-gray-500">Options not available</div>
+                                        <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                                            <div className="flex items-center gap-2 text-sm text-yellow-800">
+                                                <FiAlertCircle className="w-4 h-4" />
+                                                <span>Options not available for this question</span>
+                                            </div>
+                                            {/* Debug info */}
+                                            <details className="mt-2">
+                                                <summary className="text-xs text-yellow-600 cursor-pointer">Debug Info</summary>
+                                                <pre className="text-xs mt-2 p-2 bg-white rounded overflow-auto">
+                                                    {JSON.stringify({ 
+                                                        options: q.options, 
+                                                        optionA: q.optionA,
+                                                        optionB: q.optionB,
+                                                        optionC: q.optionC,
+                                                        optionD: q.optionD
+                                                    }, null, 2)}
+                                                </pre>
+                                            </details>
                                         </div>
                                     )}
                                     
