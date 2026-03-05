@@ -115,6 +115,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
   const [questions, setQuestions] = useState([])
   const [qLoading, setQLoading] = useState(false)
   const [filters, setFilters] = useState({ subject: isTutor ? 'Math' : '', difficulty: '', type: '', tag: '', isActive: '', mathTopic: '', mathSubtopic: '', readingWritingTopic: '' })
+  const [questionSearch, setQuestionSearch] = useState('')
   const [preview, setPreview] = useState(null)
   const [editItem, setEditItem] = useState(null)
   const [showAccessModal, setShowAccessModal] = useState(false)
@@ -668,6 +669,17 @@ export default function QuestionBankManagement({ isTutor = false }) {
             <div className="p-6 border-b flex items-center justify-between">
               <h2 className="text-lg font-semibold">Manage Questions</h2>
               <div className="flex items-center gap-3">
+                {/* Question Search Input */}
+                <div className="relative">
+                  <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={questionSearch}
+                    onChange={(e) => setQuestionSearch(e.target.value)}
+                    placeholder="Search by Question ID..."
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
                 {selectedQuestions.length > 0 && (
                   <button
                     onClick={handleBulkDelete}
@@ -678,7 +690,18 @@ export default function QuestionBankManagement({ isTutor = false }) {
                     Delete Selected ({selectedQuestions.length})
                   </button>
                 )}
-                <div className="text-sm text-gray-500">{qLoading ? 'Loading...' : `${questions.length} result(s)`}</div>
+                <div className="text-sm text-gray-500">
+                  {qLoading ? 'Loading...' : `${questions.filter(q => {
+                    if (questionSearch.trim()) {
+                      const searchLower = questionSearch.toLowerCase().trim()
+                      const questionId = (q.questionId || '').toLowerCase()
+                      const content = (q.content || '').toLowerCase()
+                      const serialNumber = q.questionId ? q.questionId.split('-').pop() : ''
+                      return questionId.includes(searchLower) || content.includes(searchLower) || serialNumber === searchLower.replace('#', '')
+                    }
+                    return true
+                  }).length} result(s)${questionSearch.trim() ? ` (filtered from ${questions.length})` : ''}`}
+                </div>
               </div>
             </div>
             <div className="overflow-x-auto">
@@ -703,7 +726,22 @@ export default function QuestionBankManagement({ isTutor = false }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {questions.map((q, index) => {
+                  {questions
+                    .filter(q => {
+                      // Filter by question search
+                      if (questionSearch.trim()) {
+                        const searchLower = questionSearch.toLowerCase().trim()
+                        const questionId = (q.questionId || '').toLowerCase()
+                        const content = (q.content || '').toLowerCase()
+                        const serialNumber = q.questionId ? q.questionId.split('-').pop() : ''
+                        
+                        return questionId.includes(searchLower) || 
+                               content.includes(searchLower) ||
+                               serialNumber === searchLower.replace('#', '')
+                      }
+                      return true
+                    })
+                    .map((q, index) => {
                     // Extract serial number from questionId (e.g., "TRIMATH-ES-1" -> "1")
                     const serialNumber = q.questionId ? q.questionId.split('-').pop() : (index + 1)
                     // Parse options and tags if they're strings

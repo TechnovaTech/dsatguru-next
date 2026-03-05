@@ -693,6 +693,20 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                     <span className="flex items-center gap-1 text-xs font-medium text-gray-500">
                                         <FiClock className="w-3 h-3" /> {q.timeSpent ? `${Math.floor(q.timeSpent/60)}:${(q.timeSpent%60).toString().padStart(2,'0')} Mins` : '00:00'}
                                     </span>
+                                    {viewMode === 'admin' && q.questionId && (
+                                        <div className="flex items-center gap-1">
+                                            <span className={`px-2 py-0.5 text-xs font-bold rounded border ${
+                                                q.isTutor 
+                                                    ? 'bg-blue-100 text-blue-700 border-blue-200' 
+                                                    : 'bg-green-100 text-green-700 border-green-200'
+                                            }`} title={q.isTutor ? "Tutor Question Bank" : "Admin Question Bank"}>
+                                                {q.isTutor ? 'Tutor' : 'Admin'}
+                                            </span>
+                                            <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded border border-purple-200" title="Question ID">
+                                                {q.questionId}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {q.userAnswer && (
