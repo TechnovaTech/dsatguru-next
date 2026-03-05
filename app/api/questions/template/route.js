@@ -2,55 +2,58 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   const header = [
-    'Title',
-    'Content',
+    'Question',
+    'Option A',
+    'Option B',
+    'Option C',
+    'Option D',
+    'Correct Answer',
     'Subject',
     'Difficulty',
-    'CorrectAnswer',
-    'OptionA',
-    'OptionB',
-    'OptionC',
-    'OptionD',
-    'QuestionParagraph',
-    'Explanation',
-    'ShortExplanation',
-    'LongExplanation',
     'Tags',
-    'ImageFileName'
+    'Short Explanation',
+    'Long Explanation'
   ].join(',')
 
   const rows = [
     [
-      'Linear Equations Basics',
       'Solve for x: 2x + 3 = 11',
-      'Math',
-      'Easy',
-      'C',
       'x = 3',
       'x = 4',
       'x = 5',
       'x = 6',
-      '',
-      'Subtract 3 to get 2x = 8, then divide by 2: x = 4',
-      'Brief: 2x=8 -> x=4',
-      'Step 1: Subtract 3 from both sides (2x = 8). Step 2: Divide by 2 (x = 4).',
-      'algebra,linear-equations',
-      ''
+      'B',
+      'Math',
+      'Easy',
+      'Algebra,Linear Equations',
+      'Subtract 3 from both sides to get 2x = 8, then divide by 2 to get x = 4',
+      'Step 1: Subtract 3 from both sides: 2x + 3 - 3 = 11 - 3, which gives 2x = 8. Step 2: Divide both sides by 2: 2x/2 = 8/2, which gives x = 4. Therefore, the answer is x = 4.'
     ],
     [
-      'Reading Comprehension',
-      'In the passage, the author primarily argues that sustainable practices are essential for long-term growth.',
+      'In the passage, the author primarily argues that sustainable practices are essential for long-term growth. What is the main idea?',
+      'Sustainability is crucial for growth',
+      'Growth is more important than sustainability',
+      'Sustainability and growth are unrelated',
+      'Short-term gains are better',
+      'A',
       'Reading and Writing',
       'Medium',
-      'A',
-      'Agree',
-      'Disagree',
-      'Not stated',
-      'Partially agree',
-      'The passage discusses benefits and necessity of sustainability.',
-      'The main idea supports sustainability as crucial.',
-      'reading',
-      'sample-reading-1.png'
+      'Reading Comprehension,Main Ideas',
+      'The passage emphasizes that sustainable practices are necessary for achieving long-term growth',
+      'The author makes a clear argument throughout the passage that sustainable practices are not just beneficial but essential for achieving long-term growth. This is the central theme that ties together all the supporting points in the passage.'
+    ],
+    [
+      'What is the value of 3² + 4²?',
+      '7',
+      '12',
+      '25',
+      '49',
+      'C',
+      'Math',
+      'Medium',
+      'Algebra,Exponents',
+      '3² = 9 and 4² = 16, so 9 + 16 = 25',
+      'First, calculate 3² which equals 3 × 3 = 9. Then calculate 4² which equals 4 × 4 = 16. Finally, add them together: 9 + 16 = 25. This is also related to the Pythagorean theorem where 3-4-5 is a common right triangle.'
     ]
   ]
     .map(r => r.map(field => {
