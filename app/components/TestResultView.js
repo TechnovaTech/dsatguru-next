@@ -12,6 +12,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
   const [loading, setLoading] = useState(true)
   const [expandedQuestions, setExpandedQuestions] = useState({}) // { questionId: true/false }
   const [showExplanation, setShowExplanation] = useState({}) // { questionId: true/false }
+  const [showQuestionInfo, setShowQuestionInfo] = useState({}) // { questionId: true/false }
+  const [showWhyWrong, setShowWhyWrong] = useState({}) // { questionId: true/false }
   const [filterStatus, setFilterStatus] = useState('all') // 'all', 'correct', 'incorrect', 'omitted', 'unattempted'
   const [showFilterDropdown, setShowFilterDropdown] = useState(false)
   const [testAnalytics, setTestAnalytics] = useState(null) // For admin view - aggregated stats
@@ -241,6 +243,14 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
 
   const toggleExplanation = (id) => {
     setShowExplanation(prev => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  const toggleQuestionInfo = (id) => {
+    setShowQuestionInfo(prev => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  const toggleWhyWrong = (id) => {
+    setShowWhyWrong(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
   const fetchTestAnalytics = async () => {
@@ -830,7 +840,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                 </div>
                             </div>
 
-                            {/* Actions */}
+                            {/* Actions - 3 Buttons */}
                             <div className="flex items-center justify-between border-t pt-4">
                                 <div className="flex items-center gap-6">
                                     <div className="flex items-center gap-2 text-gray-600">
@@ -846,25 +856,171 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                     </div>
                                 </div>
 
-                                {(viewMode === 'admin' || test?.showExplanation !== false) && (
+                                <div className="flex items-center gap-2">
+                                    {/* Question Info Button */}
                                     <button 
-                                        onClick={() => toggleExplanation(q._id)}
-                                        className="px-4 py-1.5 bg-purple-900 text-white text-xs font-bold rounded hover:bg-purple-800 transition-colors flex items-center gap-2"
+                                        onClick={() => toggleQuestionInfo(q._id)}
+                                        className="px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 transition-colors flex items-center gap-2"
                                     >
-                                        {showExplanation[q._id] ? (
+                                        {showQuestionInfo[q._id] ? (
                                             <>
-                                                <span>Hide Explanation</span>
+                                                <span>Hide Info</span>
                                                 <FiChevronUp />
                                             </>
                                         ) : (
                                             <>
-                                                <span>Show Explanation</span>
+                                                <span>Question Info</span>
                                                 <FiChevronDown />
                                             </>
                                         )}
                                     </button>
-                                )}
+
+                                    {/* Why Wrong Button - Only for incorrect answers */}
+                                    {!q.isCorrect && q.userAnswer && (
+                                        <button 
+                                            onClick={() => toggleWhyWrong(q._id)}
+                                            className="px-4 py-1.5 bg-red-600 text-white text-xs font-bold rounded hover:bg-red-700 transition-colors flex items-center gap-2"
+                                        >
+                                            {showWhyWrong[q._id] ? (
+                                                <>
+                                                    <span>Hide Why Wrong</span>
+                                                    <FiChevronUp />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span>Why Wrong</span>
+                                                    <FiChevronDown />
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+
+                                    {/* Explanation Button - Controlled by showExplanation setting */}
+                                    {(viewMode === 'admin' || test?.showExplanation !== false) && (
+                                        <button 
+                                            onClick={() => toggleExplanation(q._id)}
+                                            className="px-4 py-1.5 bg-purple-900 text-white text-xs font-bold rounded hover:bg-purple-800 transition-colors flex items-center gap-2"
+                                        >
+                                            {showExplanation[q._id] ? (
+                                                <>
+                                                    <span>Hide Explanation</span>
+                                                    <FiChevronUp />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span>Show Explanation</span>
+                                                    <FiChevronDown />
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
                             </div>
+
+                            {/* Question Info Content */}
+                            {showQuestionInfo[q._id] && (
+                                <div className="mt-4 animate-in slide-in-from-top-2">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {/* Difficulty */}
+                                        <div className="p-4 bg-white rounded-lg border border-gray-100 shadow-sm flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-2 rounded-lg ${
+                                                    q.difficulty === 'Hard' ? 'bg-red-50 text-red-600' :
+                                                    q.difficulty === 'Easy' ? 'bg-green-50 text-green-600' :
+                                                    'bg-orange-50 text-orange-600'
+                                                }`}>
+                                                    <FiActivity className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <div className="text-xs text-gray-500 font-bold uppercase">Difficulty</div>
+                                                    <div className="text-sm font-bold text-gray-900">{q.difficulty || 'Medium'}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Topic */}
+                                        <div className="p-4 bg-white rounded-lg border border-gray-100 shadow-sm flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                                                    <FiCheckSquare className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <div className="text-xs text-gray-500 font-bold uppercase">Topic</div>
+                                                    <div className="text-sm font-bold text-gray-900">{q.subject || 'General'}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Why Wrong Content */}
+                            {showWhyWrong[q._id] && !q.isCorrect && q.userAnswer && (
+                                <div className="mt-4 animate-in slide-in-from-top-2">
+                                    {/* Tell Reason Section - Only for incorrect answers and non-admin */}
+                                    {viewMode !== 'admin' && (
+                                        <div className="p-5 bg-red-50 rounded-xl border border-red-200">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <FiAlertCircle className="w-4 h-4 text-red-600" />
+                                                <h4 className="text-sm font-bold text-red-900">Tell us why you got this wrong *</h4>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {reasonOptions.map((option, idx) => (
+                                                    <label key={idx} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-red-100 hover:border-red-300 cursor-pointer transition-colors">
+                                                        <input
+                                                            type="radio"
+                                                            name={`reason-${q._id}`}
+                                                            value={option}
+                                                            checked={incorrectReasons[q._id]?.reason === option}
+                                                            onChange={(e) => handleReasonChange(q._id, e.target.value)}
+                                                            className="mt-1 w-4 h-4 text-red-600"
+                                                        />
+                                                        <span className="text-sm text-gray-700">{option}</span>
+                                                    </label>
+                                                ))}
+                                                
+                                                {incorrectReasons[q._id]?.reason === 'Other' && (
+                                                    <textarea
+                                                        placeholder="Please explain your reason..."
+                                                        value={incorrectReasons[q._id]?.otherText || ''}
+                                                        onChange={(e) => handleOtherTextChange(q._id, e.target.value)}
+                                                        className="w-full p-3 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-sm"
+                                                        rows="3"
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Show submitted reason for admin - Always visible for incorrect answers */}
+                                    {viewMode === 'admin' && (
+                                        <div className={`p-5 rounded-xl border-2 ${q.incorrectReason ? 'bg-blue-50 border-blue-400' : 'bg-yellow-50 border-yellow-400'}`}>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <FiAlertCircle className={`w-5 h-5 ${q.incorrectReason ? 'text-blue-600' : 'text-yellow-600'}`} />
+                                                <h4 className={`text-sm font-bold ${q.incorrectReason ? 'text-blue-900' : 'text-yellow-900'}`}>
+                                                    Student's Reason for Incorrect Answer
+                                                </h4>
+                                            </div>
+                                            {q.incorrectReason ? (
+                                                <div className="space-y-2">
+                                                    <div className="p-4 bg-white rounded-lg border-2 border-blue-200 shadow-sm">
+                                                        <p className="text-xs text-gray-500 font-bold uppercase mb-1">Selected Reason:</p>
+                                                        <p className="text-sm text-gray-900 font-semibold">{q.incorrectReason}</p>
+                                                    </div>
+                                                    {q.incorrectReasonOther && (
+                                                        <div className="p-4 bg-white rounded-lg border-2 border-blue-200 shadow-sm">
+                                                            <p className="text-xs text-gray-500 font-bold uppercase mb-1">Additional Details:</p>
+                                                            <p className="text-sm text-gray-900">{q.incorrectReasonOther}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm text-yellow-800">Student has not provided a reason yet.</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Explanation Content */}
                             {showExplanation[q._id] && (viewMode === 'admin' || test?.showExplanation !== false) && (
@@ -911,107 +1067,6 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                             <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
                                                 <p>No explanation available for this question.</p>
                                             </div>
-                                        </div>
-                                    )}
-
-                                    {/* Additional Stats Grid */}
-                                    <div className="grid grid-cols-2 gap-4">
-                                        {/* Difficulty */}
-                                        <div className="p-4 bg-white rounded-lg border border-gray-100 shadow-sm flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`p-2 rounded-lg ${
-                                                    q.difficulty === 'Hard' ? 'bg-red-50 text-red-600' :
-                                                    q.difficulty === 'Easy' ? 'bg-green-50 text-green-600' :
-                                                    'bg-orange-50 text-orange-600'
-                                                }`}>
-                                                    <FiActivity className="w-4 h-4" />
-                                                </div>
-                                                <div>
-                                                    <div className="text-xs text-gray-500 font-bold uppercase">Difficulty</div>
-                                                    <div className="text-sm font-bold text-gray-900">{q.difficulty || 'Medium'}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Topic */}
-                                        <div className="p-4 bg-white rounded-lg border border-gray-100 shadow-sm flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
-                                                    <FiCheckSquare className="w-4 h-4" />
-                                                </div>
-                                                <div>
-                                                    <div className="text-xs text-gray-500 font-bold uppercase">Topic</div>
-                                                    <div className="text-sm font-bold text-gray-900">{q.subject || 'General'}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Tell Reason Section - Only for incorrect answers and non-admin */}
-                                    {!q.isCorrect && q.userAnswer && viewMode !== 'admin' && (
-                                        <div className="p-5 bg-red-50 rounded-xl border border-red-200">
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <FiAlertCircle className="w-4 h-4 text-red-600" />
-                                                <h4 className="text-sm font-bold text-red-900">Tell us why you got this wrong *</h4>
-                                            </div>
-                                            <div className="space-y-2">
-                                                {reasonOptions.map((option, idx) => (
-                                                    <label key={idx} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-red-100 hover:border-red-300 cursor-pointer transition-colors">
-                                                        <input
-                                                            type="radio"
-                                                            name={`reason-${q._id}`}
-                                                            value={option}
-                                                            checked={incorrectReasons[q._id]?.reason === option}
-                                                            onChange={(e) => handleReasonChange(q._id, e.target.value)}
-                                                            className="mt-1 w-4 h-4 text-red-600"
-                                                        />
-                                                        <span className="text-sm text-gray-700">{option}</span>
-                                                    </label>
-                                                ))}
-                                                
-                                                {incorrectReasons[q._id]?.reason === 'Other' && (
-                                                    <textarea
-                                                        placeholder="Please explain your reason..."
-                                                        value={incorrectReasons[q._id]?.otherText || ''}
-                                                        onChange={(e) => handleOtherTextChange(q._id, e.target.value)}
-                                                        className="w-full p-3 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-sm"
-                                                        rows="3"
-                                                    />
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Show submitted reason for admin - Always visible for incorrect answers */}
-                                    {!q.isCorrect && q.userAnswer && viewMode === 'admin' && (
-                                        <div className={`p-5 rounded-xl border-2 ${q.incorrectReason ? 'bg-blue-50 border-blue-400' : 'bg-yellow-50 border-yellow-400'}`}>
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <FiAlertCircle className={`w-5 h-5 ${q.incorrectReason ? 'text-blue-600' : 'text-yellow-600'}`} />
-                                                <h4 className={`text-sm font-bold ${q.incorrectReason ? 'text-blue-900' : 'text-yellow-900'}`}>
-                                                    Student's Reason for Incorrect Answer
-                                                </h4>
-                                            </div>
-                                            {q.incorrectReason ? (
-                                                <div className="space-y-2">
-                                                    <div className="p-4 bg-white rounded-lg border-2 border-blue-200 shadow-sm">
-                                                        <p className="text-xs text-gray-500 font-bold uppercase mb-1">Selected Reason:</p>
-                                                        <p className="text-sm text-gray-900 font-semibold">{q.incorrectReason}</p>
-                                                    </div>
-                                                    {q.incorrectReasonOther && (
-                                                        <div className="p-4 bg-white rounded-lg border-2 border-blue-200 shadow-sm">
-                                                            <p className="text-xs text-gray-500 font-bold uppercase mb-1">Additional Details:</p>
-                                                            <p className="text-sm text-gray-700 italic">"{q.incorrectReasonOther}"</p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                <div className="p-4 bg-white rounded-lg border-2 border-yellow-200">
-                                                    <p className="text-sm text-yellow-700 font-medium flex items-center gap-2">
-                                                        <FiAlertCircle className="w-4 h-4" />
-                                                        Student has not submitted their analysis yet
-                                                    </p>
-                                                </div>
-                                            )}
                                         </div>
                                     )}
                                 </div>
