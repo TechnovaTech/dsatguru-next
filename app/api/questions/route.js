@@ -148,16 +148,18 @@ export async function GET(request) {
     // Filter by isTutor
     if (isTutor === 'true') {
       filter.isTutor = true
-    } else if (!bankId || (bankId !== 'admin-math' && bankId !== 'admin-rw')) {
-      // Only apply default isTutor exclusion if not already handled by virtual bankId
-      // Actually, we should be careful here. 
-      // If bankId is admin-math/rw, we already set isTutor condition.
-      // If bankId is standard ObjectId, we still want to ensure we don't accidentally get tutor questions if we are admin?
-      // But typically questionBankId implies specific bank.
-      // Let's rely on the explicit isTutor param if provided, otherwise default to non-tutor for standard requests
-      
-      if (!filter.hasOwnProperty('isTutor')) {
-         filter.isTutor = { $ne: true }
+    } else {
+      // For non-tutor requests, get admin questions (no questionBankId or specific bank)
+      // This ensures we get questions from the admin question bank
+      if (!bankId) {
+        // Default: get admin questions (not tutor, no specific bank)
+        filter.$or = [
+          { isTutor: { $exists: false }, questionBankId: null },
+          { isTutor: false, questionBankId: null }
+        ]
+      } else if (bankId !== 'admin-math' && bankId !== 'admin-rw' && bankId !== 'tutor-math' && bankId !== 'tutor-rw') {
+        // Specific question bank ID - no additional filtering needed
+        // The questionBankId filter is already set above
       }
     }
 

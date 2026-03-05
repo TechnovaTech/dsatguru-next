@@ -118,7 +118,11 @@ export async function GET(request) {
 
       const questions = await Question.find({
         subject: dbSubject,
-        isActive: true
+        isActive: true,
+        $or: [
+          { isTutor: { $exists: false } },
+          { isTutor: false }
+        ]
       }).select('tags difficulty')
 
       // Initialize structure based on mapping
