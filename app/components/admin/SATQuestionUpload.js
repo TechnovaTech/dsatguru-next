@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { FiUpload, FiFile, FiCheck, FiX, FiDownload, FiPlus, FiSearch, FiEdit, FiImage, FiArrowLeft } from 'react-icons/fi'
+import BulkQuestionPreview from './BulkQuestionPreview'
 
 export default function SATQuestionUpload({ isTutor: propIsTutor = false, managePath = '/admin/question-bank' }) {
   const router = useRouter()
@@ -38,6 +39,8 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
     tags: ''
   })
   const [bulkUpload, setBulkUpload] = useState({ csvRecords: [], images: [], imagePreviews: [], mapping: null, progress: 0 })
+  const [previewQuestions, setPreviewQuestions] = useState(null)
+  const [showPreview, setShowPreview] = useState(false)
   const mathSubtopics = {
     'algebra': {
       label: 'Algebra',
@@ -136,12 +139,9 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
       if (selectedQuestionBank === 'MATH_DIRECT' || selectedQuestionBank === 'RW_DIRECT') {
         const subject = selectedQuestionBank === 'MATH_DIRECT' ? 'Math' : 'Reading and Writing'
         formData.append('defaultSubject', subject)
-      } else {
-        formData.append('questionBankId', selectedQuestionBank)
       }
     }
     
-    formData.append('isTutor', isTutor)
     if (isTutor) formData.append('defaultSubject', singleQuestion.subject)
     ;(bulkUpload.images || []).forEach(img => formData.append('images', img))
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
@@ -151,7 +151,7 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
     }, 200)
 
     try {
-      const response = await fetch('/api/admin/questions/bulk-upload', {
+      const response = await fetch('/api/admin/questions/bulk-preview', {
         method: 'POST',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData
@@ -159,23 +159,61 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
 
       if (response.ok) {
         const result = await response.json()
-        alert(`Successfully uploaded ${result.count} questions`)
-        setFile(null)
-        fetchUploadHistory()
-        setBulkUpload(prev => ({ ...prev, progress: 100, csvRecords: [], images: [], imagePreviews: [], mapping: null }))
+        setPreviewQuestions(result.questions)
+        setShowPreview(true)
+        setBulkUpload(prev => ({ ...prev, progress: 100 }))
       } else {
         const error = await response.json()
-        console.error('Upload error response:', JSON.stringify(error, null, 2))
-        alert(`Upload failed: ${error.error || error.message || 'Unknown error'}\n${error.details || ''}`)
+        console.error('Preview error response:', JSON.stringify(error, null, 2))
+        alert(`Preview failed: ${error.error || error.message || 'Unknown error'}\n${error.details || ''}`)
       }
     } catch (error) {
-      console.error('Upload error:', error.message || error)
-      alert(`Upload failed: ${error.message || 'Network error'}`)
+      console.error('Preview error:', error.message || error)
+      alert(`Preview failed: ${error.message || 'Network error'}`)
     } finally {
       if (progressInterval) clearInterval(progressInterval)
       setUploading(false)
       setTimeout(() => setBulkUpload(prev => ({ ...prev, progress: 0 })), 600)
     }
+  }
+
+  const handleApproveQuestions = async (questions) => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const response = await fetch('/api/admin/questions/bulk-approve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          questions,
+          questionBankId: (isTutor || selectedQuestionBank === 'MATH_DIRECT' || selectedQuestionBank === 'RW_DIRECT') ? null : selectedQuestionBank,
+          isTutor
+        })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        alert(`Successfully saved ${result.count} questions to database`)
+        setShowPreview(false)
+        setPreviewQuestions(null)
+        setFile(null)
+        fetchUploadHistory()
+        setBulkUpload({ csvRecords: [], images: [], imagePreviews: [], mapping: null, progress: 0 })
+      } else {
+        const error = await response.json()
+        alert(`Failed to save questions: ${error.error || error.message}`)
+      }
+    } catch (error) {
+      console.error('Approve error:', error)
+      alert(`Failed to save questions: ${error.message}`)
+    }
+  }
+
+  const handleCancelPreview = () => {
+    setShowPreview(false)
+    setPreviewQuestions(null)
   }
 
   const handleSingleQuestionSubmit = async (e) => {
@@ -545,6 +583,16 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
+      {showPreview && previewQuestions && (
+        <BulkQuestionPreview
+          questions={previewQuestions}
+          onApprove={handleApproveQuestions}
+          onCancel={handleCancelPreview}
+          questionBankId={selectedQuestionBank}
+          isTutor={isTutor}
+        />
+      )}
+      
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
@@ -785,7 +833,7 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                 )}
 
                 <button type="submit" disabled={!file || (!isTutor && !selectedQuestionBank) || uploading} className="w-full bg-blue-600 text-white py-2 rounded-md">
-                  {uploading ? 'Uploading...' : 'Upload Questions'}
+                  {uploading ? 'Processing...' : 'Preview Questions'}
                 </button>
               </form>
             ) : (
