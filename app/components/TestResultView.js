@@ -875,22 +875,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                         </div>
                                     )}
 
-                                    {/* Detailed/Main Explanation */}
-                                    {q.explanation && (
-                                        <div className="p-5 bg-gray-50 rounded-xl border border-gray-200">
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <div className="p-1 bg-purple-100 text-purple-700 rounded">
-                                                    <FiActivity className="w-3 h-3" />
-                                                </div>
-                                                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wide">Explanation</h4>
-                                            </div>
-                                            <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
-                                                <div dangerouslySetInnerHTML={{ __html: q.explanation }} />
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Long Explanation */}
+                                    {/* Detailed Explanation */}
                                     {q.longExplanation && (
                                         <div className="p-5 bg-green-50 rounded-xl border border-green-200">
                                             <div className="flex items-center gap-2 mb-3">
@@ -906,7 +891,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                     )}
 
                                     {/* No explanation available message */}
-                                    {!q.shortExplanation && !q.explanation && !q.longExplanation && (
+                                    {!q.shortExplanation && !q.longExplanation && (
                                         <div className="p-5 bg-gray-50 rounded-xl border border-gray-200">
                                             <div className="flex items-center gap-2 mb-3">
                                                 <div className="p-1 bg-gray-100 text-gray-500 rounded">
