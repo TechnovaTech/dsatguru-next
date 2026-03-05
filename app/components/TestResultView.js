@@ -7,6 +7,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
   const router = useRouter()
   
   const [session, setSession] = useState(null)
+  const [test, setTest] = useState(null) // Store test data including showExplanation
   const [questions, setQuestions] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedQuestions, setExpandedQuestions] = useState({}) // { questionId: true/false }
@@ -86,6 +87,12 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
             })
             if (testRes.ok) {
               const testData = await testRes.json()
+              console.log('Test data fetched:', { 
+                testId: testData._id, 
+                showExplanation: testData.showExplanation,
+                title: testData.title 
+              })
+              setTest(testData) // Store test data
               if (testData.questions && testData.questions.length > 0) {
                 testQuestions = testData.questions
                 console.log('Fetched test questions:', testQuestions.length)
@@ -839,26 +846,28 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                     </div>
                                 </div>
 
-                                <button 
-                                    onClick={() => toggleExplanation(q._id)}
-                                    className="px-4 py-1.5 bg-purple-900 text-white text-xs font-bold rounded hover:bg-purple-800 transition-colors flex items-center gap-2"
-                                >
-                                    {showExplanation[q._id] ? (
-                                        <>
-                                            <span>Hide Explanation</span>
-                                            <FiChevronUp />
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span>Show Explanation</span>
-                                            <FiChevronDown />
-                                        </>
-                                    )}
-                                </button>
+                                {(viewMode === 'admin' || test?.showExplanation !== false) && (
+                                    <button 
+                                        onClick={() => toggleExplanation(q._id)}
+                                        className="px-4 py-1.5 bg-purple-900 text-white text-xs font-bold rounded hover:bg-purple-800 transition-colors flex items-center gap-2"
+                                    >
+                                        {showExplanation[q._id] ? (
+                                            <>
+                                                <span>Hide Explanation</span>
+                                                <FiChevronUp />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>Show Explanation</span>
+                                                <FiChevronDown />
+                                            </>
+                                        )}
+                                    </button>
+                                )}
                             </div>
 
                             {/* Explanation Content */}
-                            {showExplanation[q._id] && (
+                            {showExplanation[q._id] && (viewMode === 'admin' || test?.showExplanation !== false) && (
                                 <div className="mt-4 space-y-4 animate-in slide-in-from-top-2">
                                     {/* Short Explanation */}
                                     {q.shortExplanation && (

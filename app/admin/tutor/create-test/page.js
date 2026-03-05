@@ -28,6 +28,7 @@ export default function CreateTutorTest() {
     totalQuestions: 10,
     isTimed: true, // New field for timed/untimed toggle
     duration: 30, // Default duration in minutes
+    showExplanation: true, // New field for showing/hiding explanations
     topicConfig: {}, // { "TopicName": 50 }
     difficultyConfig: {
       'Easy': 0,
@@ -301,6 +302,7 @@ export default function CreateTutorTest() {
             totalQuestions: 10,
             isTimed: true,
             duration: 30,
+            showExplanation: true,
             topicConfig: {},
             difficultyConfig: { 'Easy': 0, 'Medium': 0, 'Hard': 0 },
             assignedUsers: []
@@ -517,6 +519,24 @@ export default function CreateTutorTest() {
                           <p className="text-xs text-gray-500 mt-1">Recommended: 30-60 minutes</p>
                       </div>
                   )}
+
+                  {/* Show Explanation Checkbox */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.showExplanation}
+                        onChange={(e) => setFormData({...formData, showExplanation: e.target.checked})}
+                        className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-0.5"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-gray-900">Show Explanations to Students</span>
+                        <p className="text-xs text-gray-600 mt-1">
+                          When checked, students will see question explanations in their results/analysis page after completing the test.
+                        </p>
+                      </div>
+                    </label>
+                  </div>
                 </div>
 
                 {/* Difficulty Levels */}
