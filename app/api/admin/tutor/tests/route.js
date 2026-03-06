@@ -31,19 +31,17 @@ export async function GET(request) {
     }
 
     if (type === 'tests') {
-      console.log('Fetching tutor tests...')
-      // Search for either isTutorTest flag OR practiceMode='tutor' to be safe
+      console.log('Fetching tutor-created tests only...')
+      // Only fetch tests created by admin/tutor (isTutorTest: true)
+      // Exclude student self-practice tests (practiceMode: 'tutor' but isTutorTest: false/undefined)
       const tests = await Test.find({ 
-        $or: [
-          { isTutorTest: true },
-          { practiceMode: 'tutor' }
-        ]
+        isTutorTest: true
       })
         .sort({ createdAt: -1 })
         .select('title subject totalQuestions duration createdAt assignedTo practiceMode isTutorTest')
         .populate('assignedTo', 'name')
       
-      console.log(`Found ${tests.length} tutor tests`)
+      console.log(`Found ${tests.length} tutor-created tests`)
       return NextResponse.json(tests)
     }
 
