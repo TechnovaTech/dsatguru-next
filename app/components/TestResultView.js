@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevronDown, FiChevronUp, FiActivity, FiMonitor, FiMaximize, FiCheckSquare, FiUsers } from 'react-icons/fi'
+import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevronDown, FiChevronUp, FiActivity, FiMonitor, FiMaximize, FiCheckSquare, FiUsers, FiRefreshCw } from 'react-icons/fi'
+import ReassignTestModal from './admin/ReassignTestModal'
 
 export default function TestResultView({ testId, sessionId, returnUrl, viewMode }) {
   const router = useRouter()
@@ -21,6 +22,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
   const [showReasonModal, setShowReasonModal] = useState(null) // questionId of modal being shown
   const [submittingAnalysis, setSubmittingAnalysis] = useState(false)
   const [analysisSubmitted, setAnalysisSubmitted] = useState(false)
+  const [showReassignModal, setShowReassignModal] = useState(false)
 
   useEffect(() => {
     fetchResult()
@@ -410,6 +412,50 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
     }
   }
 
+  const handleReassignTest = async (option) => {
+    try {
+      const token = localStorage.getItem('token')
+      
+      // Get question IDs based on option
+      let questionIds
+      if (option === 'all') {
+        questionIds = questions.map(q => q._id)
+      } else {
+        // Only wrong questions
+        questionIds = questions.filter(q => !q.isCorrect && q.userAnswer).map(q => q._id)
+      }
+
+      const res = await fetch(`/api/admin/tutor/tests/reassign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          originalSessionId: sessionId,
+          originalTestId: testId,
+          questionIds,
+          userId: session.userId,
+          option
+        })
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        alert(`Test reassigned successfully! New test ID: ${data.newTestId}`)
+        setShowReassignModal(false)
+        // Refresh the page to show updated status
+        window.location.reload()
+      } else {
+        const errorData = await res.json()
+        alert(`Failed to reassign test: ${errorData.error || 'Unknown error'}`)
+      }
+    } catch (error) {
+      console.error('Error reassigning test:', error)
+      alert('Failed to reassign test. Please try again.')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -467,10 +513,19 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                     </div>
                 </div>
                 <div className="flex gap-3">
+                    {viewMode === 'admin' && test?.isTutorTest && session?.analysisSubmitted && !session?.isReassigned && (
+                        <button
+                            onClick={() => setShowReassignModal(true)}
+                            className="px-6 py-2 bg-purple-600 text-white text-sm font-bold rounded-lg hover:bg-purple-700 flex items-center gap-2 shadow-md hover:shadow-lg"
+                        >
+                            <FiRefreshCw /> Reassign Test
+                        </button>
+                    )}
+                    
                     {viewMode !== 'admin' && (
                         <>
                             {/* Submit Analysis Button - Only for tutor-created tests */}
-                            {test?.isTutorTest && !session?.analysisSubmitted && (
+                            {test?.isTutorTest && !session?.analysisSubmitted && !session?.isReassigned && (
                                 <button 
                                     onClick={handleSubmitAnalysis}
                                     disabled={!canSubmitAnalysis() || submittingAnalysis}
@@ -486,10 +541,18 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                             )}
                             
                             {/* Show submitted status */}
-                            {test?.isTutorTest && session?.analysisSubmitted && (
+                            {test?.isTutorTest && session?.analysisSubmitted && !session?.isReassigned && (
                                 <div className="px-4 py-2 bg-green-50 border border-green-200 text-green-700 text-sm font-bold rounded-lg flex items-center gap-2">
                                     <FiCheckCircle className="w-4 h-4" />
                                     Analysis Submitted
+                                </div>
+                            )}
+                            
+                            {/* Show reassigned status */}
+                            {session?.isReassigned && (
+                                <div className="px-4 py-2 bg-orange-50 border border-orange-200 text-orange-700 text-sm font-bold rounded-lg flex items-center gap-2">
+                                    <FiRefreshCw className="w-4 h-4" />
+                                    Test Reassigned
                                 </div>
                             )}
                             
@@ -1144,6 +1207,16 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                 </div>
             </div>
         </div>
+        
+        {/* Reassign Test Modal */}
+        {showReassignModal && (
+          <ReassignTestModal
+            session={session}
+            questions={questions}
+            onClose={() => setShowReassignModal(false)}
+            onReassign={handleReassignTest}
+          />
+        )}
     </div>
   )
 }
