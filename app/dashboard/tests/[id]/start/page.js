@@ -310,11 +310,17 @@ export default function TakeTestPage() {
   }
 
   useEffect(() => {
-    const isTutorTimed = test?.practiceMode === 'tutor' && Number(test?.duration) > 0
+    // Timer logic:
+    // - Tutor mode: NO TIMER (flexible practice)
+    // - Untimed mode: NO TIMER
+    // - Timed mode: TIMER ACTIVE
+    // - Standard mode: TIMER ACTIVE (always timed)
+    
+    const isTutor = test?.practiceMode === 'tutor'
     const isUntimed = test?.practiceMode === 'untimed'
     
-    // Skip timer for tutor mode (unless timed) and untimed mode
-    if ((test?.practiceMode === 'tutor' && !isTutorTimed) || isUntimed) return
+    // Skip timer for tutor mode and untimed mode
+    if (isTutor || isUntimed) return
     
     if (timeRemaining > 0 && !showModuleSummary && !testCompleted && !showRWInstructions && !showMathInstructions) {
       const timer = setInterval(() => {
@@ -328,7 +334,7 @@ export default function TakeTestPage() {
       }, 1000)
       return () => clearInterval(timer)
     }
-  }, [timeRemaining, showModuleSummary, testCompleted, showRWInstructions, showMathInstructions, test?.practiceMode, test?.duration])
+  }, [timeRemaining, showModuleSummary, testCompleted, showRWInstructions, showMathInstructions, test?.practiceMode])
 
   const fetchTestData = async () => {
     try {
@@ -351,7 +357,7 @@ export default function TakeTestPage() {
         const isTutor = testData.practiceMode === 'tutor' || testData.isTutorTest === true
         const questionsUrl = `/api/questions?isTutor=${isTutor}`
         
-        console.log(`Fetching questions with isTutor=${isTutor}`)
+        console.log(`Fetching questions with isTutor=${isTutor} for test mode: ${testData.practiceMode}, configType: ${testData.configType}`)
         
         const questionsRes = await fetch(questionsUrl, {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
@@ -359,6 +365,7 @@ export default function TakeTestPage() {
 
         if (questionsRes.ok) {
             const questions = await questionsRes.json()
+            console.log(`Fetched ${questions.length} questions from API`)
             let finalQuestions = questions
 
 
@@ -469,13 +476,15 @@ export default function TakeTestPage() {
         // Standard/Custom Mode Filtering
         else if (testData.filters && (testData.filters.domains?.length > 0 || testData.filters.subtopics?.length > 0)) {
             const { subtopics, domains } = testData.filters
-            const normalize = (str) => str?.toLowerCase().trim()
+            const normalize = (str) => str?.toLowerCase().trim().replace(/[^a-z0-9]/g, '') || ''
+            
+            console.log('Standard/Custom Mode Filtering:', { subtopics, domains })
             
             if (subtopics && subtopics.length > 0) {
                 const normalizedSubtopics = subtopics.map(normalize)
+                console.log('Normalized subtopics for filtering:', normalizedSubtopics)
+                
                 finalQuestions = finalQuestions.filter(q => {
-                    // ... (keep existing lenient logic for non-tutor if needed, or copy robust logic)
-                    // reusing the robust logic is better
                     if (!q.tags) return false
                     let tags = []
                     try {
@@ -487,15 +496,36 @@ export default function TakeTestPage() {
                     } catch (e) { return false }
                     
                     const normalizedTags = tags.map(normalize)
-                    return normalizedTags.some(tag => 
-                        normalizedSubtopics.some(sub => tag === sub || tag.includes(sub) || sub.includes(tag))
+                    const match = normalizedTags.some(tag => 
+                        normalizedSubtopics.some(sub => tag && (tag === sub || tag.includes(sub) || sub.includes(tag)))
                     )
+                    return match
                 })
+                
+                console.log(`Filtered by subtopics: ${questions.length} -> ${finalQuestions.length} questions`)
+            } else if (domains && domains.length > 0) {
+                // If only domains specified, filter by domain
+                const normalizedDomains = domains.map(normalize)
+                console.log('Normalized domains for filtering:', normalizedDomains)
+                
+                finalQuestions = finalQuestions.filter(q => {
+                    if (!q.domain) return false
+                    const normalizedDomain = normalize(q.domain)
+                    return normalizedDomains.some(d => normalizedDomain.includes(d) || d.includes(normalizedDomain))
+                })
+                
+                console.log(`Filtered by domains: ${questions.length} -> ${finalQuestions.length} questions`)
             }
+        } else if (testData.configType === 'custom' && !testData.practiceMode === 'tutor') {
+            // Customize mode with no specific filters - use all admin questions
+            console.log('Customize mode with no filters - using all available admin questions')
         }
 
         setTest(testData)
         setAllQuestions(finalQuestions)
+        
+        console.log(`Final questions set: ${finalQuestions.length} questions`)
+        console.log('Sample question:', finalQuestions[0])
         
         // Don't auto-load module, wait for user to start
         if (testData.sections?.rw) {
@@ -518,16 +548,10 @@ export default function TakeTestPage() {
     let questionCount = section === 'rw' ? 27 : 22
     let duration = section === 'rw' ? 32 : 35
     
-    // For Tutor/Custom mode, don't force 22/27 questions if fewer are available
-    if (testData?.practiceMode === 'tutor' || testData?.configType === 'custom') {
-        // Use tutor-configured duration (in minutes) when available
-        duration = Number(testData?.duration) > 0 ? Number(testData.duration) : duration
-        // Just set a high limit or use actual count later
-        questionCount = 100 // We'll slice by actual length below
-    }
-
     console.log(`Loading ${subject} Module ${moduleNum}`)
     console.log('Total questions available:', questions.length)
+    console.log('Test config:', { configType: testData?.configType, practiceMode: testData?.practiceMode })
+    console.log('Test filters:', testData?.filters)
     
     let filteredQuestions = questions.filter(q => {
       // Try both formats
@@ -537,6 +561,7 @@ export default function TakeTestPage() {
     })
     
     console.log(`Filtered ${subject} questions:`, filteredQuestions.length)
+    console.log('Sample filtered question:', filteredQuestions[0])
     
     if (filteredQuestions.length === 0) {
       console.error(`No questions found for subject: ${subject}`)
@@ -546,37 +571,41 @@ export default function TakeTestPage() {
     
     let selectedQuestions = []
     
-    if (testData?.configType === 'custom' || testData?.practiceMode === 'tutor') {
-      // For custom/tutor tests, just take available questions up to the count
-      // respecting the subject, but ignoring difficulty distribution
-      selectedQuestions = shuffleArray(filteredQuestions) // Take all available matching questions
-      
-      // If we still don't have enough, we just take what we have
-      if (selectedQuestions.length === 0) {
-        alert(`No questions available for ${subject} with current filters.`)
-        router.push(returnUrl)
-        return
-      }
-    } else if (moduleNum === 1) {
-      // Module 1 (Baseline) - Balanced distribution
+    // ALL MODES NOW USE 2 MODULES WITH SAME QUESTION COUNTS
+    // Standard: 27 R&W / 22 Math per module
+    // Customize: 27 R&W / 22 Math per module
+    // Tutor: 27 R&W / 22 Math per module (but shows answers immediately)
+    
+    if (moduleNum === 1) {
+      // Module 1 - Show instructions for all modes
       if (section === 'rw') {
         setShowRWInstructions(true)
       } else if (section === 'math') {
         setShowMathInstructions(true)
       }
+      
+      // Use standard distribution for Module 1
       const distribution = section === 'rw' 
-        ? { easy: 7, medium: 12, hard: 8 }  // R&W Module 1
-        : { easy: 6, medium: 11, hard: 5 }  // Math Module 1
+        ? { easy: 7, medium: 12, hard: 8 }  // R&W Module 1: 27 questions
+        : { easy: 6, medium: 11, hard: 5 }  // Math Module 1: 22 questions
       
       selectedQuestions = selectQuestionsByDistribution(filteredQuestions, distribution)
     } else {
-      // Module 2 (Adaptive) - Based on Module 1 performance
+      // Module 2 - Adaptive based on Module 1 performance
       const module1Key = `${section}_module1`
       const module1Score = moduleScores[module1Key] || 0
       const routingPath = determineRoutingPath(module1Score, section, questionCount)
       
       const distribution = getAdaptiveDistribution(section, routingPath)
       selectedQuestions = selectQuestionsByDistribution(filteredQuestions, distribution)
+    }
+    
+    // Check if we have enough questions
+    if (selectedQuestions.length < questionCount) {
+      console.warn(`Not enough questions: need ${questionCount}, have ${selectedQuestions.length}`)
+      alert(`Not enough questions available for ${subject}. Need ${questionCount} questions but only ${selectedQuestions.length} available with current filters.`)
+      router.push(returnUrl)
+      return
     }
     
     console.log('Selected questions:', selectedQuestions.length)
@@ -1252,8 +1281,8 @@ export default function TakeTestPage() {
         <div className="text-base font-bold text-gray-900">
           Section 1, Module {currentModule}: {currentSection === 'rw' ? 'Reading and Writing' : 'Math'}
         </div>
-        {/* Hide timer for untimed mode OR tutor mode without duration */}
-        {!(test?.practiceMode === 'untimed' || (test?.practiceMode === 'tutor' && !test?.duration)) && (
+        {/* Hide timer for Tutor mode and Untimed mode */}
+        {!(test?.practiceMode === 'tutor' || test?.practiceMode === 'untimed') && (
           <div className="text-lg font-bold text-gray-900">
             {formatTime(timeRemaining)}
           </div>
@@ -1510,17 +1539,45 @@ export default function TakeTestPage() {
                   {['A', 'B', 'C', 'D'].map((option) => {
                     const isSelected = answers[currentQ._id] === option
                     const isElim = isEliminated(currentQ._id, option)
+                    const isTutor = test?.practiceMode === 'tutor'
+                    const isCorrect = currentQ.correctAnswer === option
+                    
+                    let containerStyle = ''
+                    let circleStyle = ''
+                    
+                    if (isTutor && answers[currentQ._id]) {
+                        if (isCorrect) {
+                             // Always highlight correct answer in green, whether selected or not
+                             containerStyle = 'border-green-500 bg-green-50'
+                             circleStyle = 'border-green-600 bg-green-600 text-white'
+                        } else if (isSelected) {
+                            // Wrong answer selected
+                            containerStyle = 'border-red-500 bg-red-50'
+                            circleStyle = 'border-red-600 bg-red-600 text-white'
+                        } else if (isElim) {
+                             containerStyle = 'border-gray-200 bg-gray-50'
+                             circleStyle = 'border-gray-300 text-gray-300 bg-transparent'
+                        } else {
+                            containerStyle = 'border-gray-300 opacity-60'
+                            circleStyle = 'border-gray-400 text-gray-700 bg-white'
+                        }
+                    } else {
+                        if (isSelected) {
+                            containerStyle = 'border-gray-800 bg-gray-50'
+                            circleStyle = 'border-gray-800 bg-gray-800 text-white'
+                        } else if (isElim) {
+                            containerStyle = 'border-gray-200 bg-gray-50'
+                            circleStyle = 'border-gray-300 text-gray-300 bg-transparent'
+                        } else {
+                            containerStyle = 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                            circleStyle = 'border-gray-400 text-gray-700 bg-white group-hover:border-gray-600'
+                        }
+                    }
                     
                     return (
                       <div key={option} className="flex items-stretch gap-3">
                         <div
-                          className={`group flex-1 flex items-stretch border-2 rounded-lg transition-all overflow-hidden relative ${
-                            isSelected
-                              ? 'border-gray-800 bg-gray-50'
-                              : isElim
-                              ? 'border-gray-200 bg-gray-50'
-                              : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                          }`}
+                          className={`group flex-1 flex items-stretch border-2 rounded-lg transition-all overflow-hidden relative ${containerStyle}`}
                         >
                           <button
                             onClick={() => {
@@ -1528,14 +1585,9 @@ export default function TakeTestPage() {
                                handleAnswer(currentQ._id, option);
                             }}
                             className="flex-1 text-left p-3 sm:p-4 flex items-start gap-3 sm:gap-4 relative"
+                            disabled={isTutor && answers[currentQ._id]}
                           >
-                            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold transition-colors ${
-                              isSelected
-                                ? 'border-gray-800 bg-gray-800 text-white'
-                                : isElim
-                                ? 'border-gray-300 text-gray-300 bg-transparent'
-                                : 'border-gray-400 text-gray-700 bg-white group-hover:border-gray-600'
-                            }`}>
+                            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold transition-colors ${circleStyle}`}>
                               {option}
                             </div>
                             <div className={`flex-1 pt-1 text-base sm:text-lg leading-relaxed ${
@@ -1557,6 +1609,7 @@ export default function TakeTestPage() {
                                : 'bg-white text-gray-300 border-gray-200 hover:text-gray-500 hover:border-gray-300 hover:bg-gray-50'
                            }`}
                            title={isElim ? "Undo Elimination" : "Eliminate Answer"}
+                           disabled={isTutor && answers[currentQ._id]}
                         >
                           {isElim ? (
                             <span className="text-xs font-bold">Undo</span>
@@ -1571,6 +1624,35 @@ export default function TakeTestPage() {
                     )
                   })}
                 </div>
+
+                {/* Tutor Mode: Show Explanation after answer is selected */}
+                {test?.practiceMode === 'tutor' && answers[currentQ._id] && currentQ?.explanation && (
+                  <div className="mt-6 p-6 bg-blue-50 border-2 border-blue-200 rounded-xl">
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="p-2 bg-blue-600 rounded-lg text-white flex-shrink-0">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-gray-900 text-lg mb-2">Explanation</h4>
+                        <div className="text-gray-700 leading-relaxed whitespace-pre-line">
+                          {renderWithImages(currentQ.explanation)}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Show correct answer */}
+                    <div className="mt-4 pt-4 border-t border-blue-200">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-gray-700">Correct Answer:</span>
+                        <span className="px-3 py-1 bg-green-600 text-white rounded-full font-bold">
+                          {currentQ.correctAnswer}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>
           </div>
         </div>

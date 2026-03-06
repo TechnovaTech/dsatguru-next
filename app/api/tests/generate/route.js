@@ -16,28 +16,79 @@ export async function POST(request) {
     const body = await request.json()
     const { mode, practiceMode, sections, questionCount, difficulty, domains, subtopics } = body
 
+    console.log('Test generation request:', { mode, practiceMode, sections, domains, subtopics })
+
+    // Determine which sections to include
+    let includedSections = { rw: false, math: false }
+    
+    if (mode === 'standard') {
+      // Standard mode for specific subject - only that subject's modules
+      if (sections && sections.length > 0) {
+        sections.forEach(s => {
+          includedSections[s] = true
+        })
+      } else {
+        // Default to both if not specified
+        includedSections = { rw: true, math: true }
+      }
+    } else {
+      // Custom mode - use specified sections
+      if (sections && sections.length > 0) {
+        sections.forEach(s => {
+          includedSections[s] = true
+        })
+      } else {
+        // Default to RW if none specified
+        includedSections = { rw: true, math: false }
+      }
+    }
+
+    console.log('Included sections:', includedSections)
+
+    // Calculate total questions and duration based on included sections
+    // Both Standard and Customize modes use the same question counts
+    let totalQuestions = 0
+    let duration = 0
+    
+    if (includedSections.rw) {
+      totalQuestions += 54  // 27 per module × 2 modules
+      duration += 64        // 32 minutes per module × 2 modules
+    }
+    if (includedSections.math) {
+      totalQuestions += 44  // 22 per module × 2 modules
+      duration += 70        // 35 minutes per module × 2 modules
+    }
+
+    // Ensure we have at least one section
+    if (totalQuestions === 0) {
+      console.error('No sections selected')
+      return NextResponse.json({ error: 'Please select at least one subject' }, { status: 400 })
+    }
+
+    console.log('Calculated - Questions:', totalQuestions, 'Duration:', duration, 'minutes')
+
     // Create a new Test document
-    // We create a "virtual" test definition for this practice session
+    // Standard and Customize modes both use 2-module adaptive structure
+    // Difference: Customize allows topic/difficulty selection, Standard uses all topics
     const testData = {
-      title: 'Self Practice Test',
-      description: 'Self-generated practice test',
+      title: mode === 'standard' ? 'Standard SAT Practice' : 'Custom Practice Test',
+      description: mode === 'standard' 
+        ? 'Standard SAT format practice test' 
+        : 'Custom practice test with selected topics',
       testType: 'Practice',
       excludeUsedQuestions: true,
       configType: mode === 'standard' ? 'standard' : 'custom',
       practiceMode: practiceMode || 'timed',
       isActive: true,
-      duration: 180, // Standard duration
-      totalQuestions: 98, // 54 RW + 44 Math
+      duration: duration || 180,
+      totalQuestions: totalQuestions || 98,
       passingScore: 0,
-      sections: {
-        rw: sections?.includes('rw') || mode === 'standard',
-        math: sections?.includes('math') || mode === 'standard'
-      },
+      sections: includedSections,
       filters: {
         domains: domains || [],
         subtopics: subtopics || []
       },
-      // Standard adaptive configuration
+      // Standard adaptive configuration (used by both Standard and Customize modes)
       customConfig: {
         rw: {
           routing: {
@@ -74,7 +125,10 @@ export async function POST(request) {
     // However, Mongoose middleware/defaults are useful.
     
     // Let's try creating normally first, then force-updating the filters field directly to ensure it sticks.
+    console.log('Creating test with data:', JSON.stringify(testData, null, 2))
+    
     const test = await Test.create(testData)
+    console.log('Test created successfully with ID:', test._id)
     
     // Force update filters to ensure they are saved even if Schema is stale in memory
     await Test.collection.updateOne(
@@ -82,9 +136,15 @@ export async function POST(request) {
         { $set: { filters: { domains: domains || [], subtopics: subtopics || [] } } }
     )
 
+    console.log('Test filters updated')
+    
     return NextResponse.json({ testId: test._id }, { status: 201 })
   } catch (error) {
     console.error('Error creating practice test:', error)
-    return NextResponse.json({ error: 'Failed to create practice test' }, { status: 500 })
+    console.error('Error stack:', error.stack)
+    return NextResponse.json({ 
+      error: 'Failed to create practice test', 
+      details: error.message 
+    }, { status: 500 })
   }
 }

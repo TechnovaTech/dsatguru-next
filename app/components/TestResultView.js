@@ -456,28 +456,14 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                 <div className="flex gap-3">
                     {viewMode !== 'admin' && (
                         <>
-                            {session?.analysisSubmitted ? (
-                                <button 
-                                    className="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 flex items-center gap-2"
-                                >
-                                    <FiCheckCircle /> Analysis Submitted
-                                </button>
-                            ) : (
-                                <button 
-                                    onClick={handleSubmitAnalysis}
-                                    disabled={!canSubmitAnalysis()}
-                                    className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
-                                        canSubmitAnalysis() 
-                                            ? 'bg-purple-900 text-white hover:bg-purple-800' 
-                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                    }`}
-                                    title={!canSubmitAnalysis() ? 'Please provide reasons for all incorrect answers' : 'Submit Analysis'}
-                                >
-                                    Submit Analysis
-                                </button>
-                            )}
                             <button className="px-4 py-2 border border-purple-200 text-purple-900 text-sm font-bold rounded-lg hover:bg-purple-50">
                                 View Scaled Score
+                            </button>
+                            <button 
+                                onClick={() => router.push(returnUrl)}
+                                className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700"
+                            >
+                                Back to Tests
                             </button>
                         </>
                     )}
@@ -934,26 +920,6 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                         )}
                                     </button>
 
-                                    {/* Why Wrong Button - Only for incorrect answers */}
-                                    {!q.isCorrect && q.userAnswer && (
-                                        <button 
-                                            onClick={() => toggleWhyWrong(q._id)}
-                                            className="px-4 py-1.5 bg-red-600 text-white text-xs font-bold rounded hover:bg-red-700 transition-colors flex items-center gap-2"
-                                        >
-                                            {showWhyWrong[q._id] ? (
-                                                <>
-                                                    <span>Hide Why Wrong</span>
-                                                    <FiChevronUp />
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <span>Why Wrong</span>
-                                                    <FiChevronDown />
-                                                </>
-                                            )}
-                                        </button>
-                                    )}
-
                                     {/* Explanation Button - Controlled by showExplanation setting */}
                                     {(viewMode === 'admin' || test?.showExplanation !== false) && (
                                         <button 
@@ -1013,16 +979,21 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                 </div>
                             )}
 
-                            {/* Why Wrong Content */}
-                            {showWhyWrong[q._id] && !q.isCorrect && q.userAnswer && (
+                            {/* Why Wrong Content - Always visible for incorrect answers */}
+                            {!q.isCorrect && q.userAnswer && (
                                 <div className="mt-4 animate-in slide-in-from-top-2">
-                                    {/* Tell Reason Section - Only for incorrect answers and non-admin */}
+                                    {/* Tell Reason Section - Optional for students */}
                                     {viewMode !== 'admin' && (
                                         <div className="p-5 bg-red-50 rounded-xl border border-red-200">
                                             <div className="flex items-center gap-2 mb-3">
                                                 <FiAlertCircle className="w-4 h-4 text-red-600" />
-                                                <h4 className="text-sm font-bold text-red-900">Tell us why you got this wrong *</h4>
+                                                <h4 className="text-sm font-bold text-red-900">
+                                                    Why did you get this wrong? (Optional)
+                                                </h4>
                                             </div>
+                                            <p className="text-xs text-gray-600 mb-3">
+                                                Help us understand your mistake to provide better recommendations
+                                            </p>
                                             <div className="space-y-2">
                                                 {reasonOptions.map((option, idx) => (
                                                     <label key={idx} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-red-100 hover:border-red-300 cursor-pointer transition-colors">

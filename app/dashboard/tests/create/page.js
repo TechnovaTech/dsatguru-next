@@ -155,13 +155,23 @@ export default function CreatePracticePage() {
   const handleStartTest = async (source) => {
     setIsGenerating(true)
     try {
-      // If Standard mode is selected (or Quick Start), we create a full 4-module test
-      // regardless of the active tab, as per "Standard" SAT structure.
       const mode = source === 'quick' ? 'standard' : questionMode
       const token = localStorage.getItem('token')
       
       const domains = Object.keys(selectedDomains).filter(k => selectedDomains[k])
       const subtopics = Object.keys(selectedSubtopics).filter(k => selectedSubtopics[k])
+
+      // Validate: Customize mode requires topic selection
+      if (mode === 'custom' && subtopics.length === 0) {
+        alert('Please select at least one topic before starting the test.')
+        setIsGenerating(false)
+        return
+      }
+
+      // Standard mode always uses 'timed', customize mode uses selected practiceMode
+      const finalPracticeMode = mode === 'standard' ? 'timed' : practiceMode
+
+      console.log('Starting test with:', { mode, practiceMode: finalPracticeMode, activeTab, domains, subtopics })
 
       const res = await fetch('/api/tests/generate', {
         method: 'POST',
@@ -171,23 +181,31 @@ export default function CreatePracticePage() {
         },
         body: JSON.stringify({
           mode,
-          practiceMode,
-          // For standard mode, we include both sections to ensure 4 modules
-          sections: mode === 'standard' ? ['rw', 'math'] : [activeTab],
+          practiceMode: finalPracticeMode,
+          sections: [activeTab],
           domains,
           subtopics
         })
       })
       
       const data = await res.json()
+      
+      if (!res.ok) {
+        console.error('Test generation failed:', data)
+        alert(`Failed to create test: ${data.error || 'Unknown error'}\n${data.details || ''}`)
+        return
+      }
+      
       if (data.testId) {
+        console.log('Test created successfully, redirecting to:', data.testId)
         router.push(`/dashboard/tests/${data.testId}/start`)
       } else {
-        alert('Failed to create practice test')
+        console.error('No testId in response:', data)
+        alert('Failed to create practice test - no test ID returned')
       }
     } catch (error) {
       console.error('Error starting test:', error)
-      alert('An error occurred while creating the test')
+      alert(`An error occurred: ${error.message}`)
     } finally {
       setIsGenerating(false)
     }
@@ -248,9 +266,165 @@ export default function CreatePracticePage() {
           </div>
 
           <div className="p-8 space-y-8">
+            
+            {/* Standard vs Customize Selection */}
+            <div className="border rounded-2xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-blue-600 rounded-lg text-white">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Test Mode for {activeTab === 'rw' ? 'Reading & Writing' : 'Math'}</h3>
+                    <p className="text-sm text-gray-600">Choose between standard SAT format or customize your practice</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Standard Button */}
+                  <button
+                    onClick={() => setQuestionMode('standard')}
+                    className={`p-6 rounded-xl border-2 transition-all ${
+                      questionMode === 'standard'
+                        ? 'border-blue-600 bg-white shadow-lg ring-2 ring-blue-200'
+                        : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-md'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                        questionMode === 'standard' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
+                      }`}>
+                        {questionMode === 'standard' && (
+                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        questionMode === 'standard' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        Recommended
+                      </span>
+                    </div>
+                    <h4 className="text-lg font-bold text-gray-900 mb-2">Standard SAT</h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      {activeTab === 'rw' 
+                        ? '2 modules, 54 questions total (27 per module)'
+                        : '2 modules, 44 questions total (22 per module)'}
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Adaptive difficulty</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Official SAT format</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{activeTab === 'rw' ? '64 minutes' : '70 minutes'} total</span>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Customize Button */}
+                  <button
+                    onClick={() => setQuestionMode('custom')}
+                    className={`p-6 rounded-xl border-2 transition-all ${
+                      questionMode === 'custom'
+                        ? 'border-purple-600 bg-white shadow-lg ring-2 ring-purple-200'
+                        : 'border-gray-200 bg-white hover:border-purple-300 hover:shadow-md'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                        questionMode === 'custom' ? 'border-purple-600 bg-purple-600' : 'border-gray-300'
+                      }`}>
+                        {questionMode === 'custom' && (
+                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        questionMode === 'custom' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        Flexible
+                      </span>
+                    </div>
+                    <h4 className="text-lg font-bold text-gray-900 mb-2">Customize</h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Choose specific topics and difficulty levels for focused practice
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <svg className="w-4 h-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Select topics</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <svg className="w-4 h-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Choose difficulty</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <svg className="w-4 h-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Targeted practice</span>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+
+                {/* Start Standard Test Button */}
+                {questionMode === 'standard' && (
+                  <div className="mt-6">
+                    {/* Start Button */}
+                    <div className="p-4 bg-white rounded-xl border border-blue-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-gray-900 mb-1">
+                            Ready to start {activeTab === 'rw' ? 'Reading & Writing' : 'Math'} Standard Test?
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            {activeTab === 'rw' ? '2 modules • 54 questions • 64 minutes' : '2 modules • 44 questions • 70 minutes'}
+                          </p>
+                          <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Timed test with official SAT conditions
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleStartTest('standard')}
+                          disabled={isGenerating}
+                          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+                        >
+                          {isGenerating ? 'Starting...' : 'Start Test'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
 
-            {/* Personalize Section */}
+            {/* Personalize Section - Only show in Customize mode */}
+            {questionMode === 'custom' && (
             <div className="border rounded-2xl overflow-hidden transition-all duration-300 hover:border-blue-200 hover:shadow-md bg-white">
               <button 
                 onClick={() => toggleSection('personalize')}
@@ -312,8 +486,6 @@ export default function CreatePracticePage() {
                       ))}
                     </div>
                   </div>
-
-
 
                   {/* Status Filters */}
                   <div>
@@ -517,6 +689,7 @@ export default function CreatePracticePage() {
                 </div>
               )}
             </div>
+            )}
           </div>
         </div>
       </div>
