@@ -46,27 +46,34 @@ export async function GET(request) {
     }
 
     if (type === 'topics' && subject) {
-      // Find all tutor questions for the subject
+      // Find all questions from tutor question bank for the subject
       const questions = await Question.find({ 
-        isTutor: true, 
+        isTutor: true,
         subject: subject 
-      }).select('tags')
+      }).select('skill tags')
       
       const topics = new Set()
       
       questions.forEach(q => {
-        let qTags = []
-        try {
-          // tags is stored as a JSON string
-          qTags = typeof q.tags === 'string' ? JSON.parse(q.tags) : q.tags
-        } catch(e) { 
-          qTags = [] 
+        // First try skill field
+        if (q.skill && typeof q.skill === 'string') {
+          topics.add(q.skill.trim())
         }
         
-        if (Array.isArray(qTags)) {
-          qTags.forEach(t => {
-            if (t && typeof t === 'string') topics.add(t.trim())
-          })
+        // Fallback to tags field (JSON array)
+        if (q.tags) {
+          try {
+            const parsedTags = typeof q.tags === 'string' ? JSON.parse(q.tags) : q.tags
+            if (Array.isArray(parsedTags)) {
+              parsedTags.forEach(tag => {
+                if (tag && typeof tag === 'string') {
+                  topics.add(tag.trim())
+                }
+              })
+            }
+          } catch (e) {
+            // Ignore parse errors
+          }
         }
       })
       
@@ -100,7 +107,8 @@ export async function POST(request) {
       showExplanation, // New field to show/hide explanations
       topicConfig, // { "Algebra": 50, "Geometry": 50 } (percentages)
       difficultyConfig, // { "Easy": 25, "Medium": 50, "Hard": 25 } (percentages)
-      assignedUsers // [userId1, userId2]
+      assignedUsers, // [userId1, userId2]
+      customQuestions // Optional: pre-selected/edited questions from preview
     } = body
 
     if (!title || !subject || !totalQuestions || !topicConfig || !difficultyConfig) {
@@ -108,72 +116,93 @@ export async function POST(request) {
     }
 
     let selectedQuestionIds = []
-    const topics = Object.keys(topicConfig)
     
-    // Track remaining questions to ensure we hit totalQuestions exactly despite rounding
-    let remainingQuestionsTotal = parseInt(totalQuestions)
-    
-    for (let i = 0; i < topics.length; i++) {
-      const topic = topics[i]
-      const topicPercentage = topicConfig[topic]
+    // If custom questions were provided (from preview/edit), use those
+    if (customQuestions && Array.isArray(customQuestions) && customQuestions.length > 0) {
+      selectedQuestionIds = customQuestions.map(q => q._id)
+    } else {
+      // Otherwise, fetch questions based on topic/difficulty config
+      const topics = Object.keys(topicConfig)
       
-      // Calculate questions for this topic
-      let topicQuestionCount = Math.floor((parseInt(totalQuestions) * topicPercentage) / 100)
+      // Track remaining questions to ensure we hit totalQuestions exactly despite rounding
+      let remainingQuestionsTotal = parseInt(totalQuestions)
       
-      // If last topic, take all remaining to ensure sum matches
-      if (i === topics.length - 1) {
-        topicQuestionCount = remainingQuestionsTotal
-      } else {
-        remainingQuestionsTotal -= topicQuestionCount
-      }
-      
-      if (topicQuestionCount <= 0) continue
-
-      // Distribute by difficulty within this topic
-      const difficulties = ['Easy', 'Medium', 'Hard']
-      let remainingTopicQuestions = topicQuestionCount
-
-      for (let j = 0; j < difficulties.length; j++) {
-        const diff = difficulties[j]
-        const diffPercentage = difficultyConfig[diff] || 0
+      for (let i = 0; i < topics.length; i++) {
+        const topic = topics[i]
+        const topicPercentage = topicConfig[topic]
         
-        if (diffPercentage === 0) continue
-
-        let diffCount = Math.floor((topicQuestionCount * diffPercentage) / 100)
+        // Calculate questions for this topic
+        let topicQuestionCount = Math.floor((parseInt(totalQuestions) * topicPercentage) / 100)
         
-        // Adjust for last difficulty to ensure topic sum matches
-        if (j === difficulties.length - 1 || diffCount > remainingTopicQuestions) {
-          diffCount = remainingTopicQuestions
+        // If last topic, take all remaining to ensure sum matches
+        if (i === topics.length - 1) {
+          topicQuestionCount = remainingQuestionsTotal
         } else {
-          remainingTopicQuestions -= diffCount
+          remainingQuestionsTotal -= topicQuestionCount
         }
+        
+        if (topicQuestionCount <= 0) continue
 
-        if (diffCount <= 0) continue
+        // Distribute by difficulty within this topic
+        const difficulties = ['Easy', 'Medium', 'Hard']
+        let remainingTopicQuestions = topicQuestionCount
 
-        // Fetch random questions for this topic + difficulty
-        // Note: We need to handle JSON string matching for tags. 
-        // Tags in DB are stored as JSON strings like '["Linear Equations"]'
-        // We use a regex that matches the topic string ensuring it's surrounded by quotes or boundaries to avoid partial matches
-        const escapedTopic = escapeRegExp(topic)
-        const questions = await Question.aggregate([
-          { 
-            $match: { 
-              isTutor: true, 
-              subject: subject,
-              difficulty: diff,
-              // Match exact topic inside JSON array string (e.g. "Topic" or "Topic")
-              // The regex looks for: "Topic"
-              tags: { $regex: `"${escapedTopic}"`, $options: 'i' } 
-            } 
-          },
-          { $sample: { size: diffCount } }
-        ])
+        for (let j = 0; j < difficulties.length; j++) {
+          const diff = difficulties[j]
+          const diffPercentage = difficultyConfig[diff] || 0
+          
+          if (diffPercentage === 0) continue
 
-        questions.forEach(q => selectedQuestionIds.push(q._id))
+          let diffCount = Math.floor((topicQuestionCount * diffPercentage) / 100)
+          
+          // Adjust for last difficulty to ensure topic sum matches
+          if (j === difficulties.length - 1 || diffCount > remainingTopicQuestions) {
+            diffCount = remainingTopicQuestions
+          } else {
+            remainingTopicQuestions -= diffCount
+          }
+
+          if (diffCount <= 0) continue
+
+          // Build query for tutor question bank
+          // Match by tags field (topics are stored in tags as JSON array)
+          const escapedTopic = topic.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          
+          const questions = await Question.find({
+            isTutor: true,
+            subject: subject,
+            difficulty: diff,
+            $or: [
+              { skill: topic }, // Try skill field first
+              { tags: { $regex: `"${escapedTopic}"`, $options: 'i' } } // Match in tags JSON array
+            ]
+          }).limit(diffCount)
+
+          // If we don't have enough, get random ones from the same subject/difficulty
+          if (questions.length < diffCount) {
+            const additionalNeeded = diffCount - questions.length
+            const existingIds = questions.map(q => q._id)
+            
+            const additionalQuestions = await Question.aggregate([
+              { 
+                $match: { 
+                  isTutor: true, 
+                  subject: subject,
+                  difficulty: diff,
+                  _id: { $nin: existingIds }
+                } 
+              },
+              { $sample: { size: additionalNeeded } }
+            ])
+            questions.push(...additionalQuestions)
+          }
+
+          questions.forEach(q => selectedQuestionIds.push(q._id))
+        }
       }
     }
 
-    // Remove duplicates if any (unlikely with distinct queries but possible if tags overlap differently)
+    // Remove duplicates if any
     selectedQuestionIds = [...new Set(selectedQuestionIds)]
 
     if (selectedQuestionIds.length === 0) {
@@ -203,7 +232,7 @@ export async function POST(request) {
       isActive: true,
       sections: sections, // Explicitly set sections
       filters: {
-        subtopics: topics // Save selected topics as subtopics
+        subtopics: Object.keys(topicConfig) // Save selected topics as subtopics
       }
     })
 

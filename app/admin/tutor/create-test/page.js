@@ -1,8 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiSave, FiAlertCircle, FiCheck, FiUsers, FiBook, FiPieChart, FiLoader, FiClock, FiList, FiPlus, FiX, FiChevronDown, FiChevronUp, FiEdit, FiTrash2, FiBarChart } from 'react-icons/fi'
+import { FiSave, FiAlertCircle, FiCheck, FiUsers, FiBook, FiPieChart, FiLoader, FiClock, FiList, FiPlus, FiX, FiChevronDown, FiChevronUp, FiEdit, FiTrash2, FiBarChart, FiEye } from 'react-icons/fi'
 import Link from 'next/link'
+import QuestionPreviewModal from '../../../components/admin/QuestionPreviewModal'
 
 export default function CreateTutorTest() {
   const router = useRouter()
@@ -14,6 +15,10 @@ export default function CreateTutorTest() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [showPreviewModal, setShowPreviewModal] = useState(false)
+  const [previewQuestions, setPreviewQuestions] = useState([])
+  const [loadingPreview, setLoadingPreview] = useState(false)
+  const [editedQuestions, setEditedQuestions] = useState([])
   
   // Custom dropdown state
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -234,6 +239,61 @@ export default function CreateTutorTest() {
     }
   }
 
+  const handlePreviewQuestions = async () => {
+    setError('')
+    
+    // Validation
+    const topicSum = Object.values(formData.topicConfig).reduce((a, b) => a + b, 0)
+    if (topicSum !== 100) {
+      setError(`Topic percentages must sum to 100%. Current: ${topicSum}%`)
+      return
+    }
+
+    const diffSum = Object.values(formData.difficultyConfig).reduce((a, b) => a + b, 0)
+    if (diffSum !== 100) {
+      setError(`Difficulty percentages must sum to 100%. Current: ${diffSum}%`)
+      return
+    }
+
+    setLoadingPreview(true)
+
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/admin/tutor/tests/preview', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          subject: formData.subject,
+          totalQuestions: parseInt(formData.totalQuestions),
+          topicConfig: formData.topicConfig,
+          difficultyConfig: formData.difficultyConfig
+        })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to fetch questions')
+      }
+
+      setPreviewQuestions(data.questions)
+      setEditedQuestions(data.questions)
+      setShowPreviewModal(true)
+
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoadingPreview(false)
+    }
+  }
+
+  const handleQuestionsUpdate = (updatedQuestions) => {
+    setEditedQuestions(updatedQuestions)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -279,7 +339,8 @@ export default function CreateTutorTest() {
         },
         body: JSON.stringify({
           ...formData,
-          duration: formData.isTimed ? parseInt(formData.duration) : null
+          duration: formData.isTimed ? parseInt(formData.duration) : null,
+          customQuestions: editedQuestions.length > 0 ? editedQuestions : null
         })
       })
 
@@ -296,6 +357,8 @@ export default function CreateTutorTest() {
       setTimeout(() => {
         setShowCreateForm(false)
         setSuccess('')
+        setEditedQuestions([])
+        setPreviewQuestions([])
         setFormData({
             title: '',
             subject: 'Math', 
@@ -722,25 +785,45 @@ export default function CreateTutorTest() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+              <div className="flex justify-between items-center gap-3 pt-6 border-t border-gray-100">
                 <button
                     type="button"
-                    onClick={() => setShowCreateForm(false)}
-                    className="px-5 py-2.5 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors border border-transparent hover:border-gray-200"
+                    onClick={handlePreviewQuestions}
+                    disabled={loadingPreview}
+                    className="px-6 py-2.5 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 >
-                    Cancel
+                    {loadingPreview ? <FiLoader className="animate-spin" /> : <FiEye />}
+                    {loadingPreview ? 'Loading...' : 'Preview Questions'}
                 </button>
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="px-8 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                >
-                    {loading ? <FiLoader className="animate-spin" /> : <FiSave />}
-                    {loading ? 'Creating...' : 'Create Test'}
-                </button>
+                <div className="flex gap-3">
+                  <button
+                      type="button"
+                      onClick={() => setShowCreateForm(false)}
+                      className="px-5 py-2.5 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors border border-transparent hover:border-gray-200"
+                  >
+                      Cancel
+                  </button>
+                  <button
+                      type="submit"
+                      disabled={loading}
+                      className="px-8 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  >
+                      {loading ? <FiLoader className="animate-spin" /> : <FiSave />}
+                      {loading ? 'Creating...' : 'Create Test'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
+        )}
+
+        {/* Question Preview Modal */}
+        {showPreviewModal && previewQuestions.length > 0 && (
+          <QuestionPreviewModal
+            questions={previewQuestions}
+            onClose={() => setShowPreviewModal(false)}
+            onQuestionsUpdate={handleQuestionsUpdate}
+          />
         )}
 
         {/* Past Tests List */}
