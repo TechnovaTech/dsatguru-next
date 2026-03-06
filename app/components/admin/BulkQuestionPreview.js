@@ -331,20 +331,43 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                           )}
                         </div>
 
-                        {question.explanation && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Explanation</label>
-                            {isEditing ? (
-                              <textarea
-                                value={question.explanation}
-                                onChange={(e) => updateQuestion(qIndex, 'explanation', e.target.value)}
-                                className="w-full border rounded px-3 py-2 font-mono text-sm"
-                                rows={4}
-                                placeholder="Explanation text with markdown images: ![alt](url)"
-                              />
-                            ) : (
-                              <div className="bg-white p-3 rounded border">
-                                {renderContent(question.explanation)}
+                        {(question.shortExplanation || question.longExplanation) && (
+                          <div className="space-y-4">
+                            {question.shortExplanation && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Short Explanation</label>
+                                {isEditing ? (
+                                  <textarea
+                                    value={question.shortExplanation}
+                                    onChange={(e) => updateQuestion(qIndex, 'shortExplanation', e.target.value)}
+                                    className="w-full border rounded px-3 py-2 font-mono text-sm"
+                                    rows={3}
+                                    placeholder="Short explanation text with markdown images: ![alt](url)"
+                                  />
+                                ) : (
+                                  <div className="bg-white p-3 rounded border">
+                                    {renderContent(question.shortExplanation)}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {question.longExplanation && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Long Explanation</label>
+                                {isEditing ? (
+                                  <textarea
+                                    value={question.longExplanation}
+                                    onChange={(e) => updateQuestion(qIndex, 'longExplanation', e.target.value)}
+                                    className="w-full border rounded px-3 py-2 font-mono text-sm"
+                                    rows={6}
+                                    placeholder="Long explanation text with markdown images: ![alt](url)"
+                                  />
+                                ) : (
+                                  <div className="bg-white p-3 rounded border">
+                                    {renderContent(question.longExplanation)}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
