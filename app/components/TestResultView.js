@@ -19,6 +19,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
   const [testAnalytics, setTestAnalytics] = useState(null) // For admin view - aggregated stats
   const [incorrectReasons, setIncorrectReasons] = useState({}) // { questionId: { reason: '', otherText: '' } }
   const [showReasonModal, setShowReasonModal] = useState(null) // questionId of modal being shown
+  const [submittingAnalysis, setSubmittingAnalysis] = useState(false)
+  const [analysisSubmitted, setAnalysisSubmitted] = useState(false)
 
   useEffect(() => {
     fetchResult()
@@ -248,6 +250,11 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
         setSession(sessionData)
         setQuestions(reviewQuestions)
         
+        // Set analysis submitted status from session
+        if (sessionData.analysisSubmitted) {
+          setAnalysisSubmitted(true)
+        }
+        
         // Load saved reasons
         const savedReasons = {}
         reviewQuestions.forEach(q => {
@@ -366,6 +373,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
       return
     }
 
+    setSubmittingAnalysis(true)
+    
     try {
       const token = localStorage.getItem('token')
       const res = await fetch(`/api/test-sessions/${sessionId}/reasons`, {
@@ -381,6 +390,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
         alert('Analysis submitted successfully!')
         // Update session to mark as submitted
         setSession(prev => ({ ...prev, analysisSubmitted: true, analysisSubmittedAt: new Date() }))
+        setAnalysisSubmitted(true)
         
         // Optionally redirect back to the test list after a short delay
         setTimeout(() => {
@@ -389,11 +399,14 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
           }
         }, 1500)
       } else {
-        alert('Failed to submit analysis')
+        const errorData = await res.json()
+        alert(`Failed to submit analysis: ${errorData.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Error submitting analysis:', error)
-      alert('Failed to submit analysis')
+      alert('Failed to submit analysis. Please try again.')
+    } finally {
+      setSubmittingAnalysis(false)
     }
   }
 
@@ -456,6 +469,30 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                 <div className="flex gap-3">
                     {viewMode !== 'admin' && (
                         <>
+                            {/* Submit Analysis Button - Only for tutor-created tests */}
+                            {test?.isTutorTest && !session?.analysisSubmitted && (
+                                <button 
+                                    onClick={handleSubmitAnalysis}
+                                    disabled={!canSubmitAnalysis() || submittingAnalysis}
+                                    className={`px-6 py-2 text-sm font-bold rounded-lg transition-all ${
+                                        canSubmitAnalysis() && !submittingAnalysis
+                                            ? 'bg-green-600 text-white hover:bg-green-700 shadow-md hover:shadow-lg'
+                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    }`}
+                                    title={!canSubmitAnalysis() ? 'Please provide reasons for all incorrect answers' : 'Submit your analysis'}
+                                >
+                                    {submittingAnalysis ? 'Submitting...' : 'Submit Analysis'}
+                                </button>
+                            )}
+                            
+                            {/* Show submitted status */}
+                            {test?.isTutorTest && session?.analysisSubmitted && (
+                                <div className="px-4 py-2 bg-green-50 border border-green-200 text-green-700 text-sm font-bold rounded-lg flex items-center gap-2">
+                                    <FiCheckCircle className="w-4 h-4" />
+                                    Analysis Submitted
+                                </div>
+                            )}
+                            
                             <button className="px-4 py-2 border border-purple-200 text-purple-900 text-sm font-bold rounded-lg hover:bg-purple-50">
                                 View Scaled Score
                             </button>
@@ -988,7 +1025,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                             <div className="flex items-center gap-2 mb-3">
                                                 <FiAlertCircle className="w-4 h-4 text-red-600" />
                                                 <h4 className="text-sm font-bold text-red-900">
-                                                    Why did you get this wrong? (Optional)
+                                                    Why did you get this wrong? <span className="text-red-600">*</span>
                                                 </h4>
                                             </div>
                                             <p className="text-xs text-gray-600 mb-3">

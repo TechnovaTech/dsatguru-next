@@ -13,49 +13,51 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const sessionId = params.id
+    const { id } = params
     const { reasons } = await request.json()
 
     // Find the session
-    const session = await TestSession.findById(sessionId)
+    const session = await TestSession.findById(id)
     
     if (!session) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
 
-    // Check if user owns this session
+    // Verify the session belongs to the user
     if (String(session.userId) !== String(decoded.userId)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Update responses with reasons
-    if (session.responses && session.responses.length > 0) {
-      session.responses = session.responses.map(resp => {
-        const questionId = String(resp.questionId)
+    if (session.responses && Array.isArray(session.responses)) {
+      session.responses = session.responses.map(response => {
+        const questionId = String(response.questionId)
         if (reasons[questionId]) {
           return {
-            ...resp,
+            ...response,
             incorrectReason: reasons[questionId].reason,
             incorrectReasonOther: reasons[questionId].otherText || null
           }
         }
-        return resp
+        return response
       })
-      
-      // Mark analysis as submitted
-      session.analysisSubmitted = true
-      session.analysisSubmittedAt = new Date()
     }
+
+    // Mark analysis as submitted
+    session.analysisSubmitted = true
+    session.analysisSubmittedAt = new Date()
 
     await session.save()
 
     return NextResponse.json({ 
-      message: 'Reasons saved successfully',
-      session 
+      success: true, 
+      message: 'Analysis submitted successfully' 
     })
-
   } catch (error) {
-    console.error('Error saving reasons:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error submitting analysis:', error)
+    return NextResponse.json({ 
+      error: 'Failed to submit analysis',
+      details: error.message 
+    }, { status: 500 })
   }
 }

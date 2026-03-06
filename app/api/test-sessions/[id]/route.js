@@ -127,7 +127,9 @@ export async function GET(request, { params }) {
         answeredAt: r.answeredAt,
         incorrectReason: r.incorrectReason || null,
         incorrectReasonOther: r.incorrectReasonOther || null
-      }))
+      })),
+      analysisSubmitted: session.analysisSubmitted || false,
+      analysisSubmittedAt: session.analysisSubmittedAt || null
     })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch session' }, { status: 500 })
