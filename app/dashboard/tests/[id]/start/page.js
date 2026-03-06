@@ -550,7 +550,7 @@ export default function TakeTestPage() {
     
     console.log(`Loading ${subject} Module ${moduleNum}`)
     console.log('Total questions available:', questions.length)
-    console.log('Test config:', { configType: testData?.configType, practiceMode: testData?.practiceMode })
+    console.log('Test config:', { configType: testData?.configType, practiceMode: testData?.practiceMode, isTutorTest: testData?.isTutorTest })
     console.log('Test filters:', testData?.filters)
     
     let filteredQuestions = questions.filter(q => {
@@ -571,41 +571,56 @@ export default function TakeTestPage() {
     
     let selectedQuestions = []
     
-    // ALL MODES NOW USE 2 MODULES WITH SAME QUESTION COUNTS
-    // Standard: 27 R&W / 22 Math per module
-    // Customize: 27 R&W / 22 Math per module
-    // Tutor: 27 R&W / 22 Math per module (but shows answers immediately)
+    // Check if this is a Tutor-Created Test (admin/teacher assigned test)
+    const isTutorCreatedTest = testData?.isTutorTest === true || (testData?.questions && testData.questions.length > 0)
     
-    if (moduleNum === 1) {
-      // Module 1 - Show instructions for all modes
-      if (section === 'rw') {
-        setShowRWInstructions(true)
-      } else if (section === 'math') {
-        setShowMathInstructions(true)
+    if (isTutorCreatedTest) {
+      // TUTOR-CREATED TEST: Use all available questions, no module structure enforcement
+      console.log('Tutor-created test detected - using all available questions')
+      selectedQuestions = shuffleArray(filteredQuestions)
+      
+      if (selectedQuestions.length === 0) {
+        alert(`No questions available for ${subject}.`)
+        router.push(returnUrl)
+        return
+      }
+    } else {
+      // STUDENT PRACTICE TESTS: Use 2-module structure with fixed question counts
+      // Standard: 27 R&W / 22 Math per module
+      // Customize: 27 R&W / 22 Math per module
+      // Tutor Mode: 27 R&W / 22 Math per module (but shows answers immediately)
+      
+      if (moduleNum === 1) {
+        // Module 1 - Show instructions for all modes
+        if (section === 'rw') {
+          setShowRWInstructions(true)
+        } else if (section === 'math') {
+          setShowMathInstructions(true)
+        }
+        
+        // Use standard distribution for Module 1
+        const distribution = section === 'rw' 
+          ? { easy: 7, medium: 12, hard: 8 }  // R&W Module 1: 27 questions
+          : { easy: 6, medium: 11, hard: 5 }  // Math Module 1: 22 questions
+        
+        selectedQuestions = selectQuestionsByDistribution(filteredQuestions, distribution)
+      } else {
+        // Module 2 - Adaptive based on Module 1 performance
+        const module1Key = `${section}_module1`
+        const module1Score = moduleScores[module1Key] || 0
+        const routingPath = determineRoutingPath(module1Score, section, questionCount)
+        
+        const distribution = getAdaptiveDistribution(section, routingPath)
+        selectedQuestions = selectQuestionsByDistribution(filteredQuestions, distribution)
       }
       
-      // Use standard distribution for Module 1
-      const distribution = section === 'rw' 
-        ? { easy: 7, medium: 12, hard: 8 }  // R&W Module 1: 27 questions
-        : { easy: 6, medium: 11, hard: 5 }  // Math Module 1: 22 questions
-      
-      selectedQuestions = selectQuestionsByDistribution(filteredQuestions, distribution)
-    } else {
-      // Module 2 - Adaptive based on Module 1 performance
-      const module1Key = `${section}_module1`
-      const module1Score = moduleScores[module1Key] || 0
-      const routingPath = determineRoutingPath(module1Score, section, questionCount)
-      
-      const distribution = getAdaptiveDistribution(section, routingPath)
-      selectedQuestions = selectQuestionsByDistribution(filteredQuestions, distribution)
-    }
-    
-    // Check if we have enough questions
-    if (selectedQuestions.length < questionCount) {
-      console.warn(`Not enough questions: need ${questionCount}, have ${selectedQuestions.length}`)
-      alert(`Not enough questions available for ${subject}. Need ${questionCount} questions but only ${selectedQuestions.length} available with current filters.`)
-      router.push(returnUrl)
-      return
+      // Check if we have enough questions
+      if (selectedQuestions.length < questionCount) {
+        console.warn(`Not enough questions: need ${questionCount}, have ${selectedQuestions.length}`)
+        alert(`Not enough questions available for ${subject}. Need ${questionCount} questions but only ${selectedQuestions.length} available with current filters.`)
+        router.push(returnUrl)
+        return
+      }
     }
     
     console.log('Selected questions:', selectedQuestions.length)
@@ -1187,13 +1202,14 @@ export default function TakeTestPage() {
       {['A', 'B', 'C', 'D'].map((option) => {
         const isSelected = answers[currentQ._id] === option
         const isElim = isEliminated(currentQ._id, option)
-        const isTutor = test?.practiceMode === 'tutor'
+        // Only show immediate feedback for Tutor MODE (self-practice), NOT tutor-created tests
+        const isTutorMode = test?.practiceMode === 'tutor' && !test?.isTutorTest
         const isCorrect = currentQ.correctAnswer === option
         
         let containerStyle = ''
         let circleStyle = ''
         
-        if (isTutor && answers[currentQ._id]) {
+        if (isTutorMode && answers[currentQ._id]) {
             if (isCorrect) {
                  // Always highlight correct answer in green, whether selected or not
                  containerStyle = 'border-green-500 bg-green-50'
@@ -1233,7 +1249,7 @@ export default function TakeTestPage() {
                    handleAnswer(currentQ._id, option);
                 }}
                 className="flex-1 text-left p-3 sm:p-4 flex items-start gap-3 sm:gap-4 relative"
-                disabled={isTutor && answers[currentQ._id]}
+                disabled={isTutorMode && answers[currentQ._id]}
               >
                 <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold transition-colors ${circleStyle}`}>
                   {option}
@@ -1257,7 +1273,7 @@ export default function TakeTestPage() {
                    : 'bg-white text-gray-300 border-gray-200 hover:text-gray-500 hover:border-gray-300 hover:bg-gray-50'
                }`}
                title={isElim ? "Undo Elimination" : "Eliminate Answer"}
-               disabled={isTutor && answers[currentQ._id]}
+               disabled={isTutorMode && answers[currentQ._id]}
             >
               {isElim ? (
                 <span className="text-xs font-bold">Undo</span>
@@ -1539,13 +1555,14 @@ export default function TakeTestPage() {
                   {['A', 'B', 'C', 'D'].map((option) => {
                     const isSelected = answers[currentQ._id] === option
                     const isElim = isEliminated(currentQ._id, option)
-                    const isTutor = test?.practiceMode === 'tutor'
+                    // Only show immediate feedback for Tutor MODE (self-practice), NOT tutor-created tests
+                    const isTutorMode = test?.practiceMode === 'tutor' && !test?.isTutorTest
                     const isCorrect = currentQ.correctAnswer === option
                     
                     let containerStyle = ''
                     let circleStyle = ''
                     
-                    if (isTutor && answers[currentQ._id]) {
+                    if (isTutorMode && answers[currentQ._id]) {
                         if (isCorrect) {
                              // Always highlight correct answer in green, whether selected or not
                              containerStyle = 'border-green-500 bg-green-50'
@@ -1585,7 +1602,7 @@ export default function TakeTestPage() {
                                handleAnswer(currentQ._id, option);
                             }}
                             className="flex-1 text-left p-3 sm:p-4 flex items-start gap-3 sm:gap-4 relative"
-                            disabled={isTutor && answers[currentQ._id]}
+                            disabled={isTutorMode && answers[currentQ._id]}
                           >
                             <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold transition-colors ${circleStyle}`}>
                               {option}
@@ -1609,7 +1626,7 @@ export default function TakeTestPage() {
                                : 'bg-white text-gray-300 border-gray-200 hover:text-gray-500 hover:border-gray-300 hover:bg-gray-50'
                            }`}
                            title={isElim ? "Undo Elimination" : "Eliminate Answer"}
-                           disabled={isTutor && answers[currentQ._id]}
+                           disabled={isTutorMode && answers[currentQ._id]}
                         >
                           {isElim ? (
                             <span className="text-xs font-bold">Undo</span>
@@ -1625,8 +1642,8 @@ export default function TakeTestPage() {
                   })}
                 </div>
 
-                {/* Tutor Mode: Show Explanation after answer is selected */}
-                {test?.practiceMode === 'tutor' && answers[currentQ._id] && currentQ?.explanation && (
+                {/* Tutor Mode: Show Explanation after answer is selected (NOT for tutor-created tests) */}
+                {test?.practiceMode === 'tutor' && !test?.isTutorTest && answers[currentQ._id] && currentQ?.explanation && (
                   <div className="mt-6 p-6 bg-blue-50 border-2 border-blue-200 rounded-xl">
                     <div className="flex items-start gap-3 mb-3">
                       <div className="p-2 bg-blue-600 rounded-lg text-white flex-shrink-0">
