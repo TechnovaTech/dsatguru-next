@@ -106,7 +106,13 @@ export default function QuestionPreviewModal({ questions, onClose, onQuestionsUp
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
           {/* Question Metadata */}
-          <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div>
+              <span className="text-xs font-semibold text-gray-500 uppercase">Question ID</span>
+              <p className="text-sm font-medium text-gray-900 mt-1 font-mono">
+                {currentQuestion.questionId || currentQuestion._id?.toString().slice(-8) || 'N/A'}
+              </p>
+            </div>
             <div>
               <span className="text-xs font-semibold text-gray-500 uppercase">Difficulty</span>
               <p className={`text-sm font-bold mt-1 ${

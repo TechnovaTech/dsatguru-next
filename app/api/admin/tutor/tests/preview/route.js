@@ -139,6 +139,7 @@ export async function POST(request) {
 
       return {
         _id: q._id,
+        questionId: q.questionId, // Include questionId field
         content: q.content,
         options,
         correctAnswer: q.correctAnswer,

@@ -132,9 +132,18 @@ export default function TutorRWPage() {
           )}
 
           {(activeTab === 'In Progress' || activeTab === 'Completed') && (
-            history.filter(h => activeTab === 'Completed' ? h.status === 'Completed' : h.status === 'InProgress').length > 0 ? (
+            history.filter(h => {
+              const statusMatch = activeTab === 'Completed' ? h.status === 'Completed' : h.status === 'InProgress'
+              // Hide reassigned tests from completed tab
+              const notReassigned = !h.isReassigned
+              return statusMatch && notReassigned
+            }).length > 0 ? (
               history
-                .filter(h => activeTab === 'Completed' ? h.status === 'Completed' : h.status === 'InProgress')
+                .filter(h => {
+                  const statusMatch = activeTab === 'Completed' ? h.status === 'Completed' : h.status === 'InProgress'
+                  const notReassigned = !h.isReassigned
+                  return statusMatch && notReassigned
+                })
                 .map((session) => (
                   <div key={session._id} className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-sm transition-all">
                     <div className="flex-1">
