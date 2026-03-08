@@ -164,8 +164,9 @@ export async function POST(request) {
     const idxC = findIdx(['option c', 'c', '(c)', 'choice c', 'answer c', 'optionc'])
     const idxD = findIdx(['option d', 'd', '(d)', 'choice d', 'answer d', 'optiond'])
     const idxCorrect = findIdx(['correct answer', 'answer', 'correct', 'key', 'correctanswer', 'ans'])
-    const idxShortExpl = findIdx(['short explanation', 'explanation', 'short expl', 'shortexplanation', 'expl'])
-    const idxLongExpl = findIdx(['long explanation', 'long expl', 'detailed explanation', 'longexplanation'])
+    const idxShortExpl = findIdx(['shortexplanation', 'short explanation', 'short expl', 'short_explanation'])
+    const idxLongExpl = findIdx(['longexplanation', 'long explanation', 'long expl', 'detailed explanation', 'detailedexplanation', 'detailed', 'long_explanation'])
+    const idxExplanation = findIdx(['explanation', 'expl']) // Generic explanation field
     const idxDifficulty = findIdx(['difficulty', 'level', 'diff'])
     const idxTags = findIdx(['tag', 'tags', 'topic', 'subtopic', 'tags/topic'])
     const idxSubject = findIdx(['subject', 'category', 'subj'])
@@ -227,7 +228,7 @@ export async function POST(request) {
       const optionB = idxB >= 0 ? (cols[idxB] || '').trim() : ''
       const optionC = idxC >= 0 ? (cols[idxC] || '').trim() : ''
       const optionD = idxD >= 0 ? (cols[idxD] || '').trim() : ''
-      const shortExplanation = idxShortExpl >= 0 ? (cols[idxShortExpl] || '').trim() : ''
+      const shortExplanation = idxShortExpl >= 0 ? (cols[idxShortExpl] || '').trim() : (idxExplanation >= 0 ? (cols[idxExplanation] || '').trim() : '')
       const longExplanation = idxLongExpl >= 0 ? (cols[idxLongExpl] || '').trim() : ''
       const tagsRaw = idxTags >= 0 ? (cols[idxTags] || '').trim() : ''
 
