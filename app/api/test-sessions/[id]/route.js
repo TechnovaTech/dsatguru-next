@@ -126,7 +126,7 @@ export async function GET(request, { params }) {
         timeSpent: r.timeSpent,
         answeredAt: r.answeredAt,
         incorrectReason: r.incorrectReason || null,
-        incorrectReasonOther: r.incorrectReasonOther || null
+        incorrectReasonExplanation: r.incorrectReasonExplanation || null
       })),
       analysisSubmitted: session.analysisSubmitted || false,
       analysisSubmittedAt: session.analysisSubmittedAt || null

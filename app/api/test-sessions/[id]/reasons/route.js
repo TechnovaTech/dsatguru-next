@@ -36,7 +36,7 @@ export async function POST(request, { params }) {
           return {
             ...response,
             incorrectReason: reasons[questionId].reason,
-            incorrectReasonOther: reasons[questionId].otherText || null
+            incorrectReasonExplanation: reasons[questionId].explanation || null
           }
         }
         return response

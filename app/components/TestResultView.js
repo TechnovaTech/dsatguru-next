@@ -222,7 +222,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                 timeSpent: resp ? resp.timeSpent : 0,
                 wasVisited: wasVisited,
                 incorrectReason: resp?.incorrectReason || null,
-                incorrectReasonOther: resp?.incorrectReasonOther || null,
+                incorrectReasonExplanation: resp?.incorrectReasonExplanation || null,
                 _id: q._id
             }
             
@@ -235,7 +235,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
             
             // Debug log for incorrect questions with reasons
             if (!questionData.isCorrect && questionData.userAnswer) {
-                console.log('Incorrect question:', q._id, 'Reason:', questionData.incorrectReason, 'Other:', questionData.incorrectReasonOther)
+                console.log('Incorrect question:', q._id, 'Reason:', questionData.incorrectReason, 'Explanation:', questionData.incorrectReasonExplanation)
                 console.log('Response data:', resp)
             }
             
@@ -263,7 +263,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
           if (q.incorrectReason) {
             savedReasons[q._id] = {
               reason: q.incorrectReason,
-              otherText: q.incorrectReasonOther || ''
+              explanation: q.incorrectReasonExplanation || ''
             }
           }
         })
@@ -344,17 +344,17 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
       ...prev,
       [questionId]: {
         reason: reason,
-        otherText: reason === 'Other' ? (prev[questionId]?.otherText || '') : ''
+        explanation: prev[questionId]?.explanation || ''
       }
     }))
   }
 
-  const handleOtherTextChange = (questionId, text) => {
+  const handleExplanationChange = (questionId, text) => {
     setIncorrectReasons(prev => ({
       ...prev,
       [questionId]: {
         ...prev[questionId],
-        otherText: text
+        explanation: text
       }
     }))
   }
@@ -364,7 +364,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
     return incorrectQuestions.every(q => {
       const reason = incorrectReasons[q._id]
       if (!reason || !reason.reason) return false
-      if (reason.reason === 'Other' && !reason.otherText?.trim()) return false
+      if (!reason.explanation?.trim()) return false
       return true
     })
   }
@@ -1109,14 +1109,23 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                                     </label>
                                                 ))}
                                                 
-                                                {incorrectReasons[q._id]?.reason === 'Other' && (
-                                                    <textarea
-                                                        placeholder="Please explain your reason..."
-                                                        value={incorrectReasons[q._id]?.otherText || ''}
-                                                        onChange={(e) => handleOtherTextChange(q._id, e.target.value)}
-                                                        className="w-full p-3 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-sm"
-                                                        rows="3"
-                                                    />
+                                                {incorrectReasons[q._id]?.reason && (
+                                                    <div className="mt-3">
+                                                        <label className="block text-xs font-semibold text-gray-700 mb-2">
+                                                            Please explain in detail: <span className="text-red-600">*</span>
+                                                        </label>
+                                                        <textarea
+                                                            placeholder="Explain your reasoning in detail..."
+                                                            value={incorrectReasons[q._id]?.explanation || ''}
+                                                            onChange={(e) => handleExplanationChange(q._id, e.target.value)}
+                                                            className="w-full p-3 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-sm"
+                                                            rows="3"
+                                                            required
+                                                        />
+                                                        <p className="text-xs text-gray-500 mt-1">
+                                                            Provide specific details about what went wrong
+                                                        </p>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
@@ -1132,15 +1141,15 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                                 </h4>
                                             </div>
                                             {q.incorrectReason ? (
-                                                <div className="space-y-2">
+                                                <div className="space-y-3">
                                                     <div className="p-4 bg-white rounded-lg border-2 border-blue-200 shadow-sm">
                                                         <p className="text-xs text-gray-500 font-bold uppercase mb-1">Selected Reason:</p>
                                                         <p className="text-sm text-gray-900 font-semibold">{q.incorrectReason}</p>
                                                     </div>
-                                                    {q.incorrectReasonOther && (
+                                                    {q.incorrectReasonExplanation && (
                                                         <div className="p-4 bg-white rounded-lg border-2 border-blue-200 shadow-sm">
-                                                            <p className="text-xs text-gray-500 font-bold uppercase mb-1">Additional Details:</p>
-                                                            <p className="text-sm text-gray-900">{q.incorrectReasonOther}</p>
+                                                            <p className="text-xs text-gray-500 font-bold uppercase mb-1">Student's Explanation:</p>
+                                                            <p className="text-sm text-gray-900 whitespace-pre-wrap">{q.incorrectReasonExplanation}</p>
                                                         </div>
                                                     )}
                                                 </div>
