@@ -272,12 +272,18 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
         // Auto-expand all questions and explanations initially
         const initialExpanded = {}
         const initialExplanations = {}
+        const initialWhyWrong = {}
         reviewQuestions.forEach(q => {
           initialExpanded[q._id] = true
           initialExplanations[q._id] = true // Auto-show all explanations
+          // Auto-open "Why Wrong" for students on incorrect questions, closed for admins
+          if (!q.isCorrect && q.userAnswer) {
+            initialWhyWrong[q._id] = viewMode !== 'admin'
+          }
         })
         setExpandedQuestions(initialExpanded)
         setShowExplanation(initialExplanations)
+        setShowWhyWrong(initialWhyWrong)
       }
     } catch (error) {
       console.error('Error fetching result:', error)
@@ -1020,6 +1026,26 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                         )}
                                     </button>
 
+                                    {/* Why Wrong Button - Only for incorrect answers */}
+                                    {!q.isCorrect && q.userAnswer && (
+                                        <button 
+                                            onClick={() => toggleWhyWrong(q._id)}
+                                            className="px-4 py-1.5 bg-red-600 text-white text-xs font-bold rounded hover:bg-red-700 transition-colors flex items-center gap-2"
+                                        >
+                                            {showWhyWrong[q._id] ? (
+                                                <>
+                                                    <span>Hide Why Wrong</span>
+                                                    <FiChevronUp />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span>Why Wrong?</span>
+                                                    <FiChevronDown />
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+
                                     {/* Explanation Button - Controlled by showExplanation setting */}
                                     {(viewMode === 'admin' || test?.showExplanation !== false) && (
                                         <button 
@@ -1079,8 +1105,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                 </div>
                             )}
 
-                            {/* Why Wrong Content - Always visible for incorrect answers */}
-                            {!q.isCorrect && q.userAnswer && (
+                            {/* Why Wrong Content - Collapsible for incorrect answers */}
+                            {!q.isCorrect && q.userAnswer && showWhyWrong[q._id] && (
                                 <div className="mt-4 animate-in slide-in-from-top-2">
                                     {/* Tell Reason Section - Optional for students */}
                                     {viewMode !== 'admin' && (
