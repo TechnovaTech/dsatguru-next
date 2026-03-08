@@ -104,16 +104,16 @@ export default function CreateTutorTest() {
     }
   }
 
-  const handleTopicCheck = (topic, checked) => {
+  const handleTopicCheck = (topicName, checked) => {
     if (checked) {
       setFormData(prev => ({
         ...prev,
-        topicConfig: { ...prev.topicConfig, [topic]: 0 }
+        topicConfig: { ...prev.topicConfig, [topicName]: 0 }
       }))
     } else {
       // Remove topic and rebalance others to 100%
       const newConfig = { ...formData.topicConfig }
-      delete newConfig[topic]
+      delete newConfig[topicName]
       
       const keys = Object.keys(newConfig)
       if (keys.length > 0) {
@@ -217,7 +217,7 @@ export default function CreateTutorTest() {
 
   const handleSelectAllTopics = () => {
     // Check if all are currently selected
-    const allSelected = availableTopics.length > 0 && availableTopics.every(t => formData.topicConfig.hasOwnProperty(t))
+    const allSelected = availableTopics.length > 0 && availableTopics.every(t => formData.topicConfig.hasOwnProperty(t.topic))
     
     if (allSelected) {
       // Deselect all
@@ -231,8 +231,8 @@ export default function CreateTutorTest() {
       const remainder = 100 - (share * count)
       
       const newConfig = {}
-      availableTopics.forEach((topic, index) => {
-        newConfig[topic] = share + (index === count - 1 ? remainder : 0)
+      availableTopics.forEach((topicObj, index) => {
+        newConfig[topicObj.topic] = share + (index === count - 1 ? remainder : 0)
       })
       
       setFormData(prev => ({ ...prev, topicConfig: newConfig }))
@@ -672,28 +672,33 @@ export default function CreateTutorTest() {
                                 <p className="p-4 text-gray-500 text-sm italic text-center">No topics found for this subject.</p>
                             ) : (
                                 <div className="divide-y divide-gray-100">
-                                    {availableTopics.map(topic => (
-                                        <div key={topic} className={`flex items-center justify-between p-3 hover:bg-gray-50 transition-colors ${formData.topicConfig.hasOwnProperty(topic) ? 'bg-blue-50/50' : ''}`}>
+                                    {availableTopics.map(topicObj => (
+                                        <div key={topicObj.topic} className={`flex items-center justify-between p-3 hover:bg-gray-50 transition-colors ${formData.topicConfig.hasOwnProperty(topicObj.topic) ? 'bg-blue-50/50' : ''}`}>
                                             <label className="flex items-center gap-3 cursor-pointer flex-1">
                                                 <input
                                                     type="checkbox"
-                                                    checked={formData.topicConfig.hasOwnProperty(topic)}
-                                                    onChange={(e) => handleTopicCheck(topic, e.target.checked)}
+                                                    checked={formData.topicConfig.hasOwnProperty(topicObj.topic)}
+                                                    onChange={(e) => handleTopicCheck(topicObj.topic, e.target.checked)}
                                                     className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                                                 />
-                                                <span className="text-sm text-gray-700">{topic}</span>
+                                                <span className="text-sm text-gray-700">{topicObj.topic}</span>
                                             </label>
-                                            {formData.topicConfig.hasOwnProperty(topic) && (
-                                                <div className="flex items-center gap-1">
-                                                    <input
-                                                        type="number"
-                                                        value={formData.topicConfig[topic]}
-                                                        onChange={(e) => handleTopicPercentage(topic, e.target.value)}
-                                                        className="w-14 p-1 text-right text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none"
-                                                    />
-                                                    <span className="text-xs text-gray-500">%</span>
-                                                </div>
-                                            )}
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                                    {topicObj.count}
+                                                </span>
+                                                {formData.topicConfig.hasOwnProperty(topicObj.topic) && (
+                                                    <div className="flex items-center gap-1">
+                                                        <input
+                                                            type="number"
+                                                            value={formData.topicConfig[topicObj.topic]}
+                                                            onChange={(e) => handleTopicPercentage(topicObj.topic, e.target.value)}
+                                                            className="w-14 p-1 text-right text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none"
+                                                        />
+                                                        <span className="text-xs text-gray-500">%</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

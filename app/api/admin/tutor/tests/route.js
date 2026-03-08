@@ -52,12 +52,13 @@ export async function GET(request) {
         subject: subject 
       }).select('skill tags')
       
-      const topics = new Set()
+      const topicCounts = {}
       
       questions.forEach(q => {
         // First try skill field
         if (q.skill && typeof q.skill === 'string') {
-          topics.add(q.skill.trim())
+          const topic = q.skill.trim()
+          topicCounts[topic] = (topicCounts[topic] || 0) + 1
         }
         
         // Fallback to tags field (JSON array)
@@ -67,7 +68,8 @@ export async function GET(request) {
             if (Array.isArray(parsedTags)) {
               parsedTags.forEach(tag => {
                 if (tag && typeof tag === 'string') {
-                  topics.add(tag.trim())
+                  const topic = tag.trim()
+                  topicCounts[topic] = (topicCounts[topic] || 0) + 1
                 }
               })
             }
@@ -77,7 +79,12 @@ export async function GET(request) {
         }
       })
       
-      return NextResponse.json(Array.from(topics).sort())
+      // Convert to array of objects with topic name and count, then sort by topic name
+      const topicsWithCounts = Object.entries(topicCounts)
+        .map(([topic, count]) => ({ topic, count }))
+        .sort((a, b) => a.topic.localeCompare(b.topic))
+      
+      return NextResponse.json(topicsWithCounts)
     }
 
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
