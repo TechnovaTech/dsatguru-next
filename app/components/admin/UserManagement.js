@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiEdit, FiToggleLeft, FiToggleRight, FiFilter, FiPlus, FiTrash2 } from 'react-icons/fi'
+import { FiEdit, FiToggleLeft, FiToggleRight, FiFilter, FiPlus, FiTrash2, FiEye, FiEyeOff } from 'react-icons/fi'
 
 export default function UserManagement() {
   const [users, setUsers] = useState([])
@@ -9,6 +9,7 @@ export default function UserManagement() {
   const [showModal, setShowModal] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
   const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'Student' })
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -86,12 +87,14 @@ export default function UserManagement() {
   const openAddModal = () => {
     setEditingUser(null)
     setFormData({ name: '', email: '', password: '', role: 'Student' })
+    setShowPassword(false)
     setShowModal(true)
   }
 
   const openEditModal = (user) => {
     setEditingUser(user)
     setFormData({ name: user.name, email: user.email, password: '', role: user.role })
+    setShowPassword(false)
     setShowModal(true)
   }
 
@@ -240,14 +243,24 @@ export default function UserManagement() {
                     <label className="block text-sm font-medium mb-1">
                       Password {editingUser && <span className="text-gray-400 font-normal text-xs">(Leave blank to keep current)</span>}
                     </label>
-                    <input
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => setFormData({...formData, password: e.target.value})}
-                      className="w-full border rounded px-3 py-2"
-                      required={!editingUser}
-                      placeholder={editingUser ? "Unchanged" : ""}
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                        className="w-full border rounded px-3 py-2 pr-10"
+                        required={!editingUser}
+                        placeholder={editingUser ? "Unchanged" : ""}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                        tabIndex="-1"
+                      >
+                        {showPassword ? <FiEyeOff className="w-5 h-5" /> : <FiEye className="w-5 h-5" />}
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Role</label>
