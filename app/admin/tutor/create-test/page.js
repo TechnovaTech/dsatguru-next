@@ -21,11 +21,12 @@ export default function CreateTutorTest() {
   const [editedQuestions, setEditedQuestions] = useState([])
   
   // Custom dropdown state
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTests, setSelectedTests] = useState([])
   const [showStudentsModal, setShowStudentsModal] = useState(false)
   const [selectedTestForStudents, setSelectedTestForStudents] = useState(null)
+  const [showStudentSelectionModal, setShowStudentSelectionModal] = useState(false)
+  const [tempSelectedStudents, setTempSelectedStudents] = useState([])
 
   const [formData, setFormData] = useState({
     title: '',
@@ -197,22 +198,38 @@ export default function CreateTutorTest() {
   }
 
   const handleUserToggle = (userId) => {
-    const current = formData.assignedUsers
+    const current = tempSelectedStudents
     let newUsers
     if (current.includes(userId)) {
       newUsers = current.filter(id => id !== userId)
     } else {
       newUsers = [...current, userId]
     }
-    setFormData({ ...formData, assignedUsers: newUsers })
+    setTempSelectedStudents(newUsers)
   }
 
   const handleSelectAllStudents = () => {
-    setFormData(prev => ({ ...prev, assignedUsers: students.map(s => s._id) }))
+    setTempSelectedStudents(students.map(s => s._id))
   }
 
   const handleDeselectAllStudents = () => {
-    setFormData(prev => ({ ...prev, assignedUsers: [] }))
+    setTempSelectedStudents([])
+  }
+
+  const handleOpenStudentSelection = () => {
+    setTempSelectedStudents([...formData.assignedUsers])
+    setSearchTerm('')
+    setShowStudentSelectionModal(true)
+  }
+
+  const handleConfirmStudentSelection = () => {
+    setFormData(prev => ({ ...prev, assignedUsers: [...tempSelectedStudents] }))
+    setShowStudentSelectionModal(false)
+  }
+
+  const handleCancelStudentSelection = () => {
+    setTempSelectedStudents([])
+    setShowStudentSelectionModal(false)
   }
 
   const handleSelectAllTopics = () => {
@@ -710,81 +727,43 @@ export default function CreateTutorTest() {
                 {/* Student Assignment */}
                 <div>
                     <h3 className="text-base font-semibold text-gray-800 mb-3">Assign Students</h3>
-                    <div className="relative">
-                        <div 
-                            className="w-full p-2.5 border border-gray-300 rounded-lg cursor-pointer flex justify-between items-center bg-white hover:border-blue-400 transition-colors"
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        >
-                            <span className={`text-sm ${formData.assignedUsers.length === 0 ? "text-gray-400" : "text-gray-800"}`}>
+                    <button
+                        type="button"
+                        onClick={handleOpenStudentSelection}
+                        className="w-full p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all text-left flex items-center justify-between group"
+                    >
+                        <div className="flex items-center gap-2">
+                            <FiUsers className="text-gray-400 group-hover:text-blue-500" />
+                            <span className={`text-sm ${formData.assignedUsers.length === 0 ? "text-gray-400" : "text-gray-700 font-medium"}`}>
                                 {formData.assignedUsers.length === 0 
-                                    ? "Select students..." 
+                                    ? "Click to select students..." 
                                     : `${formData.assignedUsers.length} student${formData.assignedUsers.length !== 1 ? 's' : ''} selected`
                                 }
                             </span>
-                            {isDropdownOpen ? <FiChevronUp className="text-gray-500" /> : <FiChevronDown className="text-gray-500" />}
                         </div>
-
-                        {isDropdownOpen && (
-                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-hidden flex flex-col">
-                                <div className="p-2 border-b border-gray-100 bg-gray-50">
-                                    <input
-                                        type="text"
-                                        placeholder="Search students..."
-                                        className="w-full p-2 border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-500"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
-                                    <div className="mt-2 flex justify-between items-center text-xs px-1">
-                                        <div className="flex gap-3">
-                                            <button type="button" onClick={handleSelectAllStudents} className="text-blue-600 hover:underline font-medium">
-                                                Select All
-                                            </button>
-                                            <button type="button" onClick={handleDeselectAllStudents} className="text-red-500 hover:underline font-medium">
-                                                Deselect All
-                                            </button>
-                                        </div>
-                                        <span className="text-gray-500">{formData.assignedUsers.length} selected</span>
-                                    </div>
-                                </div>
-                                
-                                <div className="overflow-y-auto flex-1 p-1">
-                                    {filteredStudents.length === 0 ? (
-                                        <div className="p-4 text-center text-gray-500 text-sm">No students found</div>
-                                    ) : (
-                                        filteredStudents.map(student => (
-                                            <label 
-                                                key={student._id} 
-                                                className={`flex items-center gap-3 p-2 rounded cursor-pointer hover:bg-gray-50 transition-colors ${formData.assignedUsers.includes(student._id) ? 'bg-purple-50' : ''}`}
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.assignedUsers.includes(student._id)}
-                                                    onChange={() => handleUserToggle(student._id)}
-                                                    className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
-                                                />
-                                                <div className="overflow-hidden">
-                                                    <div className="font-medium text-gray-800 text-sm truncate">{student.name}</div>
-                                                    <div className="text-xs text-gray-500 truncate">{student.email}</div>
-                                                </div>
-                                            </label>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                        <FiChevronDown className="text-gray-400 group-hover:text-blue-500" />
+                    </button>
                     
-                    {/* Selected Tags */}
+                    {/* Selected Students Preview */}
                     {formData.assignedUsers.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto custom-scrollbar p-1">
-                            {students.filter(s => formData.assignedUsers.includes(s._id)).map(s => (
-                                <span key={s._id} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100">
-                                    {s.name}
-                                    <button type="button" onClick={() => handleUserToggle(s._id)} className="ml-1.5 text-purple-400 hover:text-purple-600">
-                                        <FiX className="w-3 h-3" />
-                                    </button>
-                                </span>
-                            ))}
+                        <div className="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-100">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-semibold text-purple-700">Selected Students:</span>
+                                <button 
+                                    type="button"
+                                    onClick={handleOpenStudentSelection}
+                                    className="text-xs text-purple-600 hover:text-purple-800 hover:underline font-medium"
+                                >
+                                    Edit Selection
+                                </button>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto custom-scrollbar">
+                                {students.filter(s => formData.assignedUsers.includes(s._id)).map(s => (
+                                    <span key={s._id} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white text-purple-700 border border-purple-200">
+                                        {s.name}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
@@ -930,6 +909,122 @@ export default function CreateTutorTest() {
                 </table>
             </div>
         </div>
+
+        {/* Student Selection Modal */}
+        {showStudentSelectionModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={handleCancelStudentSelection}>
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                      <FiUsers className="text-purple-600" />
+                      Select Students
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">Choose students to assign this test</p>
+                  </div>
+                  <button
+                    onClick={handleCancelStudentSelection}
+                    className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-white rounded-lg"
+                  >
+                    <FiX className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6 overflow-y-auto max-h-[calc(85vh-200px)]">
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search students by name or email..."
+                    className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-200">
+                  <div className="flex gap-3">
+                    <button 
+                      type="button" 
+                      onClick={handleSelectAllStudents} 
+                      className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium flex items-center gap-1"
+                    >
+                      <FiCheck className="w-4 h-4" /> Select All
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={handleDeselectAllStudents} 
+                      className="text-sm text-red-500 hover:text-red-700 hover:underline font-medium flex items-center gap-1"
+                    >
+                      <FiX className="w-4 h-4" /> Deselect All
+                    </button>
+                  </div>
+                  <span className="text-sm font-semibold text-gray-700 bg-purple-100 px-3 py-1 rounded-full">
+                    {tempSelectedStudents.length} selected
+                  </span>
+                </div>
+                
+                <div className="space-y-2">
+                  {filteredStudents.length === 0 ? (
+                    <div className="text-center py-12">
+                      <FiUsers className="mx-auto text-5xl text-gray-300 mb-4" />
+                      <p className="text-gray-500 font-medium">No students found</p>
+                      <p className="text-sm text-gray-400 mt-1">Try adjusting your search</p>
+                    </div>
+                  ) : (
+                    filteredStudents.map(student => (
+                      <label 
+                        key={student._id} 
+                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border-2 ${
+                          tempSelectedStudents.includes(student._id) 
+                            ? 'bg-purple-50 border-purple-300 hover:bg-purple-100' 
+                            : 'bg-gray-50 border-transparent hover:bg-gray-100 hover:border-gray-200'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={tempSelectedStudents.includes(student._id)}
+                          onChange={() => handleUserToggle(student._id)}
+                          className="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500 cursor-pointer"
+                        />
+                        <div className="flex-1 overflow-hidden">
+                          <div className="font-medium text-gray-900 text-sm truncate">{student.name}</div>
+                          <div className="text-xs text-gray-500 truncate">{student.email}</div>
+                        </div>
+                        {tempSelectedStudents.includes(student._id) && (
+                          <FiCheck className="text-purple-600 flex-shrink-0" />
+                        )}
+                      </label>
+                    ))
+                  )}
+                </div>
+              </div>
+              
+              <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center gap-3">
+                <span className="text-sm text-gray-600">
+                  {tempSelectedStudents.length} student{tempSelectedStudents.length !== 1 ? 's' : ''} will be assigned
+                </span>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCancelStudentSelection}
+                    className="px-5 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmStudentSelection}
+                    className="px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center gap-2"
+                  >
+                    <FiCheck /> Confirm Selection
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Assigned Students Modal */}
         {showStudentsModal && selectedTestForStudents && (
