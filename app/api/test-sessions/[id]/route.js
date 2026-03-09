@@ -129,7 +129,9 @@ export async function GET(request, { params }) {
         incorrectReasonExplanation: r.incorrectReasonExplanation || null
       })),
       analysisSubmitted: session.analysisSubmitted || false,
-      analysisSubmittedAt: session.analysisSubmittedAt || null
+      analysisSubmittedAt: session.analysisSubmittedAt || null,
+      autoSubmitted: session.autoSubmitted || false,
+      autoSubmitReason: session.autoSubmitReason || null
     })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch session' }, { status: 500 })
@@ -168,6 +170,8 @@ export async function PUT(request, { params }) {
     if (sessionData.timeSpent !== undefined) session.timeSpent = sessionData.timeSpent
     if (sessionData.completedAt) session.completedAt = sessionData.completedAt
     if (sessionData.endTime) session.endTime = sessionData.endTime
+    if (sessionData.autoSubmitted !== undefined) session.autoSubmitted = sessionData.autoSubmitted
+    if (sessionData.autoSubmitReason) session.autoSubmitReason = sessionData.autoSubmitReason
 
     // For Tutor mode, we might want to ensure testId matches if provided, but usually it shouldn't change
     

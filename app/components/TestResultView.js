@@ -23,6 +23,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
   const [submittingAnalysis, setSubmittingAnalysis] = useState(false)
   const [analysisSubmitted, setAnalysisSubmitted] = useState(false)
   const [showReassignModal, setShowReassignModal] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [newTestId, setNewTestId] = useState(null)
 
   useEffect(() => {
     fetchResult()
@@ -248,6 +250,13 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
         })
         
         console.log('Total review questions:', reviewQuestions.length)
+        console.log('Session auto-submit data:', {
+          autoSubmitted: sessionData.autoSubmitted,
+          autoSubmitReason: sessionData.autoSubmitReason
+        })
+        
+        // Debug: Log the full session data to verify fields
+        console.log('Full session data:', JSON.stringify(sessionData, null, 2))
 
         setSession(sessionData)
         setQuestions(reviewQuestions)
@@ -448,10 +457,9 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
 
       if (res.ok) {
         const data = await res.json()
-        alert(`Test reassigned successfully! New test ID: ${data.newTestId}`)
+        setNewTestId(data.newTestId)
         setShowReassignModal(false)
-        // Refresh the page to show updated status
-        window.location.reload()
+        setShowSuccessModal(true)
       } else {
         const errorData = await res.json()
         alert(`Failed to reassign test: ${errorData.error || 'Unknown error'}`)
@@ -576,6 +584,37 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                 </div>
             </div>
         </div>
+
+        {/* Auto-Submit Warning Banner */}
+        {(session?.autoSubmitted || session?.autoSubmitReason) && (
+            <div className="max-w-7xl mx-auto px-4 pt-6">
+                <div className="bg-red-50 border-2 border-red-500 rounded-xl p-5 shadow-lg">
+                    <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0">
+                            <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
+                                <FiAlertCircle className="w-6 h-6 text-white" />
+                            </div>
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-lg font-bold text-red-900 mb-2 flex items-center gap-2">
+                                🚨 Test Auto-Submitted
+                            </h3>
+                            <p className="text-red-800 font-semibold mb-2">
+                                This test was automatically submitted due to a violation:
+                            </p>
+                            <div className="bg-white border border-red-300 rounded-lg p-4 mb-3">
+                                <p className="text-red-900 font-bold text-base">
+                                    "{session.autoSubmitReason || 'Test was auto-submitted due to a violation'}"
+                                </p>
+                            </div>
+                            <p className="text-sm text-red-700">
+                                ⚠️ Unanswered questions at the time of auto-submit have been marked as omitted.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
 
         <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
             
@@ -1274,6 +1313,51 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
             onClose={() => setShowReassignModal(false)}
             onReassign={handleReassignTest}
           />
+        )}
+
+        {/* Success Modal */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+              {/* Header */}
+              <div className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200">
+                <div className="flex items-center justify-center">
+                  <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
+                    <FiCheckCircle className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-8 text-center">
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Test Reassigned Successfully!
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  A new test assignment has been created for the student.
+                </p>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-blue-900 font-semibold mb-2">
+                    New Test ID:
+                  </p>
+                  <p className="text-lg font-mono font-bold text-blue-700">
+                    {newTestId}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setShowSuccessModal(false)
+                    window.location.reload()
+                  }}
+                  className="w-full px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
         )}
     </div>
   )
