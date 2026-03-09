@@ -52,6 +52,8 @@ export default function TakeTestPage() {
   const [isDraggingCalc, setIsDraggingCalc] = useState(false)
   const dragStartPos = useRef({ x: 0, y: 0 })
   const calculatorRef = useRef(null)
+  const [showAutoSubmitModal, setShowAutoSubmitModal] = useState(false)
+  const [autoSubmitReason, setAutoSubmitReason] = useState('')
   
   // Time Tracking
   const [questionTimes, setQuestionTimes] = useState({}) 
@@ -261,41 +263,51 @@ export default function TakeTestPage() {
 
   // Fullscreen and tab change detection
   useEffect(() => {
-    const handleVisibilityChange = () => {
+    const handleVisibilityChange = async () => {
       if (document.hidden && isFullscreen && !testCompleted && !showModuleSummary) {
-        alert('Test terminated: You switched tabs or left the test window.')
-        router.push(returnUrl)
+        // Auto-submit test when tab is changed
+        await handleAutoSubmit('You switched tabs or left the test window.')
       }
     }
 
-    const handleFullscreenChange = () => {
+    const handleFullscreenChange = async () => {
       if (!document.fullscreenElement && isFullscreen && !testCompleted && !showModuleSummary) {
-        alert('Test terminated: You exited fullscreen mode.')
-        router.push(returnUrl)
+        // Auto-submit test when fullscreen is exited
+        await handleAutoSubmit('You exited fullscreen mode.')
       }
     }
 
-    const handleEscKey = (e) => {
+    const handleEscKey = async (e) => {
       if (e.key === 'Escape' && isFullscreen && !testCompleted && !showModuleSummary) {
         e.preventDefault()
-        alert('Test terminated: You pressed ESC to exit fullscreen.')
+        // Auto-submit test when ESC is pressed
         if (document.fullscreenElement) {
-          document.exitFullscreen()
+          await document.exitFullscreen()
         }
-        router.push(returnUrl)
+        await handleAutoSubmit('You pressed ESC to exit fullscreen.')
+      }
+    }
+
+    const handleF11Key = async (e) => {
+      if (e.key === 'F11' && isFullscreen && !testCompleted && !showModuleSummary) {
+        e.preventDefault()
+        // Auto-submit test when F11 is pressed
+        await handleAutoSubmit('You pressed F11 to exit fullscreen.')
       }
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     document.addEventListener('keydown', handleEscKey)
+    document.addEventListener('keydown', handleF11Key)
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       document.removeEventListener('fullscreenchange', handleFullscreenChange)
       document.removeEventListener('keydown', handleEscKey)
+      document.removeEventListener('keydown', handleF11Key)
     }
-  }, [isFullscreen, testCompleted, showModuleSummary, router])
+  }, [isFullscreen, testCompleted, showModuleSummary, router, answers, moduleQuestions])
 
   const enterFullscreen = async () => {
     try {
@@ -308,6 +320,13 @@ export default function TakeTestPage() {
       alert('Please allow fullscreen mode to start the test.')
     }
   }
+
+  // Auto-enter fullscreen when test starts (for tutor tests)
+  useEffect(() => {
+    if (test?.practiceMode === 'tutor' && !loading && !checkingHistory && !testCompleted && !showModuleSummary && moduleQuestions.length > 0 && !isFullscreen) {
+      enterFullscreen()
+    }
+  }, [test, loading, checkingHistory, testCompleted, showModuleSummary, moduleQuestions, isFullscreen])
 
   useEffect(() => {
     // Timer logic:
@@ -740,6 +759,78 @@ export default function TakeTestPage() {
       }
     } catch (error) {
       console.error('Error marking question:', error)
+    }
+  }
+
+  const handleAutoSubmit = async (reason) => {
+    try {
+      // Show modal instead of alert
+      setAutoSubmitReason(reason)
+      setShowAutoSubmitModal(true)
+      
+      // Wait a moment for user to see the message
+      await new Promise(resolve => setTimeout(resolve, 3000))
+      
+      // Force complete the test immediately
+      if (test?.practiceMode === 'tutor') {
+        // For tutor mode, calculate and submit
+        const correct = Object.keys(answers).filter(qId => {
+          const q = moduleQuestions.find(mq => mq._id === qId)
+          return q && answers[qId] === q.correctAnswer
+        }).length
+        
+        const token = localStorage.getItem('token')
+        if (token) {
+          const totalTimeSpent = Object.values(questionTimes).reduce((a, b) => a + b, 0)
+          const responses = []
+          
+          Object.keys(answers).forEach(qId => {
+            const q = moduleQuestions.find(mq => mq._id === qId)
+            if (q) {
+              responses.push({
+                questionId: qId,
+                selectedAnswer: answers[qId],
+                isCorrect: answers[qId] === q.correctAnswer,
+                timeSpent: questionTimes[qId] || 0,
+                answeredAt: new Date()
+              })
+            }
+          })
+
+          const sessionData = {
+            testId,
+            status: 'Completed',
+            moduleScores,
+            moduleAnswers,
+            responses,
+            rwScore: 0,
+            mathScore: 0,
+            totalScore: correct,
+            timeSpent: totalTimeSpent,
+            completedAt: new Date().toISOString()
+          }
+
+          const url = sessionId ? `/api/test-sessions/${sessionId}` : '/api/test-sessions'
+          const method = sessionId ? 'PUT' : 'POST'
+
+          await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify(sessionData)
+          })
+        }
+      }
+      
+      // Exit fullscreen if still in it
+      if (document.fullscreenElement) {
+        await document.exitFullscreen()
+      }
+      
+      // Redirect back
+      router.push(returnUrl)
+    } catch (error) {
+      console.error('Auto-submit error:', error)
+      router.push(returnUrl)
     }
   }
 
@@ -2302,6 +2393,30 @@ export default function TakeTestPage() {
             )}
         </div>
       </div>
+
+      {/* Auto-Submit Modal */}
+      {showAutoSubmitModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999]">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-in fade-in zoom-in duration-300">
+            <div className="text-center">
+              <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FiAlertTriangle className="w-12 h-12 text-red-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Test Auto-Submitted</h2>
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+                <p className="text-gray-800 font-medium">{autoSubmitReason}</p>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Your test has been automatically submitted and your progress has been saved.
+              </p>
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
+                <span>Redirecting...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
      </div>
     )
 }

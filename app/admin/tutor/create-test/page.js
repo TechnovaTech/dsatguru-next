@@ -31,6 +31,8 @@ export default function CreateTutorTest() {
   const [viewTestData, setViewTestData] = useState(null)
   const [loadingTestView, setLoadingTestView] = useState(false)
   const [currentViewQuestion, setCurrentViewQuestion] = useState(0)
+  const [showAutoSubmitModal, setShowAutoSubmitModal] = useState(false)
+  const [autoSubmitReason, setAutoSubmitReason] = useState('')
 
   const [formData, setFormData] = useState({
     title: '',
