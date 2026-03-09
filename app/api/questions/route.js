@@ -20,6 +20,31 @@ export async function GET(request) {
     const bankId = searchParams.get('bankId')
     const tag = searchParams.get('tag')
     const isTutor = searchParams.get('isTutor')
+    const ids = searchParams.get('ids')
+    
+    // Handle fetching by IDs
+    if (ids) {
+      const idArray = ids.split(',').filter(id => id.trim())
+      const questions = await Question.find({ _id: { $in: idArray } })
+        .populate('createdBy', 'name')
+        .sort({ createdAt: -1 })
+      
+      return NextResponse.json(questions.map(q => {
+        const data = q.toObject ? q.toObject() : { ...q }
+        data.id = data._id.toString()
+        
+        // Parse options if string
+        if (typeof data.options === 'string' && data.options.trim()) {
+          try {
+            data.options = JSON.parse(data.options)
+          } catch (e) {
+            data.options = {}
+          }
+        }
+        
+        return data
+      }))
+    }
     
     // Handle question banks request
     if (questionBanks) {

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiSave, FiAlertCircle, FiCheck, FiUsers, FiBook, FiPieChart, FiLoader, FiClock, FiList, FiPlus, FiX, FiChevronDown, FiChevronUp, FiEdit, FiTrash2, FiBarChart, FiEye } from 'react-icons/fi'
+import { FiSave, FiAlertCircle, FiCheck, FiUsers, FiBook, FiPieChart, FiLoader, FiClock, FiList, FiPlus, FiX, FiChevronDown, FiChevronUp, FiEdit, FiTrash2, FiBarChart, FiEye, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import Link from 'next/link'
 import QuestionPreviewModal from '../../../components/admin/QuestionPreviewModal'
 
@@ -27,6 +27,10 @@ export default function CreateTutorTest() {
   const [selectedTestForStudents, setSelectedTestForStudents] = useState(null)
   const [showStudentSelectionModal, setShowStudentSelectionModal] = useState(false)
   const [tempSelectedStudents, setTempSelectedStudents] = useState([])
+  const [showViewTestModal, setShowViewTestModal] = useState(false)
+  const [viewTestData, setViewTestData] = useState(null)
+  const [loadingTestView, setLoadingTestView] = useState(false)
+  const [currentViewQuestion, setCurrentViewQuestion] = useState(0)
 
   const [formData, setFormData] = useState({
     title: '',
@@ -452,6 +456,47 @@ export default function CreateTutorTest() {
   const handleCloseStudentsModal = () => {
     setShowStudentsModal(false)
     setSelectedTestForStudents(null)
+  }
+
+  const handleViewTest = async (test) => {
+    setLoadingTestView(true)
+    setShowViewTestModal(true)
+    setCurrentViewQuestion(0)
+    
+    try {
+      const token = localStorage.getItem('token')
+      
+      // Fetch test details with questions
+      const res = await fetch(`/api/admin/tests/${test._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      
+      if (res.ok) {
+        const testData = await res.json()
+        
+        // Fetch full question details
+        const questionIds = testData.questions || []
+        const questionsRes = await fetch(`/api/questions?ids=${questionIds.join(',')}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        
+        if (questionsRes.ok) {
+          const questions = await questionsRes.json()
+          setViewTestData({ ...testData, fullQuestions: questions })
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load test', err)
+      setError('Failed to load test details')
+    } finally {
+      setLoadingTestView(false)
+    }
+  }
+
+  const handleCloseViewTest = () => {
+    setShowViewTestModal(false)
+    setViewTestData(null)
+    setCurrentViewQuestion(0)
   }
 
   return (
@@ -883,6 +928,12 @@ export default function CreateTutorTest() {
                                     <td className="p-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
+                                                onClick={() => handleViewTest(test)}
+                                                className="text-green-600 hover:text-green-800 font-medium text-sm flex items-center gap-1 px-2 py-1 hover:bg-green-50 rounded transition-colors"
+                                            >
+                                                <FiEye /> View Test
+                                            </button>
+                                            <button
                                                 onClick={() => handleShowStudents(test)}
                                                 className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1 px-2 py-1 hover:bg-blue-50 rounded transition-colors"
                                             >
@@ -1022,6 +1073,205 @@ export default function CreateTutorTest() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* View Test Modal */}
+        {showViewTestModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={handleCloseViewTest}>
+            <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-blue-50">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                      <FiEye className="text-green-600" />
+                      Test Preview
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">{viewTestData?.title || 'Loading...'}</p>
+                  </div>
+                  <button
+                    onClick={handleCloseViewTest}
+                    className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-white rounded-lg"
+                  >
+                    <FiX className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+              
+              {loadingTestView ? (
+                <div className="flex-1 flex items-center justify-center p-12">
+                  <div className="text-center">
+                    <FiLoader className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+                    <p className="text-gray-600">Loading test questions...</p>
+                  </div>
+                </div>
+              ) : viewTestData?.fullQuestions && viewTestData.fullQuestions.length > 0 ? (
+                <>
+                  <div className="flex-1 overflow-y-auto p-6">
+                    {(() => {
+                      const q = viewTestData.fullQuestions[currentViewQuestion]
+                      
+                      // Parse options properly
+                      let options = {}
+                      if (typeof q.options === 'string') {
+                        try {
+                          options = JSON.parse(q.options)
+                        } catch (e) {
+                          console.error('Failed to parse options:', e)
+                          options = {}
+                        }
+                      } else if (Array.isArray(q.options)) {
+                        // Convert array to object
+                        options = {
+                          A: q.options[0] || '',
+                          B: q.options[1] || '',
+                          C: q.options[2] || '',
+                          D: q.options[3] || ''
+                        }
+                      } else if (typeof q.options === 'object') {
+                        options = q.options
+                      }
+                      
+                      // Fallback to individual option fields
+                      if (!options.A && !options.a) {
+                        options = {
+                          A: q.optionA || '',
+                          B: q.optionB || '',
+                          C: q.optionC || '',
+                          D: q.optionD || ''
+                        }
+                      }
+                      
+                      return (
+                        <div className="space-y-6">
+                          {/* Question Header */}
+                          <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-semibold text-gray-500">
+                                Question {currentViewQuestion + 1} of {viewTestData.fullQuestions.length}
+                              </span>
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                q.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
+                                q.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {q.difficulty}
+                              </span>
+                              {q.skill && (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                                  {q.skill}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Question Content */}
+                          <div className="prose max-w-none">
+                            {q.questionParagraph && (
+                              <div className="p-4 bg-gray-50 rounded-lg mb-4 border border-gray-200">
+                                <div dangerouslySetInnerHTML={{ __html: q.questionParagraph }} />
+                              </div>
+                            )}
+                            <div className="text-gray-900 font-medium" dangerouslySetInnerHTML={{ __html: q.content || q.title }} />
+                          </div>
+
+                          {/* Answer Options */}
+                          <div className="space-y-3">
+                            <p className="text-sm font-semibold text-gray-700">Answer Choices:</p>
+                            {['A', 'B', 'C', 'D'].map(option => {
+                              const optionText = options[option] || options[option.toLowerCase()] || ''
+                              if (!optionText) return null
+                              
+                              return (
+                                <div 
+                                  key={option}
+                                  className={`p-4 rounded-lg border-2 transition-all ${
+                                    q.correctAnswer === option 
+                                      ? 'bg-green-50 border-green-500' 
+                                      : 'bg-gray-50 border-gray-200'
+                                  }`}
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <span className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                      q.correctAnswer === option
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-gray-300 text-gray-700'
+                                    }`}>
+                                      {option}
+                                    </span>
+                                    <div className="flex-1">
+                                      <div dangerouslySetInnerHTML={{ __html: optionText }} />
+                                      {q.correctAnswer === option && (
+                                        <div className="mt-2 flex items-center gap-2 text-green-700 font-semibold text-sm">
+                                          <FiCheck className="w-4 h-4" /> Correct Answer
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+
+                          {/* Explanations */}
+                          {(q.shortExplanation || q.longExplanation) && (
+                            <div className="space-y-4 mt-6">
+                              {q.shortExplanation && (
+                                <div className="p-5 bg-blue-50 rounded-xl border border-blue-200">
+                                  <h4 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-2">
+                                    <FiBook className="w-4 h-4" /> Short Explanation
+                                  </h4>
+                                  <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: q.shortExplanation }} />
+                                </div>
+                              )}
+                              
+                              {q.longExplanation && (
+                                <div className="p-5 bg-purple-50 rounded-xl border border-purple-200">
+                                  <h4 className="text-sm font-bold text-purple-900 mb-2 flex items-center gap-2">
+                                    <FiBook className="w-4 h-4" /> Detailed Explanation
+                                  </h4>
+                                  <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: q.longExplanation }} />
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })()}
+                  </div>
+                  
+                  {/* Navigation Footer */}
+                  <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+                    <button
+                      onClick={() => setCurrentViewQuestion(prev => Math.max(0, prev - 1))}
+                      disabled={currentViewQuestion === 0}
+                      className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <FiChevronLeft /> Previous
+                    </button>
+                    
+                    <span className="text-sm text-gray-600 font-medium">
+                      {currentViewQuestion + 1} / {viewTestData.fullQuestions.length}
+                    </span>
+                    
+                    <button
+                      onClick={() => setCurrentViewQuestion(prev => Math.min(viewTestData.fullQuestions.length - 1, prev + 1))}
+                      disabled={currentViewQuestion === viewTestData.fullQuestions.length - 1}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next <FiChevronRight />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center p-12">
+                  <div className="text-center">
+                    <FiAlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">No questions found in this test</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
