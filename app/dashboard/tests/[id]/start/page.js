@@ -802,7 +802,19 @@ export default function TakeTestPage() {
         // For tutor mode, calculate and submit
         const correct = Object.keys(answers).filter(qId => {
           const q = moduleQuestions.find(mq => mq._id === qId)
-          return q && answers[qId] === q.correctAnswer
+          if (!q) return false
+          
+          const userAnswer = answers[qId]
+          const correctAnswer = q.correctAnswer
+          
+          // Check if it's multiple choice or fill-in-the-blank
+          const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
+          
+          if (hasOptions) {
+            return userAnswer === correctAnswer
+          } else {
+            return userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()
+          }
         }).length
         
         const token = localStorage.getItem('token')
@@ -810,15 +822,38 @@ export default function TakeTestPage() {
           const totalTimeSpent = Object.values(questionTimes).reduce((a, b) => a + b, 0)
           const responses = []
           
-          Object.keys(answers).forEach(qId => {
-            const q = moduleQuestions.find(mq => mq._id === qId)
-            if (q) {
+          // Include ALL questions - both answered and unanswered (omitted)
+          moduleQuestions.forEach(q => {
+            const qId = q._id
+            const userAnswer = answers[qId]
+            
+            if (userAnswer) {
+              // Answered question
+              const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
+              let isCorrect = false
+              
+              if (hasOptions) {
+                isCorrect = userAnswer === q.correctAnswer
+              } else {
+                isCorrect = userAnswer?.trim().toLowerCase() === q.correctAnswer?.trim().toLowerCase()
+              }
+              
               responses.push({
                 questionId: qId,
-                selectedAnswer: answers[qId],
-                isCorrect: answers[qId] === q.correctAnswer,
+                selectedAnswer: userAnswer,
+                isCorrect: isCorrect,
                 timeSpent: questionTimes[qId] || 0,
                 answeredAt: new Date()
+              })
+            } else {
+              // Unanswered question - mark as omitted
+              responses.push({
+                questionId: qId,
+                selectedAnswer: null,
+                isCorrect: false,
+                timeSpent: questionTimes[qId] || 0,
+                answeredAt: new Date(),
+                omitted: true
               })
             }
           })
@@ -833,7 +868,9 @@ export default function TakeTestPage() {
             mathScore: 0,
             totalScore: correct,
             timeSpent: totalTimeSpent,
-            completedAt: new Date().toISOString()
+            completedAt: new Date().toISOString(),
+            autoSubmitted: true,
+            autoSubmitReason: reason
           }
 
           const url = sessionId ? `/api/test-sessions/${sessionId}` : '/api/test-sessions'
