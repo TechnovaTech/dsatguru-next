@@ -311,21 +311,24 @@ export default function TakeTestPage() {
 
   useEffect(() => {
     // Timer logic:
-    // - Tutor mode: NO TIMER (flexible practice)
+    // - Tutor mode with duration: TIMER ACTIVE (timed tutor test)
+    // - Tutor mode without duration: NO TIMER (untimed tutor test)
     // - Untimed mode: NO TIMER
     // - Timed mode: TIMER ACTIVE
     // - Standard mode: TIMER ACTIVE (always timed)
     
     const isTutor = test?.practiceMode === 'tutor'
     const isUntimed = test?.practiceMode === 'untimed'
+    const hasDuration = test?.duration && test.duration > 0
     
-    // Skip timer for tutor mode and untimed mode
-    if (isTutor || isUntimed) return
+    // Skip timer for untimed mode or tutor mode without duration
+    if (isUntimed || (isTutor && !hasDuration)) return
     
     if (timeRemaining > 0 && !showModuleSummary && !testCompleted && !showRWInstructions && !showMathInstructions) {
       const timer = setInterval(() => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
+            // Auto-submit when time expires
             handleModuleComplete()
             return 0
           }
@@ -334,7 +337,7 @@ export default function TakeTestPage() {
       }, 1000)
       return () => clearInterval(timer)
     }
-  }, [timeRemaining, showModuleSummary, testCompleted, showRWInstructions, showMathInstructions, test?.practiceMode])
+  }, [timeRemaining, showModuleSummary, testCompleted, showRWInstructions, showMathInstructions, test?.practiceMode, test?.duration])
 
   const fetchTestData = async () => {
     try {
@@ -548,9 +551,14 @@ export default function TakeTestPage() {
     let questionCount = section === 'rw' ? 27 : 22
     let duration = section === 'rw' ? 32 : 35
     
+    // For tutor tests, use the test's duration if specified
+    if (testData?.practiceMode === 'tutor' && testData?.duration) {
+      duration = testData.duration
+    }
+    
     console.log(`Loading ${subject} Module ${moduleNum}`)
     console.log('Total questions available:', questions.length)
-    console.log('Test config:', { configType: testData?.configType, practiceMode: testData?.practiceMode, isTutorTest: testData?.isTutorTest })
+    console.log('Test config:', { configType: testData?.configType, practiceMode: testData?.practiceMode, isTutorTest: testData?.isTutorTest, duration: duration })
     console.log('Test filters:', testData?.filters)
     
     let filteredQuestions = questions.filter(q => {
@@ -1297,9 +1305,10 @@ export default function TakeTestPage() {
         <div className="text-base font-bold text-gray-900">
           Section 1, Module {currentModule}: {currentSection === 'rw' ? 'Reading and Writing' : 'Math'}
         </div>
-        {/* Hide timer for Tutor mode and Untimed mode */}
-        {!(test?.practiceMode === 'tutor' || test?.practiceMode === 'untimed') && (
-          <div className="text-lg font-bold text-gray-900">
+        {/* Show timer for timed tests (including timed tutor tests) */}
+        {!(test?.practiceMode === 'untimed' || (test?.practiceMode === 'tutor' && (!test?.duration || test.duration === 0))) && (
+          <div className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <FiClock className="w-5 h-5" />
             {formatTime(timeRemaining)}
           </div>
         )}
