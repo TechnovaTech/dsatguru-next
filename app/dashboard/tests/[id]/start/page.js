@@ -876,23 +876,47 @@ export default function TakeTestPage() {
           const url = sessionId ? `/api/test-sessions/${sessionId}` : '/api/test-sessions'
           const method = sessionId ? 'PUT' : 'POST'
 
-          await fetch(url, {
+          const response = await fetch(url, {
             method: method,
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify(sessionData)
           })
+          
+          const responseData = await response.json()
+          const finalSessionId = sessionId || responseData.session?._id
+          
+          // Exit fullscreen if still in it
+          if (document.fullscreenElement) {
+            await document.exitFullscreen()
+          }
+          
+          // Redirect to analysis page
+          if (finalSessionId) {
+            router.push(`/dashboard/tests/${testId}/results?sessionId=${finalSessionId}&returnUrl=${encodeURIComponent(returnUrl)}`)
+          } else {
+            router.push(returnUrl)
+          }
+        } else {
+          // No token, just redirect
+          if (document.fullscreenElement) {
+            await document.exitFullscreen()
+          }
+          router.push(returnUrl)
         }
+      } else {
+        // Non-tutor mode auto-submit (if needed in future)
+        // Exit fullscreen if still in it
+        if (document.fullscreenElement) {
+          await document.exitFullscreen()
+        }
+        router.push(returnUrl)
       }
-      
-      // Exit fullscreen if still in it
-      if (document.fullscreenElement) {
-        await document.exitFullscreen()
-      }
-      
-      // Redirect back
-      router.push(returnUrl)
     } catch (error) {
       console.error('Auto-submit error:', error)
+      // Exit fullscreen if still in it
+      if (document.fullscreenElement) {
+        await document.exitFullscreen().catch(() => {})
+      }
       router.push(returnUrl)
     }
   }
