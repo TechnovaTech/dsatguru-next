@@ -296,16 +296,42 @@ export default function TakeTestPage() {
       }
     }
 
+    // Detect Print Screen key
+    const handlePrintScreen = async (e) => {
+      if ((e.key === 'PrintScreen' || e.keyCode === 44) && isFullscreen && !testCompleted && !showModuleSummary) {
+        e.preventDefault()
+        await handleAutoSubmit('Screenshot attempt detected. Test auto-submitted.')
+      }
+    }
+
+    // Detect window blur (minimize or focus loss)
+    const handleWindowBlur = async () => {
+      if (isFullscreen && !testCompleted && !showModuleSummary) {
+        // Small delay to avoid false positives
+        setTimeout(async () => {
+          if (!document.hasFocus() && isFullscreen && !testCompleted && !showModuleSummary) {
+            await handleAutoSubmit('You minimized or switched away from the test window.')
+          }
+        }, 500)
+      }
+    }
+
     document.addEventListener('visibilitychange', handleVisibilityChange)
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     document.addEventListener('keydown', handleEscKey)
     document.addEventListener('keydown', handleF11Key)
+    document.addEventListener('keydown', handlePrintScreen)
+    document.addEventListener('keyup', handlePrintScreen) // Also check keyup
+    window.addEventListener('blur', handleWindowBlur)
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       document.removeEventListener('fullscreenchange', handleFullscreenChange)
       document.removeEventListener('keydown', handleEscKey)
       document.removeEventListener('keydown', handleF11Key)
+      document.removeEventListener('keydown', handlePrintScreen)
+      document.removeEventListener('keyup', handlePrintScreen)
+      window.removeEventListener('blur', handleWindowBlur)
     }
   }, [isFullscreen, testCompleted, showModuleSummary, router, answers, moduleQuestions])
 
@@ -1191,7 +1217,16 @@ export default function TakeTestPage() {
                 {test?.practiceMode !== 'untimed' && <li>✓ Timer will start immediately</li>}
                 <li>⚠️ Switching tabs will terminate the test</li>
                 <li>⚠️ Exiting fullscreen will terminate the test</li>
+                <li>⚠️ Minimizing window will terminate the test</li>
+                <li>⚠️ Taking screenshots will terminate the test</li>
+                <li>⚠️ Pressing ESC or F11 will terminate the test</li>
               </ul>
+              <div className="mt-4 pt-4 border-t border-yellow-300">
+                <p className="text-sm font-bold text-red-700 flex items-center gap-2">
+                  <span className="text-lg">🚨</span>
+                  <span>IMPORTANT: Any violation will auto-submit the test immediately. No warnings, no second chances!</span>
+                </p>
+              </div>
             </div>
 
             <div className="space-y-3">
