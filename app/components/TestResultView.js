@@ -917,6 +917,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                 {/* Options */}
                                 <div className="space-y-2">
                                     {q.options && (typeof q.options === 'object') && (q.options.A || q.options.B || q.options.C || q.options.D) ? (
+                                        // MULTIPLE CHOICE QUESTIONS
                                         ['A', 'B', 'C', 'D'].map((opt) => {
                                             const isCorrect = q.correctAnswer === opt
                                             const isSelected = q.userAnswer === opt
@@ -958,24 +959,46 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                             )
                                         })
                                     ) : (
-                                        <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                                            <div className="flex items-center gap-2 text-sm text-yellow-800">
-                                                <FiAlertCircle className="w-4 h-4" />
-                                                <span>Options not available for this question</span>
+                                        // FILL-IN-THE-BLANK QUESTIONS
+                                        <div className="space-y-3">
+                                            {/* Student's Answer */}
+                                            <div className={`p-4 rounded-lg border-2 ${
+                                                q.isCorrect 
+                                                    ? 'bg-green-50 border-green-500' 
+                                                    : 'bg-red-50 border-red-500'
+                                            }`}>
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    {q.isCorrect ? (
+                                                        <>
+                                                            <FiCheckCircle className="w-5 h-5 text-green-600" />
+                                                            <span className="font-bold text-green-700">Your Answer (Correct)</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <FiXCircle className="w-5 h-5 text-red-600" />
+                                                            <span className="font-bold text-red-700">Your Answer (Incorrect)</span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <div className={`text-lg font-semibold ${
+                                                    q.isCorrect ? 'text-green-900' : 'text-red-900'
+                                                }`}>
+                                                    {q.userAnswer || <span className="text-gray-400 italic">No answer provided</span>}
+                                                </div>
                                             </div>
-                                            {/* Debug info */}
-                                            <details className="mt-2">
-                                                <summary className="text-xs text-yellow-600 cursor-pointer">Debug Info</summary>
-                                                <pre className="text-xs mt-2 p-2 bg-white rounded overflow-auto">
-                                                    {JSON.stringify({ 
-                                                        options: q.options, 
-                                                        optionA: q.optionA,
-                                                        optionB: q.optionB,
-                                                        optionC: q.optionC,
-                                                        optionD: q.optionD
-                                                    }, null, 2)}
-                                                </pre>
-                                            </details>
+
+                                            {/* Correct Answer (if wrong) */}
+                                            {!q.isCorrect && q.correctAnswer && (
+                                                <div className="p-4 rounded-lg border-2 bg-green-50 border-green-500">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <FiCheckCircle className="w-5 h-5 text-green-600" />
+                                                        <span className="font-bold text-green-700">Correct Answer</span>
+                                                    </div>
+                                                    <div className="text-lg font-semibold text-green-900">
+                                                        {q.correctAnswer}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                     

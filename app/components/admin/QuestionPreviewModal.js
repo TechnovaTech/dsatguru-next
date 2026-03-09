@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { FiX, FiChevronLeft, FiChevronRight, FiEdit2, FiSave } from 'react-icons/fi'
+import { FiX, FiChevronLeft, FiChevronRight, FiEdit2, FiSave, FiCheckCircle } from 'react-icons/fi'
 
 export default function QuestionPreviewModal({ questions, onClose, onQuestionsUpdate }) {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -206,46 +206,73 @@ export default function QuestionPreviewModal({ questions, onClose, onQuestionsUp
 
           {/* Options */}
           <div className="space-y-3">
-            <span className="text-sm font-semibold text-gray-700">Answer Options</span>
-            {['A', 'B', 'C', 'D'].map((optionKey) => {
-              const isCorrect = currentQuestion.correctAnswer === optionKey
-              return (
-                <div key={optionKey} className={`p-3 border-2 rounded-lg ${
-                  isCorrect ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white'
-                }`}>
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className={`font-bold text-sm ${isCorrect ? 'text-green-700' : 'text-gray-600'}`}>
-                        {optionKey}.
-                      </span>
-                      {isCorrect && (
-                        <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded">
-                          Correct Answer
-                        </span>
+            {currentQuestion.options?.A || currentQuestion.options?.B || currentQuestion.options?.C || currentQuestion.options?.D ? (
+              // MULTIPLE CHOICE - Show all options
+              <>
+                <span className="text-sm font-semibold text-gray-700">Answer Options</span>
+                {['A', 'B', 'C', 'D'].map((optionKey) => {
+                  const isCorrect = currentQuestion.correctAnswer === optionKey
+                  const optionText = currentQuestion.options[optionKey] || ''
+                  if (!optionText) return null
+                  
+                  return (
+                    <div key={optionKey} className={`p-3 border-2 rounded-lg ${
+                      isCorrect ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white'
+                    }`}>
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-bold text-sm ${isCorrect ? 'text-green-700' : 'text-gray-600'}`}>
+                            {optionKey}.
+                          </span>
+                          {isCorrect && (
+                            <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded">
+                              Correct Answer
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => toggleEditMode(`option${optionKey}`)}
+                          className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
+                        >
+                          <FiEdit2 className="w-3 h-3" /> Edit
+                        </button>
+                      </div>
+                      {editMode[`option${optionKey}`] ? (
+                        <textarea
+                          value={currentQuestion.options[optionKey] || ''}
+                          onChange={(e) => handleOptionEdit(optionKey, e.target.value)}
+                          className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                          rows="2"
+                        />
+                      ) : (
+                        <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                          {renderContent(currentQuestion.options[optionKey] || '')}
+                        </div>
                       )}
                     </div>
-                    <button
-                      onClick={() => toggleEditMode(`option${optionKey}`)}
-                      className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
-                    >
-                      <FiEdit2 className="w-3 h-3" /> Edit
-                    </button>
+                  )
+                })}
+              </>
+            ) : (
+              // FILL-IN-THE-BLANK - Show correct answer only
+              <>
+                <span className="text-sm font-semibold text-gray-700">Correct Answer (Fill-in-the-Blank)</span>
+                <div className="p-4 border-2 rounded-lg border-green-500 bg-green-50">
+                  <div className="flex items-center gap-3 mb-2">
+                    <FiCheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded">
+                      Students will type their answer
+                    </span>
                   </div>
-                  {editMode[`option${optionKey}`] ? (
-                    <textarea
-                      value={currentQuestion.options[optionKey] || ''}
-                      onChange={(e) => handleOptionEdit(optionKey, e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                      rows="2"
-                    />
-                  ) : (
-                    <div className="text-sm text-gray-700 whitespace-pre-wrap">
-                      {renderContent(currentQuestion.options[optionKey] || '')}
-                    </div>
-                  )}
+                  <div className="text-lg font-bold text-green-900">
+                    {currentQuestion.correctAnswer}
+                  </div>
+                  <p className="text-xs text-green-700 mt-2">
+                    This is a fill-in-the-blank question. Students will see a text input field instead of multiple choice options.
+                  </p>
                 </div>
-              )
-            })}
+              </>
+            )}
           </div>
 
           {/* Explanations */}

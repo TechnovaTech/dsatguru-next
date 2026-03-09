@@ -1180,40 +1180,63 @@ export default function CreateTutorTest() {
 
                           {/* Answer Options */}
                           <div className="space-y-3">
-                            <p className="text-sm font-semibold text-gray-700">Answer Choices:</p>
-                            {['A', 'B', 'C', 'D'].map(option => {
-                              const optionText = options[option] || options[option.toLowerCase()] || ''
-                              if (!optionText) return null
-                              
-                              return (
-                                <div 
-                                  key={option}
-                                  className={`p-4 rounded-lg border-2 transition-all ${
-                                    q.correctAnswer === option 
-                                      ? 'bg-green-50 border-green-500' 
-                                      : 'bg-gray-50 border-gray-200'
-                                  }`}
-                                >
-                                  <div className="flex items-start gap-3">
-                                    <span className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                                      q.correctAnswer === option
-                                        ? 'bg-green-500 text-white'
-                                        : 'bg-gray-300 text-gray-700'
-                                    }`}>
-                                      {option}
-                                    </span>
-                                    <div className="flex-1">
-                                      <div dangerouslySetInnerHTML={{ __html: optionText }} />
-                                      {q.correctAnswer === option && (
-                                        <div className="mt-2 flex items-center gap-2 text-green-700 font-semibold text-sm">
-                                          <FiCheck className="w-4 h-4" /> Correct Answer
+                            {options.A || options.B || options.C || options.D ? (
+                              // MULTIPLE CHOICE - Show all options
+                              <>
+                                <p className="text-sm font-semibold text-gray-700">Answer Choices:</p>
+                                {['A', 'B', 'C', 'D'].map(option => {
+                                  const optionText = options[option] || options[option.toLowerCase()] || ''
+                                  if (!optionText) return null
+                                  
+                                  return (
+                                    <div 
+                                      key={option}
+                                      className={`p-4 rounded-lg border-2 transition-all ${
+                                        q.correctAnswer === option 
+                                          ? 'bg-green-50 border-green-500' 
+                                          : 'bg-gray-50 border-gray-200'
+                                      }`}
+                                    >
+                                      <div className="flex items-start gap-3">
+                                        <span className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                          q.correctAnswer === option
+                                            ? 'bg-green-500 text-white'
+                                            : 'bg-gray-300 text-gray-700'
+                                        }`}>
+                                          {option}
+                                        </span>
+                                        <div className="flex-1">
+                                          <div dangerouslySetInnerHTML={{ __html: optionText }} />
+                                          {q.correctAnswer === option && (
+                                            <div className="mt-2 flex items-center gap-2 text-green-700 font-semibold text-sm">
+                                              <FiCheck className="w-4 h-4" /> Correct Answer
+                                            </div>
+                                          )}
                                         </div>
-                                      )}
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </>
+                            ) : (
+                              // FILL-IN-THE-BLANK - Show correct answer only
+                              <>
+                                <p className="text-sm font-semibold text-gray-700">Correct Answer:</p>
+                                <div className="p-5 rounded-lg border-2 bg-green-50 border-green-500">
+                                  <div className="flex items-center gap-3">
+                                    <FiCheck className="w-6 h-6 text-green-600 flex-shrink-0" />
+                                    <div className="flex-1">
+                                      <div className="text-lg font-bold text-green-900">
+                                        {q.correctAnswer}
+                                      </div>
+                                      <p className="text-sm text-green-700 mt-1">
+                                        Students will type their answer for this fill-in-the-blank question
+                                      </p>
                                     </div>
                                   </div>
                                 </div>
-                              )
-                            })}
+                              </>
+                            )}
                           </div>
 
                           {/* Explanations */}
