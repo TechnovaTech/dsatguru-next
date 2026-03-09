@@ -844,7 +844,21 @@ export default function TakeTestPage() {
     // Calculate module score
     let correctCount = 0
     moduleQuestions.forEach(q => {
-      if (answers[q._id] === q.correctAnswer) correctCount++
+      const userAnswer = answers[q._id]
+      const correctAnswer = q.correctAnswer
+      
+      // Check if it's multiple choice or fill-in-the-blank
+      const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
+      
+      if (hasOptions) {
+        // Multiple choice - exact match
+        if (userAnswer === correctAnswer) correctCount++
+      } else {
+        // Fill-in-the-blank - case-insensitive comparison with trimmed whitespace
+        if (userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()) {
+          correctCount++
+        }
+      }
     })
     
     const moduleKey = `${currentSection}_module${currentModule}`
@@ -902,7 +916,21 @@ export default function TakeTestPage() {
     if (test?.practiceMode === 'tutor') {
         const correct = Object.keys(answers).filter(qId => {
             const q = moduleQuestions.find(mq => mq._id === qId)
-            return q && answers[qId] === q.correctAnswer
+            if (!q) return false
+            
+            const userAnswer = answers[qId]
+            const correctAnswer = q.correctAnswer
+            
+            // Check if it's multiple choice or fill-in-the-blank
+            const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
+            
+            if (hasOptions) {
+              // Multiple choice - exact match
+              return userAnswer === correctAnswer
+            } else {
+              // Fill-in-the-blank - case-insensitive comparison
+              return userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()
+            }
         }).length
         
         // For tutor mode, just save the session and redirect
@@ -921,10 +949,23 @@ export default function TakeTestPage() {
             Object.keys(answers).forEach(qId => {
                 const q = moduleQuestions.find(mq => mq._id === qId)
                 if (q) {
+                    const userAnswer = answers[qId]
+                    const correctAnswer = q.correctAnswer
+                    let isCorrect = false
+                    
+                    // Check if it's multiple choice or fill-in-the-blank
+                    const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
+                    
+                    if (hasOptions) {
+                      isCorrect = userAnswer === correctAnswer
+                    } else {
+                      isCorrect = userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()
+                    }
+                    
                     responses.push({
                         questionId: qId,
-                        selectedAnswer: answers[qId],
-                        isCorrect: answers[qId] === q.correctAnswer,
+                        selectedAnswer: userAnswer,
+                        isCorrect: isCorrect,
                         timeSpent: questionTimes[qId] || 0,
                         answeredAt: new Date()
                     })
@@ -1008,10 +1049,23 @@ export default function TakeTestPage() {
           Object.keys(modAnswers).forEach(qId => {
              const q = allQuestions.find(qt => String(qt._id) === String(qId))
              if (q) {
+               const userAnswer = modAnswers[qId]
+               const correctAnswer = q.correctAnswer
+               let isCorrect = false
+               
+               // Check if it's multiple choice or fill-in-the-blank
+               const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
+               
+               if (hasOptions) {
+                 isCorrect = userAnswer === correctAnswer
+               } else {
+                 isCorrect = userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()
+               }
+               
                responses.push({
                  questionId: qId,
-                 selectedAnswer: modAnswers[qId],
-                 isCorrect: modAnswers[qId] === q.correctAnswer,
+                 selectedAnswer: userAnswer,
+                 isCorrect: isCorrect,
                  timeSpent: questionTimes[qId] || 0,
                  answeredAt: new Date()
                })
@@ -1644,103 +1698,159 @@ export default function TakeTestPage() {
                   </button>
                 </div>
 
-                {/* Answer Options */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      Choose an Answer
-                    </span>
-                  </div>
-                  
-                  {['A', 'B', 'C', 'D'].map((option) => {
-                    const isSelected = answers[currentQ._id] === option
-                    const isElim = isEliminated(currentQ._id, option)
-                    // Only show immediate feedback for Tutor MODE (self-practice), NOT tutor-created tests
-                    const isTutorMode = test?.practiceMode === 'tutor' && !test?.isTutorTest
-                    const isCorrect = currentQ.correctAnswer === option
+                {/* Answer Options - Check if Multiple Choice or Fill-in-the-Blank */}
+                {(currentQ?.optionA?.trim() && currentQ?.optionB?.trim() && currentQ?.optionC?.trim() && currentQ?.optionD?.trim()) ? (
+                  // MULTIPLE CHOICE QUESTIONS
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Choose an Answer
+                      </span>
+                    </div>
                     
-                    let containerStyle = ''
-                    let circleStyle = ''
-                    
-                    if (isTutorMode && answers[currentQ._id]) {
-                        if (isCorrect) {
-                             // Always highlight correct answer in green, whether selected or not
-                             containerStyle = 'border-green-500 bg-green-50'
-                             circleStyle = 'border-green-600 bg-green-600 text-white'
-                        } else if (isSelected) {
-                            // Wrong answer selected
-                            containerStyle = 'border-red-500 bg-red-50'
-                            circleStyle = 'border-red-600 bg-red-600 text-white'
-                        } else if (isElim) {
-                             containerStyle = 'border-gray-200 bg-gray-50'
-                             circleStyle = 'border-gray-300 text-gray-300 bg-transparent'
-                        } else {
-                            containerStyle = 'border-gray-300 opacity-60'
-                            circleStyle = 'border-gray-400 text-gray-700 bg-white'
-                        }
-                    } else {
-                        if (isSelected) {
-                            containerStyle = 'border-gray-800 bg-gray-50'
-                            circleStyle = 'border-gray-800 bg-gray-800 text-white'
-                        } else if (isElim) {
-                            containerStyle = 'border-gray-200 bg-gray-50'
-                            circleStyle = 'border-gray-300 text-gray-300 bg-transparent'
-                        } else {
-                            containerStyle = 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                            circleStyle = 'border-gray-400 text-gray-700 bg-white group-hover:border-gray-600'
-                        }
-                    }
-                    
-                    return (
-                      <div key={option} className="flex items-stretch gap-3">
-                        <div
-                          className={`group flex-1 flex items-stretch border-2 rounded-lg transition-all overflow-hidden relative ${containerStyle}`}
-                        >
-                          <button
-                            onClick={() => {
-                               if (isElim) toggleEliminateAnswer(currentQ._id, option);
-                               handleAnswer(currentQ._id, option);
-                            }}
-                            className="flex-1 text-left p-3 sm:p-4 flex items-start gap-3 sm:gap-4 relative"
-                            disabled={isTutorMode && answers[currentQ._id]}
+                    {['A', 'B', 'C', 'D'].map((option) => {
+                      const isSelected = answers[currentQ._id] === option
+                      const isElim = isEliminated(currentQ._id, option)
+                      // Only show immediate feedback for Tutor MODE (self-practice), NOT tutor-created tests
+                      const isTutorMode = test?.practiceMode === 'tutor' && !test?.isTutorTest
+                      const isCorrect = currentQ.correctAnswer === option
+                      
+                      let containerStyle = ''
+                      let circleStyle = ''
+                      
+                      if (isTutorMode && answers[currentQ._id]) {
+                          if (isCorrect) {
+                               // Always highlight correct answer in green, whether selected or not
+                               containerStyle = 'border-green-500 bg-green-50'
+                               circleStyle = 'border-green-600 bg-green-600 text-white'
+                          } else if (isSelected) {
+                              // Wrong answer selected
+                              containerStyle = 'border-red-500 bg-red-50'
+                              circleStyle = 'border-red-600 bg-red-600 text-white'
+                          } else if (isElim) {
+                               containerStyle = 'border-gray-200 bg-gray-50'
+                               circleStyle = 'border-gray-300 text-gray-300 bg-transparent'
+                          } else {
+                              containerStyle = 'border-gray-300 opacity-60'
+                              circleStyle = 'border-gray-400 text-gray-700 bg-white'
+                          }
+                      } else {
+                          if (isSelected) {
+                              containerStyle = 'border-gray-800 bg-gray-50'
+                              circleStyle = 'border-gray-800 bg-gray-800 text-white'
+                          } else if (isElim) {
+                              containerStyle = 'border-gray-200 bg-gray-50'
+                              circleStyle = 'border-gray-300 text-gray-300 bg-transparent'
+                          } else {
+                              containerStyle = 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                              circleStyle = 'border-gray-400 text-gray-700 bg-white group-hover:border-gray-600'
+                          }
+                      }
+                      
+                      return (
+                        <div key={option} className="flex items-stretch gap-3">
+                          <div
+                            className={`group flex-1 flex items-stretch border-2 rounded-lg transition-all overflow-hidden relative ${containerStyle}`}
                           >
-                            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold transition-colors ${circleStyle}`}>
-                              {option}
-                            </div>
-                            <div className={`flex-1 pt-1 text-base sm:text-lg leading-relaxed ${
-                              isElim ? 'text-gray-400 line-through decoration-2 decoration-gray-400' : 'text-gray-900'
-                            }`}>
-                              {currentQ?.[`option${option}`]}
-                            </div>
+                            <button
+                              onClick={() => {
+                                 if (isElim) toggleEliminateAnswer(currentQ._id, option);
+                                 handleAnswer(currentQ._id, option);
+                              }}
+                              className="flex-1 text-left p-3 sm:p-4 flex items-start gap-3 sm:gap-4 relative"
+                              disabled={isTutorMode && answers[currentQ._id]}
+                            >
+                              <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold transition-colors ${circleStyle}`}>
+                                {option}
+                              </div>
+                              <div className={`flex-1 pt-1 text-base sm:text-lg leading-relaxed ${
+                                isElim ? 'text-gray-400 line-through decoration-2 decoration-gray-400' : 'text-gray-900'
+                              }`}>
+                                {currentQ?.[`option${option}`]}
+                              </div>
+                            </button>
+                          </div>
+
+                          <button
+                             onClick={(e) => {
+                               e.stopPropagation()
+                               toggleEliminateAnswer(currentQ._id, option)
+                             }}
+                             className={`group flex-shrink-0 w-10 sm:w-12 flex items-center justify-center rounded-lg border-2 transition-colors ${
+                               isElim 
+                                 ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' 
+                                 : 'bg-white text-gray-300 border-gray-200 hover:text-gray-500 hover:border-gray-300 hover:bg-gray-50'
+                             }`}
+                             title={isElim ? "Undo Elimination" : "Eliminate Answer"}
+                             disabled={isTutorMode && answers[currentQ._id]}
+                          >
+                            {isElim ? (
+                              <span className="text-xs font-bold">Undo</span>
+                            ) : (
+                              <div className="relative w-5 h-5 flex items-center justify-center font-bold text-[10px] border border-current rounded">
+                                ABC
+                                <div className={`absolute inset-0 border-t border-current transform -rotate-12 top-1/2 ${isElim ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}></div>
+                              </div>
+                            )}
                           </button>
                         </div>
-
-                        <button
-                           onClick={(e) => {
-                             e.stopPropagation()
-                             toggleEliminateAnswer(currentQ._id, option)
-                           }}
-                           className={`group flex-shrink-0 w-10 sm:w-12 flex items-center justify-center rounded-lg border-2 transition-colors ${
-                             isElim 
-                               ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' 
-                               : 'bg-white text-gray-300 border-gray-200 hover:text-gray-500 hover:border-gray-300 hover:bg-gray-50'
-                           }`}
-                           title={isElim ? "Undo Elimination" : "Eliminate Answer"}
-                           disabled={isTutorMode && answers[currentQ._id]}
-                        >
-                          {isElim ? (
-                            <span className="text-xs font-bold">Undo</span>
-                          ) : (
-                            <div className="relative w-5 h-5 flex items-center justify-center font-bold text-[10px] border border-current rounded">
-                              ABC
-                              <div className={`absolute inset-0 border-t border-current transform -rotate-12 top-1/2 ${isElim ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}></div>
-                            </div>
-                          )}
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  // FILL-IN-THE-BLANK QUESTIONS
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Enter Your Answer
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <input
+                        type="text"
+                        value={answers[currentQ._id] || ''}
+                        onChange={(e) => handleAnswer(currentQ._id, e.target.value)}
+                        className="w-full border-2 border-gray-300 rounded-lg p-4 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all"
+                        placeholder="Type your answer here..."
+                        disabled={test?.practiceMode === 'tutor' && !test?.isTutorTest && answers[currentQ._id]}
+                      />
+                      
+                      {/* Show feedback for tutor mode */}
+                      {test?.practiceMode === 'tutor' && !test?.isTutorTest && answers[currentQ._id] && (
+                        <div className={`p-4 rounded-lg border-2 ${
+                          answers[currentQ._id]?.trim().toLowerCase() === currentQ.correctAnswer?.trim().toLowerCase()
+                            ? 'bg-green-50 border-green-500'
+                            : 'bg-red-50 border-red-500'
+                        }`}>
+                          <div className="flex items-center gap-2 mb-2">
+                            {answers[currentQ._id]?.trim().toLowerCase() === currentQ.correctAnswer?.trim().toLowerCase() ? (
+                              <>
+                                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="font-bold text-green-700">Correct!</span>
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="font-bold text-red-700">Incorrect</span>
+                              </>
+                            )}
+                          </div>
+                          <div className="text-sm">
+                            <span className="font-semibold">Your answer:</span> {answers[currentQ._id]}
+                          </div>
+                          <div className="text-sm mt-1">
+                            <span className="font-semibold">Correct answer:</span> {currentQ.correctAnswer}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Tutor Mode: Show Explanation after answer is selected (NOT for tutor-created tests) */}
                 {test?.practiceMode === 'tutor' && !test?.isTutorTest && answers[currentQ._id] && currentQ?.explanation && (
