@@ -1,0 +1,72 @@
+'use client'
+import Link from 'next/link'
+import { useEffect } from 'react'
+import { useAuth } from '../components/AuthContext'
+import { usePathname, useRouter } from 'next/navigation'
+import { FiGrid, FiUsers, FiFileText, FiAward, FiLogOut } from 'react-icons/fi'
+
+export default function TutorLayout({ children }) {
+  const { user, logout, loading } = useAuth()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  useEffect(() => {
+    if (!loading) {
+      if (!user || user.role !== 'Tutor') {
+        router.push('/login')
+      }
+    }
+  }, [user, loading, router])
+
+  const menuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: <FiGrid />, path: '/tutor/dashboard' },
+    { id: 'students', label: 'My Students', icon: <FiUsers />, path: '/tutor/students' },
+    { id: 'tests', label: 'Test Sheets', icon: <FiFileText />, path: '/tutor/tests' },
+    { id: 'results', label: 'Test Results', icon: <FiAward />, path: '/tutor/results' }
+  ]
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/login')
+  }
+
+  if (loading) return null
+  if (!user || user.role !== 'Tutor') return null
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex">
+      <div className="w-64 h-screen bg-white shadow-lg overflow-y-auto">
+        <div className="p-6 border-b">
+          <a href="https://dsatguru.com" className="block">
+            <h1 className="text-xl font-bold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer">DSATGURU Tutor</h1>
+          </a>
+          <p className="text-sm text-gray-600">Welcome, {user?.name}</p>
+        </div>
+        <nav className="p-4">
+          {menuItems.map((item) => (
+            <Link 
+              key={item.id}
+              href={item.path} 
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 text-left transition-colors ${
+                pathname === item.path 
+                  ? 'bg-blue-100 text-blue-600' 
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            > 
+              {item.icon}
+              {item.label}
+            </Link>
+          ))}
+          <button 
+            onClick={handleLogout} 
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mt-8 text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <FiLogOut />
+            Logout
+          </button>
+        </nav>
+      </div>
+      <div className="flex-1 overflow-auto">{children}</div>
+    </div>
+  )
+}

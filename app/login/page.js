@@ -75,7 +75,7 @@ export default function Login() {
       } else if (response.data.user.role === 'TutorAdmin') {
         router.push('/admin/tutor/question-bank')
       } else if (response.data.user.role === 'Tutor') {
-        router.push('/admin/dashboard')
+        router.push('/tutor/dashboard')
       } else {
         router.push('/dashboard')
       }
