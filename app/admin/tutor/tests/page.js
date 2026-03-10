@@ -589,6 +589,9 @@ export default function TutorTestSheets() {
   }
 
   const filteredTests = tests.filter(test => {
+    // Filter out reassigned tests
+    if (test.isReassigned === true) return false
+    
     // Filter by subject (tab)
     if (test.subject !== activeTab) return false
     
