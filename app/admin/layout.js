@@ -43,6 +43,7 @@ export default function AdminLayout({ children }) {
         { id: 'tutor-question-bank', label: 'Tutor Question Bank', path: '/admin/tutor/question-bank' },
         { id: 'tutor-create-test', label: 'Tutor Test Creation', path: '/admin/tutor/create-test' },
         { id: 'tutor-test-sheets', label: 'Tutor Test Sheets', path: '/admin/tutor/tests' },
+        { id: 'tutor-users', label: 'Tutor and Students', path: '/admin/tutor/users' },
         { id: 'tutor-results', label: 'Tutor Test Results', path: '/admin/tutor/results' }
       ]
     },
