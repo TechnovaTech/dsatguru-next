@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiSearch, FiUser, FiMail, FiPhone, FiCalendar } from 'react-icons/fi'
+import { FiSearch, FiUser, FiMail, FiCalendar } from 'react-icons/fi'
 
 export default function TutorAndStudents() {
   const [activeTab, setActiveTab] = useState('tutors')
@@ -41,8 +41,7 @@ export default function TutorAndStudents() {
     const search = searchTerm.toLowerCase()
     return (
       user.name?.toLowerCase().includes(search) ||
-      user.email?.toLowerCase().includes(search) ||
-      user.phone?.toLowerCase().includes(search)
+      user.email?.toLowerCase().includes(search)
     )
   })
 
@@ -96,7 +95,7 @@ export default function TutorAndStudents() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by name, email, or phone..."
+              placeholder="Search by name or email..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
