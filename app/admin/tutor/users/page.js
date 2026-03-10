@@ -115,7 +115,6 @@ export default function TutorAndStudents() {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Joined Date</th>
@@ -124,11 +123,11 @@ export default function TutorAndStudents() {
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">Loading...</td>
+                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">Loading...</td>
                   </tr>
                 ) : filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
                       No {activeTab === 'tutors' ? 'tutors' : 'students'} found
                     </td>
                   </tr>
@@ -147,12 +146,6 @@ export default function TutorAndStudents() {
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <FiMail className="text-gray-400" />
                           {user.email}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <FiPhone className="text-gray-400" />
-                          {user.phone || '-'}
                         </div>
                       </td>
                       <td className="px-6 py-4">

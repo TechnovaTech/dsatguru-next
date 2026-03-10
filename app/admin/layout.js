@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useAuth } from '../components/AuthContext'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { FiGrid, FiHelpCircle, FiCalendar, FiUsers, FiMessageSquare, FiBarChart, FiDollarSign, FiSettings, FiLogOut, FiBookOpen, FiTarget, FiClipboard, FiTrendingUp, FiUpload, FiDatabase, FiFileText, FiCheckSquare, FiChevronDown, FiChevronRight, FiActivity } from 'react-icons/fi'
+import { FiGrid, FiHelpCircle, FiCalendar, FiUsers, FiMessageSquare, FiBarChart, FiDollarSign, FiSettings, FiLogOut, FiBookOpen, FiTarget, FiClipboard, FiTrendingUp, FiUpload, FiDatabase, FiFileText, FiCheckSquare, FiChevronDown, FiChevronRight, FiActivity, FiEdit, FiList, FiAward } from 'react-icons/fi'
 
 export default function AdminLayout({ children }) {
   const { user, logout, loading } = useAuth()
@@ -42,11 +42,11 @@ export default function AdminLayout({ children }) {
       icon: <FiCheckSquare />, 
       path: '#',
       submenu: [
-        { id: 'tutor-question-bank', label: 'Tutor Question Bank', path: '/admin/tutor/question-bank' },
-        { id: 'tutor-create-test', label: 'Tutor Test Creation', path: '/admin/tutor/create-test' },
-        { id: 'tutor-test-sheets', label: 'Tutor Test Sheets', path: '/admin/tutor/tests' },
-        { id: 'tutor-users', label: 'Tutor and Students', path: '/admin/tutor/users' },
-        { id: 'tutor-results', label: 'Tutor Test Results', path: '/admin/tutor/results' }
+        { id: 'tutor-question-bank', label: 'Tutor Question Bank', path: '/admin/tutor/question-bank', icon: <FiDatabase /> },
+        { id: 'tutor-create-test', label: 'Tutor Test Creation', path: '/admin/tutor/create-test', icon: <FiEdit /> },
+        { id: 'tutor-test-sheets', label: 'Tutor Test Sheets', path: '/admin/tutor/tests', icon: <FiFileText /> },
+        { id: 'tutor-users', label: 'Tutor and Students', path: '/admin/tutor/users', icon: <FiUsers /> },
+        { id: 'tutor-results', label: 'Tutor Test Results', path: '/admin/tutor/results', icon: <FiAward /> }
       ]
     },
     { id: 'test-sessions', label: 'Test Session Monitoring', icon: <FiBarChart />, path: '/admin/test-sessions' },
@@ -84,7 +84,7 @@ export default function AdminLayout({ children }) {
         return tutorTestsItem.submenu.map(sub => ({
           id: sub.id,
           label: sub.label,
-          icon: <FiCheckSquare />,
+          icon: sub.icon || <FiCheckSquare />,
           path: sub.path
         }))
       }
@@ -102,7 +102,7 @@ export default function AdminLayout({ children }) {
           .map(sub => ({
             id: sub.id,
             label: sub.label,
-            icon: <FiCheckSquare />,
+            icon: sub.icon || <FiCheckSquare />,
             path: sub.path
           }))
         return [...mainItems, ...allowedSubmenus]

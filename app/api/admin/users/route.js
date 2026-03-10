@@ -9,10 +9,21 @@ export async function GET(request) {
     await connectDB()
     const token = getTokenFromRequest(request)
     const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
+    if (!decoded || !['Admin', 'TutorAdmin'].includes(decoded.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const users = await User.find().sort({ createdAt: -1 }).select('-password')
+    
+    // Get role filter from query params
+    const { searchParams } = new URL(request.url)
+    const roleFilter = searchParams.get('role')
+    
+    // Build query
+    const query = {}
+    if (roleFilter) {
+      query.role = roleFilter
+    }
+    
+    const users = await User.find(query).sort({ createdAt: -1 }).select('-password')
     return NextResponse.json(users)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
