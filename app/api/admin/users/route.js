@@ -9,7 +9,7 @@ export async function GET(request) {
     await connectDB()
     const token = getTokenFromRequest(request)
     const decoded = verifyToken(token)
-    if (!decoded || !['Admin', 'TutorAdmin'].includes(decoded.role)) {
+    if (!decoded || !['Admin', 'TutorAdmin', 'Tutor'].includes(decoded.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     
@@ -23,8 +23,27 @@ export async function GET(request) {
       query.role = roleFilter
     }
     
-    const users = await User.find(query).sort({ createdAt: -1 }).select('-password')
-    return NextResponse.json(users)
+    // If user is Tutor role, only show students assigned to them
+    if (decoded.role === 'Tutor' && roleFilter === 'Student') {
+      query.assignedTutor = decoded.userId
+    }
+    
+    const users = await User.find(query)
+      .sort({ createdAt: -1 })
+      .select('-password')
+      .populate('assignedTutor', 'name email')
+      .lean()
+    
+    // Transform the data to include assignedTutorDetails
+    const transformedUsers = users.map(user => ({
+      ...user,
+      assignedTutorDetails: user.assignedTutor ? {
+        name: user.assignedTutor.name,
+        email: user.assignedTutor.email
+      } : null
+    }))
+    
+    return NextResponse.json(transformedUsers)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
   }

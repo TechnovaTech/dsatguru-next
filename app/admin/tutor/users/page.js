@@ -1,13 +1,22 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiSearch, FiUser, FiMail, FiCalendar } from 'react-icons/fi'
+import { FiSearch, FiUser, FiMail, FiCalendar, FiUserPlus, FiX, FiCheck } from 'react-icons/fi'
 
 export default function TutorAndStudents() {
   const [activeTab, setActiveTab] = useState('tutors')
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  
+  // Assign students modal
+  const [showAssignModal, setShowAssignModal] = useState(false)
+  const [selectedTutor, setSelectedTutor] = useState(null)
+  const [allStudents, setAllStudents] = useState([])
+  const [assignedStudents, setAssignedStudents] = useState([])
+  const [loadingStudents, setLoadingStudents] = useState(false)
+  const [studentSearchTerm, setStudentSearchTerm] = useState('')
 
   useEffect(() => {
     fetchUsers()
@@ -36,12 +45,82 @@ export default function TutorAndStudents() {
     }
   }
 
+  const handleOpenAssignModal = async (tutor) => {
+    setSelectedTutor(tutor)
+    setShowAssignModal(true)
+    setLoadingStudents(true)
+    
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/admin/users?role=Student', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      
+      if (res.ok) {
+        const students = await res.json()
+        setAllStudents(students)
+        // Filter students already assigned to this tutor
+        const assigned = students.filter(s => s.assignedTutor === tutor._id)
+        setAssignedStudents(assigned.map(s => s._id))
+      }
+    } catch (err) {
+      console.error('Failed to load students', err)
+    } finally {
+      setLoadingStudents(false)
+    }
+  }
+
+  const handleToggleStudentAssignment = async (studentId) => {
+    try {
+      const token = localStorage.getItem('token')
+      const isCurrentlyAssigned = assignedStudents.includes(studentId)
+      
+      const res = await fetch(`/api/admin/users/${studentId}/assign-tutor`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          tutorId: isCurrentlyAssigned ? null : selectedTutor._id
+        })
+      })
+      
+      if (res.ok) {
+        if (isCurrentlyAssigned) {
+          setAssignedStudents(prev => prev.filter(id => id !== studentId))
+          setSuccess('Student unassigned successfully')
+        } else {
+          setAssignedStudents(prev => [...prev, studentId])
+          setSuccess('Student assigned successfully')
+        }
+        setTimeout(() => setSuccess(''), 3000)
+      } else {
+        const data = await res.json()
+        setError(data.error || 'Failed to update assignment')
+        setTimeout(() => setError(''), 3000)
+      }
+    } catch (err) {
+      setError('Failed to update assignment')
+      setTimeout(() => setError(''), 3000)
+    }
+  }
+
   const filteredUsers = users.filter(user => {
     if (!searchTerm) return true
     const search = searchTerm.toLowerCase()
     return (
       user.name?.toLowerCase().includes(search) ||
       user.email?.toLowerCase().includes(search)
+    )
+  })
+
+  const filteredStudentsForAssign = allStudents.filter(student => {
+    if (!studentSearchTerm) return true
+    const search = studentSearchTerm.toLowerCase()
+    return (
+      student.name?.toLowerCase().includes(search) ||
+      student.email?.toLowerCase().includes(search)
     )
   })
 
@@ -53,9 +132,15 @@ export default function TutorAndStudents() {
           <p className="text-gray-600">View and manage tutors and students</p>
         </div>
 
+        {success && (
+          <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg border border-green-100 flex items-center gap-2">
+            <FiCheck /> {success}
+          </div>
+        )}
+
         {error && (
-          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg border border-red-100">
-            {error}
+          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg border border-red-100 flex items-center gap-2">
+            <FiX /> {error}
           </div>
         )}
 
@@ -115,18 +200,24 @@ export default function TutorAndStudents() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                  {activeTab === 'students' && (
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned Tutor</th>
+                  )}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Joined Date</th>
+                  {activeTab === 'tutors' && (
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">Loading...</td>
+                    <td colSpan={activeTab === 'tutors' ? 6 : 6} className="px-6 py-4 text-center text-sm text-gray-500">Loading...</td>
                   </tr>
                 ) : filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                    <td colSpan={activeTab === 'tutors' ? 6 : 6} className="px-6 py-4 text-center text-sm text-gray-500">
                       No {activeTab === 'tutors' ? 'tutors' : 'students'} found
                     </td>
                   </tr>
@@ -156,6 +247,18 @@ export default function TutorAndStudents() {
                           {user.role}
                         </span>
                       </td>
+                      {activeTab === 'students' && (
+                        <td className="px-6 py-4">
+                          {user.assignedTutorDetails ? (
+                            <div className="text-sm">
+                              <div className="font-medium text-gray-900">{user.assignedTutorDetails.name}</div>
+                              <div className="text-gray-500 text-xs">{user.assignedTutorDetails.email}</div>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400 italic">Not assigned</span>
+                          )}
+                        </td>
+                      )}
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 text-xs font-medium rounded-full ${
                           user.isActive 
@@ -171,6 +274,16 @@ export default function TutorAndStudents() {
                           {new Date(user.createdAt).toLocaleDateString()}
                         </div>
                       </td>
+                      {activeTab === 'tutors' && (
+                        <td className="px-6 py-4">
+                          <button
+                            onClick={() => handleOpenAssignModal(user)}
+                            className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded text-sm"
+                          >
+                            <FiUserPlus className="mr-1" /> Assign Students
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}
@@ -178,6 +291,97 @@ export default function TutorAndStudents() {
             </table>
           </div>
         </div>
+
+        {/* Assign Students Modal */}
+        {showAssignModal && selectedTutor && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+              <div className="p-6 border-b flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Assign Students to {selectedTutor.name}</h2>
+                  <p className="text-sm text-gray-600 mt-1">Select students to assign to this tutor</p>
+                </div>
+                <button onClick={() => setShowAssignModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <FiX className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-4 border-b">
+                <div className="relative">
+                  <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={studentSearchTerm}
+                    onChange={(e) => setStudentSearchTerm(e.target.value)}
+                    placeholder="Search students..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4">
+                {loadingStudents ? (
+                  <div className="text-center py-8 text-gray-500">Loading students...</div>
+                ) : filteredStudentsForAssign.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">No students found</div>
+                ) : (
+                  <div className="space-y-2">
+                    {filteredStudentsForAssign.map((student) => {
+                      const isAssigned = assignedStudents.includes(student._id)
+                      const hasOtherTutor = student.assignedTutor && student.assignedTutor !== selectedTutor._id
+                      
+                      return (
+                        <div
+                          key={student._id}
+                          className={`p-4 border rounded-lg flex items-center justify-between ${
+                            isAssigned ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                              <FiUser className="text-blue-600" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">{student.name}</div>
+                              <div className="text-sm text-gray-600">{student.email}</div>
+                              {hasOtherTutor && (
+                                <div className="text-xs text-amber-600 mt-1">
+                                  Already assigned to another tutor
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleToggleStudentAssignment(student._id)}
+                            disabled={hasOtherTutor && !isAssigned}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              isAssigned
+                                ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                : hasOtherTutor
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
+                          >
+                            {isAssigned ? 'Unassign' : hasOtherTutor ? 'Assigned' : 'Assign'}
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4 border-t bg-gray-50">
+                <button
+                  onClick={() => setShowAssignModal(false)}
+                  className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
