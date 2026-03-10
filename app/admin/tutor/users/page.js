@@ -355,19 +355,30 @@ export default function TutorAndStudents() {
                               )}
                             </div>
                           </div>
-                          <button
-                            onClick={() => handleToggleStudentAssignment(student._id)}
-                            disabled={hasOtherTutor && !isAssigned}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                              isAssigned
-                                ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                                : hasOtherTutor
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
-                            }`}
-                          >
-                            {isAssigned ? 'Unassign' : hasOtherTutor ? 'Assigned' : 'Assign'}
-                          </button>
+                          {hasOtherTutor && !isAssigned ? (
+                            <div className="flex items-center gap-2">
+                              <span className="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg text-sm font-medium">
+                                Assigned
+                              </span>
+                              <button
+                                onClick={() => handleToggleStudentAssignment(student._id)}
+                                className="px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg text-sm font-medium transition-colors"
+                              >
+                                Unassign
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleToggleStudentAssignment(student._id)}
+                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                isAssigned
+                                  ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                              }`}
+                            >
+                              {isAssigned ? 'Unassign' : 'Assign'}
+                            </button>
+                          )}
                         </div>
                       )
                     })}
