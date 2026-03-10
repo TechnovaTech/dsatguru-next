@@ -29,9 +29,9 @@ export async function POST(request) {
       customQuestions: customQuestions || null, // Store edited versions
       duration: duration || null,
       isTimed: !!duration,
-      createdBy: decoded.userId,
-      isTutor: true,
-      testType: 'tutor',
+      isTutorTest: true, // Flag as tutor test
+      practiceMode: 'tutor', // Set practice mode to tutor
+      testType: 'Practice', // Use valid enum value
       isActive: true
     })
 
