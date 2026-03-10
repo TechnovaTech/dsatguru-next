@@ -34,6 +34,28 @@ export async function GET(request) {
       .populate('assignedTutor', 'name email')
       .lean()
     
+    // If fetching tutors, add student count for each
+    if (roleFilter === 'Tutor') {
+      const usersWithCounts = await Promise.all(users.map(async (user) => {
+        const studentCount = await User.countDocuments({ assignedTutor: user._id })
+        return {
+          ...user,
+          studentCount
+        }
+      }))
+      
+      // Transform the data to include assignedTutorDetails
+      const transformedUsers = usersWithCounts.map(user => ({
+        ...user,
+        assignedTutorDetails: user.assignedTutor ? {
+          name: user.assignedTutor.name,
+          email: user.assignedTutor.email
+        } : null
+      }))
+      
+      return NextResponse.json(transformedUsers)
+    }
+    
     // Transform the data to include assignedTutorDetails
     const transformedUsers = users.map(user => ({
       ...user,

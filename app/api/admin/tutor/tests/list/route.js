@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../../lib/db'
 import Test from '../../../../../../lib/models/Test'
+import User from '../../../../../../lib/models/User'
 import { getTokenFromRequest, verifyToken } from '../../../../../../lib/auth'
 
 export async function GET(request) {
@@ -13,7 +14,25 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Fetch all tutor tests
+    // If user is Tutor role, only show tests assigned to them
+    if (decoded.role === 'Tutor') {
+      const tutor = await User.findById(decoded.userId)
+      if (!tutor || !tutor.assignedTests || tutor.assignedTests.length === 0) {
+        return NextResponse.json([])
+      }
+
+      const tests = await Test.find({ 
+        _id: { $in: tutor.assignedTests },
+        isTutorTest: true, 
+        isActive: true 
+      })
+        .sort({ createdAt: -1 })
+        .lean()
+
+      return NextResponse.json(tests)
+    }
+
+    // Admin and TutorAdmin can see all tests
     const tests = await Test.find({ isTutorTest: true, isActive: true })
       .sort({ createdAt: -1 })
       .lean()
