@@ -20,6 +20,20 @@ export default function TutorTests() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [testQuestions, setTestQuestions] = useState([])
   const [loadingQuestions, setLoadingQuestions] = useState(false)
+  
+  // Assign test modal
+  const [showAssignModal, setShowAssignModal] = useState(false)
+  const [assigningTest, setAssigningTest] = useState(null)
+  const [students, setStudents] = useState([])
+  const [selectedStudents, setSelectedStudents] = useState([])
+  const [loadingStudents, setLoadingStudents] = useState(false)
+  const [assigningInProgress, setAssigningInProgress] = useState(false)
+  
+  // View assigned students modal
+  const [showAssignedStudentsModal, setShowAssignedStudentsModal] = useState(false)
+  const [viewingAssignedTest, setViewingAssignedTest] = useState(null)
+  const [assignedStudentsList, setAssignedStudentsList] = useState([])
+  const [loadingAssignedStudents, setLoadingAssignedStudents] = useState(false)
 
   useEffect(() => {
     if (user && user.role !== 'Tutor') {
@@ -35,13 +49,31 @@ export default function TutorTests() {
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch('/api/admin/tutor/tests/list', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const [testsRes, studentsRes] = await Promise.all([
+        fetch('/api/admin/tutor/tests/list', {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch('/api/admin/users?role=Student', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ])
       
-      if (res.ok) {
-        const data = await res.json()
-        setTests(data)
+      if (testsRes.ok && studentsRes.ok) {
+        const testsData = await testsRes.json()
+        const studentsData = await studentsRes.json()
+        
+        // Filter students assigned to this tutor
+        const myStudents = studentsData.filter(s => s.assignedTutor === user?.id || s.assignedTutor?._id === user?.id)
+        
+        // Add student count to each test
+        const testsWithCount = testsData.map(test => ({
+          ...test,
+          assignedStudentsCount: myStudents.filter(s => 
+            s.assignedTests && s.assignedTests.includes(test._id)
+          ).length
+        }))
+        
+        setTests(testsWithCount)
       } else {
         setError('Failed to load tests')
       }
@@ -97,6 +129,138 @@ export default function TutorTests() {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(prev => prev - 1)
     }
+  }
+  
+  const handleAssignTest = async (test) => {
+    setAssigningTest(test)
+    setShowAssignModal(true)
+    setLoadingStudents(true)
+    setSelectedStudents([])
+    
+    try {
+      const token = localStorage.getItem('token')
+      // Fetch students assigned to this tutor
+      const res = await fetch('/api/admin/users?role=Student', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      
+      if (res.ok) {
+        const data = await res.json()
+        // Filter students assigned to this tutor
+        const myStudents = data.filter(s => s.assignedTutor === user.id || s.assignedTutor?._id === user.id)
+        setStudents(myStudents)
+        
+        // Pre-select students who already have this test assigned
+        const alreadyAssigned = myStudents
+          .filter(s => s.assignedTests && s.assignedTests.includes(test._id))
+          .map(s => s._id)
+        setSelectedStudents(alreadyAssigned)
+      }
+    } catch (err) {
+      console.error('Failed to load students', err)
+    } finally {
+      setLoadingStudents(false)
+    }
+  }
+  
+  const handleToggleStudent = (studentId) => {
+    setSelectedStudents(prev => 
+      prev.includes(studentId) 
+        ? prev.filter(id => id !== studentId)
+        : [...prev, studentId]
+    )
+  }
+  
+  const handleConfirmAssign = async () => {
+    if (!assigningTest || selectedStudents.length === 0) return
+    
+    setAssigningInProgress(true)
+    try {
+      const token = localStorage.getItem('token')
+      
+      // Assign test to each selected student
+      for (const studentId of selectedStudents) {
+        await fetch('/api/tutor/students/assign-test', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            studentId,
+            testId: assigningTest._id,
+            action: 'add'
+          })
+        })
+      }
+      
+      // Unassign from students who were deselected
+      const studentsWithTest = students
+        .filter(s => s.assignedTests && s.assignedTests.includes(assigningTest._id))
+        .map(s => s._id)
+      
+      const toUnassign = studentsWithTest.filter(id => !selectedStudents.includes(id))
+      
+      for (const studentId of toUnassign) {
+        await fetch('/api/tutor/students/assign-test', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            studentId,
+            testId: assigningTest._id,
+            action: 'remove'
+          })
+        })
+      }
+      
+      alert('Test assigned successfully!')
+      setShowAssignModal(false)
+      // Refresh tests to update student count
+      fetchTests()
+    } catch (err) {
+      console.error('Failed to assign test', err)
+      alert('Failed to assign test')
+    } finally {
+      setAssigningInProgress(false)
+    }
+  }
+  
+  const handleViewAssignedStudents = async (test) => {
+    setViewingAssignedTest(test)
+    setShowAssignedStudentsModal(true)
+    setLoadingAssignedStudents(true)
+    
+    try {
+      const token = localStorage.getItem('token')
+      // Fetch all students assigned to this tutor
+      const res = await fetch('/api/admin/users?role=Student', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      
+      if (res.ok) {
+        const data = await res.json()
+        // Filter students who have this test assigned
+        const studentsWithTest = data.filter(s => 
+          (s.assignedTutor === user.id || s.assignedTutor?._id === user.id) &&
+          s.assignedTests && 
+          s.assignedTests.includes(test._id)
+        )
+        setAssignedStudentsList(studentsWithTest)
+      }
+    } catch (err) {
+      console.error('Failed to load assigned students', err)
+    } finally {
+      setLoadingAssignedStudents(false)
+    }
+  }
+  
+  const getAssignedStudentsCount = (test) => {
+    // This will be calculated from the students data when we fetch it
+    // For now, we'll fetch it on demand
+    return test.assignedStudentsCount || 0
   }
 
   const renderWithImages = (text) => {
@@ -209,6 +373,7 @@ export default function TutorTests() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Test Title</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mode</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Questions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned Students</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created Date</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
@@ -216,11 +381,11 @@ export default function TutorTests() {
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">Loading tests...</td>
+                    <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">Loading tests...</td>
                   </tr>
                 ) : filteredTests.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No tests found</td>
+                    <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">No tests found</td>
                   </tr>
                 ) : (
                   filteredTests.map((test) => (
@@ -240,16 +405,32 @@ export default function TutorTests() {
                       <td className="px-6 py-4 text-sm text-gray-900">
                         {test.questions?.length || 0} questions
                       </td>
+                      <td className="px-6 py-4 text-sm">
+                        <button
+                          onClick={() => handleViewAssignedStudents(test)}
+                          className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                        >
+                          {test.assignedStudentsCount || 0} student{test.assignedStudentsCount !== 1 ? 's' : ''}
+                        </button>
+                      </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
                         {new Date(test.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 text-sm">
-                        <button
-                          onClick={() => handleViewTest(test)}
-                          className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded"
-                        >
-                          <FiEye className="mr-1" /> View
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleViewTest(test)}
+                            className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded"
+                          >
+                            <FiEye className="mr-1" /> View
+                          </button>
+                          <button
+                            onClick={() => handleAssignTest(test)}
+                            className="inline-flex items-center px-3 py-1 text-green-600 hover:text-green-800 hover:bg-green-100 rounded"
+                          >
+                            Assign
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -395,6 +576,118 @@ export default function TutorTests() {
                   className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
                 >
                   Next <FiArrowLeft className="rotate-180" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Assign Test Modal */}
+        {showAssignModal && assigningTest && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+              <div className="p-6 border-b">
+                <h2 className="text-xl font-bold text-gray-900">Assign Test to Students</h2>
+                <p className="text-sm text-gray-600 mt-1">{assigningTest.title}</p>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6">
+                {loadingStudents ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-gray-500">Loading students...</div>
+                  </div>
+                ) : students.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No students assigned to you
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {students.map((student) => (
+                      <div
+                        key={student._id}
+                        className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleToggleStudent(student._id)}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedStudents.includes(student._id)}
+                          onChange={() => handleToggleStudent(student._id)}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">{student.name}</div>
+                          <div className="text-sm text-gray-500">{student.email}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 border-t bg-gray-50 flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setShowAssignModal(false)}
+                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                  disabled={assigningInProgress}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmAssign}
+                  disabled={assigningInProgress || selectedStudents.length === 0}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {assigningInProgress ? 'Assigning...' : `Assign to ${selectedStudents.length} Student${selectedStudents.length !== 1 ? 's' : ''}`}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* View Assigned Students Modal */}
+        {showAssignedStudentsModal && viewingAssignedTest && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+              <div className="p-6 border-b">
+                <h2 className="text-xl font-bold text-gray-900">Assigned Students</h2>
+                <p className="text-sm text-gray-600 mt-1">{viewingAssignedTest.title}</p>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6">
+                {loadingAssignedStudents ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-gray-500">Loading students...</div>
+                  </div>
+                ) : assignedStudentsList.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No students have been assigned this test yet
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {assignedStudentsList.map((student) => (
+                      <div
+                        key={student._id}
+                        className="flex items-center gap-3 p-4 border rounded-lg bg-gray-50"
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">{student.name}</div>
+                          <div className="text-sm text-gray-500">{student.email}</div>
+                        </div>
+                        <div className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                          Assigned
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 border-t bg-gray-50 flex items-center justify-end">
+                <button
+                  onClick={() => setShowAssignedStudentsModal(false)}
+                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                >
+                  Close
                 </button>
               </div>
             </div>

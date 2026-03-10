@@ -39,22 +39,15 @@ export async function GET(request) {
     // Format the response
     const formattedResults = filteredSessions.map(session => ({
       _id: session._id,
-      student: {
-        _id: session.userId?._id,
-        name: session.userId?.name || 'Unknown',
-        email: session.userId?.email || 'N/A'
-      },
-      test: {
-        _id: session.testId._id,
-        title: session.testId.title,
-        subject: session.testId.subject,
-        questions: session.testId.questions,
-        customQuestions: session.testId.customQuestions
-      },
-      score: session.totalScore || 0,
-      totalQuestions: session.answers?.length || 0,
+      testId: session.testId._id,
+      studentName: session.userId?.name || 'Unknown',
+      studentEmail: session.userId?.email || 'N/A',
+      testTitle: session.testId.title,
+      topic: session.testId.subject || 'N/A',
+      subject: session.testId.subject || 'N/A',
       completedAt: session.completedAt || session.updatedAt,
-      questions: session.answers || []
+      totalScore: session.totalScore || 0,
+      analysisSubmitted: session.analysisSubmitted || false
     }))
 
     return NextResponse.json(formattedResults)

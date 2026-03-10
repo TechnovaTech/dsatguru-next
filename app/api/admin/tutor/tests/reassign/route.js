@@ -10,7 +10,7 @@ export async function POST(request) {
     const token = getTokenFromRequest(request)
     const decoded = verifyToken(token)
     
-    if (!decoded || (decoded.role !== 'Admin' && decoded.role !== 'Tutor')) {
+    if (!decoded || !['Admin', 'Tutor', 'TutorAdmin'].includes(decoded.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -52,11 +52,18 @@ export async function POST(request) {
       userId,
       testId: newTest._id,
       status: 'Assigned',
-      mode: 'tutor',
-      startTime: null,
-      endTime: null,
-      score: 0,
+      state: 'CREATED',
+      sessionType: 'Practice',
+      totalQuestions: questionIds.length,
+      answeredQuestions: 0,
+      correctAnswers: 0,
       originalSessionId: originalSessionId
+    })
+    
+    // Add the test to the student's assignedTests array
+    const User = require('../../../../../../lib/models/User').default
+    await User.findByIdAndUpdate(userId, {
+      $addToSet: { assignedTests: newTest._id }
     })
 
     // Mark the original session as reassigned
