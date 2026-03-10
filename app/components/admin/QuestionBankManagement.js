@@ -114,7 +114,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
   const [selectedBank, setSelectedBank] = useState(null)
   const [questions, setQuestions] = useState([])
   const [qLoading, setQLoading] = useState(false)
-  const [filters, setFilters] = useState({ subject: isTutor ? 'Math' : '', difficulty: '', type: '', tag: '', isActive: '', mathTopic: '', mathSubtopic: '', readingWritingTopic: '' })
+  const [filters, setFilters] = useState({ subject: isTutor ? 'Math' : '', difficulty: '', type: '', tag: '', isActive: '', mathTopic: '', mathSubtopic: '', readingWritingTopic: '', remark: '' })
   const [questionSearch, setQuestionSearch] = useState('')
   const [preview, setPreview] = useState(null)
   const [editItem, setEditItem] = useState(null)
@@ -198,6 +198,18 @@ export default function QuestionBankManagement({ isTutor = false }) {
       const json = await res.json()
       // Handle both response formats: direct array or {data: array}
       const questionsArray = Array.isArray(json) ? json : (json.data || [])
+      
+      console.log('📥 Fetched Questions from API:', {
+        totalQuestions: questionsArray.length,
+        questionsWithRemarks: questionsArray.filter(q => q.remark && q.remark.trim()).length,
+        sampleQuestions: questionsArray.slice(0, 3).map(q => ({
+          questionId: q.questionId,
+          id: q.id || q._id,
+          remark: q.remark || '(empty)',
+          remarkExists: !!q.remark
+        }))
+      })
+      
       setQuestions(questionsArray)
     } finally {
       setQLoading(false)
@@ -460,6 +472,13 @@ export default function QuestionBankManagement({ isTutor = false }) {
     const usedTags = [mathTopic, mathSubtopic, readingWritingTopic].filter(Boolean)
     const otherTags = tags.filter(t => !usedTags.includes(t))
 
+    console.log('📝 Opening Edit Modal - Remark Data:', {
+      questionId: q.questionId || q.id,
+      originalRemark: q.remark,
+      remarkExists: !!q.remark,
+      remarkLength: (q.remark || '').length
+    })
+
     setEditItem({ 
       ...q, 
       content: q.content || q.question || '',
@@ -467,13 +486,22 @@ export default function QuestionBankManagement({ isTutor = false }) {
       options: options,
       mathTopic, 
       mathSubtopic, 
-      readingWritingTopic 
+      readingWritingTopic,
+      remark: q.remark || ''
     })
   }
 
   const saveEdit = async () => {
     if (!editItem) return
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    
+    console.log('💾 Saving Question Edit - Remark Data:', {
+      questionId: editItem.questionId || editItem.id,
+      remarkValue: editItem.remark,
+      remarkExists: !!editItem.remark,
+      remarkLength: (editItem.remark || '').length,
+      remarkType: typeof editItem.remark
+    })
     
     // Parse current free tags
     let freeTags = []
@@ -512,9 +540,18 @@ export default function QuestionBankManagement({ isTutor = false }) {
           }
       })(),
       tags: allTags,
-      points: typeof editItem.points === 'number' ? editItem.points : 1
+      points: typeof editItem.points === 'number' ? editItem.points : 1,
+      remark: editItem.remark || ''
     }
-    await fetch(`/api/admin/questions/${editItem.id}`, {
+    
+    console.log('📤 Sending Payload to API:', {
+      questionId: editItem.id,
+      remarkInPayload: payload.remark,
+      payloadRemarkLength: (payload.remark || '').length,
+      apiEndpoint: `/api/admin/questions/${editItem.id}`
+    })
+    
+    const response = await fetch(`/api/admin/questions/${editItem.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -522,6 +559,14 @@ export default function QuestionBankManagement({ isTutor = false }) {
       },
       body: JSON.stringify(payload)
     })
+    
+    const result = await response.json()
+    console.log('✅ API Response:', {
+      success: result.success,
+      status: response.status,
+      questionId: editItem.id
+    })
+    
     setEditItem(null)
     fetchQuestions(selectedBank?.id)
   }
@@ -655,6 +700,10 @@ export default function QuestionBankManagement({ isTutor = false }) {
                 <input value={filters.tag} onChange={(e) => handleFilterChange('tag', e.target.value)} placeholder="e.g. algebra" className="w-full border rounded px-2 py-1 text-sm" />
               </div>
               <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Remark</label>
+                <input value={filters.remark} onChange={(e) => handleFilterChange('remark', e.target.value)} placeholder="Search remarks..." className="w-full border rounded px-2 py-1 text-sm" />
+              </div>
+              <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
                 <select value={filters.isActive} onChange={(e) => handleFilterChange('isActive', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
                   <option value="">All</option>
@@ -676,7 +725,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
                     type="text"
                     value={questionSearch}
                     onChange={(e) => setQuestionSearch(e.target.value)}
-                    placeholder="Search by Question ID..."
+                    placeholder="Search by Question ID or Remark..."
                     className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -721,6 +770,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Difficulty</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Question Type</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Topic/Subtopic</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Remark</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
@@ -728,15 +778,26 @@ export default function QuestionBankManagement({ isTutor = false }) {
                 <tbody className="divide-y divide-gray-200">
                   {questions
                     .filter(q => {
+                      // Filter by remark filter field
+                      if (filters.remark && filters.remark.trim()) {
+                        const remarkFilterLower = filters.remark.toLowerCase().trim()
+                        const qRemark = (q.remark || '').toLowerCase()
+                        if (!qRemark.includes(remarkFilterLower)) {
+                          return false
+                        }
+                      }
+                      
                       // Filter by question search
                       if (questionSearch.trim()) {
                         const searchLower = questionSearch.toLowerCase().trim()
                         const questionId = (q.questionId || '').toLowerCase()
                         const content = (q.content || '').toLowerCase()
+                        const remark = (q.remark || '').toLowerCase()
                         const serialNumber = q.questionId ? q.questionId.split('-').pop() : ''
                         
                         return questionId.includes(searchLower) || 
                                content.includes(searchLower) ||
+                               remark.includes(searchLower) ||
                                serialNumber === searchLower.replace('#', '')
                       }
                       return true
@@ -774,6 +835,9 @@ export default function QuestionBankManagement({ isTutor = false }) {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">{q.type || 'MultipleChoice'}</td>
                         <td className="px-6 py-4 text-sm text-gray-900">{parsedTags.join(', ') || '-'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title={q.remark || ''}>
+                          {q.remark || <span className="text-gray-400 italic">-</span>}
+                        </td>
                         <td className="px-6 py-4 text-sm">
                           <span className={`px-2 py-1 text-xs font-semibold rounded-full ${q.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                             {q.isActive ? 'Active' : 'Inactive'}
@@ -813,7 +877,28 @@ export default function QuestionBankManagement({ isTutor = false }) {
               <div className="bg-white rounded-lg shadow-lg w-[95vw] h-[90vh] flex flex-col overflow-hidden">
                 {/* Header */}
                 <div className="p-4 border-b flex items-center justify-between bg-white shrink-0">
-                  <h3 className="text-lg font-semibold">Preview Question</h3>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold mb-2">Preview Question</h3>
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                        preview.difficulty === 'Easy' ? 'bg-green-100 text-green-800' :
+                        preview.difficulty === 'Hard' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {preview.difficulty || 'Medium'}
+                      </span>
+                      {preview.remark && (
+                        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+                          <svg className="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                          </svg>
+                          <span className="text-xs font-medium text-amber-800 max-w-md truncate" title={preview.remark}>
+                            {preview.remark}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   <button className="text-gray-600 hover:text-gray-800" onClick={() => setPreview(null)}><FiX size={24} /></button>
                 </div>
                 
@@ -924,6 +1009,23 @@ export default function QuestionBankManagement({ isTutor = false }) {
                       <div className="mt-4 text-sm text-gray-800 bg-green-50 px-4 py-2 rounded border border-green-200 inline-block">
                          <strong>Correct Answer:</strong> <span className="font-bold text-green-700">{preview.correctAnswer}</span>
                       </div>
+
+                      {/* Remark Section */}
+                      {preview.remark && (
+                        <div className="mt-6 pt-6 border-t">
+                          <h5 className="font-semibold text-gray-700 text-xs uppercase mb-2 flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                            </svg>
+                            Admin/Tutor Remark
+                          </h5>
+                          <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                            <div className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
+                              {preview.remark}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1087,6 +1189,23 @@ export default function QuestionBankManagement({ isTutor = false }) {
                       className="w-full border rounded px-2 py-1 text-sm"
                     />
                     <ImagePreview text={editItem.longExplanation} />
+                  </div>
+                  <div className="md:col-span-4">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Remark (Admin/Tutor Notes)</label>
+                    <textarea
+                      value={editItem.remark || ''}
+                      onChange={(e) => {
+                        console.log('✏️ Remark Field Changed:', {
+                          newValue: e.target.value,
+                          valueLength: e.target.value.length,
+                          questionId: editItem.questionId || editItem.id
+                        })
+                        setEditItem({ ...editItem, remark: e.target.value })
+                      }}
+                      rows={2}
+                      placeholder="Add notes or remarks about this question..."
+                      className="w-full border rounded px-2 py-1 text-sm"
+                    />
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-gray-700 mb-2">Options</label>

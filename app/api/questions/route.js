@@ -199,6 +199,17 @@ export async function GET(request) {
       .populate('createdBy', 'name')
       .sort({ createdAt: -1 })
     
+    console.log('🔍 GET /api/questions - Raw data from MongoDB:', {
+      totalQuestions: questions.length,
+      sampleRawData: questions.slice(0, 2).map(q => ({
+        questionId: q.questionId,
+        _id: q._id.toString(),
+        remarkFromDB: q.remark,
+        remarkExists: !!q.remark,
+        remarkType: typeof q.remark
+      }))
+    })
+    
     const questionsData = questions.map(q => {
       // Return the full question object but ensure options and tags are parsed if they are strings
       const data = q.toObject ? q.toObject() : { ...q }
@@ -239,7 +250,22 @@ export async function GET(request) {
       // For backward compatibility with some frontend components that expect 'question' field
       data.question = data.content || data.title || ''
       
+      // Ensure remark field is included
+      data.remark = data.remark || ''
+      
       return data
+    })
+    
+    console.log('📤 GET /api/questions - Returning questions:', {
+      totalQuestions: questionsData.length,
+      questionsWithRemarks: questionsData.filter(q => q.remark && q.remark.trim()).length,
+      sampleData: questionsData.slice(0, 3).map(q => ({
+        questionId: q.questionId,
+        id: q.id,
+        remark: q.remark || '(empty)',
+        remarkExists: !!q.remark,
+        remarkLength: (q.remark || '').length
+      }))
     })
     
     return NextResponse.json(questionsData)
@@ -283,7 +309,8 @@ export async function POST(request) {
       createdBy: adminUser._id,
       options: JSON.stringify(questionData.options || []),
       tags: JSON.stringify(questionData.tags || []),
-      isTutor: questionData.isTutor || false
+      isTutor: questionData.isTutor || false,
+      remark: questionData.remark || ''
     })
     
     return NextResponse.json({ 

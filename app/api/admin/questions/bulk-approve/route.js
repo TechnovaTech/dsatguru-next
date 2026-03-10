@@ -23,6 +23,16 @@ export async function POST(request) {
       return NextResponse.json({ error: 'No questions provided' }, { status: 400 })
     }
 
+    console.log('🔧 API POST /api/admin/questions/bulk-approve - Received Questions:', {
+      totalQuestions: questions.length,
+      questionsWithRemarks: questions.filter(q => q.remark && q.remark.trim()).length,
+      sampleRemarks: questions.slice(0, 3).map(q => ({
+        questionId: q.questionId,
+        remark: q.remark || '(empty)',
+        remarkLength: (q.remark || '').length
+      }))
+    })
+
     let adminUser = await User.findOne({ role: 'Admin' })
     if (!adminUser) {
       const hashedPassword = await hashPassword('admin123')
@@ -52,8 +62,18 @@ export async function POST(request) {
       isActive: true,
       questionBankId: isTutor ? null : questionBankId,
       isTutor: isTutor,
-      createdBy: adminUser._id
+      createdBy: adminUser._id,
+      remark: q.remark || ''
     }))
+
+    console.log('💾 Bulk creating/updating questions with remarks:', {
+      totalQuestions: toCreate.length,
+      questionsWithRemarks: toCreate.filter(q => q.remark && q.remark.trim()).length,
+      sampleData: toCreate.slice(0, 2).map(q => ({
+        questionId: q.questionId,
+        remark: q.remark || '(empty)'
+      }))
+    })
 
     const operations = toCreate.map(q => ({
       updateOne: {
@@ -64,6 +84,13 @@ export async function POST(request) {
     }))
 
     const result = await Question.bulkWrite(operations)
+    
+    console.log('✅ Bulk write completed:', {
+      upserted: result.upsertedCount,
+      modified: result.modifiedCount,
+      matched: result.matchedCount,
+      total: result.upsertedCount + result.modifiedCount + result.matchedCount
+    })
     
     return NextResponse.json({
       success: true,

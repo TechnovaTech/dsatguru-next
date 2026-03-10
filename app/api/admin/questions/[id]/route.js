@@ -26,7 +26,8 @@ export async function GET(request, { params }) {
       points: question.points,
       imageUrl: question.imageUrl,
       isActive: question.isActive,
-      questionBankId: question.questionBankId
+      questionBankId: question.questionBankId,
+      remark: question.remark || ''
     }
     return NextResponse.json(data)
   } catch (error) {
@@ -43,13 +44,52 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const body = await request.json()
+    
+    console.log('🔧 API PUT /api/admin/questions/[id] - Received Data:', {
+      questionId: params.id,
+      remarkInBody: body.remark,
+      remarkExists: !!body.remark,
+      remarkLength: (body.remark || '').length,
+      bodyKeys: Object.keys(body)
+    })
+    
     const update = { ...body }
     if (Array.isArray(body.options)) update.options = JSON.stringify(body.options)
     if (Array.isArray(body.tags)) update.tags = JSON.stringify(body.tags)
-    const updated = await Question.findByIdAndUpdate(params.id, update, { new: true })
+    
+    console.log('💾 Updating database with remark:', {
+      questionId: params.id,
+      remarkToSave: update.remark,
+      updateKeys: Object.keys(update)
+    })
+    
+    // Log the exact update object being sent
+    console.log('📋 Full update object:', JSON.stringify(update, null, 2))
+    
+    const updated = await Question.findByIdAndUpdate(
+      params.id, 
+      { $set: update }, 
+      { new: true, runValidators: false }
+    )
     if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    
+    // Log the full updated document
+    console.log('📄 Full updated document:', {
+      _id: updated._id,
+      questionId: updated.questionId,
+      remark: updated.remark,
+      allFields: Object.keys(updated.toObject())
+    })
+    
+    console.log('✅ Database updated successfully:', {
+      questionId: params.id,
+      savedRemark: updated.remark,
+      remarkSavedSuccessfully: !!updated.remark
+    })
+    
     return NextResponse.json({ success: true })
   } catch (error) {
+    console.error('❌ Error updating question:', error)
     return NextResponse.json({ error: 'Failed to update question' }, { status: 500 })
   }
 }
