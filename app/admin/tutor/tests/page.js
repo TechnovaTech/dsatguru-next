@@ -37,6 +37,10 @@ export default function TutorTestSheets() {
   const [showStudentsModal, setShowStudentsModal] = useState(false)
   const [selectedTutorStudents, setSelectedTutorStudents] = useState([])
   const [loadingStudents, setLoadingStudents] = useState(false)
+  
+  // Checkbox selections
+  const [selectedMathTests, setSelectedMathTests] = useState([])
+  const [selectedRWTests, setSelectedRWTests] = useState([])
 
   useEffect(() => {
     fetchTests()
@@ -149,6 +153,8 @@ export default function TutorTestSheets() {
     setSelectedTutorId(tutor._id)
     setShowAssignModal(true)
     setLoadingTutors(true)
+    setSelectedMathTests([])
+    setSelectedRWTests([])
     
     try {
       const token = localStorage.getItem('token')
@@ -200,6 +206,136 @@ export default function TutorTestSheets() {
       }
     } catch (err) {
       setError('Failed to update assignment')
+      setTimeout(() => setError(''), 3000)
+    }
+  }
+
+  const handleSelectAllMath = () => {
+    const mathTests = tests.filter(t => t.subject === 'Math')
+    const mathTestIds = mathTests.map(t => t._id)
+    
+    if (selectedMathTests.length === mathTestIds.length) {
+      // Deselect all
+      setSelectedMathTests([])
+    } else {
+      // Select all
+      setSelectedMathTests(mathTestIds)
+    }
+  }
+
+  const handleSelectAllRW = () => {
+    const rwTests = tests.filter(t => t.subject === 'Reading and Writing')
+    const rwTestIds = rwTests.map(t => t._id)
+    
+    if (selectedRWTests.length === rwTestIds.length) {
+      // Deselect all
+      setSelectedRWTests([])
+    } else {
+      // Select all
+      setSelectedRWTests(rwTestIds)
+    }
+  }
+
+  const handleToggleMathTest = (testId) => {
+    setSelectedMathTests(prev => 
+      prev.includes(testId) 
+        ? prev.filter(id => id !== testId)
+        : [...prev, testId]
+    )
+  }
+
+  const handleToggleRWTest = (testId) => {
+    setSelectedRWTests(prev => 
+      prev.includes(testId) 
+        ? prev.filter(id => id !== testId)
+        : [...prev, testId]
+    )
+  }
+
+  const handleAssignSelected = async (subject) => {
+    const selectedTests = subject === 'Math' ? selectedMathTests : selectedRWTests
+    
+    if (selectedTests.length === 0) {
+      setError('Please select tests to assign')
+      setTimeout(() => setError(''), 3000)
+      return
+    }
+    
+    try {
+      const token = localStorage.getItem('token')
+      
+      for (const testId of selectedTests) {
+        await fetch('/api/admin/tutor/tests/assign', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            tutorId: selectedTutorId,
+            testId,
+            action: 'add'
+          })
+        })
+      }
+      
+      setAssignedTests(prev => [...new Set([...prev, ...selectedTests])])
+      
+      if (subject === 'Math') {
+        setSelectedMathTests([])
+      } else {
+        setSelectedRWTests([])
+      }
+      
+      setSuccess(`${selectedTests.length} test(s) assigned successfully`)
+      setTimeout(() => setSuccess(''), 3000)
+      fetchTutors()
+    } catch (err) {
+      setError('Failed to assign tests')
+      setTimeout(() => setError(''), 3000)
+    }
+  }
+
+  const handleUnassignSelected = async (subject) => {
+    const selectedTests = subject === 'Math' ? selectedMathTests : selectedRWTests
+    
+    if (selectedTests.length === 0) {
+      setError('Please select tests to unassign')
+      setTimeout(() => setError(''), 3000)
+      return
+    }
+    
+    try {
+      const token = localStorage.getItem('token')
+      
+      for (const testId of selectedTests) {
+        await fetch('/api/admin/tutor/tests/assign', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            tutorId: selectedTutorId,
+            testId,
+            action: 'remove'
+          })
+        })
+      }
+      
+      setAssignedTests(prev => prev.filter(id => !selectedTests.includes(id)))
+      
+      if (subject === 'Math') {
+        setSelectedMathTests([])
+      } else {
+        setSelectedRWTests([])
+      }
+      
+      setSuccess(`${selectedTests.length} test(s) unassigned successfully`)
+      setTimeout(() => setSuccess(''), 3000)
+      fetchTutors()
+    } catch (err) {
+      setError('Failed to unassign tests')
       setTimeout(() => setError(''), 3000)
     }
   }
@@ -1013,7 +1149,7 @@ export default function TutorTestSheets() {
         {/* Assign Tests to Tutor Modal */}
         {showAssignModal && selectedTutorId && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] flex flex-col">
+            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[80vh] flex flex-col">
               <div className="p-6 border-b flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">Assign Test Sheets</h2>
@@ -1028,79 +1164,165 @@ export default function TutorTestSheets() {
                 {loadingTutors ? (
                   <div className="text-center py-8 text-gray-500">Loading tests...</div>
                 ) : (
-                  <div className="space-y-6">
-                    {/* Math Tests */}
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Math Tests</h3>
-                      <div className="space-y-2">
-                        {tests.filter(t => t.subject === 'Math').map((test) => {
-                          const isAssigned = assignedTests.includes(test._id)
-                          return (
-                            <div
-                              key={test._id}
-                              className={`p-4 border rounded-lg flex items-center justify-between ${
-                                isAssigned ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'
-                              }`}
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Math Tests Column */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <div className="bg-blue-50 px-4 py-3 border-b border-blue-100">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold text-blue-900 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+                            Math Tests ({tests.filter(t => t.subject === 'Math').length})
+                          </h3>
+                          {tests.filter(t => t.subject === 'Math').length > 0 && (
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={selectedMathTests.length === tests.filter(t => t.subject === 'Math').length && tests.filter(t => t.subject === 'Math').length > 0}
+                                onChange={handleSelectAllMath}
+                                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                              />
+                              <span className="text-sm font-medium text-blue-900">Select All</span>
+                            </label>
+                          )}
+                        </div>
+                        {selectedMathTests.length > 0 && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleAssignSelected('Math')}
+                              className="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700"
                             >
-                              <div>
-                                <div className="font-medium text-gray-900">{test.title}</div>
-                                <div className="text-sm text-gray-600">
-                                  {test.questions?.length || 0} questions • {test.isTimed ? `${test.duration} min` : 'Untimed'}
-                                </div>
-                              </div>
-                              <button
-                                onClick={() => handleToggleTestAssignment(test._id)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                  isAssigned
-                                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                              Assign Selected ({selectedMathTests.length})
+                            </button>
+                            <button
+                              onClick={() => handleUnassignSelected('Math')}
+                              className="flex-1 px-3 py-1.5 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200"
+                            >
+                              Unassign Selected ({selectedMathTests.length})
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
+                        {tests.filter(t => t.subject === 'Math').length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">No Math tests available</div>
+                        ) : (
+                          tests.filter(t => t.subject === 'Math').map((test) => {
+                            const isAssigned = assignedTests.includes(test._id)
+                            const isSelected = selectedMathTests.includes(test._id)
+                            return (
+                              <div
+                                key={test._id}
+                                className={`p-3 border rounded-lg transition-colors ${
+                                  isAssigned ? 'bg-blue-50 border-blue-200' : 
+                                  isSelected ? 'bg-blue-50 border-blue-300' :
+                                  'bg-white border-gray-200 hover:border-blue-300'
                                 }`}
                               >
-                                {isAssigned ? 'Unassign' : 'Assign'}
-                              </button>
-                            </div>
-                          )
-                        })}
-                        {tests.filter(t => t.subject === 'Math').length === 0 && (
-                          <div className="text-center py-4 text-gray-500">No Math tests available</div>
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => handleToggleMathTest(test._id)}
+                                    className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                                  />
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <div className="font-medium text-gray-900 text-sm">{test.title}</div>
+                                      {isAssigned && (
+                                        <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                                          Assigned
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-xs text-gray-600 mt-1">
+                                      {test.questions?.length || 0} questions • {test.isTimed ? `${test.duration} min` : 'Untimed'}
+                                    </div>
+                                  </div>
+                                </label>
+                              </div>
+                            )
+                          })
                         )}
                       </div>
                     </div>
 
-                    {/* Reading & Writing Tests */}
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Reading & Writing Tests</h3>
-                      <div className="space-y-2">
-                        {tests.filter(t => t.subject === 'Reading and Writing').map((test) => {
-                          const isAssigned = assignedTests.includes(test._id)
-                          return (
-                            <div
-                              key={test._id}
-                              className={`p-4 border rounded-lg flex items-center justify-between ${
-                                isAssigned ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'
-                              }`}
+                    {/* Reading & Writing Tests Column */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <div className="bg-purple-50 px-4 py-3 border-b border-purple-100">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold text-purple-900 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
+                            Reading & Writing Tests ({tests.filter(t => t.subject === 'Reading and Writing').length})
+                          </h3>
+                          {tests.filter(t => t.subject === 'Reading and Writing').length > 0 && (
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={selectedRWTests.length === tests.filter(t => t.subject === 'Reading and Writing').length && tests.filter(t => t.subject === 'Reading and Writing').length > 0}
+                                onChange={handleSelectAllRW}
+                                className="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
+                              />
+                              <span className="text-sm font-medium text-purple-900">Select All</span>
+                            </label>
+                          )}
+                        </div>
+                        {selectedRWTests.length > 0 && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleAssignSelected('Reading and Writing')}
+                              className="flex-1 px-3 py-1.5 bg-purple-600 text-white rounded text-xs font-medium hover:bg-purple-700"
                             >
-                              <div>
-                                <div className="font-medium text-gray-900">{test.title}</div>
-                                <div className="text-sm text-gray-600">
-                                  {test.questions?.length || 0} questions • {test.isTimed ? `${test.duration} min` : 'Untimed'}
-                                </div>
-                              </div>
-                              <button
-                                onClick={() => handleToggleTestAssignment(test._id)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                  isAssigned
-                                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                              Assign Selected ({selectedRWTests.length})
+                            </button>
+                            <button
+                              onClick={() => handleUnassignSelected('Reading and Writing')}
+                              className="flex-1 px-3 py-1.5 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200"
+                            >
+                              Unassign Selected ({selectedRWTests.length})
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
+                        {tests.filter(t => t.subject === 'Reading and Writing').length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">No Reading & Writing tests available</div>
+                        ) : (
+                          tests.filter(t => t.subject === 'Reading and Writing').map((test) => {
+                            const isAssigned = assignedTests.includes(test._id)
+                            const isSelected = selectedRWTests.includes(test._id)
+                            return (
+                              <div
+                                key={test._id}
+                                className={`p-3 border rounded-lg transition-colors ${
+                                  isAssigned ? 'bg-purple-50 border-purple-200' : 
+                                  isSelected ? 'bg-purple-50 border-purple-300' :
+                                  'bg-white border-gray-200 hover:border-purple-300'
                                 }`}
                               >
-                                {isAssigned ? 'Unassign' : 'Assign'}
-                              </button>
-                            </div>
-                          )
-                        })}
-                        {tests.filter(t => t.subject === 'Reading and Writing').length === 0 && (
-                          <div className="text-center py-4 text-gray-500">No Reading & Writing tests available</div>
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => handleToggleRWTest(test._id)}
+                                    className="mt-1 w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
+                                  />
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <div className="font-medium text-gray-900 text-sm">{test.title}</div>
+                                      {isAssigned && (
+                                        <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                                          Assigned
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-xs text-gray-600 mt-1">
+                                      {test.questions?.length || 0} questions • {test.isTimed ? `${test.duration} min` : 'Untimed'}
+                                    </div>
+                                  </div>
+                                </label>
+                              </div>
+                            )
+                          })
                         )}
                       </div>
                     </div>
