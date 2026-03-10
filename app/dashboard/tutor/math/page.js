@@ -9,12 +9,30 @@ export default function TutorMathPage() {
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('Assigned')
+  const [assignedTestIds, setAssignedTestIds] = useState([])
 
   useEffect(() => {
-    fetchHistory()
+    fetchAssignedTests()
   }, [])
 
-  const fetchHistory = async () => {
+  const fetchAssignedTests = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const userRes = await fetch('/api/user/profile', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (userRes.ok) {
+        const data = await userRes.json()
+        setAssignedTestIds(data.user.assignedTests || [])
+        fetchHistory(data.user.assignedTests || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch assigned tests', error)
+      setLoading(false)
+    }
+  }
+
+  const fetchHistory = async (testIds) => {
     try {
       const token = localStorage.getItem('token')
       const res = await fetch('/api/test-sessions', {
@@ -32,8 +50,12 @@ export default function TutorMathPage() {
         // FALLBACK: If 'subject' is missing (legacy data), check 'sections.math'
         const isMath = s.testId?.subject === 'Math' || (!s.testId?.subject && s.testId?.sections?.math === true)
         
-        return isTutor && isMath
+        // Check if test is assigned to this student
+        const isAssigned = testIds.length === 0 || testIds.includes(s.testId?._id)
+        
+        return isTutor && isMath && isAssigned
       })
+      
       setHistory(tutorSessions)
     } catch (error) {
       console.error('Failed to fetch history', error)

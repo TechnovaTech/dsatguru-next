@@ -884,53 +884,83 @@ export default function CreateTutorTest() {
                           )}
                         </div>
 
-                        {/* Options */}
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Answer Options</label>
-                          <div className="space-y-2">
-                            {['A', 'B', 'C', 'D'].map((letter, i) => (
-                              <div key={letter} className={`p-3 border rounded-lg ${q.correctAnswer === letter ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200'}`}>
-                                <div className="flex items-start gap-2">
-                                  <span className="font-medium">{letter}.</span>
-                                  {isEditing ? (
-                                    <div className="flex-1">
-                                      <textarea
-                                        value={options[i] || ''}
-                                        onChange={(e) => handleOptionChange(qId, i, e.target.value)}
-                                        className="w-full p-2 border border-gray-300 rounded font-mono text-sm"
-                                        rows={2}
-                                      />
-                                      <ImagePreview text={options[i] || ''} />
+                        {/* Check if question has multiple choice options or is fill-in-the-blank */}
+                        {(options[0]?.trim() && options[1]?.trim() && options[2]?.trim() && options[3]?.trim()) ? (
+                          <>
+                            {/* Multiple Choice Options */}
+                            <div className="mb-4">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Answer Options (Multiple Choice)</label>
+                              <div className="space-y-2">
+                                {['A', 'B', 'C', 'D'].map((letter, i) => (
+                                  <div key={letter} className={`p-3 border rounded-lg ${q.correctAnswer === letter ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200'}`}>
+                                    <div className="flex items-start gap-2">
+                                      <span className="font-medium">{letter}.</span>
+                                      {isEditing ? (
+                                        <div className="flex-1">
+                                          <textarea
+                                            value={options[i] || ''}
+                                            onChange={(e) => handleOptionChange(qId, i, e.target.value)}
+                                            className="w-full p-2 border border-gray-300 rounded font-mono text-sm"
+                                            rows={2}
+                                          />
+                                          <ImagePreview text={options[i] || ''} />
+                                        </div>
+                                      ) : (
+                                        <div className="flex-1">{renderWithImages(options[i] || '')}</div>
+                                      )}
                                     </div>
-                                  ) : (
-                                    <div className="flex-1">{renderWithImages(options[i] || '')}</div>
-                                  )}
-                                </div>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Correct Answer */}
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Correct Answer</label>
-                          {isEditing ? (
-                            <select
-                              value={q.correctAnswer}
-                              onChange={(e) => handleQuestionFieldChange(qId, 'correctAnswer', e.target.value)}
-                              className="w-full p-2 border border-gray-300 rounded-lg"
-                            >
-                              <option value="A">A</option>
-                              <option value="B">B</option>
-                              <option value="C">C</option>
-                              <option value="D">D</option>
-                            </select>
-                          ) : (
-                            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                              <span className="text-sm font-medium text-green-800">Correct Answer: {q.correctAnswer}</span>
                             </div>
-                          )}
-                        </div>
+
+                            {/* Correct Answer for Multiple Choice */}
+                            <div className="mb-4">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Correct Answer</label>
+                              {isEditing ? (
+                                <select
+                                  value={q.correctAnswer}
+                                  onChange={(e) => handleQuestionFieldChange(qId, 'correctAnswer', e.target.value)}
+                                  className="w-full p-2 border border-gray-300 rounded-lg"
+                                >
+                                  <option value="A">A</option>
+                                  <option value="B">B</option>
+                                  <option value="C">C</option>
+                                  <option value="D">D</option>
+                                </select>
+                              ) : (
+                                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                                  <span className="text-sm font-medium text-green-800">Correct Answer: {q.correctAnswer}</span>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {/* Fill-in-the-Blank Answer */}
+                            <div className="mb-4">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <span className="inline-flex items-center gap-2">
+                                  Correct Answer (Fill-in-the-Blank)
+                                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Text Input</span>
+                                </span>
+                              </label>
+                              {isEditing ? (
+                                <input
+                                  type="text"
+                                  value={q.correctAnswer || ''}
+                                  onChange={(e) => handleQuestionFieldChange(qId, 'correctAnswer', e.target.value)}
+                                  className="w-full p-3 border border-gray-300 rounded-lg"
+                                  placeholder="Enter the correct answer..."
+                                />
+                              ) : (
+                                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                                  <span className="text-sm font-medium text-green-800">Correct Answer: {q.correctAnswer}</span>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
 
                         {/* Short Explanation */}
                         {(q.shortExplanation || isEditing) && (

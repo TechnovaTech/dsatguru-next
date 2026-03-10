@@ -401,23 +401,7 @@ export default function TakeTestPage() {
       if (testRes.ok) {
         const testData = await testRes.json()
         
-        // Step 2: Determine if we need Tutor questions
-        const isTutor = testData.practiceMode === 'tutor' || testData.isTutorTest === true
-        const questionsUrl = `/api/questions?isTutor=${isTutor}`
-        
-        console.log(`Fetching questions with isTutor=${isTutor} for test mode: ${testData.practiceMode}, configType: ${testData.configType}`)
-        
-        const questionsRes = await fetch(questionsUrl, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        })
-
-        if (questionsRes.ok) {
-            const questions = await questionsRes.json()
-            console.log(`Fetched ${questions.length} questions from API`)
-            let finalQuestions = questions
-
-
-        // Check if user already took this test
+        // Check if user already took this test (do this first)
         if (historyRes.ok) {
           const historyData = await historyRes.json()
           const sessions = historyData.sessions || historyData || []
@@ -433,141 +417,160 @@ export default function TakeTestPage() {
             setLoading(false)
             return
           }
-
-          // Filter out used questions if requested by test configuration
-          if (testData.excludeUsedQuestions) {
-            const usedIds = new Set()
-            sessions.forEach(s => {
-              if (s.responses) s.responses.forEach(r => usedIds.add(String(r.questionId)))
-              if (s.adaptiveAssignedQuestionIds) s.adaptiveAssignedQuestionIds.forEach(id => usedIds.add(String(id)))
-              if (s.moduleAnswers) {
-                Object.values(s.moduleAnswers).forEach(m => {
-                  if (m.questionIds) m.questionIds.forEach(id => usedIds.add(String(id)))
-                })
-              }
-            })
-            
-            finalQuestions = questions.filter(q => !usedIds.has(String(q._id)))
-            console.log(`Filtered out used questions: ${questions.length} -> ${finalQuestions.length}`)
-          }
         }
         
-        // PRIORITY: Explicitly assigned questions (Admin Created Tests)
-        // If the test has specific questions assigned, use those directly and skip tag filtering
-        if (testData.questions && testData.questions.length > 0) {
-            console.log('Using explicitly assigned questions from test config:', testData.questions.length)
-            const assignedIds = new Set(testData.questions.map(q => typeof q === 'object' ? q._id : q))
-            finalQuestions = finalQuestions.filter(q => assignedIds.has(q._id))
-            
-            // If it's a tutor test, we still want to ensure we have questions
-            if (testData.practiceMode === 'tutor' && finalQuestions.length === 0) {
-                console.warn('Admin test has questions assigned but none were found in the full question bank.')
+        // Check if test has pre-populated questions (tutor-assigned tests)
+        const hasPopulatedQuestions = testData.questions && 
+                                      testData.questions.length > 0 && 
+                                      typeof testData.questions[0] === 'object' &&
+                                      testData.questions[0]._id
+        
+        let finalQuestions = []
+        
+        if (hasPopulatedQuestions) {
+          // Use pre-populated questions directly (tutor-assigned tests)
+          console.log('Using pre-populated questions from test:', testData.questions.length)
+          finalQuestions = testData.questions
+        } else {
+          // Fetch questions from API (standard flow)
+          const isTutor = testData.practiceMode === 'tutor' || testData.isTutorTest === true
+          const questionsUrl = `/api/questions?isTutor=${isTutor}`
+          
+          console.log(`Fetching questions with isTutor=${isTutor} for test mode: ${testData.practiceMode}, configType: ${testData.configType}`)
+          
+          const questionsRes = await fetch(questionsUrl, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+          })
+
+          if (questionsRes.ok) {
+            const questions = await questionsRes.json()
+            console.log(`Fetched ${questions.length} questions from API`)
+            finalQuestions = questions
+
+            // Filter out used questions if requested by test configuration
+            if (testData.excludeUsedQuestions && historyRes.ok) {
+              const historyData = await historyRes.json()
+              const sessions = historyData.sessions || historyData || []
+              const usedIds = new Set()
+              sessions.forEach(s => {
+                if (s.responses) s.responses.forEach(r => usedIds.add(String(r.questionId)))
+                if (s.adaptiveAssignedQuestionIds) s.adaptiveAssignedQuestionIds.forEach(id => usedIds.add(String(id)))
+                if (s.moduleAnswers) {
+                  Object.values(s.moduleAnswers).forEach(m => {
+                    if (m.questionIds) m.questionIds.forEach(id => usedIds.add(String(id)))
+                  })
+                }
+              })
+              
+              finalQuestions = finalQuestions.filter(q => !usedIds.has(String(q._id)))
+              console.log(`Filtered out used questions: ${finalQuestions.length} remaining`)
             }
-        }
-        // PRIORITY: Tutor Mode must enforce strict filtering (Only if no specific questions assigned)
-        else if (testData.practiceMode === 'tutor') {
-             const { subtopics, domains } = testData.filters || {}
-             
-             // Normalize string helper - aggressive normalization for better matching
-             const normalize = (str) => str?.toLowerCase().trim().replace(/[^a-z0-9]/g, '') || ''
+            
+            // Apply filtering for non-pre-populated questions
+            // PRIORITY: Explicitly assigned questions (Admin Created Tests)
+            if (testData.questions && testData.questions.length > 0) {
+                console.log('Using explicitly assigned question IDs from test config:', testData.questions.length)
+                const assignedIds = new Set(testData.questions.map(q => typeof q === 'object' ? q._id : q))
+                finalQuestions = finalQuestions.filter(q => assignedIds.has(q._id))
+                
+                if (testData.practiceMode === 'tutor' && finalQuestions.length === 0) {
+                    console.warn('Admin test has questions assigned but none were found in the full question bank.')
+                }
+            }
+            // PRIORITY: Tutor Mode must enforce strict filtering
+            else if (testData.practiceMode === 'tutor') {
+                 const { subtopics, domains } = testData.filters || {}
+                 const normalize = (str) => str?.toLowerCase().trim().replace(/[^a-z0-9]/g, '') || ''
 
-             if (!subtopics || subtopics.length === 0) {
-                 console.error("Critical Error: Tutor mode active but no subtopics defined.")
-                 alert("Error: No topic specified for this practice session. Please try again.")
-                 finalQuestions = [] // Strict empty to prevent leaking all questions
-             } else {
-                 const normalizedSubtopics = subtopics.map(normalize)
-                 console.log('Tutor Mode Filtering for:', normalizedSubtopics)
+                 if (!subtopics || subtopics.length === 0) {
+                     console.error("Critical Error: Tutor mode active but no subtopics defined.")
+                     alert("Error: No topic specified for this practice session. Please try again.")
+                     finalQuestions = []
+                 } else {
+                     const normalizedSubtopics = subtopics.map(normalize)
+                     console.log('Tutor Mode Filtering for:', normalizedSubtopics)
 
-                 finalQuestions = finalQuestions.filter(q => {
-                     if (!q.tags) return false
-                     
-                     let tags = []
-                     try {
-                         if (Array.isArray(q.tags)) {
-                             tags = q.tags
-                         } else if (typeof q.tags === 'string') {
-                             if (q.tags.trim().startsWith('[')) {
-                                 tags = JSON.parse(q.tags)
-                             } else {
-                                 tags = q.tags.split(',')
+                     finalQuestions = finalQuestions.filter(q => {
+                         if (!q.tags) return false
+                         
+                         let tags = []
+                         try {
+                             if (Array.isArray(q.tags)) {
+                                 tags = q.tags
+                             } else if (typeof q.tags === 'string') {
+                                 if (q.tags.trim().startsWith('[')) {
+                                     tags = JSON.parse(q.tags)
+                                 } else {
+                                     tags = q.tags.split(',')
+                                 }
                              }
+                         } catch (e) {
+                             if (typeof q.tags === 'string') tags = q.tags.split(',')
+                             else return false
                          }
-                     } catch (e) {
-                         if (typeof q.tags === 'string') tags = q.tags.split(',')
-                         else return false
+                         
+                         const normalizedTags = tags.map(normalize)
+                         const match = normalizedSubtopics.some(sub => 
+                             normalizedTags.some(t => t && (t === sub || sub.includes(t) || t.includes(sub)))
+                         )
+                         return match
+                     })
+                     
+                     console.log(`Tutor Mode: Filtered ${finalQuestions.length} questions`)
+                     
+                     if (finalQuestions.length === 0) {
+                         console.warn(`No questions found matching topics: ${subtopics.join(', ')}`)
+                         alert(`No questions found matching the topic: ${subtopics[0]}. Please contact admin to add questions with this tag.`)
                      }
-                     
-                     const normalizedTags = tags.map(normalize)
-                     
-                     // Flexible matching:
-                     // 1. Exact match
-                     // 2. Subtopic contains Tag (e.g. "Linear Equations (1&2)" contains "Linear Equations")
-                     // 3. Tag contains Subtopic
-                     const match = normalizedSubtopics.some(sub => 
-                         normalizedTags.some(t => t && (t === sub || sub.includes(t) || t.includes(sub)))
-                     )
-                     return match
-                 })
-                 
-                 console.log(`Tutor Mode: Filtered ${questions.length} -> ${finalQuestions.length} questions`)
-                 
-                 if (finalQuestions.length === 0) {
-                     // Try fallback to domain if strictly no subtopic match found?
-                     // NO. User explicitly complained about "loading all questions" or "wrong questions".
-                     // Better to show 0 than wrong ones.
-                     console.warn(`No questions found matching topics: ${subtopics.join(', ')}`)
-                     alert(`No questions found matching the topic: ${subtopics[0]}. Please contact admin to add questions with this tag.`)
                  }
-             }
-        }
-        // Standard/Custom Mode Filtering
-        else if (testData.filters && (testData.filters.domains?.length > 0 || testData.filters.subtopics?.length > 0)) {
-            const { subtopics, domains } = testData.filters
-            const normalize = (str) => str?.toLowerCase().trim().replace(/[^a-z0-9]/g, '') || ''
-            
-            console.log('Standard/Custom Mode Filtering:', { subtopics, domains })
-            
-            if (subtopics && subtopics.length > 0) {
-                const normalizedSubtopics = subtopics.map(normalize)
-                console.log('Normalized subtopics for filtering:', normalizedSubtopics)
-                
-                finalQuestions = finalQuestions.filter(q => {
-                    if (!q.tags) return false
-                    let tags = []
-                    try {
-                         if (Array.isArray(q.tags)) tags = q.tags
-                         else if (typeof q.tags === 'string') {
-                             if (q.tags.trim().startsWith('[')) tags = JSON.parse(q.tags)
-                             else tags = q.tags.split(',')
-                         }
-                    } catch (e) { return false }
-                    
-                    const normalizedTags = tags.map(normalize)
-                    const match = normalizedTags.some(tag => 
-                        normalizedSubtopics.some(sub => tag && (tag === sub || tag.includes(sub) || sub.includes(tag)))
-                    )
-                    return match
-                })
-                
-                console.log(`Filtered by subtopics: ${questions.length} -> ${finalQuestions.length} questions`)
-            } else if (domains && domains.length > 0) {
-                // If only domains specified, filter by domain
-                const normalizedDomains = domains.map(normalize)
-                console.log('Normalized domains for filtering:', normalizedDomains)
-                
-                finalQuestions = finalQuestions.filter(q => {
-                    if (!q.domain) return false
-                    const normalizedDomain = normalize(q.domain)
-                    return normalizedDomains.some(d => normalizedDomain.includes(d) || d.includes(normalizedDomain))
-                })
-                
-                console.log(`Filtered by domains: ${questions.length} -> ${finalQuestions.length} questions`)
             }
-        } else if (testData.configType === 'custom' && !testData.practiceMode === 'tutor') {
-            // Customize mode with no specific filters - use all admin questions
-            console.log('Customize mode with no filters - using all available admin questions')
-        }
+            // Standard/Custom Mode Filtering
+            else if (testData.filters && (testData.filters.domains?.length > 0 || testData.filters.subtopics?.length > 0)) {
+                const { subtopics, domains } = testData.filters
+                const normalize = (str) => str?.toLowerCase().trim().replace(/[^a-z0-9]/g, '') || ''
+                
+                console.log('Standard/Custom Mode Filtering:', { subtopics, domains })
+                
+                if (subtopics && subtopics.length > 0) {
+                    const normalizedSubtopics = subtopics.map(normalize)
+                    console.log('Normalized subtopics for filtering:', normalizedSubtopics)
+                    
+                    finalQuestions = finalQuestions.filter(q => {
+                        if (!q.tags) return false
+                        let tags = []
+                        try {
+                             if (Array.isArray(q.tags)) tags = q.tags
+                             else if (typeof q.tags === 'string') {
+                                 if (q.tags.trim().startsWith('[')) tags = JSON.parse(q.tags)
+                                 else tags = q.tags.split(',')
+                             }
+                        } catch (e) { return false }
+                        
+                        const normalizedTags = tags.map(normalize)
+                        const match = normalizedTags.some(tag => 
+                            normalizedSubtopics.some(sub => tag && (tag === sub || tag.includes(sub) || sub.includes(tag)))
+                        )
+                        return match
+                    })
+                    
+                    console.log(`Filtered by subtopics: ${finalQuestions.length} questions`)
+                } else if (domains && domains.length > 0) {
+                    const normalizedDomains = domains.map(normalize)
+                    console.log('Normalized domains for filtering:', normalizedDomains)
+                    
+                    finalQuestions = finalQuestions.filter(q => {
+                        if (!q.domain) return false
+                        const normalizedDomain = normalize(q.domain)
+                        return normalizedDomains.some(d => normalizedDomain.includes(d) || d.includes(normalizedDomain))
+                    })
+                    
+                    console.log(`Filtered by domains: ${finalQuestions.length} questions`)
+                }
+            } else if (testData.configType === 'custom' && !testData.practiceMode === 'tutor') {
+                console.log('Customize mode with no filters - using all available admin questions')
+            }
+          } // End of questionsRes.ok
+        } // End of hasPopulatedQuestions check
 
         setTest(testData)
         setAllQuestions(finalQuestions)
@@ -581,7 +584,6 @@ export default function TakeTestPage() {
         } else if (testData.sections?.math) {
           setCurrentSection('math')
         }
-      } // End of questionsRes.ok check
     } // End of testRes.ok check
     } catch (error) {
       console.error('Error fetching test:', error)
@@ -603,15 +605,29 @@ export default function TakeTestPage() {
     
     console.log(`Loading ${subject} Module ${moduleNum}`)
     console.log('Total questions available:', questions.length)
-    console.log('Test config:', { configType: testData?.configType, practiceMode: testData?.practiceMode, isTutorTest: testData?.isTutorTest, duration: duration })
+    console.log('Test config:', { configType: testData?.configType, practiceMode: testData?.practiceMode, isTutorTest: testData?.isTutorTest, duration: duration, subject: testData?.subject })
     console.log('Test filters:', testData?.filters)
+    console.log('Sample questions subjects:', questions.slice(0, 3).map(q => ({ id: q._id, subject: q.subject })))
     
-    let filteredQuestions = questions.filter(q => {
-      // Try both formats
-      return q.subject === subject || 
-             q.subject === 'Reading & Writing' && subject === 'Reading and Writing' ||
-             q.subject === 'Reading and Writing' && subject === 'Reading and Writing'
-    })
+    // Check if this is a Tutor-Created Test (admin/teacher assigned test)
+    const isTutorCreatedTest = testData?.isTutorTest === true || (testData?.questions && testData.questions.length > 0)
+    
+    let filteredQuestions = []
+    
+    if (isTutorCreatedTest) {
+      // For tutor-created tests, use ALL questions without subject filtering
+      // The test creator already selected the right questions
+      console.log('Tutor-created test: Using all provided questions without subject filtering')
+      filteredQuestions = questions
+    } else {
+      // For standard tests, filter by subject
+      filteredQuestions = questions.filter(q => {
+        // Try both formats
+        return q.subject === subject || 
+               q.subject === 'Reading & Writing' && subject === 'Reading and Writing' ||
+               q.subject === 'Reading and Writing' && subject === 'Reading and Writing'
+      })
+    }
     
     console.log(`Filtered ${subject} questions:`, filteredQuestions.length)
     console.log('Sample filtered question:', filteredQuestions[0])
@@ -623,9 +639,6 @@ export default function TakeTestPage() {
     }
     
     let selectedQuestions = []
-    
-    // Check if this is a Tutor-Created Test (admin/teacher assigned test)
-    const isTutorCreatedTest = testData?.isTutorTest === true || (testData?.questions && testData.questions.length > 0)
     
     if (isTutorCreatedTest) {
       // TUTOR-CREATED TEST: Use all available questions, no module structure enforcement
@@ -1293,6 +1306,7 @@ export default function TakeTestPage() {
             <div className="space-y-3">
               <button
                 onClick={() => {
+                  if (!test) return
                   if (test.sections?.rw) {
                     loadModule('rw', 1, allQuestions, test)
                   } else if (test.sections?.math) {
@@ -1300,7 +1314,8 @@ export default function TakeTestPage() {
                   }
                   enterFullscreen()
                 }}
-                className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors"
+                disabled={!test || allQuestions.length === 0}
+                className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 Start Test in Fullscreen
               </button>
@@ -1370,14 +1385,14 @@ export default function TakeTestPage() {
               <p className="text-gray-700 text-lg mb-6">Total SAT Score</p>
               
               <div className="grid grid-cols-2 gap-6">
-                {test.sections?.rw && (
+                {test?.sections?.rw && (
                   <div className="bg-white rounded-lg p-4">
                     <p className="text-sm text-gray-600 mb-1">Reading & Writing</p>
                     <p className="text-3xl font-bold text-blue-600">{finalScore.rwScore}</p>
                     <p className="text-xs text-gray-500 mt-1">out of 800</p>
                   </div>
                 )}
-                {test.sections?.math && (
+                {test?.sections?.math && (
                   <div className="bg-white rounded-lg p-4">
                     <p className="text-sm text-gray-600 mb-1">Math</p>
                     <p className="text-3xl font-bold text-green-600">{finalScore.mathScore}</p>

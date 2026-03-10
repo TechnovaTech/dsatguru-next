@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import User from '../../../../../lib/models/User'
+import TestSession from '../../../../../lib/models/TestSession'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 
 export async function PUT(request) {
@@ -38,10 +39,29 @@ export async function PUT(request) {
       // Add test if not already assigned
       if (!student.assignedTests.includes(testId)) {
         student.assignedTests.push(testId)
+        
+        // Create a test session with status "Assigned"
+        await TestSession.create({
+          userId: studentId,
+          testId: testId,
+          status: 'Assigned',
+          state: 'CREATED',
+          sessionType: 'Practice',
+          totalQuestions: 0,
+          answeredQuestions: 0,
+          correctAnswers: 0
+        })
       }
     } else if (action === 'remove') {
       // Remove test
       student.assignedTests = student.assignedTests.filter(id => id.toString() !== testId)
+      
+      // Delete the assigned test session (only if not started)
+      await TestSession.deleteMany({
+        userId: studentId,
+        testId: testId,
+        status: 'Assigned'
+      })
     }
 
     await student.save()
