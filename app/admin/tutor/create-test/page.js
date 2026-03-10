@@ -222,7 +222,8 @@ export default function CreateTutorTest() {
           subject: formData.subject,
           questionIds: selectedQuestions,
           customQuestions: Object.keys(editedQuestionsData).length > 0 ? editedQuestionsData : null,
-          duration: formData.isTimed ? parseInt(formData.duration) : null
+          duration: formData.isTimed ? parseInt(formData.duration) : 0,
+          isTimed: formData.isTimed
         })
       })
 

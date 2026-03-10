@@ -14,7 +14,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { title, subject, questionIds, customQuestions, duration } = await request.json()
+    const { title, subject, questionIds, customQuestions, duration, isTimed } = await request.json()
+
+    console.log('Creating test with:', { title, subject, duration, isTimed })
 
     // Validation
     if (!title || !subject || !questionIds || questionIds.length === 0) {
@@ -27,13 +29,15 @@ export async function POST(request) {
       subject,
       questions: questionIds,
       customQuestions: customQuestions || null, // Store edited versions
-      duration: duration || null,
-      isTimed: !!duration,
+      duration: duration || 0,
+      isTimed: isTimed === true, // Explicitly set based on frontend value
       isTutorTest: true, // Flag as tutor test
       practiceMode: 'tutor', // Set practice mode to tutor
       testType: 'Practice', // Use valid enum value
       isActive: true
     })
+
+    console.log('Test created:', { id: test._id, isTimed: test.isTimed, duration: test.duration })
 
     return NextResponse.json({
       success: true,

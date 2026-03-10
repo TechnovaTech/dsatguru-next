@@ -119,28 +119,58 @@ export default function TutorRWPage() {
             history.filter(h => h.status === 'Assigned').length > 0 ? (
               history
                 .filter(h => h.status === 'Assigned')
-                .map((session) => (
-                  <div key={session._id} className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-all">
-                    <div className="flex-1">
-                       <div className="flex items-center gap-2 mb-2">
-                         <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded border border-blue-100">Assigned</span>
-                         <span className="text-xs text-gray-500">{new Date(session.createdAt).toLocaleDateString()}</span>
-                       </div>
-                       <h3 className="text-lg font-bold text-gray-900 mb-1">{session.testId?.title || 'Assigned Test'}</h3>
-                       <div className="flex items-center gap-4 text-sm text-gray-500">
-                         <span className="flex items-center gap-1"><FiFileText /> {session.testId?.questions?.length || session.testId?.totalQuestions || 0} Questions</span>
-                         <span className="flex items-center gap-1"><FiBarChart2 /> {session.testId?.difficulty || 'Mixed'} Difficulty</span>
-                       </div>
+                .map((session) => {
+                  const test = session.testId
+                  const questionCount = test?.questions?.length || test?.totalQuestions || 0
+                  const difficulty = test?.difficulty || 'Mixed'
+                  const duration = test?.duration || 0
+                                    const isReassigned = test?.isReassigned === true
+                  
+                  return (
+                    <div key={session._id} className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-all">
+                      <div className="flex-1">
+                         <div className="flex items-center gap-2 mb-2 flex-wrap">
+                           <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded border border-blue-100">Assigned</span>
+                           <span className="text-xs text-gray-500">{new Date(session.createdAt).toLocaleDateString()}</span>
+                           {isReassigned && (
+                             <span className="px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded border border-amber-100">
+                               🔄 Reassigned
+                             </span>
+                           )}
+                         </div>
+                         <h3 className="text-lg font-bold text-gray-900 mb-2">{test?.title || 'Assigned Test'}</h3>
+                         <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
+                           <span className="flex items-center gap-1">
+                             <FiFileText className="w-4 h-4" /> 
+                             <span className="font-medium">{questionCount}</span> Question{questionCount !== 1 ? 's' : ''}
+                           </span>
+                           <span className="flex items-center gap-1">
+                             <FiClock className="w-4 h-4" />
+                             {test?.isTimed ? (
+                               <span className="font-medium">{duration} min</span>
+                             ) : (
+                               <span className="font-medium text-orange-600">Untimed</span>
+                             )}
+                           </span>
+                           <span className={`px-2 py-0.5 text-xs font-semibold rounded ${
+                             difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
+                             difficulty === 'Hard' ? 'bg-red-100 text-red-700' :
+                             'bg-yellow-100 text-yellow-700'
+                           }`}>
+                             {difficulty}
+                           </span>
+                         </div>
+                      </div>
+                      
+                      <button
+                         onClick={() => handleStartSession(session)}
+                         className="px-6 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
+                       >
+                         <FiPlay className="w-4 h-4" /> Start Test
+                       </button>
                     </div>
-                    
-                    <button
-                       onClick={() => handleStartSession(session)}
-                       className="px-6 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
-                     >
-                       <FiPlay className="w-4 h-4" /> Start Test
-                     </button>
-                  </div>
-                ))
+                  )
+                })
             ) : (
               <div className="text-center py-16 bg-white rounded-lg border border-dashed border-gray-300">
                 <div className="bg-gray-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -165,26 +195,50 @@ export default function TutorRWPage() {
                   const notReassigned = !h.isReassigned
                   return statusMatch && notReassigned
                 })
-                .map((session) => (
-                  <div key={session._id} className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-sm transition-all">
-                    <div className="flex-1">
-                       <div className="text-xs text-gray-500 mb-1">#{session._id.slice(-6)} • {new Date(session.createdAt).toLocaleDateString()}</div>
-                       <h3 className="text-base font-bold text-gray-900">{session.testId?.title || 'Practice Session'}</h3>
-                    </div>
-                    
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span className="flex items-center gap-1"><FiClock className="w-4 h-4" /> {session.duration || '20 Mins'}</span>
+                .map((session) => {
+                  const test = session.testId
+                  const questionCount = test?.questions?.length || test?.totalQuestions || 0
+                  const difficulty = test?.difficulty || 'Mixed'
+                  const duration = test?.duration || 0
+                                    
+                  return (
+                    <div key={session._id} className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-all">
+                      <div className="flex-1">
+                         <div className="flex items-center gap-2 mb-2 flex-wrap">
+                           <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${
+                             session.status === 'Completed'
+                               ? 'bg-green-50 border-green-200 text-green-600' 
+                               : 'bg-yellow-50 border-yellow-200 text-yellow-600'
+                           }`}>
+                             {session.status === 'Completed' ? 'Completed' : 'In Progress'}
+                           </span>
+                           <span className="text-xs text-gray-500">{new Date(session.createdAt).toLocaleDateString()}</span>
+                         </div>
+                         <h3 className="text-lg font-bold text-gray-900 mb-2">{test?.title || 'Practice Session'}</h3>
+                         <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
+                           <span className="flex items-center gap-1">
+                             <FiFileText className="w-4 h-4" /> 
+                             <span className="font-medium">{questionCount}</span> Question{questionCount !== 1 ? 's' : ''}
+                           </span>
+                           <span className="flex items-center gap-1">
+                             <FiClock className="w-4 h-4" />
+                             {test?.isTimed ? (
+                               <span className="font-medium">{duration} min</span>
+                             ) : (
+                               <span className="font-medium text-orange-600">Untimed</span>
+                             )}
+                           </span>
+                           <span className={`px-2 py-0.5 text-xs font-semibold rounded ${
+                             difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
+                             difficulty === 'Hard' ? 'bg-red-100 text-red-700' :
+                             'bg-yellow-100 text-yellow-700'
+                           }`}>
+                             {difficulty}
+                           </span>
+                         </div>
                       </div>
                       
                       <div className="flex items-center gap-3">
-                         <span className={`px-3 py-1 border text-xs font-semibold rounded uppercase tracking-wider ${
-                           session.status === 'Completed'
-                             ? 'bg-green-50 border-green-200 text-green-600' 
-                             : 'bg-yellow-50 border-yellow-200 text-yellow-600'
-                         }`}>
-                           {session.status === 'Completed' ? 'Completed' : 'In Progress'}
-                         </span>
                          {session.status === 'Completed' ? (
                            <button
                              onClick={() => router.push(`/dashboard/tests/${session.testId?._id}/results?session_id=${session._id}&returnUrl=/dashboard/tutor/rw`)}
@@ -206,8 +260,8 @@ export default function TutorRWPage() {
                          )}
                       </div>
                     </div>
-                  </div>
-                ))
+                  )
+                })
             ) : (
               <div className="text-center py-12 text-gray-500">No sessions found.</div>
             )
@@ -221,3 +275,4 @@ export default function TutorRWPage() {
     </div>
   )
 }
+

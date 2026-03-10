@@ -1313,13 +1313,13 @@ export default function TutorTestSheets() {
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="text-lg font-semibold text-blue-900 flex items-center gap-2">
                             <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
-                            Math Tests ({tests.filter(t => t.subject === 'Math').length})
+                            Math Tests ({tests.filter(t => t.subject === 'Math' && !t.isReassigned).length})
                           </h3>
-                          {tests.filter(t => t.subject === 'Math').length > 0 && (
+                          {tests.filter(t => t.subject === 'Math' && !t.isReassigned).length > 0 && (
                             <label className="flex items-center gap-2 cursor-pointer">
                               <input
                                 type="checkbox"
-                                checked={selectedMathTests.length === tests.filter(t => t.subject === 'Math').length && tests.filter(t => t.subject === 'Math').length > 0}
+                                checked={selectedMathTests.length === tests.filter(t => t.subject === 'Math' && !t.isReassigned).length && tests.filter(t => t.subject === 'Math' && !t.isReassigned).length > 0}
                                 onChange={handleSelectAllMath}
                                 className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                               />
@@ -1345,10 +1345,10 @@ export default function TutorTestSheets() {
                         )}
                       </div>
                       <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
-                        {tests.filter(t => t.subject === 'Math').length === 0 ? (
+                        {tests.filter(t => t.subject === 'Math' && !t.isReassigned).length === 0 ? (
                           <div className="text-center py-8 text-gray-500">No Math tests available</div>
                         ) : (
-                          tests.filter(t => t.subject === 'Math').map((test) => {
+                          tests.filter(t => t.subject === 'Math' && !t.isReassigned).map((test) => {
                             const isAssigned = assignedTests.includes(test._id)
                             const isSelected = selectedMathTests.includes(test._id)
                             return (
@@ -1394,13 +1394,13 @@ export default function TutorTestSheets() {
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="text-lg font-semibold text-purple-900 flex items-center gap-2">
                             <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
-                            Reading & Writing Tests ({tests.filter(t => t.subject === 'Reading and Writing').length})
+                            Reading & Writing Tests ({tests.filter(t => t.subject === 'Reading and Writing' && !t.isReassigned).length})
                           </h3>
-                          {tests.filter(t => t.subject === 'Reading and Writing').length > 0 && (
+                          {tests.filter(t => t.subject === 'Reading and Writing' && !t.isReassigned).length > 0 && (
                             <label className="flex items-center gap-2 cursor-pointer">
                               <input
                                 type="checkbox"
-                                checked={selectedRWTests.length === tests.filter(t => t.subject === 'Reading and Writing').length && tests.filter(t => t.subject === 'Reading and Writing').length > 0}
+                                checked={selectedRWTests.length === tests.filter(t => t.subject === 'Reading and Writing' && !t.isReassigned).length && tests.filter(t => t.subject === 'Reading and Writing' && !t.isReassigned).length > 0}
                                 onChange={handleSelectAllRW}
                                 className="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
                               />
@@ -1426,10 +1426,10 @@ export default function TutorTestSheets() {
                         )}
                       </div>
                       <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
-                        {tests.filter(t => t.subject === 'Reading and Writing').length === 0 ? (
+                        {tests.filter(t => t.subject === 'Reading and Writing' && !t.isReassigned).length === 0 ? (
                           <div className="text-center py-8 text-gray-500">No Reading & Writing tests available</div>
                         ) : (
-                          tests.filter(t => t.subject === 'Reading and Writing').map((test) => {
+                          tests.filter(t => t.subject === 'Reading and Writing' && !t.isReassigned).map((test) => {
                             const isAssigned = assignedTests.includes(test._id)
                             const isSelected = selectedRWTests.includes(test._id)
                             return (
