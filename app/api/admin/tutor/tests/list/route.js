@@ -9,7 +9,7 @@ export async function GET(request) {
     const token = getTokenFromRequest(request)
     const decoded = verifyToken(token)
     
-    if (!decoded || decoded.role !== 'Admin') {
+    if (!decoded || !['Admin', 'TutorAdmin', 'Tutor'].includes(decoded.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -35,7 +35,7 @@ export async function DELETE(request) {
     const token = getTokenFromRequest(request)
     const decoded = verifyToken(token)
     
-    if (!decoded || decoded.role !== 'Admin') {
+    if (!decoded || !['Admin', 'TutorAdmin'].includes(decoded.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

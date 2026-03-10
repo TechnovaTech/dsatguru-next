@@ -14,14 +14,16 @@ export default function AdminLayout({ children }) {
 
   useEffect(() => {
     if (!loading) {
-      if (!user || (user.role !== 'Admin' && user.role !== 'Tutor')) {
+      if (!user || !['Admin', 'Tutor', 'TutorAdmin'].includes(user.role)) {
         router.push('/login')
       } else if (user.role === 'Tutor') {
         setOpenSubmenu(prev => ({ ...prev, 'tutor-tests': true }))
         
-        if (!pathname.startsWith('/admin/tutor')) {
-          router.push('/admin/tutor/create-test')
+        if (!pathname.startsWith('/admin/tutor') && pathname !== '/admin/dashboard' && pathname !== '/admin/users') {
+          router.push('/admin/dashboard')
         }
+      } else if (user.role === 'TutorAdmin') {
+        setOpenSubmenu(prev => ({ ...prev, 'tutor-tests': true }))
       }
     }
   }, [user, loading, router, pathname])
@@ -61,10 +63,58 @@ export default function AdminLayout({ children }) {
 
   const filteredMenuItems = menuItems.filter(item => {
     if (user?.role === 'Tutor') {
+      // Tutor can only access: Dashboard, Users, Tutor Test Sheets, Tutor Test Results
+      const allowedIds = ['dashboard', 'users', 'tutor-tests']
+      return allowedIds.includes(item.id)
+    }
+    if (user?.role === 'TutorAdmin') {
+      // TutorAdmin can only access Tutor Tests modules
       return item.id === 'tutor-tests'
     }
+    // Admin has full access
     return true
   })
+
+  // Convert submenu to main menu items for Tutor and TutorAdmin
+  const getMenuItems = () => {
+    if (user?.role === 'TutorAdmin') {
+      // Show all Tutor Tests submenus as main menu items
+      const tutorTestsItem = menuItems.find(item => item.id === 'tutor-tests')
+      if (tutorTestsItem && tutorTestsItem.submenu) {
+        return tutorTestsItem.submenu.map(sub => ({
+          id: sub.id,
+          label: sub.label,
+          icon: <FiCheckSquare />,
+          path: sub.path
+        }))
+      }
+      return []
+    }
+    
+    if (user?.role === 'Tutor') {
+      // Show Dashboard, Users, and filtered Tutor Tests as main menu items
+      const mainItems = filteredMenuItems.filter(item => item.id !== 'tutor-tests')
+      const tutorTestsItem = menuItems.find(item => item.id === 'tutor-tests')
+      
+      if (tutorTestsItem && tutorTestsItem.submenu) {
+        const allowedSubmenus = tutorTestsItem.submenu
+          .filter(sub => sub.id === 'tutor-test-sheets' || sub.id === 'tutor-results')
+          .map(sub => ({
+            id: sub.id,
+            label: sub.label,
+            icon: <FiCheckSquare />,
+            path: sub.path
+          }))
+        return [...mainItems, ...allowedSubmenus]
+      }
+      return mainItems
+    }
+    
+    // Admin sees normal menu with submenus
+    return filteredMenuItems
+  }
+
+  const displayMenuItems = getMenuItems()
 
   const handleLogout = async () => {
     await logout()
@@ -76,7 +126,7 @@ export default function AdminLayout({ children }) {
   }
 
   if (loading) return null
-  if (!user || (user.role !== 'Admin' && user.role !== 'Tutor')) return null
+  if (!user || !['Admin', 'Tutor', 'TutorAdmin'].includes(user.role)) return null
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -88,9 +138,9 @@ export default function AdminLayout({ children }) {
           <p className="text-sm text-gray-600">Welcome, {user?.name}</p>
         </div>
         <nav className="p-4">
-          {filteredMenuItems.map((item) => (
+          {displayMenuItems.map((item) => (
             <div key={item.id}>
-              {item.submenu ? (
+              {item.submenu && user?.role === 'Admin' ? (
                 <>
                   <button 
                     onClick={() => toggleSubmenu(item.id)}

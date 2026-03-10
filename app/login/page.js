@@ -72,8 +72,10 @@ export default function Login() {
       // Check if user is admin and redirect accordingly
       if (response.data.user.role === 'Admin') {
         router.push('/admin')
+      } else if (response.data.user.role === 'TutorAdmin') {
+        router.push('/admin/tutor/question-bank')
       } else if (response.data.user.role === 'Tutor') {
-        router.push('/admin/tutor/create-test')
+        router.push('/admin/dashboard')
       } else {
         router.push('/dashboard')
       }

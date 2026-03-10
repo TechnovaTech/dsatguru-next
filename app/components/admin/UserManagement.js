@@ -136,6 +136,7 @@ export default function UserManagement() {
             <option value="">All Users</option>
             <option value="Student">Students</option>
             <option value="Tutor">Tutors</option>
+            <option value="TutorAdmin">Tutor Admins</option>
             <option value="Admin">Admins</option>
           </select>
           <button
@@ -167,6 +168,7 @@ export default function UserManagement() {
                   <td className="px-6 py-4 text-sm text-gray-900">
                     <span className={`px-2 py-1 rounded text-xs ${
                       user.role === 'Admin' ? 'bg-red-100 text-red-800' :
+                      user.role === 'TutorAdmin' ? 'bg-purple-100 text-purple-800' :
                       user.role === 'Tutor' ? 'bg-blue-100 text-blue-800' :
                       'bg-green-100 text-green-800'
                     }`}>
@@ -271,6 +273,7 @@ export default function UserManagement() {
                     >
                       <option value="Student">Student</option>
                       <option value="Tutor">Tutor</option>
+                      <option value="TutorAdmin">Tutor Admin</option>
                       <option value="Admin">Admin</option>
                     </select>
                   </div>
