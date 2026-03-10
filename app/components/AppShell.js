@@ -7,8 +7,9 @@ export default function AppShell({ children }) {
   const pathname = usePathname() || '/'
   const isDashboard = pathname.startsWith('/dashboard')
   const isAdmin = pathname.startsWith('/admin')
+  const isTutor = pathname.startsWith('/tutor')
 
-  if (isAdmin || isDashboard) {
+  if (isAdmin || isDashboard || isTutor) {
     return children
   }
 
