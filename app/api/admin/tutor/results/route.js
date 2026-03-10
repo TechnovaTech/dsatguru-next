@@ -13,28 +13,47 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Fetch completed test sessions from tutor-created tests
-    const sessions = await TestSession.find({
+    console.log(`[Tutor Results API] User role: ${decoded.role}, userId: ${decoded.userId}`)
+
+    // Fetch ALL completed test sessions first
+    const allSessions = await TestSession.find({
       status: 'Completed'
     })
       .populate('userId', 'name email assignedTutor')
-      .populate({
-        path: 'testId',
-        match: { isTutorTest: true },
-        select: 'title subject isTutorTest questions customQuestions'
-      })
+      .populate('testId')
       .sort({ completedAt: -1 })
       .lean()
 
-    // Filter out sessions where testId is null
-    let filteredSessions = sessions.filter(s => s.testId !== null)
+    console.log(`[Tutor Results API] Total completed sessions: ${allSessions.length}`)
+
+    // Filter for tutor tests (either isTutorTest=true OR practiceMode='tutor')
+    let filteredSessions = allSessions.filter(s => {
+      if (!s.testId) {
+        console.log(`[Tutor Results API] Session ${s._id} has no testId`)
+        return false
+      }
+      
+      const isTutorTest = s.testId.isTutorTest === true || s.testId.practiceMode === 'tutor'
+      
+      if (!isTutorTest) {
+        console.log(`[Tutor Results API] Session ${s._id} test ${s.testId._id} is not a tutor test (isTutorTest: ${s.testId.isTutorTest}, practiceMode: ${s.testId.practiceMode})`)
+      }
+      
+      return isTutorTest
+    })
+
+    console.log(`[Tutor Results API] Tutor test sessions: ${filteredSessions.length}`)
 
     // If user is Tutor role, only show results for their assigned students
     if (decoded.role === 'Tutor') {
+      const beforeFilter = filteredSessions.length
       filteredSessions = filteredSessions.filter(s => 
         s.userId?.assignedTutor?.toString() === decoded.userId
       )
+      console.log(`[Tutor Results API] Filtered for tutor's students: ${beforeFilter} -> ${filteredSessions.length}`)
     }
+
+    console.log(`[Tutor Results API] Final sessions to return: ${filteredSessions.length}`)
 
     // Format the response
     const formattedResults = filteredSessions.map(session => ({
@@ -52,7 +71,7 @@ export async function GET(request) {
 
     return NextResponse.json(formattedResults)
   } catch (error) {
-    console.error('Error fetching tutor results:', error)
+    console.error('[Tutor Results API] Error:', error)
     return NextResponse.json({ 
       error: 'Failed to fetch results',
       details: error.message 

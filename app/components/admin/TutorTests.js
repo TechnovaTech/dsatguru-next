@@ -15,12 +15,15 @@ export default function TutorTests() {
     setLoading(true)
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      const res = await fetch('/api/admin/test-sessions/tutor', {
+      const res = await fetch('/api/admin/tutor/results', {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       })
       if (res.ok) {
         const data = await res.json()
+        console.log('Fetched tutor results:', data)
         setSessions(data)
+      } else {
+        console.error('Failed to fetch tutor results:', res.status, res.statusText)
       }
     } catch (error) {
       console.error('Error fetching tutor sessions:', error)
