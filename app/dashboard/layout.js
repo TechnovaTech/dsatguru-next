@@ -174,9 +174,12 @@ export default function DashboardLayout({ children }) {
             <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
               {initials}
             </div>
-            <div>
+            <div className="flex-1">
               <p className="text-sm font-medium text-gray-800">{user?.name}</p>
               <p className="text-xs text-gray-500">{user?.email}</p>
+              <span className="inline-block mt-1 px-2 py-0.5 text-xs font-semibold rounded-full bg-orange-100 text-orange-700">
+                Student
+              </span>
             </div>
           </div>
           <button onClick={handleLogout} className="w-full flex items-center gap-2 text-sm font-medium px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all">

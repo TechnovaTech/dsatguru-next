@@ -103,9 +103,20 @@ export default function AdminLayout({ children }) {
       <div className="w-64 h-screen bg-white shadow-lg overflow-y-auto">
         <div className="p-6 border-b">
           <a href="https://dsatguru.com" className="block">
-            <h1 className="text-xl font-bold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer">DSATGURU Admin</h1>
+            <h1 className="text-xl font-bold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer">
+              DSATGURU {user?.role === 'TutorAdmin' ? 'Tutor Admin' : user?.role}
+            </h1>
           </a>
-          <p className="text-sm text-gray-600">Welcome, {user?.name}</p>
+          <p className="text-sm text-gray-600 mt-1">Welcome, {user?.name}</p>
+          <div className="mt-2">
+            <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${
+              user?.role === 'Admin' ? 'bg-purple-100 text-purple-700' :
+              user?.role === 'TutorAdmin' ? 'bg-blue-100 text-blue-700' :
+              'bg-gray-100 text-gray-700'
+            }`}>
+              {user?.role === 'TutorAdmin' ? 'Tutor Admin' : user?.role}
+            </span>
+          </div>
         </div>
         <nav className="p-4">
           {displayMenuItems.map((item) => (
