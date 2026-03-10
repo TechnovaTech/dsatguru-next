@@ -38,6 +38,12 @@ export default function TutorTestSheets() {
   const [selectedTutorStudents, setSelectedTutorStudents] = useState([])
   const [loadingStudents, setLoadingStudents] = useState(false)
   
+  // View assigned tests modal
+  const [showAssignedTestsModal, setShowAssignedTestsModal] = useState(false)
+  const [selectedTutorTests, setSelectedTutorTests] = useState([])
+  const [selectedTestSubject, setSelectedTestSubject] = useState('')
+  const [loadingAssignedTests, setLoadingAssignedTests] = useState(false)
+  
   // Checkbox selections
   const [selectedMathTests, setSelectedMathTests] = useState([])
   const [selectedRWTests, setSelectedRWTests] = useState([])
@@ -146,6 +152,36 @@ export default function TutorTestSheets() {
       setError('Failed to load students')
     } finally {
       setLoadingStudents(false)
+    }
+  }
+
+  const handleViewAssignedTests = async (tutor, subject) => {
+    setLoadingAssignedTests(true)
+    setShowAssignedTestsModal(true)
+    setSelectedTestSubject(subject)
+    setSelectedTutorTests([])
+    
+    try {
+      const token = localStorage.getItem('token')
+      const assignedRes = await fetch(`/api/admin/tutor/tests/assigned?tutorId=${tutor._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      
+      if (assignedRes.ok) {
+        const assignedData = await assignedRes.json()
+        const assignedTestIds = assignedData.assignedTests || []
+        
+        // Filter tests by subject and assigned status
+        const assignedTests = tests.filter(t => 
+          t.subject === subject && assignedTestIds.includes(t._id)
+        )
+        setSelectedTutorTests(assignedTests)
+      }
+    } catch (err) {
+      console.error('Failed to load assigned tests', err)
+      setError('Failed to load assigned tests')
+    } finally {
+      setLoadingAssignedTests(false)
     }
   }
 
@@ -777,14 +813,24 @@ export default function TutorTestSheets() {
                           </button>
                         </td>
                         <td className="px-6 py-4 text-sm">
-                          <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                            {tutor.mathTestsCount || 0} Tests
-                          </span>
+                          <button
+                            onClick={() => handleViewAssignedTests(tutor, 'Math')}
+                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                              {tutor.mathTestsCount || 0} Tests
+                            </span>
+                          </button>
                         </td>
                         <td className="px-6 py-4 text-sm">
-                          <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
-                            {tutor.rwTestsCount || 0} Tests
-                          </span>
+                          <button
+                            onClick={() => handleViewAssignedTests(tutor, 'Reading and Writing')}
+                            className="text-purple-600 hover:text-purple-800 hover:underline"
+                          >
+                            <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                              {tutor.rwTestsCount || 0} Tests
+                            </span>
+                          </button>
                         </td>
                         <td className="px-6 py-4 text-sm">
                           <button
@@ -1086,6 +1132,72 @@ export default function TutorTestSheets() {
                   className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
                 >
                   Next <FiArrowLeft className="rotate-180" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* View Assigned Tests Modal */}
+        {showAssignedTestsModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+              <div className="p-6 border-b flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Assigned {selectedTestSubject} Tests</h2>
+                  <p className="text-sm text-gray-600 mt-1">Tests assigned to this tutor</p>
+                </div>
+                <button onClick={() => setShowAssignedTestsModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <FiX className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6">
+                {loadingAssignedTests ? (
+                  <div className="text-center py-8 text-gray-500">Loading tests...</div>
+                ) : selectedTutorTests.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">No {selectedTestSubject} tests assigned</div>
+                ) : (
+                  <div className="space-y-3">
+                    {selectedTutorTests.map((test) => (
+                      <div key={test._id} className={`p-4 border rounded-lg ${
+                        selectedTestSubject === 'Math' ? 'border-blue-200 bg-blue-50' : 'border-purple-200 bg-purple-50'
+                      }`}>
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="font-medium text-gray-900 flex-1">{test.title}</div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className="text-sm text-gray-600">
+                              {test.questions?.length || 0} questions
+                            </span>
+                            <span className="text-gray-300">•</span>
+                            {test.isTimed ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">
+                                <FiClock /> {test.duration} min
+                              </span>
+                            ) : (
+                              <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs font-medium">
+                                Untimed
+                              </span>
+                            )}
+                            <span className={`px-2 py-1 text-xs font-medium rounded ${
+                              selectedTestSubject === 'Math' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                            }`}>
+                              {test.subject}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4 border-t bg-gray-50">
+                <button
+                  onClick={() => setShowAssignedTestsModal(false)}
+                  className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                >
+                  Close
                 </button>
               </div>
             </div>
