@@ -7,6 +7,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
   const [expandedQuestions, setExpandedQuestions] = useState(new Set([0]))
   const [editingQuestion, setEditingQuestion] = useState(null)
   const [approving, setApproving] = useState(false)
+  const [globalRemark, setGlobalRemark] = useState('')
 
   const toggleExpand = (index) => {
     const newExpanded = new Set(expandedQuestions)
@@ -49,6 +50,26 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
     }
     
     setEditedQuestions(updated)
+  }
+
+  const applyGlobalRemark = () => {
+    if (!globalRemark.trim()) {
+      alert('Please enter a remark to apply to all questions')
+      return
+    }
+    
+    const updated = editedQuestions.map(q => ({
+      ...q,
+      remark: globalRemark
+    }))
+    
+    setEditedQuestions(updated)
+    console.log('✏️ Global Remark Applied to All Questions:', {
+      totalQuestions: updated.length,
+      remarkValue: globalRemark
+    })
+    
+    alert(`Remark applied to all ${updated.length} questions!`)
   }
 
   const updateOption = (qIndex, optIndex, value) => {
@@ -145,6 +166,34 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
+          {/* Global Remark Input */}
+          <div className="mb-6 p-4 bg-amber-50 border-2 border-amber-300 rounded-lg">
+            <div className="flex items-start gap-3">
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-amber-900 mb-2">
+                  📝 Apply Remark to All Questions
+                </label>
+                <textarea
+                  value={globalRemark}
+                  onChange={(e) => setGlobalRemark(e.target.value)}
+                  className="w-full border border-amber-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  rows={2}
+                  placeholder="Enter a remark to apply to all questions at once..."
+                />
+                <p className="text-xs text-amber-700 mt-1">
+                  💡 This will set the same remark for all {editedQuestions.length} questions. Individual remarks can still be edited below.
+                </p>
+              </div>
+              <button
+                onClick={applyGlobalRemark}
+                disabled={!globalRemark.trim()}
+                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium whitespace-nowrap mt-6"
+              >
+                Apply to All
+              </button>
+            </div>
+          </div>
+
           <div className="mb-4 flex items-center justify-between">
             <div className="text-sm text-gray-600">
               {expandedQuestions.size} of {editedQuestions.length} expanded
