@@ -477,15 +477,14 @@ export default function TakeTestPage() {
                     console.warn('Admin test has questions assigned but none were found in the full question bank.')
                 }
             }
-            // PRIORITY: Tutor Mode must enforce strict filtering
+            // PRIORITY: Tutor Mode must enforce strict filtering (only if no explicit questions assigned)
             else if (testData.practiceMode === 'tutor') {
                  const { subtopics, domains } = testData.filters || {}
                  const normalize = (str) => str?.toLowerCase().trim().replace(/[^a-z0-9]/g, '') || ''
 
+                 // If no subtopics defined, skip filtering (tutor tests with explicit questions don't need it)
                  if (!subtopics || subtopics.length === 0) {
-                     console.error("Critical Error: Tutor mode active but no subtopics defined.")
-                     alert("Error: No topic specified for this practice session. Please try again.")
-                     finalQuestions = []
+                     console.log("Tutor mode: No subtopics defined, using all questions from test")
                  } else {
                      const normalizedSubtopics = subtopics.map(normalize)
                      console.log('Tutor Mode Filtering for:', normalizedSubtopics)
