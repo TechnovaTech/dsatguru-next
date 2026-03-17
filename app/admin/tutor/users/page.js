@@ -1,10 +1,12 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiSearch, FiUser, FiMail, FiCalendar, FiUserPlus, FiX, FiCheck } from 'react-icons/fi'
+import { FiSearch, FiUser, FiMail, FiCalendar, FiUserPlus, FiX, FiCheck, FiBarChart2 } from 'react-icons/fi'
 import { useAuth } from '../../../components/AuthContext'
+import { useRouter } from 'next/navigation'
 
 export default function TutorAndStudents() {
   const { user } = useAuth()
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState(user?.role === 'Tutor' ? 'students' : 'tutors')
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -209,10 +211,7 @@ export default function TutorAndStudents() {
                   )}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Joined Date</th>
-                  {activeTab === 'tutors' && (
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                  )}
-                </tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>                </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
@@ -278,13 +277,22 @@ export default function TutorAndStudents() {
                           {new Date(user.createdAt).toLocaleDateString()}
                         </div>
                       </td>
-                      {activeTab === 'tutors' && (
+                      {activeTab === 'tutors' ? (
                         <td className="px-6 py-4">
                           <button
                             onClick={() => handleOpenAssignModal(user)}
                             className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded text-sm"
                           >
                             <FiUserPlus className="mr-1" /> Assign Students
+                          </button>
+                        </td>
+                      ) : (
+                        <td className="px-6 py-4">
+                          <button
+                            onClick={() => router.push(`/admin/tutor/students/${user._id}/performance`)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+                          >
+                            <FiBarChart2 className="w-3.5 h-3.5" /> View Performance
                           </button>
                         </td>
                       )}
