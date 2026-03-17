@@ -133,44 +133,55 @@ export async function GET(request, { params }) {
       ? parseFloat(((totalCorrect / totalQuestions) * 100).toFixed(2))
       : 0
 
-    // --- Parallel Analysis (tutor tests only) ---
-    const tutorSessions = sessions.filter(s =>
-      s.testId && (s.testId.isTutorTest === true || s.testId.practiceMode === 'tutor')
-    )
+    // --- Parallel Analysis ---
+    // Build flat list of ALL questions across ALL sessions for the question list view
+    const allQuestions = []
+    for (const session of sessions) {
+      const sessionSubject = session.testId?.subject || session.subject || 'General'
+      const testTitle = session.testId?.title || 'Self Practice'
+      const sessionType = session.testId?.isTutorTest ? 'Tutor Test'
+        : session.testId?.practiceMode === 'tutor' ? 'Tutor Test'
+        : session.sessionType || 'Practice'
 
-    const parallelData = tutorSessions.map(session => {
-      const responses = session.responses || []
-      const total = responses.length
-      const correct = responses.filter(r => r.isCorrect).length
-      const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0
+      for (const resp of session.responses || []) {
+        if (!resp.questionId) continue
+        const q = resp.questionId
+        const subject = q.subject || q.domain || sessionSubject
 
-      const topicBreakdown = {}
-      for (const resp of responses) {
-        let pTags = []
-        if (resp.questionId?.tags) {
-          try { pTags = typeof resp.questionId.tags === 'string' ? JSON.parse(resp.questionId.tags) : resp.questionId.tags } catch { pTags = [] }
+        let parsedTags = []
+        if (q.tags) {
+          try { parsedTags = typeof q.tags === 'string' ? JSON.parse(q.tags) : q.tags } catch { parsedTags = [] }
         }
-        const topic = (Array.isArray(pTags) && pTags.length > 0)
-          ? pTags[0]
-          : (resp.questionId?.skill || resp.questionId?.topic || resp.questionId?.domain || 'General')
-        if (!topicBreakdown[topic]) topicBreakdown[topic] = { correct: 0, total: 0 }
-        topicBreakdown[topic].total++
-        if (resp.isCorrect) topicBreakdown[topic].correct++
-      }
+        const topic = (Array.isArray(parsedTags) && parsedTags.length > 0)
+          ? parsedTags[0]
+          : (q.skill || q.topic || q.domain || 'General')
 
-      return {
-        sessionId: session._id,
-        testTitle: session.testId?.title || 'Unknown',
-        subject: session.testId?.subject || 'N/A',
-        completedAt: session.completedAt,
-        totalScore: session.totalScore || 0,
-        totalQuestions: total,
-        correctAnswers: correct,
-        accuracy,
-        timeSpent: session.timeSpent || 0,
-        topicBreakdown
+        let options = q.options
+        if (typeof options === 'string') {
+          try { options = JSON.parse(options) } catch { options = [] }
+        }
+        if (!Array.isArray(options)) options = []
+        options = options.filter(o => o && o.trim() !== '')
+
+        allQuestions.push({
+          sessionId: session._id,
+          testTitle,
+          sessionType,
+          subject,
+          topic,
+          difficulty: q.difficulty || 'Medium',
+          completedAt: session.completedAt,
+          question: q.content,
+          options,
+          correctAnswer: q.correctAnswer,
+          explanation: q.explanation,
+          selectedAnswer: resp.selectedAnswer,
+          isCorrect: resp.isCorrect,
+          timeSpent: resp.timeSpent || 0,
+          isMCQ: options.length > 0
+        })
       }
-    })
+    }
 
     return NextResponse.json({
       student: { _id: student._id, name: student.name, email: student.email },
@@ -178,7 +189,7 @@ export async function GET(request, { params }) {
       totalQuestions,
       totalCorrect,
       overallAccuracy,
-      parallelData
+      allQuestions
     })
   } catch (error) {
     console.error('[Student Performance API] Error:', error)

@@ -18,9 +18,19 @@ export default function StudentPerformancePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // Filters
+  // Mistake analysis filters
   const [subjectFilter, setSubjectFilter] = useState('All')
-  const [modalTopic, setModalTopic] = useState(null) // { topic, mistakes[] }
+  const [modalTopic, setModalTopic] = useState(null)
+
+  // Parallel analysis filters
+  const [pSubject, setPSubject] = useState('All')
+  const [pViewType, setPViewType] = useState('All') // 'All' | 'Mistakes Only' | 'Correct Only'
+  const [pDifficulty, setPDifficulty] = useState('All')
+  const [pTimeTaken, setPTimeTaken] = useState('All') // 'All' | '0-30' | '30-60' | '60+'
+  const [pTopic, setPTopic] = useState('All')
+  const [showFilters, setShowFilters] = useState(false)
+  const [pPage, setPPage] = useState(1)
+  const PAGE_SIZE = 10
 
   useEffect(() => {
     if (user && user.role !== 'Tutor') router.push('/dashboard')
@@ -64,7 +74,7 @@ export default function StudentPerformancePage() {
     </div>
   )
 
-  const { student, topicRows = [], totalQuestions, totalCorrect, overallAccuracy, parallelData = [] } = data || {}
+  const { student, topicRows = [], totalQuestions, totalCorrect, overallAccuracy, allQuestions = [] } = data || {}
 
   // Subjects available
   const subjects = ['All', ...new Set(topicRows.map(r => r.subject))]
@@ -79,8 +89,30 @@ export default function StudentPerformancePage() {
     ? ((filteredCorrect / filteredTotal) * 100).toFixed(2)
     : '0.00'
 
-  // Parallel analysis topics
-  const allTopics = [...new Set(parallelData.flatMap(s => Object.keys(s.topicBreakdown || {})))]
+  // Parallel analysis — available filter options
+  const pSubjects = ['All', ...new Set(allQuestions.map(q => q.subject))]
+  const pTopics = ['All', ...new Set(allQuestions.map(q => q.topic))]
+
+  // Apply parallel filters
+  const parallelFiltered = allQuestions.filter(q => {
+    if (pSubject !== 'All' && q.subject !== pSubject) return false
+    if (pViewType === 'Mistakes Only' && q.isCorrect) return false
+    if (pViewType === 'Correct Only' && !q.isCorrect) return false
+    if (pDifficulty !== 'All' && q.difficulty !== pDifficulty) return false
+    if (pTopic !== 'All' && q.topic !== pTopic) return false
+    if (pTimeTaken === '0-30' && q.timeSpent > 30) return false
+    if (pTimeTaken === '30-60' && (q.timeSpent <= 30 || q.timeSpent > 60)) return false
+    if (pTimeTaken === '60+' && q.timeSpent <= 60) return false
+    return true
+  })
+
+  const totalPages = Math.max(1, Math.ceil(parallelFiltered.length / PAGE_SIZE))
+  const pagedQuestions = parallelFiltered.slice((pPage - 1) * PAGE_SIZE, pPage * PAGE_SIZE)
+
+  const resetParallelFilters = () => {
+    setPSubject('All'); setPViewType('All'); setPDifficulty('All')
+    setPTimeTaken('All'); setPTopic('All'); setPPage(1)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -332,94 +364,230 @@ export default function StudentPerformancePage() {
 
         {/* ── PARALLEL ANALYSIS TAB ── */}
         {activeTab === 'parallel' && (
-          <div>
-            {parallelData.length === 0 ? (
-              <div className="bg-white rounded-xl shadow-sm p-12 text-center text-gray-400">
-                <FiBarChart2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-lg font-medium">No tutor test data available</p>
+          <div className="flex gap-4 relative">
+            {/* Main content */}
+            <div className="flex-1 min-w-0">
+              {/* Active filter chips */}
+              <div className="bg-white rounded-xl shadow-sm p-4 mb-4 flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-medium text-gray-600">Selected Filters:</span>
+                {[
+                  { label: pSubject === 'All' ? 'All Tests' : pSubject, key: 'subject' },
+                  { label: pViewType === 'All' ? 'All Questions' : pViewType, key: 'view' },
+                  ...(pTopic !== 'All' ? [{ label: pTopic, key: 'topic' }] : []),
+                  ...(pDifficulty !== 'All' ? [{ label: pDifficulty, key: 'diff' }] : []),
+                  ...(pTimeTaken !== 'All' ? [{ label: `${pTimeTaken}s`, key: 'time' }] : []),
+                ].map(chip => (
+                  <span key={chip.key} className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-700 text-white rounded-full text-xs font-medium">
+                    ● {chip.label} ▾
+                  </span>
+                ))}
+                <button
+                  onClick={() => setShowFilters(true)}
+                  className="ml-auto px-4 py-1.5 border border-purple-300 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-50"
+                >
+                  More Filters
+                </button>
               </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {parallelData.map(session => (
-                    <div key={session.sessionId} className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-purple-500">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <div className="font-semibold text-gray-900 text-sm">{session.testTitle}</div>
-                          <div className="text-xs text-gray-400 mt-0.5">{formatDate(session.completedAt)}</div>
-                        </div>
-                        <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
-                          session.subject === 'Math' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-                        }`}>{session.subject}</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-center">
-                        <div>
-                          <div className="text-xl font-bold text-purple-600">{session.accuracy}%</div>
-                          <div className="text-xs text-gray-500">Accuracy</div>
-                        </div>
-                        <div>
-                          <div className="text-xl font-bold text-green-600">{session.correctAnswers}</div>
-                          <div className="text-xs text-gray-500">Correct</div>
-                        </div>
-                        <div>
-                          <div className="text-xl font-bold text-red-500">{session.totalQuestions - session.correctAnswers}</div>
-                          <div className="text-xs text-gray-500">Wrong</div>
-                        </div>
-                      </div>
-                      {session.timeSpent > 0 && (
-                        <div className="mt-2 text-xs text-gray-400 flex items-center gap-1">
-                          <FiClock />{formatTime(session.timeSpent)} total
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
 
-                {allTopics.length > 0 && (
-                  <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                    <div className="px-6 py-4 border-b">
-                      <h3 className="font-semibold text-gray-900">Topic-wise Comparison Across Tests</h3>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full text-sm">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase sticky left-0 bg-gray-50">Topic</th>
-                            {parallelData.map(s => (
-                              <th key={s.sessionId} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
-                                {s.testTitle.length > 18 ? s.testTitle.slice(0, 18) + '…' : s.testTitle}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {allTopics.map(topic => (
-                            <tr key={topic} className="hover:bg-gray-50">
-                              <td className="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">{topic}</td>
-                              {parallelData.map(session => {
-                                const tb = session.topicBreakdown[topic]
-                                if (!tb) return <td key={session.sessionId} className="px-4 py-3 text-center text-gray-300">—</td>
-                                const pct = Math.round((tb.correct / tb.total) * 100)
+              {/* Pagination */}
+              {parallelFiltered.length > 0 && (
+                <div className="flex items-center gap-1 mb-4">
+                  <button onClick={() => setPPage(p => Math.max(1, p - 1))}
+                    disabled={pPage === 1}
+                    className="w-8 h-8 flex items-center justify-center rounded border text-gray-500 hover:bg-gray-100 disabled:opacity-30">‹</button>
+                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                    const pg = i + 1
+                    return (
+                      <button key={pg} onClick={() => setPPage(pg)}
+                        className={`w-8 h-8 flex items-center justify-center rounded border text-sm font-medium ${
+                          pPage === pg ? 'bg-purple-100 border-purple-400 text-purple-700' : 'text-gray-600 hover:bg-gray-100'
+                        }`}>{pg}</button>
+                    )
+                  })}
+                  {totalPages > 7 && <span className="px-1 text-gray-400">…</span>}
+                  {totalPages > 7 && (
+                    <button onClick={() => setPPage(totalPages)}
+                      className={`w-8 h-8 flex items-center justify-center rounded border text-sm font-medium ${
+                        pPage === totalPages ? 'bg-purple-100 border-purple-400 text-purple-700' : 'text-gray-600 hover:bg-gray-100'
+                      }`}>{totalPages}</button>
+                  )}
+                  <button onClick={() => setPPage(p => Math.min(totalPages, p + 1))}
+                    disabled={pPage === totalPages}
+                    className="w-8 h-8 flex items-center justify-center rounded border text-gray-500 hover:bg-gray-100 disabled:opacity-30">›</button>
+                  <span className="ml-2 text-xs text-gray-400">{parallelFiltered.length} questions</span>
+                </div>
+              )}
+
+              {/* Question list */}
+              {pagedQuestions.length === 0 ? (
+                <div className="bg-white rounded-xl shadow-sm p-12 text-center text-gray-400">
+                  No questions match the selected filters.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pagedQuestions.map((q, idx) => {
+                    const globalIdx = (pPage - 1) * PAGE_SIZE + idx + 1
+                    return (
+                      <div key={idx} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                        {/* Meta row */}
+                        <div className="flex flex-wrap items-center gap-2 text-xs mb-3">
+                          <span className="w-7 h-7 flex items-center justify-center bg-gray-100 rounded font-bold text-gray-700">{globalIdx}</span>
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">{q.isMCQ ? 'MCQ' : 'Fill-in'}</span>
+                          <span className={`px-2 py-0.5 rounded-full font-medium ${q.isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {q.isCorrect ? 'Correct' : 'Incorrect'}
+                          </span>
+                          {q.timeSpent > 0 && (
+                            <span className="flex items-center gap-1 text-gray-500"><FiClock />{formatTime(q.timeSpent)}</span>
+                          )}
+                          <span className="text-gray-400">Difficulty - {q.difficulty}</span>
+                          <span className="text-gray-400">{q.testTitle}</span>
+                          <span className="text-gray-400">{formatDate(q.completedAt)}</span>
+                        </div>
+
+                        {/* Question */}
+                        <div className="text-xs font-semibold text-gray-400 mb-1">Question</div>
+                        <p className="text-gray-900 text-sm font-medium mb-4 leading-relaxed">{q.question}</p>
+
+                        {/* Options */}
+                        {q.isMCQ ? (
+                          <>
+                            <div className="text-xs font-semibold text-gray-400 mb-2">Options</div>
+                            <div className="grid grid-cols-1 gap-2">
+                              {q.options.map((opt, oi) => {
+                                const label = String.fromCharCode(65 + oi)
+                                const isCorrect = opt === q.correctAnswer || label === q.correctAnswer
+                                const isSelected = opt === q.selectedAnswer || label === q.selectedAnswer
                                 return (
-                                  <td key={session.sessionId} className="px-4 py-3 text-center">
-                                    <div className={`inline-flex flex-col items-center px-2 py-1 rounded-lg ${
-                                      pct >= 80 ? 'bg-green-50 text-green-700' :
-                                      pct >= 50 ? 'bg-yellow-50 text-yellow-700' :
-                                      'bg-red-50 text-red-700'
-                                    }`}>
-                                      <span className="font-bold">{pct}%</span>
-                                      <span className="text-xs">{tb.correct}/{tb.total}</span>
-                                    </div>
-                                  </td>
+                                  <div key={oi} className={`px-3 py-2 rounded-lg text-sm border flex items-center gap-2 ${
+                                    isCorrect ? 'bg-green-50 border-green-300 text-green-800' :
+                                    isSelected ? 'bg-red-50 border-red-300 text-red-800' :
+                                    'bg-gray-50 border-gray-200 text-gray-700'
+                                  }`}>
+                                    <span className="font-semibold w-5 flex-shrink-0">{label}.</span>
+                                    <span className="flex-1">{opt}</span>
+                                    {isCorrect && <span className="text-green-600 font-bold">✓</span>}
+                                    {isSelected && !isCorrect && <span className="text-red-600 font-bold">✗</span>}
+                                  </div>
                                 )
                               })}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex gap-3 text-sm">
+                            <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-lg flex-1">
+                              <span className="text-gray-400 text-xs block mb-0.5">Student answered</span>
+                              <span className="font-semibold text-red-700">{q.selectedAnswer || 'No answer'}</span>
+                            </div>
+                            <div className="px-3 py-2 bg-green-50 border border-green-200 rounded-lg flex-1">
+                              <span className="text-gray-400 text-xs block mb-0.5">Correct answer</span>
+                              <span className="font-semibold text-green-700">{q.correctAnswer}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {q.explanation && (
+                          <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-800">
+                            <span className="font-semibold">Explanation: </span>{q.explanation}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* More Filters side panel */}
+            {showFilters && (
+              <div className="w-80 flex-shrink-0 bg-white rounded-xl shadow-lg border border-gray-200 p-5 h-fit sticky top-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-gray-900">More Filters</h3>
+                  <button onClick={() => setShowFilters(false)} className="text-gray-400 hover:text-gray-600 text-xl font-bold">×</button>
+                </div>
+
+                {/* Subject */}
+                <div className="mb-5">
+                  <div className="text-xs font-semibold text-gray-700 mb-2">Select Subject <span className="text-red-500">*</span></div>
+                  <div className="flex gap-2 flex-wrap">
+                    {pSubjects.map(s => (
+                      <button key={s} onClick={() => { setPSubject(s); setPPage(1) }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
+                          pSubject === s ? 'bg-purple-700 text-white border-purple-700' : 'border-gray-300 text-gray-600 hover:border-purple-400'
+                        }`}>
+                        <span className={`w-3 h-3 rounded-full border-2 ${pSubject === s ? 'bg-white border-white' : 'border-gray-400'}`}></span>
+                        {s === 'Reading and Writing' ? 'R&W' : s}
+                      </button>
+                    ))}
                   </div>
-                )}
+                </div>
+
+                {/* View type */}
+                <div className="mb-5">
+                  <div className="text-xs font-semibold text-gray-700 mb-2">Select View type</div>
+                  <div className="flex gap-2 flex-wrap">
+                    {['All', 'Mistakes Only', 'Correct Only'].map(v => (
+                      <button key={v} onClick={() => { setPViewType(v); setPPage(1) }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
+                          pViewType === v ? 'bg-purple-700 text-white border-purple-700' : 'border-gray-300 text-gray-600 hover:border-purple-400'
+                        }`}>
+                        <span className={`w-3 h-3 rounded-full border-2 ${pViewType === v ? 'bg-white border-white' : 'border-gray-400'}`}></span>
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Difficulty */}
+                <div className="mb-5">
+                  <div className="text-xs font-semibold text-gray-700 mb-2">Select Difficulty</div>
+                  <div className="flex gap-2 flex-wrap">
+                    {['All', 'Easy', 'Medium', 'Hard'].map(d => (
+                      <button key={d} onClick={() => { setPDifficulty(d); setPPage(1) }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
+                          pDifficulty === d ? 'bg-purple-700 text-white border-purple-700' : 'border-gray-300 text-gray-600 hover:border-purple-400'
+                        }`}>
+                        <span className={`w-3 h-3 rounded-full border-2 ${pDifficulty === d ? 'bg-white border-white' : 'border-gray-400'}`}></span>
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Time taken */}
+                <div className="mb-5">
+                  <div className="text-xs font-semibold text-gray-700 mb-2">Select Time Taken (in sec)</div>
+                  <div className="flex gap-2 flex-wrap">
+                    {['All', '0-30', '30-60', '60+'].map(t => (
+                      <button key={t} onClick={() => { setPTimeTaken(t); setPPage(1) }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
+                          pTimeTaken === t ? 'bg-purple-700 text-white border-purple-700' : 'border-gray-300 text-gray-600 hover:border-purple-400'
+                        }`}>
+                        <span className={`w-3 h-3 rounded-full border-2 ${pTimeTaken === t ? 'bg-white border-white' : 'border-gray-400'}`}></span>
+                        {t === '60+' ? 'More than 60' : t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Topic */}
+                <div className="mb-5">
+                  <div className="text-xs font-semibold text-gray-700 mb-2">Select Topic</div>
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {pTopics.map(t => (
+                      <button key={t} onClick={() => { setPTopic(t); setPPage(1) }}
+                        className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition-colors ${
+                          pTopic === t ? 'bg-red-50 border-red-300 text-red-700 font-medium' : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                        }`}>
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button onClick={resetParallelFilters}
+                  className="w-full py-2 bg-purple-700 text-white rounded-lg text-sm font-medium hover:bg-purple-800">
+                  Reset
+                </button>
               </div>
             )}
           </div>
