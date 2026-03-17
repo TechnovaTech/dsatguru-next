@@ -394,12 +394,20 @@ export default function TutorStudents() {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm">
-                          <button
-                            onClick={() => handleOpenAssignModal(student)}
-                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
-                          >
-                            <FiUserPlus className="mr-2" /> Assign Tests
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => router.push(`/tutor/students/${student._id}/performance`)}
+                              className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+                            >
+                              View Performance
+                            </button>
+                            <button
+                              onClick={() => handleOpenAssignModal(student)}
+                              className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+                            >
+                              <FiUserPlus className="mr-2" /> Assign Tests
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     )
