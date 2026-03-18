@@ -22,6 +22,15 @@ export default function TutorAndStudents() {
   const [loadingStudents, setLoadingStudents] = useState(false)
   const [studentSearchTerm, setStudentSearchTerm] = useState('')
 
+  // Assign tests to student modal
+  const [showAssignTestsModal, setShowAssignTestsModal] = useState(false)
+  const [selectedStudent, setSelectedStudent] = useState(null)
+  const [allTests, setAllTests] = useState([])
+  const [studentAssignedTests, setStudentAssignedTests] = useState([])
+  const [loadingTests, setLoadingTests] = useState(false)
+  const [testSearch, setTestSearch] = useState('')
+  const [testSubjectFilter, setTestSubjectFilter] = useState('All')
+
   useEffect(() => {
     fetchUsers()
   }, [activeTab])
@@ -106,6 +115,51 @@ export default function TutorAndStudents() {
       }
     } catch (err) {
       setError('Failed to update assignment')
+      setTimeout(() => setError(''), 3000)
+    }
+  }
+
+  const handleOpenAssignTestsModal = async (student) => {
+    setSelectedStudent(student)
+    setShowAssignTestsModal(true)
+    setLoadingTests(true)
+    setTestSearch('')
+    setTestSubjectFilter('All')
+    try {
+      const token = localStorage.getItem('token')
+      const [testsRes, assignedRes] = await Promise.all([
+        fetch('/api/admin/tutor/tests/list', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`/api/admin/students/${student._id}/assigned-tests`, { headers: { Authorization: `Bearer ${token}` } })
+      ])
+      if (testsRes.ok) setAllTests(await testsRes.json())
+      if (assignedRes.ok) {
+        const d = await assignedRes.json()
+        setStudentAssignedTests((d.assignedTests || []).map(id => id.toString()))
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoadingTests(false)
+    }
+  }
+
+  const handleToggleTestAssignment = async (testId) => {
+    const token = localStorage.getItem('token')
+    const isAssigned = studentAssignedTests.includes(testId.toString())
+    try {
+      const res = await fetch('/api/admin/students/assign-test', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ studentId: selectedStudent._id, testId, action: isAssigned ? 'remove' : 'add' })
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setStudentAssignedTests((data.assignedTests || []).map(id => id.toString()))
+        setSuccess(isAssigned ? 'Test unassigned' : 'Test assigned')
+        setTimeout(() => setSuccess(''), 3000)
+      }
+    } catch {
+      setError('Failed to update')
       setTimeout(() => setError(''), 3000)
     }
   }
@@ -288,12 +342,20 @@ export default function TutorAndStudents() {
                         </td>
                       ) : (
                         <td className="px-6 py-4">
-                          <button
-                            onClick={() => router.push(`/admin/tutor/students/${user._id}/performance`)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
-                          >
-                            <FiBarChart2 className="w-3.5 h-3.5" /> View Performance
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleOpenAssignTestsModal(user)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+                            >
+                              <FiUserPlus className="w-3.5 h-3.5" /> Assign Tests
+                            </button>
+                            <button
+                              onClick={() => router.push(`/admin/tutor/students/${user._id}/performance`)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+                            >
+                              <FiBarChart2 className="w-3.5 h-3.5" /> View Performance
+                            </button>
+                          </div>
                         </td>
                       )}
                     </tr>
@@ -399,6 +461,96 @@ export default function TutorAndStudents() {
                   onClick={() => setShowAssignModal(false)}
                   className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
                 >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Assign Tests to Student Modal */}
+        {showAssignTestsModal && selectedStudent && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] flex flex-col">
+              <div className="p-6 border-b flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Assign Tests to {selectedStudent.name}</h2>
+                  <p className="text-sm text-gray-600 mt-1">{studentAssignedTests.length} test(s) currently assigned</p>
+                </div>
+                <button onClick={() => setShowAssignTestsModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <FiX className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-4 border-b flex gap-3 items-center flex-wrap">
+                <div className="relative flex-1 min-w-48">
+                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={testSearch}
+                    onChange={e => setTestSearch(e.target.value)}
+                    placeholder="Search tests..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  {['All', 'Math', 'Reading and Writing'].map(s => (
+                    <button key={s} onClick={() => setTestSubjectFilter(s)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                        testSubjectFilter === s ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:border-blue-400'
+                      }`}>
+                      {s === 'Reading and Writing' ? 'R&W' : s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4">
+                {loadingTests ? (
+                  <div className="text-center py-8 text-gray-500">Loading tests...</div>
+                ) : (() => {
+                  const filtered = allTests.filter(t => {
+                    if (t.isReassigned) return false
+                    if (testSubjectFilter !== 'All' && t.subject !== testSubjectFilter) return false
+                    if (testSearch && !t.title.toLowerCase().includes(testSearch.toLowerCase())) return false
+                    return true
+                  })
+                  return filtered.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">No tests found</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {filtered.map(test => {
+                        const isAssigned = studentAssignedTests.includes(test._id.toString())
+                        return (
+                          <div key={test._id} className={`p-4 border rounded-lg flex items-center justify-between ${isAssigned ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'}`}>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-gray-900 text-sm truncate">{test.title}</div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${test.subject === 'Math' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                                  {test.subject === 'Reading and Writing' ? 'R&W' : test.subject}
+                                </span>
+                                <span className="text-xs text-gray-500">{test.questions?.length || 0} questions</span>
+                                {test.isTimed && <span className="text-xs text-gray-500">{test.duration} min</span>}
+                                {isAssigned && <span className="text-xs text-green-600 font-medium">✓ Assigned</span>}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleToggleTestAssignment(test._id)}
+                              className={`ml-4 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors flex-shrink-0 ${
+                                isAssigned ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-blue-600 text-white hover:bg-blue-700'
+                              }`}
+                            >
+                              {isAssigned ? 'Unassign' : 'Assign'}
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
+              </div>
+
+              <div className="p-4 border-t bg-gray-50">
+                <button onClick={() => setShowAssignTestsModal(false)} className="w-full py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
                   Close
                 </button>
               </div>

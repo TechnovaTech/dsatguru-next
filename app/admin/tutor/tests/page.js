@@ -48,6 +48,14 @@ export default function TutorTestSheets() {
   const [selectedMathTests, setSelectedMathTests] = useState([])
   const [selectedRWTests, setSelectedRWTests] = useState([])
 
+  // Assign test to student modal (from test row)
+  const [showAssignToStudentModal, setShowAssignToStudentModal] = useState(false)
+  const [assignToStudentTest, setAssignToStudentTest] = useState(null)
+  const [allStudents, setAllStudents] = useState([])
+  const [loadingAllStudents, setLoadingAllStudents] = useState(false)
+  const [studentAssignedTests, setStudentAssignedTests] = useState({}) // studentId -> [testIds]
+  const [studentSearch, setStudentSearch] = useState('')
+
   useEffect(() => {
     fetchTests()
   }, [])
@@ -122,6 +130,63 @@ export default function TutorTestSheets() {
       }
     } catch (err) {
       console.error('Failed to load tutors', err)
+    }
+  }
+
+  const handleOpenAssignToStudentModal = async (test) => {
+    setAssignToStudentTest(test)
+    setShowAssignToStudentModal(true)
+    setLoadingAllStudents(true)
+    setStudentSearch('')
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/admin/users?role=Student', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.ok) {
+        const students = await res.json()
+        setAllStudents(students)
+        // Fetch assigned tests for each student
+        const map = {}
+        await Promise.all(students.map(async (s) => {
+          try {
+            const r = await fetch(`/api/admin/students/${s._id}/assigned-tests`, {
+              headers: { Authorization: `Bearer ${token}` }
+            })
+            if (r.ok) {
+              const d = await r.json()
+              map[s._id] = d.assignedTests || []
+            }
+          } catch {}
+        }))
+        setStudentAssignedTests(map)
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoadingAllStudents(false)
+    }
+  }
+
+  const handleToggleTestForStudent = async (studentId, testId) => {
+    const token = localStorage.getItem('token')
+    const current = studentAssignedTests[studentId] || []
+    const isAssigned = current.map(id => id.toString()).includes(testId)
+    try {
+      const res = await fetch('/api/admin/students/assign-test', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ studentId, testId, action: isAssigned ? 'remove' : 'add' })
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setStudentAssignedTests(prev => ({ ...prev, [studentId]: data.assignedTests }))
+        setSuccess(isAssigned ? 'Test unassigned from student' : 'Test assigned to student')
+        setTimeout(() => setSuccess(''), 3000)
+      }
+    } catch (err) {
+      setError('Failed to update assignment')
+      setTimeout(() => setError(''), 3000)
     }
   }
 
@@ -760,6 +825,12 @@ export default function TutorTestSheets() {
                             className="inline-flex items-center px-3 py-1 text-green-600 hover:text-green-800 hover:bg-green-100 rounded"
                           >
                             <FiEdit className="mr-1" /> Edit
+                          </button>
+                          <button
+                            onClick={() => handleOpenAssignToStudentModal(test)}
+                            className="inline-flex items-center px-3 py-1 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded"
+                          >
+                            <FiUserPlus className="mr-1" /> Assign to Student
                           </button>
                           <button
                             onClick={() => handleDeleteTest(test._id)}
@@ -1480,6 +1551,71 @@ export default function TutorTestSheets() {
                   onClick={() => setShowAssignModal(false)}
                   className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
                 >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Assign Test to Student Modal */}
+        {showAssignToStudentModal && assignToStudentTest && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+              <div className="p-6 border-b flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Assign to Student</h2>
+                  <p className="text-sm text-gray-600 mt-1">{assignToStudentTest.title}</p>
+                </div>
+                <button onClick={() => setShowAssignToStudentModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <FiX className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="p-4 border-b">
+                <div className="relative">
+                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={studentSearch}
+                    onChange={e => setStudentSearch(e.target.value)}
+                    placeholder="Search students..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4">
+                {loadingAllStudents ? (
+                  <div className="text-center py-8 text-gray-500">Loading students...</div>
+                ) : allStudents.filter(s => !studentSearch || s.name?.toLowerCase().includes(studentSearch.toLowerCase()) || s.email?.toLowerCase().includes(studentSearch.toLowerCase())).length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">No students found</div>
+                ) : (
+                  <div className="space-y-2">
+                    {allStudents
+                      .filter(s => !studentSearch || s.name?.toLowerCase().includes(studentSearch.toLowerCase()) || s.email?.toLowerCase().includes(studentSearch.toLowerCase()))
+                      .map(student => {
+                        const assigned = (studentAssignedTests[student._id] || []).map(id => id.toString()).includes(assignToStudentTest._id.toString())
+                        return (
+                          <div key={student._id} className={`p-4 border rounded-lg flex items-center justify-between ${assigned ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'}`}>
+                            <div>
+                              <div className="font-medium text-gray-900 text-sm">{student.name}</div>
+                              <div className="text-xs text-gray-500">{student.email}</div>
+                            </div>
+                            <button
+                              onClick={() => handleToggleTestForStudent(student._id, assignToStudentTest._id)}
+                              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                assigned ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-blue-600 text-white hover:bg-blue-700'
+                              }`}
+                            >
+                              {assigned ? 'Unassign' : 'Assign'}
+                            </button>
+                          </div>
+                        )
+                      })}
+                  </div>
+                )}
+              </div>
+              <div className="p-4 border-t bg-gray-50">
+                <button onClick={() => setShowAssignToStudentModal(false)} className="w-full py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
                   Close
                 </button>
               </div>
