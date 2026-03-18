@@ -28,6 +28,7 @@ export default function TutorTests() {
   const [selectedStudents, setSelectedStudents] = useState([])
   const [loadingStudents, setLoadingStudents] = useState(false)
   const [assigningInProgress, setAssigningInProgress] = useState(false)
+  const [assignShowExplanation, setAssignShowExplanation] = useState(false)
   
   // View assigned students modal
   const [showAssignedStudentsModal, setShowAssignedStudentsModal] = useState(false)
@@ -136,6 +137,7 @@ export default function TutorTests() {
     setShowAssignModal(true)
     setLoadingStudents(true)
     setSelectedStudents([])
+    setAssignShowExplanation(false)
     
     try {
       const token = localStorage.getItem('token')
@@ -189,7 +191,8 @@ export default function TutorTests() {
           body: JSON.stringify({
             studentId,
             testId: assigningTest._id,
-            action: 'add'
+            action: 'add',
+            showExplanation: assignShowExplanation
           })
         })
       }
@@ -211,7 +214,8 @@ export default function TutorTests() {
           body: JSON.stringify({
             studentId,
             testId: assigningTest._id,
-            action: 'remove'
+            action: 'remove',
+            showExplanation: assignShowExplanation
           })
         })
       }
@@ -625,6 +629,15 @@ export default function TutorTests() {
               </div>
 
               <div className="p-6 border-t bg-gray-50 flex items-center justify-end gap-3">
+                <label className="flex items-center gap-2 mr-auto cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={assignShowExplanation}
+                    onChange={e => setAssignShowExplanation(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Show explanation on analysis page</span>
+                </label>
                 <button
                   onClick={() => setShowAssignModal(false)}
                   className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"

@@ -14,7 +14,7 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { studentId, testId, action } = await request.json()
+    const { studentId, testId, action, showExplanation } = await request.json()
 
     if (!studentId || !testId || !action) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -49,8 +49,14 @@ export async function PUT(request) {
           sessionType: 'Practice',
           totalQuestions: 0,
           answeredQuestions: 0,
-          correctAnswers: 0
+          correctAnswers: 0,
+          showExplanation: showExplanation === true
         })
+      } else {
+        await TestSession.updateOne(
+          { userId: studentId, testId, status: 'Assigned' },
+          { showExplanation: showExplanation === true }
+        )
       }
     } else if (action === 'remove') {
       // Remove test

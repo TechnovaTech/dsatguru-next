@@ -30,6 +30,7 @@ export default function TutorAndStudents() {
   const [loadingTests, setLoadingTests] = useState(false)
   const [testSearch, setTestSearch] = useState('')
   const [testSubjectFilter, setTestSubjectFilter] = useState('All')
+  const [assignShowExplanation, setAssignShowExplanation] = useState(false)
 
   useEffect(() => {
     fetchUsers()
@@ -125,6 +126,7 @@ export default function TutorAndStudents() {
     setLoadingTests(true)
     setTestSearch('')
     setTestSubjectFilter('All')
+    setAssignShowExplanation(false)
     try {
       const token = localStorage.getItem('token')
       const [testsRes, assignedRes] = await Promise.all([
@@ -150,7 +152,7 @@ export default function TutorAndStudents() {
       const res = await fetch('/api/admin/students/assign-test', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ studentId: selectedStudent._id, testId, action: isAssigned ? 'remove' : 'add' })
+        body: JSON.stringify({ studentId: selectedStudent._id, testId, action: isAssigned ? 'remove' : 'add', showExplanation: assignShowExplanation })
       })
       if (res.ok) {
         const data = await res.json()
@@ -549,8 +551,17 @@ export default function TutorAndStudents() {
                 })()}
               </div>
 
-              <div className="p-4 border-t bg-gray-50">
-                <button onClick={() => setShowAssignTestsModal(false)} className="w-full py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+              <div className="p-4 border-t bg-gray-50 flex items-center gap-4">
+                <label className="flex items-center gap-2 cursor-pointer select-none flex-1">
+                  <input
+                    type="checkbox"
+                    checked={assignShowExplanation}
+                    onChange={e => setAssignShowExplanation(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Show explanation on analysis page</span>
+                </label>
+                <button onClick={() => setShowAssignTestsModal(false)} className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
                   Close
                 </button>
               </div>

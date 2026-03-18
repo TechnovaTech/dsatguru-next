@@ -97,7 +97,8 @@ export async function GET(request, { params }) {
             correctAnswer: q.correctAnswer,
             explanation: q.explanation,
             selectedAnswer: resp.selectedAnswer,
-            timeSpent: resp.timeSpent || 0
+            timeSpent: resp.timeSpent || 0,
+            showExplanation: session.showExplanation === true
           })
         }
       }
@@ -178,7 +179,8 @@ export async function GET(request, { params }) {
           selectedAnswer: resp.selectedAnswer,
           isCorrect: resp.isCorrect,
           timeSpent: resp.timeSpent || 0,
-          isMCQ: options.length > 0
+          isMCQ: options.length > 0,
+          showExplanation: session.showExplanation === true
         })
       }
     }

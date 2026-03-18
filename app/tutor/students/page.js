@@ -23,6 +23,7 @@ export default function TutorStudents() {
   const [loadingTests, setLoadingTests] = useState(false)
   const [selectedMathTests, setSelectedMathTests] = useState([])
   const [selectedRWTests, setSelectedRWTests] = useState([])
+  const [assignShowExplanation, setAssignShowExplanation] = useState(false)
   
   // View assigned tests modal
   const [showAssignedTestsModal, setShowAssignedTestsModal] = useState(false)
@@ -85,6 +86,7 @@ export default function TutorStudents() {
     setLoadingTests(true)
     setSelectedMathTests([])
     setSelectedRWTests([])
+    setAssignShowExplanation(false)
     
     try {
       const token = localStorage.getItem('token')
@@ -192,7 +194,8 @@ export default function TutorStudents() {
           body: JSON.stringify({
             studentId: selectedStudentId,
             testId,
-            action: 'add'
+            action: 'add',
+            showExplanation: assignShowExplanation
           })
         })
       }
@@ -668,10 +671,19 @@ export default function TutorStudents() {
                 )}
               </div>
 
-              <div className="p-4 border-t bg-gray-50">
+              <div className="p-4 border-t bg-gray-50 flex items-center gap-4">
+                <label className="flex items-center gap-2 cursor-pointer select-none flex-1">
+                  <input
+                    type="checkbox"
+                    checked={assignShowExplanation}
+                    onChange={e => setAssignShowExplanation(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Show explanation on analysis page</span>
+                </label>
                 <button
                   onClick={() => setShowAssignModal(false)}
-                  className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
                 >
                   Close
                 </button>
