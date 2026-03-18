@@ -131,7 +131,8 @@ export async function GET(request, { params }) {
       analysisSubmitted: session.analysisSubmitted || false,
       analysisSubmittedAt: session.analysisSubmittedAt || null,
       autoSubmitted: session.autoSubmitted || false,
-      autoSubmitReason: session.autoSubmitReason || null
+      autoSubmitReason: session.autoSubmitReason || null,
+      showExplanation: session.showExplanation === true
     })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch session' }, { status: 500 })

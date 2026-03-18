@@ -282,9 +282,10 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
         const initialExpanded = {}
         const initialExplanations = {}
         const initialWhyWrong = {}
+        const canShowExplanation = viewMode === 'admin' || sessionData?.showExplanation === true
         reviewQuestions.forEach(q => {
           initialExpanded[q._id] = true
-          initialExplanations[q._id] = true // Auto-show all explanations
+          initialExplanations[q._id] = canShowExplanation // Auto-show only if allowed
           // Auto-open "Why Wrong" for students on incorrect questions, closed for admins
           if (!q.isCorrect && q.userAnswer) {
             initialWhyWrong[q._id] = viewMode !== 'admin'
@@ -1109,7 +1110,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                                     )}
 
                                     {/* Explanation Button - Controlled by showExplanation setting */}
-                                    {(viewMode === 'admin' || test?.showExplanation !== false) && (
+                                    {(viewMode === 'admin' || session?.showExplanation === true) && (
                                         <button 
                                             onClick={() => toggleExplanation(q._id)}
                                             className="px-4 py-1.5 bg-purple-900 text-white text-xs font-bold rounded hover:bg-purple-800 transition-colors flex items-center gap-2"
@@ -1250,7 +1251,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                             )}
 
                             {/* Explanation Content */}
-                            {showExplanation[q._id] && (viewMode === 'admin' || test?.showExplanation !== false) && (
+                            {showExplanation[q._id] && (viewMode === 'admin' || session?.showExplanation === true) && (
                                 <div className="mt-4 space-y-4 animate-in slide-in-from-top-2">
                                     {/* Short Explanation */}
                                     {q.shortExplanation && (
