@@ -338,7 +338,7 @@ export default function StudentPerformancePage() {
                         )}
 
                         {/* Explanation */}
-                        {m.explanation && m.showExplanation && (
+                        {m.explanation && (
                           <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-800">
                             <span className="font-semibold">Explanation: </span>{m.explanation}
                           </div>
@@ -485,7 +485,7 @@ export default function StudentPerformancePage() {
                           </div>
                         )}
 
-                        {q.explanation && q.showExplanation && (
+                        {q.explanation && (
                           <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-800">
                             <span className="font-semibold">Explanation: </span>{q.explanation}
                           </div>
