@@ -578,7 +578,12 @@ export default function TakeTestPage() {
         console.log('Sample question:', finalQuestions[0])
         
         // Don't auto-load module, wait for user to start
-        if (testData.sections?.rw) {
+        // For tutor-created tests, use subject field to determine section
+        if (testData.subject === 'Math') {
+          setCurrentSection('math')
+        } else if (testData.subject === 'Reading and Writing' || testData.subject === 'Reading & Writing') {
+          setCurrentSection('rw')
+        } else if (testData.sections?.rw) {
           setCurrentSection('rw')
         } else if (testData.sections?.math) {
           setCurrentSection('math')
