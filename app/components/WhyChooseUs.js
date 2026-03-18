@@ -13,6 +13,7 @@ import {
   MdBuild,
   MdTimeline,
   MdArrowForward,
+  MdPsychology,
 } from 'react-icons/md'
 import ComparisonSection from './ComparisonSection'
 
@@ -77,6 +78,11 @@ const featuresBottom = [
     icon: <MdTimeline size={36} className="text-green-600" />,
     title: "Track Progress Effectively",
     description: "Visual dashboards and performance trends help guide your next study steps and goals.",
+  },
+  {
+    icon: <MdPsychology size={36} className="text-rose-500" />,
+    title: "AI-Powered Recommendations",
+    description: "Smart suggestions based on performance patterns help you close gaps and maximize your test readiness.",
   },
 ]
 

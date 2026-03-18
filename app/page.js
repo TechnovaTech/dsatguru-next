@@ -2,6 +2,7 @@
 import { useRef } from 'react'
 import dynamic from 'next/dynamic'
 import HeroSection from './components/HeroSection'
+import IntroSection from './components/IntroSection'
 import ProgramSection from './components/ProgramSection'
 import MediaShowcase from './components/MediaShowcase'
 
@@ -20,6 +21,7 @@ export default function Home() {
   return (
     <div className="font-[Poppins]">
       <HeroSection landingPlanRef={landingPlanRef} />
+      <IntroSection />
       <FeaturesSection />
       <ProgramSection landingPlanRef={landingPlanRef} />
       <PersonalizedLearningSection landingPlanRef={landingPlanRef} />

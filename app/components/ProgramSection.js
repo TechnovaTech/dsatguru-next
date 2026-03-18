@@ -195,16 +195,17 @@ export default function ProgramSection({ landingPlanRef }) {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6 justify-items-center"
+        className="max-w-7xl mx-auto flex flex-wrap justify-center gap-6"
       >
         {courses.map((course, i) => (
-          <ProgramCard
-            key={i}
-            data={course}
-            index={i}
-            headerHeight={headerHeight}
-            isEnrolled={enrolledIds.includes(course.id) || enrolledIds.includes(course.courseId) || enrolledIds.includes(course._id)}
-          />
+          <div key={i} className="w-full sm:w-72 lg:w-64 xl:w-72 flex-shrink-0">
+            <ProgramCard
+              data={course}
+              index={i}
+              headerHeight={headerHeight}
+              isEnrolled={enrolledIds.includes(course.id) || enrolledIds.includes(course.courseId) || enrolledIds.includes(course._id)}
+            />
+          </div>
         ))}
       </motion.div>
 
