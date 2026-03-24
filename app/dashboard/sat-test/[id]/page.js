@@ -1,4 +1,5 @@
-'use client'
+﻿'use client'
+import { renderContent as renderWithImages } from '@/app/components/admin/LatexRenderer'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import axios from 'axios'
@@ -262,7 +263,7 @@ export default function SatTestRunner() {
             {/* Question Text */}
             <div className="mb-6">
               <p className="text-gray-900 text-base leading-relaxed whitespace-pre-line">
-                {currentQuestion.content}
+                {renderWithImages(currentQuestion.content)}
               </p>
             </div>
 

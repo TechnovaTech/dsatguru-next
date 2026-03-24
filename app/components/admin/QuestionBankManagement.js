@@ -1,35 +1,8 @@
-'use client'
+﻿'use client'
 import { useEffect, useState, useRef } from 'react'
 import { FiSearch, FiEye, FiArrowLeft, FiPlus, FiEdit, FiX, FiCheck, FiEye as FiPreview, FiTrash, FiSettings, FiUserPlus, FiUserMinus, FiUpload, FiImage } from 'react-icons/fi'
 import { useRouter } from 'next/navigation'
-
-const renderWithImages = (text) => {
-  if (text === null || text === undefined) return null
-  
-  // Ensure text is a string
-  const stringText = String(text)
-  if (!stringText) return null
-
-  // Match ![alt](url)
-  const regex = /(!\[.*?\]\(.*?\))/g
-  const parts = stringText.split(regex)
-  
-  return parts.map((part, index) => {
-    const match = part.match(/!\[(.*?)\]\((.*?)\)/)
-    if (match) {
-      return (
-        <img 
-          key={index} 
-          src={match[2]} 
-          alt={match[1]} 
-          className="max-w-full h-auto my-2 rounded border block" 
-          style={{ maxHeight: '400px' }}
-        />
-      )
-    }
-    return <span key={index}>{part}</span>
-  })
-}
+import { renderContent } from './LatexRenderer'
 
 const ImageUploadButton = ({ onUpload }) => {
   const fileInputRef = useRef(null)
@@ -199,7 +172,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
       // Handle both response formats: direct array or {data: array}
       const questionsArray = Array.isArray(json) ? json : (json.data || [])
       
-      console.log('📥 Fetched Questions from API:', {
+      console.log('ðŸ“¥ Fetched Questions from API:', {
         totalQuestions: questionsArray.length,
         questionsWithRemarks: questionsArray.filter(q => q.remark && q.remark.trim()).length,
         sampleQuestions: questionsArray.slice(0, 3).map(q => ({
@@ -472,7 +445,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
     const usedTags = [mathTopic, mathSubtopic, readingWritingTopic].filter(Boolean)
     const otherTags = tags.filter(t => !usedTags.includes(t))
 
-    console.log('📝 Opening Edit Modal - Remark Data:', {
+    console.log('ðŸ“ Opening Edit Modal - Remark Data:', {
       questionId: q.questionId || q.id,
       originalRemark: q.remark,
       remarkExists: !!q.remark,
@@ -495,7 +468,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
     if (!editItem) return
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
     
-    console.log('💾 Saving Question Edit - Remark Data:', {
+    console.log('ðŸ’¾ Saving Question Edit - Remark Data:', {
       questionId: editItem.questionId || editItem.id,
       remarkValue: editItem.remark,
       remarkExists: !!editItem.remark,
@@ -544,7 +517,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
       remark: editItem.remark || ''
     }
     
-    console.log('📤 Sending Payload to API:', {
+    console.log('ðŸ“¤ Sending Payload to API:', {
       questionId: editItem.id,
       remarkInPayload: payload.remark,
       payloadRemarkLength: (payload.remark || '').length,
@@ -561,7 +534,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
     })
     
     const result = await response.json()
-    console.log('✅ API Response:', {
+    console.log('âœ… API Response:', {
       success: result.success,
       status: response.status,
       questionId: editItem.id
@@ -908,11 +881,11 @@ export default function QuestionBankManagement({ isTutor = false }) {
                   <div className="w-1/2 border-r border-gray-200 p-8 overflow-y-auto bg-gray-50">
                     {preview.questionParagraph && (
                       <div className="prose max-w-none mb-8 text-gray-800 leading-relaxed whitespace-pre-line font-serif">
-                        {renderWithImages(preview.questionParagraph)}
+                        {renderContent(preview.questionParagraph)}
                       </div>
                     )}
                     <div className="text-gray-900 text-base leading-relaxed font-medium">
-                      {renderWithImages(preview.content || preview.question)}
+                      {renderContent(preview.content || preview.question)}
                     </div>
                   </div>
 
@@ -957,7 +930,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
                                   {letter}
                                 </div>
                                 <div className="flex-1 pt-1 text-base sm:text-lg leading-relaxed text-gray-900">
-                                  {renderWithImages(opts[i] || '')}
+                                  {renderContent(opts[i] || '')}
                                 </div>
                               </div>
                             </div>
@@ -981,7 +954,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
                           <h5 className="font-semibold text-gray-700 text-xs uppercase mb-1">Short Explanation</h5>
                           <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                              <div className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
-                                {renderWithImages(preview.shortExplanation)}
+                                {renderContent(preview.shortExplanation)}
                              </div>
                           </div>
                         </div>
@@ -992,7 +965,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
                           <h5 className="font-semibold text-gray-700 text-xs uppercase mb-1">Long Explanation</h5>
                           <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
                              <div className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
-                                {renderWithImages(preview.longExplanation)}
+                                {renderContent(preview.longExplanation)}
                              </div>
                           </div>
                         </div>
@@ -1001,7 +974,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
                       {!preview.shortExplanation && !preview.longExplanation && (
                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                            <div className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
-                              {renderWithImages(preview.explanation || 'No explanation provided.')}
+                              {renderContent(preview.explanation || 'No explanation provided.')}
                            </div>
                         </div>
                       )}
@@ -1195,7 +1168,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
                     <textarea
                       value={editItem.remark || ''}
                       onChange={(e) => {
-                        console.log('✏️ Remark Field Changed:', {
+                        console.log('âœï¸ Remark Field Changed:', {
                           newValue: e.target.value,
                           valueLength: e.target.value.length,
                           questionId: editItem.questionId || editItem.id
@@ -1550,3 +1523,4 @@ export default function QuestionBankManagement({ isTutor = false }) {
     </div>
   )
 }
+

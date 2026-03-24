@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { FiX, FiChevronLeft, FiChevronRight, FiEdit2, FiSave, FiCheckCircle } from 'react-icons/fi'
+import { renderContent } from './LatexRenderer'
 
 export default function QuestionPreviewModal({ questions, onClose, onQuestionsUpdate }) {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -53,34 +54,7 @@ export default function QuestionPreviewModal({ questions, onClose, onQuestionsUp
     onClose()
   }
 
-  const renderContent = (text) => {
-    if (!text) return null
-    
-    // Simple markdown-like rendering for images
-    const parts = text.split(/!\[([^\]]*)\]\(([^)]+)\)/)
-    const elements = []
-    
-    for (let i = 0; i < parts.length; i++) {
-      if (i % 3 === 0 && parts[i]) {
-        // Regular text
-        elements.push(
-          <span key={i} dangerouslySetInnerHTML={{ __html: parts[i].replace(/\n/g, '<br/>') }} />
-        )
-      } else if (i % 3 === 2 && parts[i]) {
-        // Image
-        elements.push(
-          <img 
-            key={i} 
-            src={parts[i]} 
-            alt={parts[i-1] || 'Question image'} 
-            className="max-w-full h-auto rounded-lg my-2"
-          />
-        )
-      }
-    }
-    
-    return <div>{elements}</div>
-  }
+  // renderContent imported from LatexRenderer
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={onClose}>
