@@ -39,6 +39,14 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
     tags: ''
   })
   const [bulkUpload, setBulkUpload] = useState({ csvRecords: [], images: [], imagePreviews: [], mapping: null, progress: 0 })
+  const [bulkTab, setBulkTab] = useState('csv') // 'csv' | 'mathpix'
+  const [mathpixFile, setMathpixFile] = useState(null)
+  const [mathpixConverting, setMathpixConverting] = useState(false)
+  const [mathpixSubject, setMathpixSubject] = useState(urlSubject || 'Math')
+  const [mathpixDifficulty, setMathpixDifficulty] = useState('Medium')
+  const [mathpixTags, setMathpixTags] = useState('')
+  const [mathpixProgress, setMathpixProgress] = useState(0)
+  const [mathpixStatus, setMathpixStatus] = useState('')
   const [previewQuestions, setPreviewQuestions] = useState(null)
   const [showPreview, setShowPreview] = useState(false)
   const mathSubtopics = {
@@ -289,6 +297,87 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
     } catch (error) {
       console.error('Error adding question:', error)
       alert('Failed to add question')
+    }
+  }
+
+  const handleMathpixConvert = async (e) => {
+    e.preventDefault()
+    if (!mathpixFile) return
+    setMathpixConverting(true)
+    setMathpixProgress(0)
+    setMathpixStatus('Uploading file to Mathpix...')
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+
+      // Step 1: Upload file — returns pdfId immediately
+      const formData = new FormData()
+      formData.append('file', mathpixFile)
+      formData.append('subject', mathpixSubject)
+      formData.append('difficulty', mathpixDifficulty)
+      formData.append('tags', mathpixTags)
+
+      const uploadRes = await fetch('/api/admin/questions/mathpix-convert', {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData
+      })
+      const uploadData = await uploadRes.json()
+      if (!uploadRes.ok || !uploadData.pdfId) {
+        alert(`Upload failed: ${uploadData.error || 'Unknown error'}`)
+        return
+      }
+
+      const { pdfId } = uploadData
+      setMathpixStatus('File uploaded. Mathpix is converting...')
+      setMathpixProgress(10)
+
+      // Step 2: Poll GET until done
+      const params = new URLSearchParams({
+        pdfId,
+        subject: mathpixSubject,
+        difficulty: mathpixDifficulty,
+        tags: mathpixTags
+      })
+
+      let attempts = 0
+      const maxAttempts = 40 // 40 × 3s = 120s max
+      while (attempts < maxAttempts) {
+        await new Promise(r => setTimeout(r, 3000))
+        attempts++
+
+        const pollRes = await fetch(`/api/admin/questions/mathpix-convert?${params}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+        const pollData = await pollRes.json()
+
+        if (pollData.status === 'processing') {
+          const pct = pollData.percent || 0
+          setMathpixProgress(Math.max(10, Math.min(90, pct)))
+          setMathpixStatus(`Converting... ${pct ? pct + '%' : ''}`)
+          continue
+        }
+
+        if (pollData.status === 'error') {
+          alert(`Conversion failed: ${pollData.error || 'Unknown error'}`)
+          return
+        }
+
+        if (pollData.status === 'done' && pollData.questions) {
+          setMathpixProgress(100)
+          setMathpixStatus('Done!')
+          setPreviewQuestions(pollData.questions)
+          setShowPreview(true)
+          return
+        }
+      }
+
+      alert('Conversion timed out. Please try again with a smaller file.')
+    } catch (err) {
+      alert(`Conversion failed: ${err.message}`)
+    } finally {
+      setMathpixConverting(false)
+      setMathpixProgress(0)
+      setMathpixStatus('')
     }
   }
 
@@ -683,6 +772,26 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
             <div className="space-y-6">
 
             {uploadType === 'bulk' ? (
+              <div className="space-y-6">
+                {/* Bulk Upload Tabs */}
+                <div className="flex border-b border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => setBulkTab('csv')}
+                    className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${bulkTab === 'csv' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                  >
+                    CSV / Excel Upload
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBulkTab('mathpix')}
+                    className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${bulkTab === 'mathpix' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                  >
+                    <span>📄</span> DOCX / PDF via Mathpix
+                  </button>
+                </div>
+
+                {bulkTab === 'csv' ? (
               <form onSubmit={handleFileUpload} className="space-y-6">
                 <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                   <div className="flex items-start">
@@ -836,6 +945,115 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                   {uploading ? 'Processing...' : 'Preview Questions'}
                 </button>
               </form>
+                ) : (
+                  /* Mathpix DOCX/PDF Tab */
+                  <form onSubmit={handleMathpixConvert} className="space-y-6">
+                    <div className="bg-purple-50 border border-purple-200 rounded-md p-4">
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">🔬</span>
+                        <div>
+                          <h3 className="text-sm font-medium text-purple-900 mb-1">Mathpix AI Conversion</h3>
+                          <p className="text-sm text-purple-700">Upload a DOCX or PDF containing SAT questions. Mathpix will extract text, math formulas, and structure them automatically — then you review before saving.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                        <select
+                          value={mathpixSubject}
+                          onChange={e => setMathpixSubject(e.target.value)}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        >
+                          <option value="Math">Math</option>
+                          <option value="Reading and Writing">Reading and Writing</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Default Difficulty</label>
+                        <select
+                          value={mathpixDifficulty}
+                          onChange={e => setMathpixDifficulty(e.target.value)}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        >
+                          <option value="Easy">Easy</option>
+                          <option value="Medium">Medium</option>
+                          <option value="Hard">Hard</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
+                        <input
+                          type="text"
+                          value={mathpixTags}
+                          onChange={e => setMathpixTags(e.target.value)}
+                          placeholder="e.g. algebra, quadratics"
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Upload DOCX or PDF *</label>
+                      <div className="border-2 border-dashed border-purple-300 rounded-md p-6 text-center">
+                        <label className="cursor-pointer">
+                          <span className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md">
+                            <FiUpload className="mr-2" /> Choose File
+                          </span>
+                          <input
+                            type="file"
+                            accept=".pdf,.docx,.doc"
+                            onChange={e => setMathpixFile(e.target.files?.[0] || null)}
+                            className="hidden"
+                          />
+                        </label>
+                        <p className="text-xs text-gray-500 mt-2">PDF or DOCX files. Questions should be numbered (1. 2. 3.) with options labeled A) B) C) D)</p>
+                        {mathpixFile && (
+                          <div className="mt-3 flex items-center justify-center gap-2 text-sm text-gray-600">
+                            <FiFile /> {mathpixFile.name} ({(mathpixFile.size / 1024).toFixed(1)} KB)
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-sm text-amber-800">
+                      <strong>Tips for best results:</strong>
+                      <ul className="mt-1 list-disc pl-4 space-y-1">
+                        <li>Number each question: <code>1.</code> or <code>Q1.</code></li>
+                        <li>Label options: <code>A)</code> <code>B)</code> <code>C)</code> <code>D)</code></li>
+                        <li>Mark answer: <code>Answer: B</code></li>
+                        <li>Optionally add: <code>Explanation: ...</code></li>
+                      </ul>
+                    </div>
+
+                    {mathpixConverting && (
+                      <div className="space-y-2 p-4 bg-purple-50 rounded-md">
+                        <div className="flex items-center gap-3">
+                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-purple-600 border-t-transparent flex-shrink-0"></div>
+                          <span className="text-sm text-purple-800 font-medium">{mathpixStatus || 'Processing...'}</span>
+                        </div>
+                        {mathpixProgress > 0 && (
+                          <div className="w-full bg-purple-100 rounded-full h-2">
+                            <div
+                              className="h-2 bg-purple-600 rounded-full transition-all duration-500"
+                              style={{ width: `${mathpixProgress}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={!mathpixFile || mathpixConverting || (!isTutor && !selectedQuestionBank)}
+                      className="w-full bg-purple-600 text-white py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-700 transition-colors"
+                    >
+                      {mathpixConverting ? 'Converting...' : 'Convert & Preview Questions'}
+                    </button>
+                  </form>
+                )}
+              </div>
             ) : (
               <form onSubmit={handleSingleQuestionSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
