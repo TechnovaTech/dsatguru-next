@@ -172,8 +172,14 @@ function cleanContent(text) {
 function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
   const questions = []
 
-  // Split on numbered question lines
-  const rawBlocks = md.split(/\n(?=(?:Q(?:uestion)?\s*)?\d+[\.\)]\s)/i).filter(b => b.trim())
+  // --- Pre-process: normalize "## Question N" / "# Question N" headings → "N."
+  // Also normalize "Question N" (no hash) at start of line
+  const normalized = md
+    .replace(/^#{1,3}\s*Question\s+(\d+)\s*$/gim, '$1.')
+    .replace(/^Question\s+(\d+)\s*$/gim, '$1.')
+
+  // Split on numbered question lines (supports "1." "1)" "Q1." "Q1)" formats)
+  const rawBlocks = normalized.split(/\n(?=(?:Q(?:uestion)?\s*)?\d+[\.\)]\s)/i).filter(b => b.trim())
 
   // Sort by question number to preserve PDF order
   const blocks = rawBlocks
@@ -194,26 +200,39 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     const qMatch = cleanBlock.match(/^(?:Q(?:uestion)?\s*)?\d+[\.\)]\s*([\s\S]*?)(?=\n\s*\(?[A-D][\.\)]\s)/i)
     if (!qMatch) continue
 
-    const rawQuestion = cleanContent(qMatch[1])
+    let rawQuestion = cleanContent(qMatch[1])
     if (!rawQuestion || rawQuestion.length < 3) continue
+
+    // Strip subtitle lines: lines that look like "Topic - Subtopic / Category" (no sentence punctuation)
+    // These appear right after the question heading in some PDFs
+    rawQuestion = rawQuestion.replace(/^[A-Z][^.!?\n]{5,80}(?:\s*[-\/]\s*[A-Z][^.!?\n]{3,60})+\s*\n/m, '')
 
     // Split passage + question text
     let questionParagraph = ''
-    let questionText = rawQuestion
+    let questionText = rawQuestion.trim()
     const paraMatch = rawQuestion.match(/^([\s\S]{80,}?)\n\n([\s\S]+)$/)
     if (paraMatch) { questionParagraph = paraMatch[1].trim(); questionText = paraMatch[2].trim() }
 
-    // Options — preserve inline images and LaTeX
-    const optA = cleanContent(extractOption(cleanBlock, 'A'))
-    const optB = cleanContent(extractOption(cleanBlock, 'B'))
-    const optC = cleanContent(extractOption(cleanBlock, 'C'))
-    const optD = cleanContent(extractOption(cleanBlock, 'D'))
+    // Options — handle both single-line and 2-column same-line layout
+    // e.g. "A) 33    C) 38\nB) 34    D) 39"
+    const expandedBlock = expandTwoColumnOptions(cleanBlock)
+
+    const optA = cleanContent(extractOption(expandedBlock, 'A'))
+    const optB = cleanContent(extractOption(expandedBlock, 'B'))
+    const optC = cleanContent(extractOption(expandedBlock, 'C'))
+    const optD = cleanContent(extractOption(expandedBlock, 'D'))
 
     const ansMatch = cleanBlock.match(/(?:answer|correct\s*answer|key|ans)[:\s]+\(?([A-D])\)?/i)
     const correctAnswer = ansMatch ? ansMatch[1].toUpperCase() : 'A'
 
-    const explMatch = cleanBlock.match(/(?:explanation|solution|rationale)[:\s]+([\s\S]+?)(?=\n\n|\n(?:Q(?:uestion)?\s*)?\d+[\.\)]|$)/i)
-    const explanation = explMatch ? cleanContent(explMatch[1]) : ''
+    // Short Explanation / Long Explanation labeled sections
+    const shortExplMatch = cleanBlock.match(/(?:short\s*explanation|mathematical\s*shortcut)[:\s]+([\s\S]+?)(?=\n\s*(?:long\s*explanation|explanation|solution|answer|difficulty|topic|tag|$))/i)
+    const longExplMatch = cleanBlock.match(/(?:long\s*explanation)[:\s]+([\s\S]+?)(?=\n\s*(?:answer|difficulty|topic|tag|$))/i)
+    const genericExplMatch = cleanBlock.match(/(?:^|\n)(?:explanation|solution|rationale)[:\s]+([\s\S]+?)(?=\n\n|\n(?:Q(?:uestion)?\s*)?\d+[\.\)]|$)/i)
+
+    const shortExplanation = shortExplMatch ? cleanContent(shortExplMatch[1]) : (genericExplMatch ? cleanContent(genericExplMatch[1]) : '')
+    const longExplanation = longExplMatch ? cleanContent(longExplMatch[1]) : ''
+    const explanation = shortExplanation || longExplanation
 
     // Difficulty
     let difficulty = defaultDifficulty
@@ -241,8 +260,8 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
       content: questionText,
       questionParagraph,
       explanation,
-      shortExplanation: explanation,
-      longExplanation: '',
+      shortExplanation,
+      longExplanation,
       subject,
       difficulty,
       correctAnswer,
@@ -253,6 +272,16 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     })
   }
   return questions
+}
+
+// Expand 2-column answer choices onto separate lines
+// e.g. "A) 33    C) 38\nB) 34    D) 39"  →  "A) 33\nB) 34\nC) 38\nD) 39"
+function expandTwoColumnOptions(block) {
+  // Match lines that contain two options side by side (e.g. "A) foo   C) bar")
+  return block.replace(
+    /^(\s*\(?([A-D])[\)\.]\s+)(.*?)\s{2,}(\(?([A-D])[\)\.]\s+.*)$/gm,
+    (_, _pfx, _l1, val1, rest, _l2) => `${_pfx}${val1}\n${rest}`
+  )
 }
 
 function extractOption(block, letter) {
