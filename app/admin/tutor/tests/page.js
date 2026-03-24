@@ -1,5 +1,5 @@
 ﻿'use client'
-import { renderContent as renderWithImages } from '@/app/components/admin/LatexRenderer'
+import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck } from 'react-icons/fi'

@@ -1,5 +1,5 @@
 ﻿'use client'
-import { renderContent as renderWithImages } from '@/app/components/admin/LatexRenderer'
+import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import axios from 'axios'
