@@ -958,7 +958,7 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
                         <select
@@ -969,28 +969,6 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                           <option value="Math">Math</option>
                           <option value="Reading and Writing">Reading and Writing</option>
                         </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Default Difficulty</label>
-                        <select
-                          value={mathpixDifficulty}
-                          onChange={e => setMathpixDifficulty(e.target.value)}
-                          className="w-full border border-gray-300 rounded-md px-3 py-2"
-                        >
-                          <option value="Easy">Easy</option>
-                          <option value="Medium">Medium</option>
-                          <option value="Hard">Hard</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
-                        <input
-                          type="text"
-                          value={mathpixTags}
-                          onChange={e => setMathpixTags(e.target.value)}
-                          placeholder="e.g. algebra, quadratics"
-                          className="w-full border border-gray-300 rounded-md px-3 py-2"
-                        />
                       </div>
                     </div>
 
