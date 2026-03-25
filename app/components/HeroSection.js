@@ -138,9 +138,9 @@ export default function HeroSection({ landingPlanRef }) {
                 <span className="relative z-10 text-white flex items-center"><span className="mr-2">{slidesData[current].shimmer.icon}</span>{slidesData[current].shimmer.text}</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
               </div>
-              <h1 className="text-2xl md:text-5xl font-bold whitespace-pre-line leading-tight">
+              <h2 className="text-2xl md:text-5xl font-bold whitespace-pre-line leading-tight">
                 {slidesData[current].title}
-              </h1>
+              </h2>
               <p className="mt-4 text-gray-300 text-md md:text-lg whitespace-pre-line">
                 {slidesData[current].description}
               </p>
