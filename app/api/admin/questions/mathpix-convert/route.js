@@ -169,22 +169,31 @@ function cleanContent(text) {
     .trim()
 }
 
+
+
 function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
   const questions = []
 
-  // --- Pre-process: normalize "## Question N" / "# Question N" headings → "N."
-  // Also normalize "Question N" (no hash) at start of line
+  // --- Pre-process: normalize all question heading variants → "N."
+  // Handles: "## Question 2", "Question 2", "Q2", "q2", bare "2" on its own line
   const normalized = md
-    .replace(/^#{1,3}\s*Question\s+(\d+)\s*$/gim, '$1.')
-    .replace(/^Question\s+(\d+)\s*$/gim, '$1.')
+    // "## Question N" / "# Question N"
+    .replace(/^#{1,3}\s*[Qq]uestion\s+(\d+)\s*$/gim, '$1.')
+    // "Question N" (no hash)
+    .replace(/^[Qq]uestion\s+(\d+)\s*$/gim, '$1.')
+    // "Q1" / "q1" alone on a line (with or without dot/paren already)
+    .replace(/^[Qq](\d+)\s*$/gm, '$1.')
+    // bare number alone on its own line e.g. just "2" — only if it's a plausible question number (1-999)
+    // must be preceded by a blank line or start of string to avoid matching numbers inside text
+    .replace(/(^|\n\n)(\d{1,3})\s*\n/g, (_, pre, num) => `${pre}${num}.\n`)
 
-  // Split on numbered question lines (supports "1." "1)" "Q1." "Q1)" formats)
-  const rawBlocks = normalized.split(/\n(?=(?:Q(?:uestion)?\s*)?\d+[\.\)]\s)/i).filter(b => b.trim())
+  // Split on normalized "N." / "N)" question starters, or "QN." / "QN)" variants
+  const rawBlocks = normalized.split(/\n(?=(?:[Qq](?:uestion)?\s*)?\d+[\.\)]\s)/i).filter(b => b.trim())
 
   // Sort by question number to preserve PDF order
   const blocks = rawBlocks
     .map(b => {
-      const numMatch = b.match(/^(?:Q(?:uestion)?\s*)?(\d+)[\.\)]\s/i)
+      const numMatch = b.match(/^(?:[Qq](?:uestion)?\s*)?(\d+)[\.\)]\s/i)
       return { block: b.trim(), num: numMatch ? parseInt(numMatch[1]) : 9999 }
     })
     .sort((a, b) => a.num - b.num)
@@ -197,7 +206,9 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     // Strip any bracketed date/source labels from the entire block first
     const cleanBlock = block.replace(/\[[^\]]{0,80}\d{4}[^\]]{0,40}\]/g, '').replace(/\n{3,}/g, '\n\n').trim()
 
-    const qMatch = cleanBlock.match(/^(?:Q(?:uestion)?\s*)?\d+[\.\)]\s*([\s\S]*?)(?=\n\s*\(?[A-D][\.\)]\s)/i)
+    // Match question text — stop at first answer option OR markdown table row OR Answer: line
+    // Handles: "A) ...", "| A) |", "Answer:", "## Answer"
+    const qMatch = cleanBlock.match(/^(?:[Qq](?:uestion)?\s*)?\d+[\.\)]\s*([\s\S]*?)(?=\n\s*(?:\|?\s*\(?[A-D][\)\.]\s|\*{0,2}Answer|\*{0,2}Short Explanation|\*{0,2}Mathematical Shortcut|\*{0,2}Long Explanation|##\s*Answer))/i)
     if (!qMatch) continue
 
     let rawQuestion = cleanContent(qMatch[1])
@@ -225,13 +236,21 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     const ansMatch = cleanBlock.match(/(?:answer|correct\s*answer|key|ans)[:\s]+\(?([A-D])\)?/i)
     const correctAnswer = ansMatch ? ansMatch[1].toUpperCase() : 'A'
 
-    // Short Explanation / Long Explanation labeled sections
-    const shortExplMatch = cleanBlock.match(/(?:short\s*explanation|mathematical\s*shortcut)[:\s]+([\s\S]+?)(?=\n\s*(?:long\s*explanation|explanation|solution|answer|difficulty|topic|tag|$))/i)
-    const longExplMatch = cleanBlock.match(/(?:long\s*explanation)[:\s]+([\s\S]+?)(?=\n\s*(?:answer|difficulty|topic|tag|$))/i)
-    const genericExplMatch = cleanBlock.match(/(?:^|\n)(?:explanation|solution|rationale)[:\s]+([\s\S]+?)(?=\n\n|\n(?:Q(?:uestion)?\s*)?\d+[\.\)]|$)/i)
+    // Short Explanation / Mathematical Shortcut / Long Explanation
+    // These appear as labeled sections: "Short Explanation", "**Short Explanation**", etc.
+    const sectionRx = (label) =>
+      new RegExp(`(?:^|\\n)\\*{0,2}${label}\\*{0,2}[:\\s]*((?:(?!\\n\\*{0,2}(?:Short Explanation|Mathematical Shortcut|Long Explanation|Answer|Difficulty)\\*{0,2})[\\s\\S])*?)(?=\\n\\*{0,2}(?:Short Explanation|Mathematical Shortcut|Long Explanation|Answer|Difficulty)|$)`, 'i')
 
-    const shortExplanation = shortExplMatch ? cleanContent(shortExplMatch[1]) : (genericExplMatch ? cleanContent(genericExplMatch[1]) : '')
-    const longExplanation = longExplMatch ? cleanContent(longExplMatch[1]) : ''
+    const shortRaw = cleanBlock.match(sectionRx('Short Explanation'))
+    const shortcutRaw = cleanBlock.match(sectionRx('Mathematical Shortcut'))
+    const longRaw = cleanBlock.match(sectionRx('Long Explanation'))
+    const genericExplMatch = cleanBlock.match(/(?:^|\n)(?:explanation|solution|rationale)[:\s]+([\s\S]+?)(?=\n\n|\n(?:[Qq](?:uestion)?\s*)?\d+[\.\)]|$)/i)
+
+    const shortExplanation = cleanContent(
+      (shortRaw ? shortRaw[1] : '') + (shortcutRaw ? '\n' + shortcutRaw[1] : '') ||
+      (genericExplMatch ? genericExplMatch[1] : '')
+    )
+    const longExplanation = cleanContent(longRaw ? longRaw[1] : '')
     const explanation = shortExplanation || longExplanation
 
     // Difficulty
@@ -256,7 +275,7 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     questions.push({
       id: `mathpix-${i + 1}`,
       questionId,
-      title: questionText.replace(/!\[.*?\]\(.*?\)/g, '').replace(/\\\(.*?\\\)/g, '').substring(0, 100),
+      title: questionText.replace(/!\[.*?\]\(.*?\)/g, '').substring(0, 100),
       content: questionText,
       questionParagraph,
       explanation,
@@ -275,16 +294,24 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
 }
 
 // Expand 2-column answer choices onto separate lines
-// e.g. "A) 33    C) 38\nB) 34    D) 39"  →  "A) 33\nB) 34\nC) 38\nD) 39"
+// Handles: "A) 33    C) 38\nB) 34    D) 39" and "| A) foo | C) bar |" table rows
 function expandTwoColumnOptions(block) {
-  // Match lines that contain two options side by side (e.g. "A) foo   C) bar")
-  return block.replace(
+  // Convert markdown table option rows to plain lines first
+  // e.g. "| A) foo | C) bar |" → "A) foo\nC) bar"
+  let result = block.replace(
+    /^\|?\s*(\(?[A-D][\)\.]\s+[^|]+?)\s*\|\s*(\(?[A-D][\)\.]\s+[^|]+?)\s*\|?\s*$/gm,
+    (_, left, right) => `${left.trim()}\n${right.trim()}`
+  )
+  // Then handle same-line 2-column: "A) 33    C) 38"
+  result = result.replace(
     /^(\s*\(?([A-D])[\)\.]\s+)(.*?)\s{2,}(\(?([A-D])[\)\.]\s+.*)$/gm,
     (_, _pfx, _l1, val1, rest, _l2) => `${_pfx}${val1}\n${rest}`
   )
+  return result
 }
 
 function extractOption(block, letter) {
+  // First try standard format: "A) ..." on its own line
   const rx = new RegExp(
     `(?:^|\\n)\\s*\\(?${letter}[\\)\\.]\\s*` +
     `((?:(?!\\n\\s*\\(?[A-D][\\)\\.]|\\nAnswer|\\nExplanation|\\nCorrect)[\\s\\S])*?)` +
@@ -292,7 +319,12 @@ function extractOption(block, letter) {
     'im'
   )
   const m = block.match(rx)
-  return m ? m[1].trim() : ''
+  if (m && m[1].trim()) return m[1].trim()
+
+  // Fallback: markdown table cell format "| A) foo |" or "| A) foo | C) bar |"
+  const tableRx = new RegExp(`\\|\\s*\\(?${letter}[\\)\\.]\\s*([^|\\n]+?)\\s*(?:\\||$)`, 'im')
+  const tm = block.match(tableRx)
+  return tm ? tm[1].trim() : ''
 }
 
 function detectTopicTags(text, subject) {
