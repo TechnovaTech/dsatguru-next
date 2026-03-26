@@ -101,6 +101,13 @@ export async function GET(request) {
     const mdText = await mdRes.text()
     if (!mdText || mdText.trim().length < 10) return NextResponse.json({ status: 'processing', percent: pctDone })
 
+    // Debug: Log first 2000 characters of raw markdown for troubleshooting
+    console.log('\n📄 Mathpix Raw Markdown (first 2000 chars):')
+    console.log('=' .repeat(80))
+    console.log(mdText.substring(0, 2000))
+    console.log('=' .repeat(80))
+    console.log('\n')
+
     // Download all Mathpix CDN images → save to /public/uploads/questions/
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'questions')
     await mkdir(uploadDir, { recursive: true })
@@ -237,20 +244,53 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     const correctAnswer = ansMatch ? ansMatch[1].toUpperCase() : 'A'
 
     // Short Explanation / Mathematical Shortcut / Long Explanation
-    // These appear as labeled sections: "Short Explanation", "**Short Explanation**", etc.
-    const sectionRx = (label) =>
-      new RegExp(`(?:^|\\n)\\*{0,2}${label}\\*{0,2}[:\\s]*((?:(?!\\n\\*{0,2}(?:Short Explanation|Mathematical Shortcut|Long Explanation|Answer|Difficulty)\\*{0,2})[\\s\\S])*?)(?=\\n\\*{0,2}(?:Short Explanation|Mathematical Shortcut|Long Explanation|Answer|Difficulty)|$)`, 'i')
+    // These appear as labeled sections in colored boxes in the PDF
+    // More flexible regex to handle various markdown formatting from Mathpix
+    const sectionRx = (label) => {
+      // Match section header with optional markdown formatting (**, ##, etc.)
+      // Capture everything until next section header or end
+      const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      return new RegExp(
+        `(?:^|\\n)(?:#{1,6}\\s*)?\\*{0,4}${escapedLabel}\\*{0,4}(?:\\s*:)?\\s*\\n?` +
+        `([\\s\\S]*?)` +
+        `(?=\\n+(?:#{1,6}\\s*)?\\*{0,4}(?:Short Explanation|Mathematical Shortcut|Long Explanation|Answer|Difficulty|Question\\s*\\d+)[:\\s*]|$)`,
+        'i'
+      )
+    }
 
+    // Try to extract explanation sections
     const shortRaw = cleanBlock.match(sectionRx('Short Explanation'))
     const shortcutRaw = cleanBlock.match(sectionRx('Mathematical Shortcut'))
     const longRaw = cleanBlock.match(sectionRx('Long Explanation'))
     const genericExplMatch = cleanBlock.match(/(?:^|\n)(?:explanation|solution|rationale)[:\s]+([\s\S]+?)(?=\n\n|\n(?:[Qq](?:uestion)?\s*)?\d+[\.\)]|$)/i)
 
-    const shortExplanation = cleanContent(
-      (shortRaw ? shortRaw[1] : '') + (shortcutRaw ? '\n' + shortcutRaw[1] : '') ||
-      (genericExplMatch ? genericExplMatch[1] : '')
-    )
-    const longExplanation = cleanContent(longRaw ? longRaw[1] : '')
+    // Debug logging for first question
+    if (i === 0) {
+      console.log('🔍 Mathpix Explanation Extraction Debug (Question 1):')
+      console.log('Short Explanation found:', !!shortRaw, shortRaw ? `(${shortRaw[1].substring(0, 100)}...)` : '')
+      console.log('Mathematical Shortcut found:', !!shortcutRaw, shortcutRaw ? `(${shortcutRaw[1].substring(0, 100)}...)` : '')
+      console.log('Long Explanation found:', !!longRaw, longRaw ? `(${longRaw[1].substring(0, 100)}...)` : '')
+    }
+
+    // Combine Short Explanation and Mathematical Shortcut into shortExplanation
+    let shortExplanation = ''
+    if (shortRaw && shortRaw[1]) {
+      shortExplanation = cleanContent(shortRaw[1].trim())
+    }
+    if (shortcutRaw && shortcutRaw[1]) {
+      const shortcutContent = cleanContent(shortcutRaw[1].trim())
+      if (shortcutContent) {
+        shortExplanation = shortExplanation 
+          ? shortExplanation + '\n\n**Mathematical Shortcut:**\n' + shortcutContent
+          : '**Mathematical Shortcut:**\n' + shortcutContent
+      }
+    }
+    // Fallback to generic explanation if no specific sections found
+    if (!shortExplanation && genericExplMatch) {
+      shortExplanation = cleanContent(genericExplMatch[1])
+    }
+
+    const longExplanation = cleanContent(longRaw && longRaw[1] ? longRaw[1].trim() : '')
     const explanation = shortExplanation || longExplanation
 
     // Difficulty
