@@ -101,6 +101,28 @@ export default function BlogDetailPage() {
               <p className="text-sm md:text-base leading-relaxed">
                 {section.body}
               </p>
+              {section.table && (
+                <div className="mt-4 overflow-x-auto rounded-xl border border-gray-200">
+                  <table className="w-full text-xs md:text-sm text-left">
+                    <thead className="bg-blue-600 text-white">
+                      <tr>
+                        {section.table.headers.map((h, i) => (
+                          <th key={i} className="px-4 py-3 font-semibold">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {section.table.rows.map((row, ri) => (
+                        <tr key={ri} className={ri % 2 === 0 ? 'bg-white' : 'bg-blue-50'}>
+                          {row.map((cell, ci) => (
+                            <td key={ci} className={`px-4 py-3 text-gray-700 ${ci === 0 ? 'font-medium text-gray-900' : ''}`}>{cell}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </section>
           ))}
 
@@ -114,6 +136,22 @@ export default function BlogDetailPage() {
                   <li key={index}>{item}</li>
                 ))}
               </ul>
+            </section>
+          )}
+
+          {post.faqs && post.faqs.length > 0 && (
+            <section className="mt-10">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-5">FAQs</h2>
+              <div className="space-y-4">
+                {post.faqs.map((faq, index) => (
+                  <div key={index} className="border border-gray-200 rounded-xl p-5 bg-white">
+                    <h3 className="text-sm md:text-base font-semibold text-gray-900 mb-2">
+                      {index + 1}. {faq.question}
+                    </h3>
+                    <p className="text-xs md:text-sm text-gray-700 leading-relaxed">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
             </section>
           )}
         </article>
