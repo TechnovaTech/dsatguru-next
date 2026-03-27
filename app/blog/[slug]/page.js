@@ -18,16 +18,10 @@ export default function BlogDetailPage() {
     if (!metaRobots) {
       metaRobots = document.createElement('meta')
       metaRobots.name = 'robots'
+      metaRobots.content = 'noindex, nofollow'
       document.head.appendChild(metaRobots)
-    }
-    metaRobots.content = 'noindex, nofollow'
-
-    // Cleanup function to remove the tag when component unmounts
-    return () => {
-      const meta = document.querySelector('meta[name="robots"]')
-      if (meta && meta.content === 'noindex, nofollow') {
-        meta.remove()
-      }
+    } else {
+      metaRobots.content = 'noindex, nofollow'
     }
   }, [])
 

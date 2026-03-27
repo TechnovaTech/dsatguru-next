@@ -112,6 +112,27 @@ const nextConfig = {
         destination: '/psat-study-guide',
         permanent: true,
       },
+      // Blog URL redirects
+      {
+        source: '/blog/digital-sat-study-plan-8-weeks',
+        destination: '/blog/8-weeks-digital-sat-study-plan',
+        permanent: true,
+      },
+      {
+        source: '/blog/digital-sat-math-mistakes',
+        destination: '/blog/10-common-digital-sat-math-mistakes',
+        permanent: true,
+      },
+      {
+        source: '/blog/digital-sat-reading-strategies',
+        destination: '/blog/digital-sat-reading-writing-strategies',
+        permanent: true,
+      },
+      {
+        source: '/blog/using-practice-tests-effectively',
+        destination: '/blog/digital-sat-practice-tests-right-way',
+        permanent: true,
+      },
     ]
   },
   async headers() {

@@ -1,6 +1,6 @@
 export const blogPosts = [
   {
-    slug: 'digital-sat-study-plan-8-weeks',
+    slug: '8-weeks-digital-sat-study-plan',
     title: '8-Week Digital SAT Study Plan for Busy Students',
     category: 'Study Plans',
     readingTime: '8 min read',
@@ -74,7 +74,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'digital-sat-math-mistakes',
+    slug: '10-common-digital-sat-math-mistakes',
     title: '10 Common Digital SAT Math Mistakes (and How to Fix Them)',
     category: 'Math',
     readingTime: '7 min read',
@@ -109,7 +109,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'digital-sat-reading-strategies',
+    slug: 'digital-sat-reading-writing-strategies',
     title: 'Reading & Writing Strategies for the Digital SAT',
     category: 'Reading & Writing',
     readingTime: '9 min read',
@@ -174,7 +174,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'using-practice-tests-effectively',
+    slug: 'digital-sat-practice-tests-right-way',
     title: 'Are You Using Digital SAT Practice Tests the Right Way?',
     category: 'Practice Strategy',
     readingTime: '6 min read',
