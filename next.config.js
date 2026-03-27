@@ -15,6 +15,52 @@ const nextConfig = {
         destination: '/blog',
         permanent: true,
       },
+      // Old program URLs to new SEO-friendly URLs
+      {
+        source: '/programs/dsat/live-bootcamp-course',
+        destination: '/sat-bootcamp-courses',
+        permanent: true,
+      },
+      {
+        source: '/programs/dsat/live-prep-course',
+        destination: '/sat-live-prep-course',
+        permanent: true,
+      },
+      {
+        source: '/programs/dsat/individual-tutoring',
+        destination: '/sat-individual-tutoring',
+        permanent: true,
+      },
+      {
+        source: '/programs/dsat/reading-and-writing-section',
+        destination: '/sat-reading-writing',
+        permanent: true,
+      },
+      {
+        source: '/programs/dsat/math-section',
+        destination: '/sat-math',
+        permanent: true,
+      },
+      {
+        source: '/programs/dsat/practice-test',
+        destination: '/free-sat-practice-test',
+        permanent: true,
+      },
+      {
+        source: '/programs/dsat/mock-test',
+        destination: '/free-sat-mock-test',
+        permanent: true,
+      },
+      {
+        source: '/programs/dsat/diagnostic-test',
+        destination: '/free-sat-diagnostic-test',
+        permanent: true,
+      },
+      {
+        source: '/programs/dsat/study-guide',
+        destination: '/sat-study-guide',
+        permanent: true,
+      },
     ]
   },
   async headers() {
