@@ -15,6 +15,11 @@ const nextConfig = {
         destination: '/blog',
         permanent: true,
       },
+      {
+        source: '/blog.html',
+        destination: '/blog',
+        permanent: true,
+      },
       // Old DSAT program URLs to new SEO-friendly URLs
       {
         source: '/programs/dsat/live-bootcamp-course',
