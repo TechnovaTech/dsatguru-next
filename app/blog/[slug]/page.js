@@ -6,6 +6,9 @@ import { getPostBySlug } from '../data'
 import { FiArrowLeft } from 'react-icons/fi'
 import { useEffect } from 'react'
 
+// Note: generateMetadata must be in a server component file (layout or separate)
+// Meta is injected via useEffect below for client component
+
 export default function BlogDetailPage() {
   const params = useParams()
   const slug = params?.slug
@@ -13,7 +16,16 @@ export default function BlogDetailPage() {
 
   // Add noindex, nofollow meta tag
   useEffect(() => {
-    // Create meta tag if it doesn't exist
+    if (post) {
+      document.title = post.metaTitle || post.title
+      let metaDesc = document.querySelector('meta[name="description"]')
+      if (!metaDesc) {
+        metaDesc = document.createElement('meta')
+        metaDesc.name = 'description'
+        document.head.appendChild(metaDesc)
+      }
+      metaDesc.content = post.metaDescription || ''
+    }
     let metaRobots = document.querySelector('meta[name="robots"]')
     if (!metaRobots) {
       metaRobots = document.createElement('meta')
@@ -23,7 +35,7 @@ export default function BlogDetailPage() {
     } else {
       metaRobots.content = 'noindex, nofollow'
     }
-  }, [])
+  }, [post])
 
   if (!post) {
     return (
@@ -98,9 +110,29 @@ export default function BlogDetailPage() {
               <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
                 {section.heading}
               </h2>
-              <p className="text-sm md:text-base leading-relaxed">
-                {section.body}
-              </p>
+              {section.sectionImage && (
+                <div className="mt-4 w-full rounded-xl overflow-hidden">
+                  <Image
+                    src={section.sectionImage}
+                    alt={section.heading}
+                    width={800}
+                    height={400}
+                    className="w-full object-cover rounded-xl"
+                  />
+                </div>
+              )}
+              {section.body && (
+                <p className="text-sm md:text-base leading-relaxed">
+                  {section.body}
+                </p>
+              )}
+              {section.bullets && (
+                <ul className="list-disc pl-5 space-y-1 text-sm md:text-base text-gray-700 mt-2">
+                  {section.bullets.map((b, bi) => (
+                    <li key={bi}>{b}</li>
+                  ))}
+                </ul>
+              )}
               {section.table && (
                 <div className="mt-4 overflow-x-auto rounded-xl border border-gray-200">
                   <table className="w-full text-xs md:text-sm text-left">
