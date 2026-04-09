@@ -481,6 +481,55 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
 
   if (!session) return <div className="p-8 text-center">Session not found</div>
 
+  // If auto-submitted, show only the violation screen with reattempt button
+  if (session?.autoSubmitted || session?.autoSubmitReason) {
+    const handleReattempt = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const res = await fetch(`/api/test-sessions/${sessionId}/reattempt`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+        })
+        if (res.ok) {
+          router.push(`/dashboard/tests/${testId}/start?returnUrl=${encodeURIComponent(returnUrl)}`)
+        } else {
+          alert('Failed to reset test. Please try again.')
+        }
+      } catch (e) {
+        alert('Failed to reset test. Please try again.')
+      }
+    }
+
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-xl border border-red-200 max-w-lg w-full p-8 text-center">
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <FiAlertCircle className="w-10 h-10 text-red-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">Test Auto-Submitted</h1>
+          <p className="text-gray-600 mb-4">Your test was automatically submitted due to a violation:</p>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-8">
+            <p className="text-red-800 font-semibold text-sm">"{session.autoSubmitReason || 'Test violation detected'}"</p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={handleReattempt}
+              className="w-full px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors text-base"
+            >
+              Reattempt Test
+            </button>
+            <button
+              onClick={() => router.push(returnUrl)}
+              className="w-full px-6 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors text-base"
+            >
+              Back
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Calculate Stats
   const totalQuestions = questions.length
   const correctCount = questions.filter(q => q.isCorrect).length
