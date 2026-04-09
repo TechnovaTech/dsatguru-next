@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevronDown, FiChevronUp, FiActivity, FiMonitor, FiMaximize, FiCheckSquare, FiUsers, FiRefreshCw } from 'react-icons/fi'
 import ReassignTestModal from './admin/ReassignTestModal'
 
-export default function TestResultView({ testId, sessionId, returnUrl, viewMode }) {
+export default function TestResultView({ testId, sessionId, returnUrl, viewMode, viewAnalysis }) {
   const router = useRouter()
   
   const [session, setSession] = useState(null)
@@ -25,6 +25,12 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
   const [showReassignModal, setShowReassignModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [newTestId, setNewTestId] = useState(null)
+  const [unlockSubject, setUnlockSubject] = useState('')
+  const [unlockReason, setUnlockReason] = useState('')
+  const [submittingUnlock, setSubmittingUnlock] = useState(false)
+  const [unlockSubmitted, setUnlockSubmitted] = useState(false)
+  const [processingUnlock, setProcessingUnlock] = useState(false)
+  const [showUnlockModal, setShowUnlockModal] = useState(false)
 
   useEffect(() => {
     fetchResult()
@@ -406,16 +412,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
 
       if (res.ok) {
         alert('Analysis submitted successfully!')
-        // Update session to mark as submitted
         setSession(prev => ({ ...prev, analysisSubmitted: true, analysisSubmittedAt: new Date() }))
         setAnalysisSubmitted(true)
-        
-        // Optionally redirect back to the test list after a short delay
-        setTimeout(() => {
-          if (returnUrl) {
-            router.push(returnUrl)
-          }
-        }, 1500)
       } else {
         const errorData = await res.json()
         alert(`Failed to submit analysis: ${errorData.error || 'Unknown error'}`)
@@ -481,56 +479,73 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
 
   if (!session) return <div className="p-8 text-center">Session not found</div>
 
-  // If auto-submitted, show only the violation screen with reattempt button
-  if (session?.autoSubmitted || session?.autoSubmitReason) {
-    const handleReattempt = async () => {
-      try {
-        const token = localStorage.getItem('token')
-        const res = await fetch(`/api/test-sessions/${sessionId}/reattempt`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-        })
-        if (res.ok) {
-          router.push(`/dashboard/tests/${testId}/start?returnUrl=${encodeURIComponent(returnUrl)}`)
-        } else {
-          alert('Failed to reset test. Please try again.')
-        }
-      } catch (e) {
+  const handleReattempt = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`/api/test-sessions/${sessionId}/reattempt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+      })
+      if (res.ok) {
+        router.push(`/dashboard/tests/${testId}/start?sessionId=${sessionId}&returnUrl=${encodeURIComponent(returnUrl)}`)
+      } else {
         alert('Failed to reset test. Please try again.')
       }
+    } catch (e) {
+      alert('Failed to reset test. Please try again.')
     }
-
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl shadow-xl border border-red-200 max-w-lg w-full p-8 text-center">
-          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <FiAlertCircle className="w-10 h-10 text-red-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">Test Auto-Submitted</h1>
-          <p className="text-gray-600 mb-4">Your test was automatically submitted due to a violation:</p>
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-8">
-            <p className="text-red-800 font-semibold text-sm">"{session.autoSubmitReason || 'Test violation detected'}"</p>
-          </div>
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={handleReattempt}
-              className="w-full px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors text-base"
-            >
-              Reattempt Test
-            </button>
-            <button
-              onClick={() => router.push(returnUrl)}
-              className="w-full px-6 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors text-base"
-            >
-              Back
-            </button>
-          </div>
-        </div>
-      </div>
-    )
   }
 
-  // Calculate Stats
+  const handleSubmitUnlock = async () => {
+    if (!unlockSubject.trim() || !unlockReason.trim()) {
+      alert('Please fill in both subject and reason.')
+      return
+    }
+    setSubmittingUnlock(true)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`/api/test-sessions/${sessionId}/unlock-request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ subject: unlockSubject, reason: unlockReason })
+      })
+      if (res.ok) {
+        setUnlockSubmitted(true)
+        setShowUnlockModal(false)
+        setSession(prev => ({ ...prev, unlockRequest: { subject: unlockSubject, reason: unlockReason, status: 'pending', requestedAt: new Date() } }))
+      } else {
+        alert('Failed to submit request. Please try again.')
+      }
+    } catch (e) {
+      alert('Failed to submit request. Please try again.')
+    } finally {
+      setSubmittingUnlock(false)
+    }
+  }
+
+  const handleUnlockAction = async (action) => {
+    setProcessingUnlock(true)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`/api/test-sessions/${sessionId}/unlock-approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ action })
+      })
+      if (res.ok) {
+        setSession(prev => ({ ...prev, unlockRequest: { ...prev.unlockRequest, status: action, reviewedAt: new Date() } }))
+      } else {
+        alert('Failed to process request.')
+      }
+    } catch (e) {
+      alert('Failed to process request.')
+    } finally {
+      setProcessingUnlock(false)
+    }
+  }
+
+  const isSecondAutoSubmit = session?.attemptCount >= 2 && !!(session?.autoSubmitted || session?.autoSubmitReason)
+  const unlockReq = session?.unlockRequest
   const totalQuestions = questions.length
   const correctCount = questions.filter(q => q.isCorrect).length
   const incorrectCount = questions.filter(q => !q.isCorrect && q.userAnswer).length
@@ -588,6 +603,24 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                     
                     {viewMode !== 'admin' && (
                         <>
+                            {/* Reattempt / Request Unlock button — only show if auto-submitted */}
+                            {!session?.isReassigned && (session?.autoSubmitted || session?.autoSubmitReason) && (
+                                isSecondAutoSubmit ? (
+                                    <button
+                                        onClick={() => setShowUnlockModal(true)}
+                                        className="px-4 py-2 bg-orange-600 text-white text-sm font-bold rounded-lg hover:bg-orange-700"
+                                    >
+                                        Request Unlock
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleReattempt}
+                                        className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700"
+                                    >
+                                        Reattempt Test
+                                    </button>
+                                )
+                            )}
                             {/* Submit Analysis Button - Only for tutor-created tests */}
                             {test?.isTutorTest && !session?.analysisSubmitted && !session?.isReassigned && (
                                 <button 
@@ -646,27 +679,149 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode 
                             </div>
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-lg font-bold text-red-900 mb-2 flex items-center gap-2">
-                                🚨 Test Auto-Submitted
-                            </h3>
-                            <p className="text-red-800 font-semibold mb-2">
-                                This test was automatically submitted due to a violation:
-                            </p>
+                            <h3 className="text-lg font-bold text-red-900 mb-2">🚨 Test Auto-Submitted</h3>
+                            <p className="text-red-800 font-semibold mb-2">This test was automatically submitted due to a violation:</p>
                             <div className="bg-white border border-red-300 rounded-lg p-4 mb-3">
                                 <p className="text-red-900 font-bold text-base">
                                     "{session.autoSubmitReason || 'Test was auto-submitted due to a violation'}"
                                 </p>
                             </div>
-                            <p className="text-sm text-red-700">
-                                ⚠️ Unanswered questions at the time of auto-submit have been marked as omitted.
-                            </p>
+                            <p className="text-sm text-red-700">⚠️ Unanswered questions at the time of auto-submit have been marked as omitted.</p>
                         </div>
                     </div>
                 </div>
             </div>
         )}
 
-        <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+        {/* Admin/Tutor: Unlock Request Panel */}
+        {viewMode === 'admin' && isSecondAutoSubmit && (
+            <div className="max-w-7xl mx-auto px-4 pt-4">
+                <div className="bg-orange-50 border-2 border-orange-400 rounded-xl p-5 shadow">
+                    <h3 className="text-base font-bold text-orange-900 mb-3">🔓 Test Unlock Request</h3>
+                    {unlockReq ? (
+                        <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-white rounded-lg p-3 border border-orange-200">
+                                    <p className="text-xs font-bold text-gray-500 uppercase mb-1">Subject</p>
+                                    <p className="text-sm font-semibold text-gray-900">{unlockReq.subject}</p>
+                                </div>
+                                <div className="bg-white rounded-lg p-3 border border-orange-200">
+                                    <p className="text-xs font-bold text-gray-500 uppercase mb-1">Auto-Submit Reason</p>
+                                    <p className="text-sm font-semibold text-gray-900">{session.autoSubmitReason || 'N/A'}</p>
+                                </div>
+                            </div>
+                            <div className="bg-white rounded-lg p-3 border border-orange-200">
+                                <p className="text-xs font-bold text-gray-500 uppercase mb-1">Student's Reason for Unlock</p>
+                                <p className="text-sm text-gray-900">{unlockReq.reason}</p>
+                            </div>
+                            {unlockReq.status === 'pending' ? (
+                                <div className="flex gap-3 pt-1">
+                                    <button
+                                        onClick={() => handleUnlockAction('approved')}
+                                        disabled={processingUnlock}
+                                        className="px-5 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 disabled:opacity-50"
+                                    >
+                                        {processingUnlock ? 'Processing...' : 'Approve'}
+                                    </button>
+                                    <button
+                                        onClick={() => handleUnlockAction('declined')}
+                                        disabled={processingUnlock}
+                                        className="px-5 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 disabled:opacity-50"
+                                    >
+                                        {processingUnlock ? 'Processing...' : 'Decline'}
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold ${
+                                    unlockReq.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                }`}>
+                                    {unlockReq.status === 'approved' ? '✅ Approved' : '❌ Declined'}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-orange-800">No unlock request submitted yet by the student.</p>
+                    )}
+                </div>
+            </div>
+        )}
+
+        {/* Student: 2nd auto-submit status banner */}
+        {viewMode !== 'admin' && isSecondAutoSubmit && (
+            <div className="max-w-7xl mx-auto px-4 pt-4">
+                {unlockReq?.status === 'approved' ? (
+                    <div className="bg-green-50 border-2 border-green-500 rounded-xl p-6 text-center">
+                        <p className="text-lg font-bold text-green-800 mb-4">✅ Your unlock request has been approved!</p>
+                        <button onClick={handleReattempt} className="px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700">
+                            Start Test (Attempt 3)
+                        </button>
+                    </div>
+                ) : unlockReq?.status === 'declined' ? (
+                    <div className="bg-red-50 border-2 border-red-400 rounded-xl p-6 text-center">
+                        <p className="text-lg font-bold text-red-800">❌ Your unlock request was declined.</p>
+                        <p className="text-sm text-red-600 mt-2">Please contact your tutor or admin for further assistance.</p>
+                    </div>
+                ) : (unlockSubmitted || unlockReq?.status === 'pending') ? (
+                    <div className="bg-yellow-50 border-2 border-yellow-400 rounded-xl p-6 text-center">
+                        <p className="text-lg font-bold text-yellow-800">⏳ Unlock request submitted. Waiting for admin/tutor approval.</p>
+                    </div>
+                ) : (
+                    <div className="bg-orange-50 border-2 border-orange-400 rounded-xl p-4 flex items-center justify-between">
+                        <p className="text-sm font-semibold text-orange-900">You have been auto-submitted twice. Request an unlock to get a 3rd attempt.</p>
+                        <button onClick={() => setShowUnlockModal(true)} className="ml-4 px-5 py-2 bg-orange-600 text-white text-sm font-bold rounded-lg hover:bg-orange-700 whitespace-nowrap">
+                            Request Unlock
+                        </button>
+                    </div>
+                )}
+            </div>
+        )}
+
+        {/* Unlock Request Modal */}
+        {showUnlockModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+                    <div className="p-5 border-b flex items-center justify-between">
+                        <h3 className="text-base font-bold text-gray-900">🔓 Request Test Unlock</h3>
+                        <button onClick={() => setShowUnlockModal(false)} className="text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
+                    </div>
+                    <div className="p-5 space-y-4">
+                        <p className="text-sm text-gray-600">You have been auto-submitted twice. Fill in the form below to request a 3rd attempt.</p>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-1">Subject <span className="text-red-500">*</span></label>
+                            <input
+                                type="text"
+                                value={unlockSubject}
+                                onChange={e => setUnlockSubject(e.target.value)}
+                                placeholder="e.g. Math, Reading & Writing"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-1">Reason for unlock <span className="text-red-500">*</span></label>
+                            <textarea
+                                value={unlockReason}
+                                onChange={e => setUnlockReason(e.target.value)}
+                                placeholder="Explain why you should be given another attempt..."
+                                rows={3}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            />
+                        </div>
+                    </div>
+                    <div className="p-5 border-t flex gap-3">
+                        <button onClick={() => setShowUnlockModal(false)} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-50">Cancel</button>
+                        <button
+                            onClick={handleSubmitUnlock}
+                            disabled={submittingUnlock}
+                            className="flex-1 px-4 py-2 bg-orange-600 text-white text-sm font-bold rounded-lg hover:bg-orange-700 disabled:opacity-50"
+                        >
+                            {submittingUnlock ? 'Submitting...' : 'Submit Request'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        <div className="max-w-7xl mx-auto px-4 py-8 space-y-6" style={(viewMode !== 'admin' && isSecondAutoSubmit) ? { display: 'none' } : {}}>
             
             {/* Overall Score */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

@@ -41,6 +41,7 @@ export async function POST(request, { params }) {
     session.analysisSubmitted = false
     session.analysisSubmittedAt = undefined
     session.startTime = new Date()
+    session.attemptCount = (session.attemptCount || 1) + 1
 
     await session.save()
 

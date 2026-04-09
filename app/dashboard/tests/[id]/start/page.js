@@ -406,8 +406,10 @@ export default function TakeTestPage() {
         if (historyRes.ok) {
           const historyData = await historyRes.json()
           const sessions = historyData.sessions || historyData || []
-          const alreadyCompleted = sessions.some(s => 
-            String(s.testId) === String(testId) && 
+          const testSessions = sessions.filter(s => String(s.testId) === String(testId))
+          // Only block if completed AND no InProgress session exists (reattempt resets to InProgress)
+          const hasInProgress = testSessions.some(s => s.status === 'InProgress') || !!sessionId
+          const alreadyCompleted = !hasInProgress && testSessions.some(s => 
             s.status === 'Completed' && 
             s.totalScore !== undefined
           )

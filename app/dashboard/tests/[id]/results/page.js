@@ -9,13 +9,15 @@ export default function TestResultPage() {
   const sessionId = searchParams.get('session_id') || searchParams.get('sessionId')
   const returnUrl = searchParams.get('returnUrl') || '/dashboard/tests'
   const viewMode = searchParams.get('viewMode')
+  const viewAnalysis = searchParams.get('viewAnalysis') === 'true'
 
   return (
     <TestResultView 
         testId={testId} 
         sessionId={sessionId} 
         returnUrl={returnUrl} 
-        viewMode={viewMode} 
+        viewMode={viewMode}
+        viewAnalysis={viewAnalysis}
     />
   )
 }
