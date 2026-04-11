@@ -25,44 +25,28 @@ export async function GET(request) {
     
     // If user is Tutor role, only show students assigned to them
     if (decoded.role === 'Tutor' && roleFilter === 'Student') {
-      query.assignedTutor = decoded.userId
+      query.assignedTutors = decoded.userId
     }
     
     const users = await User.find(query)
       .sort({ createdAt: -1 })
       .select('-password')
-      .populate('assignedTutor', 'name email')
+      .populate('assignedTutors', 'name email')
       .lean()
     
     // If fetching tutors, add student count for each
     if (roleFilter === 'Tutor') {
       const usersWithCounts = await Promise.all(users.map(async (user) => {
-        const studentCount = await User.countDocuments({ assignedTutor: user._id })
-        return {
-          ...user,
-          studentCount
-        }
+        const studentCount = await User.countDocuments({ assignedTutors: user._id })
+        return { ...user, studentCount }
       }))
-      
-      // Transform the data to include assignedTutorDetails
-      const transformedUsers = usersWithCounts.map(user => ({
-        ...user,
-        assignedTutorDetails: user.assignedTutor ? {
-          name: user.assignedTutor.name,
-          email: user.assignedTutor.email
-        } : null
-      }))
-      
-      return NextResponse.json(transformedUsers)
+      return NextResponse.json(usersWithCounts)
     }
     
-    // Transform the data to include assignedTutorDetails
+    // Transform students to include assignedTutorDetails array
     const transformedUsers = users.map(user => ({
       ...user,
-      assignedTutorDetails: user.assignedTutor ? {
-        name: user.assignedTutor.name,
-        email: user.assignedTutor.email
-      } : null
+      assignedTutorDetails: (user.assignedTutors || []).map(t => ({ name: t.name, email: t.email }))
     }))
     
     return NextResponse.json(transformedUsers)

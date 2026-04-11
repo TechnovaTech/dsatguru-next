@@ -13,7 +13,7 @@ export async function GET(request) {
 
     const user = await User.findById(decoded.userId)
       .select('-password')
-      .populate('assignedTutor', 'name email')
+      .populate('assignedTutors', 'name email')
       .lean()
 
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
