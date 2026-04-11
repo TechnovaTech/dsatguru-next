@@ -35,6 +35,7 @@ const navItems = [
   { name: "Question Banks", icon: <FiDatabase />, path: "/dashboard/question-banks" },
   { name: "Study Plan", icon: <FiTarget />, path: "/dashboard/study-plan" },
   { name: "Daily Tracker", icon: <FiCalendar />, path: "/dashboard/daily-tracker" },
+  { name: "Score Tracker", icon: <FiActivity />, path: "/dashboard/score-tracker" },
   { 
     name: "Errors & Redo", 
     icon: <FiAlertCircle />, 
