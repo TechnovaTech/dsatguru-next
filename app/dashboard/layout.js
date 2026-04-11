@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect } from 'react'
-import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock, FiVideo, FiUser } from 'react-icons/fi'
+import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock, FiVideo, FiUser, FiCalendar } from 'react-icons/fi'
 import { useState } from 'react'
 
 const navItems = [
@@ -32,6 +32,7 @@ const navItems = [
   { name: "Live Courses", icon: <FiBook />, path: "/dashboard/courses" },
   { name: "Question Banks", icon: <FiDatabase />, path: "/dashboard/question-banks" },
   { name: "Study Plan", icon: <FiTarget />, path: "/dashboard/study-plan" },
+  { name: "Daily Tracker", icon: <FiCalendar />, path: "/dashboard/daily-tracker" },
   { name: "Analytics", icon: <FiBarChart />, path: "/dashboard/analytics" },
   { name: "Payments", icon: <FiDollarSign />, path: "/dashboard/payments" },
 ]

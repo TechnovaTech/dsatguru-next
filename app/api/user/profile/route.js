@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import User from '../../../../lib/models/User'
-import TestSession from '../../../../lib/models/TestSession'
 import { verifyToken, getTokenFromRequest } from '../../../../lib/auth'
 
 export async function GET(request) {
@@ -18,7 +17,11 @@ export async function GET(request) {
 
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-    // Get test sessions stats
+    // Lazy import to avoid model registration conflicts in dev
+    const TestSession = (await import('../../../../lib/models/TestSession')).default
+    // Must import Test so mongoose knows the schema for populate
+    await import('../../../../lib/models/Test')
+
     const sessions = await TestSession.find({ userId: decoded.userId })
       .populate('testId', 'title subject practiceMode isTutorTest')
       .sort({ createdAt: -1 })
@@ -38,7 +41,8 @@ export async function GET(request) {
 
     return NextResponse.json({ user, totalAttempts, recentResults })
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 })
+    console.error('Profile API error:', error)
+    return NextResponse.json({ error: 'Failed to fetch profile', detail: error.message }, { status: 500 })
   }
 }
 
