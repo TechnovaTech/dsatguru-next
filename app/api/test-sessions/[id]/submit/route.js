@@ -3,6 +3,7 @@ import { connectDB } from '../../../../../lib/db'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 import TestSession from '../../../../../lib/models/TestSession'
 import Question from '../../../../../lib/models/Question'
+import RedoQueue from '../../../../../lib/models/RedoQueue'
 
 export async function POST(request, { params }) {
   try {
@@ -53,6 +54,30 @@ export async function POST(request, { params }) {
       session.status = 'Completed'
       session.endTime = new Date()
       await session.save()
+
+      // Auto-add wrong answers to RedoQueue
+      const wrongResponses = (session.responses || []).filter(r => r.isCorrect === false)
+      if (wrongResponses.length) {
+        const wrongQIds = wrongResponses.map(r => r.questionId)
+        const wrongQuestions = await Question.find({ _id: { $in: wrongQIds } }).select('content questionId subject skill domain difficulty tags')
+        const qMap = new Map(wrongQuestions.map(q => [String(q._id), q]))
+        const existing = await RedoQueue.find({ userId: session.userId, questionId: { $in: wrongQIds } }).select('questionId')
+        const alreadyIn = new Set(existing.map(e => String(e.questionId)))
+        const redoDue = new Date(); redoDue.setDate(redoDue.getDate() + 3)
+        const toInsert = wrongResponses
+          .filter(r => !alreadyIn.has(String(r.questionId)))
+          .map(r => {
+            const q = qMap.get(String(r.questionId))
+            if (!q) return null
+            const section = String(q.subject || '').toLowerCase().includes('math') ? 'Math' : 'Reading & Writing'
+            const diffMap = { Easy: 'Easy', Medium: 'Medium', Hard: 'Hard' }
+            let topic = q.skill || q.domain || ''
+            if (!topic) { try { topic = JSON.parse(q.tags || '[]')[0] || '' } catch { topic = '' } }
+            return { userId: session.userId, questionId: r.questionId, testSessionId: session._id, section, topic, questionDescription: q.questionId ? `${q.questionId} — ${(q.content || '').slice(0, 80)}` : (q.content || '').slice(0, 80), difficulty: diffMap[q.difficulty] || 'Medium', redoDueDate: redoDue, status: 'Pending' }
+          }).filter(Boolean)
+        if (toInsert.length) await RedoQueue.insertMany(toInsert)
+      }
+
       return NextResponse.json({ success: true, next: 'completed' })
     }
     return NextResponse.json({ success: true })

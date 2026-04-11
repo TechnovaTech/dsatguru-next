@@ -28,7 +28,7 @@ export async function POST(request) {
   if (!wrongResponses.length) return NextResponse.json({ imported: 0, message: 'No wrong answers in last test' })
 
   const questionIds = wrongResponses.map(r => r.questionId)
-  const questions = await Question.find({ _id: { $in: questionIds } }).select('subject skill domain difficulty content questionId')
+  const questions = await Question.find({ _id: { $in: questionIds } }).select('subject skill domain difficulty content questionId tags')
   const qMap = new Map(questions.map(q => [String(q._id), q]))
 
   // Find already-imported question IDs to avoid duplicates
@@ -54,8 +54,8 @@ export async function POST(request) {
       day: existingCount + toInsert.length + 1,
       date: today,
       section,
-      topic: q.skill || q.domain || '',
-      questionDesc: q.questionId || String(q._id),
+      topic: q.skill || q.domain || (() => { try { const t = JSON.parse(q.tags || '[]'); return t[0] || '' } catch { return q.tags || '' } })(),
+      questionDesc: q.questionId ? `${q.questionId} — ${(q.content || '').slice(0, 80)}` : (q.content || '').slice(0, 80),
       whyWrong: '',
       correctRule: '',
       difficulty,

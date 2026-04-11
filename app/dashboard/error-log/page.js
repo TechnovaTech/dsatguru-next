@@ -153,6 +153,12 @@ export default function ErrorLogPage() {
     pending: rows.filter(r => !r.redoResult).length,
   }
 
+  const topicCounts = rows.reduce((acc, r) => {
+    const t = r.topic || 'Unknown'
+    acc[t] = (acc[t] || 0) + 1
+    return acc
+  }, {})
+
   if (loading) return <div className="p-8 text-center text-gray-500">Loading error log...</div>
 
   return (
@@ -182,6 +188,20 @@ export default function ErrorLogPage() {
           <p className="text-2xl font-bold text-blue-500 mt-1">{stats.pending}</p>
         </div>
       </div>
+
+      {/* Topic Breakdown */}
+      {Object.keys(topicCounts).length > 0 && (
+        <div className="bg-white rounded-xl p-4 shadow-sm border mb-6">
+          <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-3">Errors by Topic</p>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(topicCounts).sort((a, b) => b[1] - a[1]).map(([topic, count]) => (
+              <span key={topic} className="inline-flex items-center gap-1.5 bg-red-50 text-red-700 border border-red-200 rounded-full px-3 py-1 text-xs font-medium">
+                {topic} <span className="bg-red-200 text-red-800 rounded-full px-1.5 py-0.5 text-xs font-bold">{count}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filters + actions */}
       <div className="flex flex-wrap items-center gap-3 mb-4">

@@ -34,7 +34,14 @@ const navItems = [
   { name: "Question Banks", icon: <FiDatabase />, path: "/dashboard/question-banks" },
   { name: "Study Plan", icon: <FiTarget />, path: "/dashboard/study-plan" },
   { name: "Daily Tracker", icon: <FiCalendar />, path: "/dashboard/daily-tracker" },
-  { name: "Errors & Redo", icon: <FiAlertCircle />, path: "/dashboard/error-log" },
+  { 
+    name: "Errors & Redo", 
+    icon: <FiAlertCircle />, 
+    children: [
+      { name: "Error Log", icon: <FiAlertCircle />, path: "/dashboard/error-log" },
+      { name: "My Redo Queue", icon: <FiActivity />, path: "/dashboard/redo-queue" },
+    ]
+  },
   { name: "Analytics", icon: <FiBarChart />, path: "/dashboard/analytics" },
   { name: "Payments", icon: <FiDollarSign />, path: "/dashboard/payments" },
 ]
