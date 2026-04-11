@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect } from 'react'
-import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock, FiVideo, FiUser, FiCalendar } from 'react-icons/fi'
+import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock, FiVideo, FiUser, FiCalendar, FiMessageSquare } from 'react-icons/fi'
 import { TbMathSymbols } from 'react-icons/tb'
 import { useState } from 'react'
 import { FiAlertCircle } from 'react-icons/fi'
@@ -47,6 +47,7 @@ const navItems = [
   { name: "Analytics", icon: <FiBarChart />, path: "/dashboard/analytics" },
   { name: "Payments", icon: <FiDollarSign />, path: "/dashboard/payments" },
   { name: "Formula Sheet", icon: <TbMathSymbols />, path: "/dashboard/formula-sheet" },
+  { name: "Messages", icon: <FiMessageSquare />, path: "/dashboard/messages" },
 ]
 
 export default function DashboardLayout({ children }) {

@@ -51,6 +51,7 @@ export default function AdminLayout({ children }) {
     { id: 'student-analysis', label: 'Student Analysis', icon: <FiActivity />, path: '/admin/student-analysis' },
     { id: 'users', label: 'User Management', icon: <FiUsers />, path: '/admin/users' },
     { id: 'communication', label: 'Communication', icon: <FiMessageSquare />, path: '/admin/communication' },
+    { id: 'messages', label: 'Messages', icon: <FiMessageSquare />, path: '/admin/messages' },
     { id: 'analytics', label: 'Analytics', icon: <FiBarChart />, path: '/admin/analytics' },
     { id: 'comparison', label: 'Comparison Table', icon: <FiFileText />, path: '/admin/comparison' },
     { id: 'payments', label: 'Payments', icon: <FiDollarSign />, path: '/admin/payments' },

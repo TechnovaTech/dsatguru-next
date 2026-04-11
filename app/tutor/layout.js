@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useEffect } from 'react'
 import { useAuth } from '../components/AuthContext'
 import { usePathname, useRouter } from 'next/navigation'
-import { FiGrid, FiUsers, FiFileText, FiAward, FiLogOut, FiEye, FiBarChart2, FiAlertTriangle } from 'react-icons/fi'
+import { FiGrid, FiUsers, FiFileText, FiAward, FiLogOut, FiEye, FiBarChart2, FiAlertTriangle, FiMessageSquare } from 'react-icons/fi'
 
 export default function TutorLayout({ children }) {
   const { user, logout, loading } = useAuth()
@@ -25,7 +25,8 @@ export default function TutorLayout({ children }) {
     { id: 'students', label: 'My Students', icon: <FiUsers />, path: '/tutor/students' },
     { id: 'tests', label: 'Test Sheets', icon: <FiFileText />, path: '/tutor/tests' },
     { id: 'results', label: 'Test Results', icon: <FiAward />, path: '/tutor/results' },
-    { id: 'error-patterns', label: 'Error Patterns', icon: <FiAlertTriangle />, path: '/tutor/error-patterns' }
+    { id: 'error-patterns', label: 'Error Patterns', icon: <FiAlertTriangle />, path: '/tutor/error-patterns' },
+    { id: 'messages', label: 'Messages', icon: <FiMessageSquare />, path: '/tutor/messages' }
   ]
 
   const handleLogout = async () => {
