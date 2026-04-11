@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useAuth } from '../../../../components/AuthContext'
+import { useAuth } from '../../../../../components/AuthContext'
 import { useRouter, useParams } from 'next/navigation'
 import {
   FiArrowLeft, FiUser, FiAlertCircle, FiBarChart2,
