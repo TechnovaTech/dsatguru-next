@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { FiSearch, FiUser, FiMail, FiCalendar, FiUserPlus, FiX, FiCheck, FiBarChart2 } from 'react-icons/fi'
-import { useAuth } from '../../../components/AuthContext'
+import { useAuth } from '../../components/AuthContext'
 import { useRouter } from 'next/navigation'
 
 export default function TutorAndStudents() {

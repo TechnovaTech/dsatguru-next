@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { useAuth } from './AuthContext'
+import { useAuth } from '../app/components/AuthContext'
 import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign } from 'react-icons/fi'
 import { TbMathSymbols } from 'react-icons/tb'
 
