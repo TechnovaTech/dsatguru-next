@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from './AuthContext'
 import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign } from 'react-icons/fi'
+import { TbMathSymbols } from 'react-icons/tb'
 
 const navItems = [
   { name: "Dashboard", icon: <FiGrid />, path: "/dashboard" },
@@ -11,6 +12,7 @@ const navItems = [
   { name: "Study Plan", icon: <FiTarget />, path: "/dashboard/study-plan" },
   { name: "Analytics", icon: <FiBarChart />, path: "/dashboard/analytics" },
   { name: "Payments", icon: <FiDollarSign />, path: "/dashboard/payments" },
+  { name: "Formula Sheet", icon: <TbMathSymbols />, path: "/dashboard/formula-sheet" },
 ]
 
 export default function DashboardLayout({ children }) {
