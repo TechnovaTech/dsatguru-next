@@ -55,7 +55,8 @@ export default function StudentDailyTracker() {
         if (sessionsRes.ok) {
           const data = await sessionsRes.json()
           const sessions = data.sessions || data || []
-          adminSessions = sessions.filter(s => s.status === 'Completed' && s.testId?.practiceMode === 'admin')
+          // Include all Admin tests (Assigned, InProgress, Completed)
+          adminSessions = sessions.filter(s => s.testId?.practiceMode === 'admin')
           setTestSessions(adminSessions)
         }
 
@@ -74,24 +75,37 @@ export default function StudentDailyTracker() {
             const rowMonth = rowDateParts[1]
             
             const sessionsOnDate = adminSessions.filter(s => {
-              const sDate = new Date(s.completedAt || s.updatedAt)
+              // Match by completion date if completed, otherwise by creation (assignment) date
+              const sDate = new Date(s.completedAt || s.createdAt || s.updatedAt)
               const sDay = sDate.getDate()
               const sMonth = sDate.toLocaleDateString('en-GB', { month: 'short' })
               return sDay === rowDay && sMonth === rowMonth
             })
 
-            const mathCorrect = sessionsOnDate
-              .filter(s => s.testId?.subject === 'Math')
-              .reduce((sum, s) => sum + (s.correctAnswers || 0), 0)
+            // Calculate correct answers for Math admin tests
+            const mathTotal = sessionsOnDate
+              .filter(s => s.testId?.subject === 'Math' || (!s.testId?.subject && s.testId?.sections?.math === true))
+              .reduce((sum, s) => {
+                const correctCount = s.responses?.filter(r => r.isCorrect).length || 0
+                return sum + Math.max(s.correctAnswers || 0, correctCount)
+              }, 0)
             
-            const rwCorrect = sessionsOnDate
-              .filter(s => s.testId?.subject === 'Reading and Writing' || s.testId?.subject === 'Reading & Writing')
-              .reduce((sum, s) => sum + (s.correctAnswers || 0), 0)
+            // Calculate correct answers for RW admin tests
+            const rwTotal = sessionsOnDate
+              .filter(s => 
+                s.testId?.subject === 'Reading and Writing' || 
+                s.testId?.subject === 'Reading & Writing' || 
+                (!s.testId?.subject && s.testId?.sections?.rw === true)
+              )
+              .reduce((sum, s) => {
+                const correctCount = s.responses?.filter(r => r.isCorrect).length || 0
+                return sum + Math.max(s.correctAnswers || 0, correctCount)
+              }, 0)
 
             return {
               ...row,
-              math: Math.max(parseInt(row.math) || 0, mathCorrect),
-              reading: Math.max(parseInt(row.reading) || 0, rwCorrect)
+              math: Math.max(parseInt(row.math) || 0, mathTotal),
+              reading: Math.max(parseInt(row.reading) || 0, rwTotal)
             }
           })
 
