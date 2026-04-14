@@ -20,12 +20,9 @@ export default function TutorLayout({ children }) {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <FiGrid />, path: '/tutor/dashboard' },
-    { id: 'student-overview', label: 'Student Overview', icon: <FiEye />, path: '/tutor/student-overview' },
-    { id: 'progress-monitor', label: 'Progress Monitor', icon: <FiBarChart2 />, path: '/tutor/progress-monitor' },
     { id: 'students', label: 'My Students', icon: <FiUsers />, path: '/tutor/students' },
     { id: 'tests', label: 'Test Sheets', icon: <FiFileText />, path: '/tutor/tests' },
     { id: 'results', label: 'Test Results', icon: <FiAward />, path: '/tutor/results' },
-    { id: 'error-patterns', label: 'Error Patterns', icon: <FiAlertTriangle />, path: '/tutor/error-patterns' },
     { id: 'messages', label: 'Messages', icon: <FiMessageSquare />, path: '/tutor/messages' }
   ]
 

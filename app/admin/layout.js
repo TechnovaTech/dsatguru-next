@@ -40,9 +40,7 @@ export default function AdminLayout({ children }) {
         { id: 'tutor-create-test', label: 'Tutor Test Creation', path: '/admin/tutor/create-test', icon: <FiEdit /> },
         { id: 'tutor-test-sheets', label: 'Tutor Test Sheets', path: '/admin/tutor/tests', icon: <FiFileText /> },
         { id: 'tutor-users', label: 'Tutor and Students', path: '/admin/tutor/users', icon: <FiUsers /> },
-        { id: 'tutor-results', label: 'Tutor Test Results', path: '/admin/tutor/results', icon: <FiAward /> },
-        { id: 'tutor-master-dashboard', label: 'Master Dashboard', path: '/admin/tutor/master-dashboard', icon: <FiMonitor /> },
-        { id: 'tutor-error-patterns', label: 'Error Patterns', path: '/admin/tutor/error-patterns', icon: <FiAlertCircle /> }
+        { id: 'tutor-results', label: 'Tutor Test Results', path: '/admin/tutor/results', icon: <FiAward /> }
       ]
     },
     { 
