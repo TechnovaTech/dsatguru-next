@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { renderContent as renderWithImages } from '../../../../components/admin/LatexRenderer'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
@@ -307,7 +307,8 @@ export default function TakeTestPage() {
 
     // Detect window blur (minimize or focus loss)
     const handleWindowBlur = async () => {
-      if (isFullscreen && !testCompleted && !showModuleSummary) {
+      const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+      if (isSecureMode && isFullscreen && !testCompleted && !showModuleSummary) {
         // Small delay to avoid false positives
         setTimeout(async () => {
           if (!document.hasFocus() && isFullscreen && !testCompleted && !showModuleSummary) {
@@ -348,9 +349,10 @@ export default function TakeTestPage() {
     }
   }
 
-  // Auto-enter fullscreen when test starts (for tutor tests)
+  // Auto-enter fullscreen when test starts (for tutor and admin tests)
   useEffect(() => {
-    if (test?.practiceMode === 'tutor' && !loading && !checkingHistory && !testCompleted && !showModuleSummary && moduleQuestions.length > 0 && !isFullscreen) {
+    const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+    if (isSecureMode && !loading && !checkingHistory && !testCompleted && !showModuleSummary && moduleQuestions.length > 0 && !isFullscreen) {
       enterFullscreen()
     }
   }, [test, loading, checkingHistory, testCompleted, showModuleSummary, moduleQuestions, isFullscreen])
@@ -818,8 +820,9 @@ export default function TakeTestPage() {
       await new Promise(resolve => setTimeout(resolve, 3000))
       
       // Force complete the test immediately
-      if (test?.practiceMode === 'tutor') {
-        // For tutor mode, calculate and submit
+      const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+      if (isSecureMode) {
+        // For tutor and admin mode, calculate and submit
         const correct = Object.keys(answers).filter(qId => {
           const q = moduleQuestions.find(mq => mq._id === qId)
           if (!q) return false
@@ -978,8 +981,9 @@ export default function TakeTestPage() {
       }
     }))
     
-    // If Tutor Mode, skip summary and go straight to completion
-    if (test?.practiceMode === 'tutor') {
+    // If Tutor or Admin Mode, skip summary and go straight to completion
+    const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+    if (isSecureMode) {
       // Small delay to ensure state updates
       setTimeout(() => {
         calculateFinalScore()
@@ -994,8 +998,9 @@ export default function TakeTestPage() {
     setEliminatedAnswers({}) // Clear eliminations for new module
     setMarkedQuestions(new Set()) // Clear marks for new module
     
-    if (test?.practiceMode === 'tutor') {
-        // Tutor mode should not have multiple modules
+    const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+    if (isSecureMode) {
+        // Tutor and Admin tests should not have multiple adaptive modules
         calculateFinalScore()
         return
     }

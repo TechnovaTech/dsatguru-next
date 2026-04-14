@@ -44,7 +44,8 @@ export default function TutorRWPage() {
       
       const tutorSessions = sessions.filter(s => {
         // Ensure testId exists and is a Tutor test
-        const isTutor = s.testId?.practiceMode === 'tutor' || s.testId?.isTutorTest === true
+        // EXCLUDE Admin tests (practiceMode === 'admin')
+        const isTutor = (s.testId?.practiceMode === 'tutor' || s.testId?.isTutorTest === true) && s.testId?.practiceMode !== 'admin'
         
         // STRICT Filtering: Only show tests explicitly marked as 'Reading and Writing'
         // FALLBACK: If 'subject' is missing (legacy data), check 'sections.rw'

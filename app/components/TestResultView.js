@@ -439,7 +439,12 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
         questionIds = questions.filter(q => !q.isCorrect && q.userAnswer).map(q => q._id)
       }
 
-      const res = await fetch(`/api/admin/tutor/tests/reassign`, {
+      // Determine which reassign API to use
+      const apiEndpoint = test?.isTutorTest 
+        ? '/api/admin/tutor/tests/reassign' 
+        : '/api/admin/admin-tests/reassign'
+
+      const res = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -592,7 +597,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                     </div>
                 </div>
                 <div className="flex gap-3">
-                    {viewMode === 'admin' && test?.isTutorTest && session?.analysisSubmitted && !session?.isReassigned && (
+                    {viewMode === 'admin' && (test?.isTutorTest || test?.practiceMode === 'admin') && session?.analysisSubmitted && !session?.isReassigned && (
                         <button
                             onClick={() => setShowReassignModal(true)}
                             className="px-6 py-2 bg-purple-600 text-white text-sm font-bold rounded-lg hover:bg-purple-700 flex items-center gap-2 shadow-md hover:shadow-lg"
@@ -621,8 +626,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                     </button>
                                 )
                             )}
-                            {/* Submit Analysis Button - Only for tutor-created tests */}
-                            {test?.isTutorTest && !session?.analysisSubmitted && !session?.isReassigned && (
+                            {/* Submit Analysis Button - For tutor and admin tests */}
+                            {(test?.isTutorTest || test?.practiceMode === 'admin') && !session?.analysisSubmitted && !session?.isReassigned && (
                                 <button 
                                     onClick={handleSubmitAnalysis}
                                     disabled={!canSubmitAnalysis() || submittingAnalysis}
@@ -638,7 +643,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                             )}
                             
                             {/* Show submitted status */}
-                            {test?.isTutorTest && session?.analysisSubmitted && !session?.isReassigned && (
+                            {(test?.isTutorTest || test?.practiceMode === 'admin') && session?.analysisSubmitted && !session?.isReassigned && (
                                 <div className="px-4 py-2 bg-green-50 border border-green-200 text-green-700 text-sm font-bold rounded-lg flex items-center gap-2">
                                     <FiCheckCircle className="w-4 h-4" />
                                     Analysis Submitted

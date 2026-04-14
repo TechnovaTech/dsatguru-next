@@ -8,34 +8,49 @@ export async function GET(request) {
     await connectDB()
     const token = getTokenFromRequest(request)
     const decoded = verifyToken(token)
-    if (!decoded || !['Admin', 'TutorAdmin'].includes(decoded.role)) {
+    
+    if (!decoded || decoded.role !== 'Admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const sessions = await TestSession.find({ status: 'Completed' })
+    console.log(`[Admin Test Results API] User role: ${decoded.role}, userId: ${decoded.userId}`)
+
+    // Fetch ALL completed test sessions for admin tests
+    const allSessions = await TestSession.find({
+      status: 'Completed'
+    })
       .populate('userId', 'name email')
       .populate('testId')
       .sort({ completedAt: -1 })
       .lean()
 
-    const filtered = sessions.filter(s => s.testId?.isAdminTest === true || s.testId?.practiceMode === 'admin')
+    // Filter for admin tests (practiceMode='admin')
+    const filteredSessions = allSessions.filter(s => {
+      if (!s.testId) return false
+      return s.testId.practiceMode === 'admin'
+    })
 
-    const result = filtered.map(s => ({
-      _id: s._id,
-      testId: s.testId._id,
-      studentName: s.userId?.name || 'Unknown',
-      studentEmail: s.userId?.email || 'N/A',
-      testTitle: s.testId.title,
-      subject: s.testId.subject || 'N/A',
-      completedAt: s.completedAt || s.updatedAt,
-      totalScore: s.totalScore || s.score || 0,
-      correctAnswers: s.correctAnswers || 0,
-      totalQuestions: s.totalQuestions || s.testId.questions?.length || 0,
-      analysisSubmitted: s.analysisSubmitted || false
+    console.log(`[Admin Test Results API] Admin test sessions: ${filteredSessions.length}`)
+
+    // Format the response
+    const formattedResults = filteredSessions.map(session => ({
+      _id: session._id,
+      testId: session.testId._id,
+      studentName: session.userId?.name || 'Unknown',
+      studentEmail: session.userId?.email || 'N/A',
+      testTitle: session.testId.title,
+      subject: session.testId.subject || 'N/A',
+      completedAt: session.completedAt || session.updatedAt,
+      totalScore: session.totalScore || 0,
+      analysisSubmitted: session.analysisSubmitted || false
     }))
 
-    return NextResponse.json(result)
+    return NextResponse.json(formattedResults)
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch results', details: error.message }, { status: 500 })
+    console.error('[Admin Test Results API] Error:', error)
+    return NextResponse.json({ 
+      error: 'Failed to fetch results',
+      details: error.message 
+    }, { status: 500 })
   }
 }

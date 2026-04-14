@@ -18,15 +18,16 @@ const navItems = [
     path: "/dashboard/tests",
     children: [
       { name: "Create Practice", icon: <FiFileText />, path: "/dashboard/tests/create" },
-      { 
-        name: "Tutor-led Sheets", 
-        icon: <FiBook />, 
-        children: [
-          { name: "Reading & Writing", path: "/dashboard/tutor/rw" },
-          { name: "Math", path: "/dashboard/tutor/math" }
-        ]
-      },
       { name: "Practice History", icon: <FiClock />, path: "/dashboard/tests/history" },
+    ]
+  },
+  { 
+    name: "Tutor Test", 
+    icon: <FiBook />, 
+    path: "/dashboard/tutor",
+    children: [
+      { name: "Tutor Math", icon: <FiActivity />, path: "/dashboard/tutor/math" },
+      { name: "Tutor Read and Write", icon: <FiPieChart />, path: "/dashboard/tutor/rw" },
     ]
   },
   { 
