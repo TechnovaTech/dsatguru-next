@@ -16,19 +16,97 @@ export default function StudentDailyTracker() {
   const [saved, setSaved] = useState(false)
   const [noPlan, setNoPlan] = useState(false)
   const [dateRange, setDateRange] = useState({ startDate: null, examDate: null })
+  const [testSessions, setTestSessions] = useState([])
   const saveTimer = useRef(null)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    fetch('/api/daily-tracker', { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(data => {
-        if (data.noPlan) { setNoPlan(true); return }
-        if (data.rows) setRows(data.rows)
-        if (data.target) setTarget(data.target)
-        if (data.startDate) setDateRange({ startDate: data.startDate, examDate: data.examDate })
-      })
-      .finally(() => setLoading(false))
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        const token = localStorage.getItem('token')
+        const headers = { Authorization: `Bearer ${token}` }
+
+        // 1. Fetch Study Plan for Target Calculation
+        const planRes = await fetch('/api/study-plan', { headers })
+        let calculatedTarget = 20
+        let planData = null
+        if (planRes.ok) {
+          planData = await planRes.json()
+          if (planData) {
+            const today = new Date()
+            today.setHours(0, 0, 0, 0)
+            const exam = new Date(planData.examDate)
+            const current = planData.currentScore || 0
+            const targetScore = planData.targetScore || 1600
+            const daysUntilExam = Math.ceil((exam - today) / 86400000)
+            const scoreGap = Math.max(0, targetScore - current)
+            
+            if (daysUntilExam > 0 && scoreGap > 0) {
+              calculatedTarget = Math.min(Math.max(Math.ceil(scoreGap * 0.05 + (100 / Math.max(daysUntilExam, 1)) * 5), 10), 60)
+            } else if (daysUntilExam > 0) {
+              calculatedTarget = 10
+            }
+          }
+        }
+
+        // 2. Fetch Test Sessions for Admin Tests
+        const sessionsRes = await fetch('/api/test-sessions', { headers })
+        let adminSessions = []
+        if (sessionsRes.ok) {
+          const data = await sessionsRes.json()
+          const sessions = data.sessions || data || []
+          adminSessions = sessions.filter(s => s.status === 'Completed' && s.testId?.practiceMode === 'admin')
+          setTestSessions(adminSessions)
+        }
+
+        // 3. Fetch Tracker Rows
+        const trackerRes = await fetch('/api/daily-tracker', { headers })
+        if (trackerRes.ok) {
+          const data = await trackerRes.json()
+          if (data.noPlan) { setNoPlan(true); return }
+          
+          // Merge manual rows with test session data
+          const mergedRows = data.rows.map(row => {
+            // Find admin tests for this date
+            // Row date is in format "11-Apr"
+            const rowDateParts = row.date.split('-')
+            const rowDay = parseInt(rowDateParts[0])
+            const rowMonth = rowDateParts[1]
+            
+            const sessionsOnDate = adminSessions.filter(s => {
+              const sDate = new Date(s.completedAt || s.updatedAt)
+              const sDay = sDate.getDate()
+              const sMonth = sDate.toLocaleDateString('en-GB', { month: 'short' })
+              return sDay === rowDay && sMonth === rowMonth
+            })
+
+            const mathCorrect = sessionsOnDate
+              .filter(s => s.testId?.subject === 'Math')
+              .reduce((sum, s) => sum + (s.correctAnswers || 0), 0)
+            
+            const rwCorrect = sessionsOnDate
+              .filter(s => s.testId?.subject === 'Reading and Writing' || s.testId?.subject === 'Reading & Writing')
+              .reduce((sum, s) => sum + (s.correctAnswers || 0), 0)
+
+            return {
+              ...row,
+              math: Math.max(parseInt(row.math) || 0, mathCorrect),
+              reading: Math.max(parseInt(row.reading) || 0, rwCorrect)
+            }
+          })
+
+          setRows(mergedRows)
+          setTarget(calculatedTarget)
+          if (data.startDate) setDateRange({ startDate: data.startDate, examDate: data.examDate })
+        }
+      } catch (err) {
+        console.error('Failed to fetch data', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
   }, [])
 
   const autoSave = useCallback((newRows, newTarget) => {

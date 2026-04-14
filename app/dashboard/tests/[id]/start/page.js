@@ -843,42 +843,35 @@ export default function TakeTestPage() {
         const token = localStorage.getItem('token')
         if (token) {
           const totalTimeSpent = Object.values(questionTimes).reduce((a, b) => a + b, 0)
-          const responses = []
           
-          // Include ALL questions - both answered and unanswered (omitted)
+          // Generate responses array with time tracking
+          // Iterate over moduleQuestions to ensure ALL questions are included (even if skipped)
+          const responses = []
           moduleQuestions.forEach(q => {
             const qId = q._id
             const userAnswer = answers[qId]
+            const correctAnswer = q.correctAnswer
+            let isCorrect = false
             
             if (userAnswer) {
-              // Answered question
+              // Check if it's multiple choice or fill-in-the-blank
               const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
-              let isCorrect = false
               
               if (hasOptions) {
-                isCorrect = userAnswer === q.correctAnswer
+                isCorrect = userAnswer === correctAnswer
               } else {
-                isCorrect = userAnswer?.trim().toLowerCase() === q.correctAnswer?.trim().toLowerCase()
+                isCorrect = userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()
               }
-              
-              responses.push({
-                questionId: qId,
-                selectedAnswer: userAnswer,
-                isCorrect: isCorrect,
-                timeSpent: questionTimes[qId] || 0,
-                answeredAt: new Date()
-              })
-            } else {
-              // Unanswered question - mark as omitted
-              responses.push({
-                questionId: qId,
-                selectedAnswer: null,
-                isCorrect: false,
-                timeSpent: questionTimes[qId] || 0,
-                answeredAt: new Date(),
-                omitted: true
-              })
             }
+            
+            responses.push({
+              questionId: qId,
+              selectedAnswer: userAnswer || null,
+              isCorrect: isCorrect,
+              timeSpent: questionTimes[qId] || 0,
+              answeredAt: userAnswer ? new Date() : null,
+              omitted: !userAnswer
+            })
           })
 
           const sessionData = {
@@ -1024,8 +1017,9 @@ export default function TakeTestPage() {
   }
 
   const calculateFinalScore = async () => {
-    // Check if we are in tutor mode, if so, calculate simple score
-    if (test?.practiceMode === 'tutor') {
+    // Check if we are in tutor or admin mode, if so, calculate simple score
+    const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+    if (isSecureMode) {
         const correct = Object.keys(answers).filter(qId => {
             const q = moduleQuestions.find(mq => mq._id === qId)
             if (!q) return false
@@ -1056,15 +1050,16 @@ export default function TakeTestPage() {
             // Calculate Total Time Spent (sum of all question times)
             const totalTimeSpent = Object.values(questionTimes).reduce((a, b) => a + b, 0)
 
-            // Generate responses array with time tracking for Tutor Mode
+            // Generate responses array with time tracking for Tutor/Admin Mode
+            // Iterate over moduleQuestions to ensure ALL questions are included (even if skipped)
             const responses = []
-            Object.keys(answers).forEach(qId => {
-                const q = moduleQuestions.find(mq => mq._id === qId)
-                if (q) {
-                    const userAnswer = answers[qId]
-                    const correctAnswer = q.correctAnswer
-                    let isCorrect = false
-                    
+            moduleQuestions.forEach(q => {
+                const qId = q._id
+                const userAnswer = answers[qId]
+                const correctAnswer = q.correctAnswer
+                let isCorrect = false
+                
+                if (userAnswer) {
                     // Check if it's multiple choice or fill-in-the-blank
                     const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
                     
@@ -1073,15 +1068,16 @@ export default function TakeTestPage() {
                     } else {
                       isCorrect = userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()
                     }
-                    
-                    responses.push({
-                        questionId: qId,
-                        selectedAnswer: userAnswer,
-                        isCorrect: isCorrect,
-                        timeSpent: questionTimes[qId] || 0,
-                        answeredAt: new Date()
-                    })
                 }
+                
+                responses.push({
+                    questionId: qId,
+                    selectedAnswer: userAnswer || null, // null if skipped
+                    isCorrect: isCorrect,
+                    timeSpent: questionTimes[qId] || 0,
+                    answeredAt: userAnswer ? new Date() : null,
+                    omitted: !userAnswer
+                })
             })
 
             const sessionData = {
@@ -1156,30 +1152,34 @@ export default function TakeTestPage() {
     // Generate responses array with time tracking
     const responses = []
     if (moduleAnswers) {
-        Object.values(moduleAnswers).forEach(mod => {
+        Object.keys(moduleAnswers).forEach(moduleKey => {
+          const mod = moduleAnswers[moduleKey]
           const modAnswers = mod.answers || {}
-          Object.keys(modAnswers).forEach(qId => {
+          const modQuestionIds = mod.questionIds || []
+          
+          modQuestionIds.forEach(qId => {
              const q = allQuestions.find(qt => String(qt._id) === String(qId))
              if (q) {
                const userAnswer = modAnswers[qId]
                const correctAnswer = q.correctAnswer
                let isCorrect = false
                
-               // Check if it's multiple choice or fill-in-the-blank
-               const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
-               
-               if (hasOptions) {
-                 isCorrect = userAnswer === correctAnswer
-               } else {
-                 isCorrect = userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()
+               if (userAnswer) {
+                 const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
+                 if (hasOptions) {
+                   isCorrect = userAnswer === correctAnswer
+                 } else {
+                   isCorrect = userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()
+                 }
                }
                
                responses.push({
                  questionId: qId,
-                 selectedAnswer: userAnswer,
+                 selectedAnswer: userAnswer || null,
                  isCorrect: isCorrect,
                  timeSpent: questionTimes[qId] || 0,
-                 answeredAt: new Date()
+                 answeredAt: userAnswer ? new Date() : null,
+                 omitted: !userAnswer
                })
              }
           })

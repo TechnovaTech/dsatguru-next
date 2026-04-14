@@ -61,25 +61,23 @@ export default function StudyPlanPage() {
     const scoreGap = Math.max(0, target - current)
 
     const examPassed = daysUntilExam <= 0
-    let dailyTotal = 0, dailyMath = 0, dailyRW = 0, dailyWriting = 0, dailyRedo = 0
+    let dailyTotal = 0, dailyMath = 0, dailyRW = 0, dailyRedo = 0
 
     if (!examPassed && daysUntilExam > 0 && scoreGap > 0) {
       // ~10 questions per score point per 100 days baseline
       const rawDaily = Math.ceil((scoreGap / 400) * 20 * (100 / Math.max(daysUntilExam, 1)) * daysUntilExam / daysUntilExam)
       dailyTotal = Math.min(Math.max(Math.ceil(scoreGap * 0.05 + (100 / Math.max(daysUntilExam, 1)) * 5), 10), 60)
       dailyMath = Math.round(dailyTotal * 0.45)
-      dailyRW = Math.round(dailyTotal * 0.35)
-      dailyWriting = dailyTotal - dailyMath - dailyRW
+      dailyRW = dailyTotal - dailyMath
       dailyRedo = Math.max(2, Math.round(dailyTotal * 0.15))
     } else if (!examPassed && daysUntilExam > 0 && scoreGap === 0) {
       dailyTotal = 10
       dailyMath = 5
-      dailyRW = 3
-      dailyWriting = 2
+      dailyRW = 5
       dailyRedo = 2
     }
 
-    return { daysUntilExam, daysFromStart, scoreGap, dailyTotal, dailyMath, dailyRW, dailyWriting, dailyRedo, examPassed }
+    return { daysUntilExam, daysFromStart, scoreGap, dailyTotal, dailyMath, dailyRW, dailyRedo, examPassed }
   }, [form])
 
   const stats = calc()
@@ -198,8 +196,7 @@ export default function StudyPlanPage() {
 
               <StatRow emoji="📝" label="Daily Questions Needed" value={stats.dailyTotal || '—'} color="text-purple-600" bold />
               <StatRow emoji="⚡" label="Daily Math Questions" value={stats.dailyMath || '—'} color="text-blue-600" />
-              <StatRow emoji="📖" label="Daily Reading Questions" value={stats.dailyRW || '—'} color="text-green-600" />
-              <StatRow emoji="✍️" label="Daily Writing Questions" value={stats.dailyWriting || '—'} color="text-yellow-600" />
+              <StatRow emoji="📖" label="Daily Reading & Writing Questions" value={stats.dailyRW || '—'} color="text-green-600" />
               <StatRow emoji="🔁" label="Redo Questions / Day" value={stats.dailyRedo || '—'} color="text-red-500" />
             </div>
           </div>
@@ -217,7 +214,7 @@ export default function StudyPlanPage() {
 
         {/* Breakdown Cards */}
         {stats.dailyTotal > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <SubjectCard
               emoji="⚡"
               subject="Math"
@@ -227,17 +224,10 @@ export default function StudyPlanPage() {
             />
             <SubjectCard
               emoji="📖"
-              subject="Reading"
+              subject="Reading & Writing"
               daily={stats.dailyRW}
               color="green"
-              tips={['Information & Ideas', 'Craft & Structure', 'Cross-text Connections']}
-            />
-            <SubjectCard
-              emoji="✍️"
-              subject="Writing"
-              daily={stats.dailyWriting}
-              color="purple"
-              tips={['Standard English Conventions', 'Expression of Ideas', 'Rhetorical Synthesis']}
+              tips={['Information & Ideas', 'Craft & Structure', 'Standard English Conventions', 'Expression of Ideas']}
             />
           </div>
         )}
@@ -246,7 +236,7 @@ export default function StudyPlanPage() {
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
           <h3 className="font-bold text-amber-800 mb-3">💡 Study Tips</h3>
           <ul className="space-y-2 text-sm text-amber-700">
-            <li>✅ Check 📅 My Study Plan for today's target. Split your practice between Math, Reading, and Writing as recommended.</li>
+            <li>✅ Check 📅 My Study Plan for today's target. Split your practice between Math and Reading & Writing as recommended.</li>
             <li>✅ Use questions from <span className="font-semibold">dsatguru.com</span> for targeted practice.</li>
             <li>✅ Remember: <span className="font-semibold">quality over quantity</span> — understand every answer, not just the result.</li>
             <li>✅ Redo {stats.dailyRedo || '2–3'} previously wrong questions daily to reinforce weak areas.</li>

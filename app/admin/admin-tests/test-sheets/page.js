@@ -266,6 +266,7 @@ export default function AdminTestSheets() {
 
   const filteredTests = tests.filter(test => {
     if (test.subject !== activeTab) return false
+    if (test.isReassigned) return false
     if (searchTerm && !test.title.toLowerCase().includes(searchTerm.toLowerCase())) return false
     if (filterMode === 'timed' && !test.isTimed) return false
     if (filterMode === 'untimed' && test.isTimed) return false
