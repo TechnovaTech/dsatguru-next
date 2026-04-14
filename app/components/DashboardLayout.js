@@ -3,26 +3,40 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from './AuthContext'
-import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock, FiVideo } from 'react-icons/fi'
+import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock, FiVideo, FiUser, FiCalendar, FiTrendingUp, FiAlertTriangle, FiFile, FiMessageSquare, FiBookOpen } from 'react-icons/fi'
 
 const navItems = [
   { name: "Dashboard", icon: <FiGrid />, path: "/dashboard" },
-  { name: "Live Classes", icon: <FiVideo />, path: "/dashboard/live-classes" },
+  { name: "Profile", icon: <FiUser />, path: "/dashboard/profile" },
   { 
     name: "Practice Tests", 
     icon: <FiFileText />, 
     path: "/dashboard/tests",
     children: [
       { name: "Create Practice", icon: <FiFileText />, path: "/dashboard/tests/create" },
-      { name: "Admin Practice", icon: <FiClipboard />, path: "/dashboard/tests" },
       { name: "Practice History", icon: <FiClock />, path: "/dashboard/tests/history" },
     ]
   },
-  { name: "Courses", icon: <FiBook />, path: "/dashboard/courses" },
+  { 
+    name: "Admin Test", 
+    icon: <FiClipboard />, 
+    path: "/dashboard/admin-tests",
+    children: [
+      { name: "Admin Math", icon: <FiActivity />, path: "/dashboard/admin-tests/math" },
+      { name: "Admin Read and Write", icon: <FiPieChart />, path: "/dashboard/admin-tests/rw" },
+    ]
+  },
+  { name: "Live Classes", icon: <FiVideo />, path: "/dashboard/live-classes" },
+  { name: "Live Courses", icon: <FiBookOpen />, path: "/dashboard/courses" },
   { name: "Question Banks", icon: <FiDatabase />, path: "/dashboard/question-banks" },
   { name: "Study Plan", icon: <FiTarget />, path: "/dashboard/study-plan" },
+  { name: "Daily Tracker", icon: <FiCalendar />, path: "/dashboard/daily-tracker" },
+  { name: "Score Tracker", icon: <FiTrendingUp />, path: "/dashboard/score-tracker" },
+  { name: "Errors & Redo", icon: <FiAlertTriangle />, path: "/dashboard/error-log" },
   { name: "Analytics", icon: <FiBarChart />, path: "/dashboard/analytics" },
   { name: "Payments", icon: <FiDollarSign />, path: "/dashboard/payments" },
+  { name: "Formula Sheet", icon: <FiFile />, path: "/dashboard/formula-sheet" },
+  { name: "Messages", icon: <FiMessageSquare />, path: "/dashboard/messages" },
 ]
 
 export default function DashboardLayout({ children }) {

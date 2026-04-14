@@ -26,8 +26,16 @@ const navItems = [
           { name: "Math", path: "/dashboard/tutor/math" }
         ]
       },
-      { name: "Admin Practice", icon: <FiClipboard />, path: "/dashboard/tests" },
       { name: "Practice History", icon: <FiClock />, path: "/dashboard/tests/history" },
+    ]
+  },
+  { 
+    name: "Admin Test", 
+    icon: <FiClipboard />, 
+    path: "/dashboard/admin-tests",
+    children: [
+      { name: "Admin Math", icon: <FiActivity />, path: "/dashboard/admin-tests/math" },
+      { name: "Admin Read and Write", icon: <FiPieChart />, path: "/dashboard/admin-tests/rw" },
     ]
   },
   { name: "Live Classes", icon: <FiVideo />, path: "/dashboard/live-classes" },
@@ -94,7 +102,7 @@ export default function DashboardLayout({ children }) {
         ></div>
       )}
 
-      <aside className={`h-screen fixed z-50 md:static top-0 right-0 bg-white text-gray-800 w-64 p-6 space-y-6 flex flex-col justify-between overflow-y-auto transform transition-transform duration-300 ease-in-out shadow-lg ${isOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"}`}>
+      <aside className={`h-screen fixed z-50 md:static top-0 left-0 bg-white text-gray-800 w-64 p-6 space-y-6 flex flex-col justify-between overflow-y-auto transform transition-transform duration-300 ease-in-out shadow-lg ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
         <div>
           <div className="flex items-center justify-between gap-3 mb-8">
             <Link href="/" className="flex items-center gap-2">
