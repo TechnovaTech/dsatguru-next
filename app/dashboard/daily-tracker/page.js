@@ -123,35 +123,47 @@ export default function StudentDailyTracker() {
     fetchData()
   }, [])
 
-  const autoSave = useCallback((newRows, newTarget) => {
+  const autoSave = useCallback((newRows, newTarget, immediate = false) => {
     clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(async () => {
+    
+    const doSave = async () => {
       setSaving(true)
-      const token = localStorage.getItem('token')
-      await fetch('/api/daily-tracker', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ rows: newRows, target: newTarget })
-      })
-      setSaving(false)
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
-    }, 800)
+      try {
+        const token = localStorage.getItem('token')
+        await fetch('/api/daily-tracker', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ rows: newRows, target: newTarget })
+        })
+        setSaving(false)
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+      } catch (err) {
+        console.error('Save failed', err)
+        setSaving(false)
+      }
+    }
+
+    if (immediate) {
+      doSave()
+    } else {
+      saveTimer.current = setTimeout(doSave, 800)
+    }
   }, [])
 
-  const update = useCallback((idx, field, value) => {
+  const update = useCallback((idx, field, value, immediate = false) => {
     setRows(prev => {
       const next = [...prev]
       next[idx] = { ...next[idx], [field]: value }
-      autoSave(next, target)
+      autoSave(next, target, immediate)
       return next
     })
   }, [target, autoSave])
 
-  const updateTarget = (val) => {
+  const updateTarget = (val, immediate = false) => {
     const t = Math.max(1, parseInt(val) || 1)
     setTarget(t)
-    autoSave(rows, t)
+    autoSave(rows, t, immediate)
   }
 
   let running = 0
@@ -215,6 +227,7 @@ export default function StudentDailyTracker() {
             min={1}
             value={target}
             onChange={e => updateTarget(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && updateTarget(e.target.value, true)}
             className="text-2xl font-bold text-orange-500 w-20 border-b border-orange-300 focus:outline-none bg-transparent"
           />
         </div>
@@ -244,20 +257,44 @@ export default function StudentDailyTracker() {
                   <td className="px-3 py-2 text-center text-gray-500 font-medium">{row.day}</td>
                   <td className="px-3 py-2 text-center text-gray-700 font-medium">{row.date}</td>
                   <td className="px-2 py-1 text-center">
-                    <input type="number" min={0} value={rows[idx].math} onChange={e => update(idx, 'math', e.target.value)} placeholder="0"
-                      className="w-16 text-center border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 bg-blue-50 text-blue-700 font-semibold" />
+                    <input 
+                      type="number" 
+                      min={0} 
+                      value={rows[idx].math} 
+                      onChange={e => update(idx, 'math', e.target.value)} 
+                      onKeyDown={e => e.key === 'Enter' && update(idx, 'math', e.target.value, true)}
+                      placeholder="0"
+                      className="w-16 text-center border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 bg-blue-50 text-blue-700 font-semibold" 
+                    />
                   </td>
                   <td className="px-2 py-1 text-center">
-                    <input type="number" min={0} value={rows[idx].reading} onChange={e => update(idx, 'reading', e.target.value)} placeholder="0"
-                      className="w-20 text-center border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-300 bg-green-50 text-green-700 font-semibold" />
+                    <input 
+                      type="number" 
+                      min={0} 
+                      value={rows[idx].reading} 
+                      onChange={e => update(idx, 'reading', e.target.value)} 
+                      onKeyDown={e => e.key === 'Enter' && update(idx, 'reading', e.target.value, true)}
+                      placeholder="0"
+                      className="w-20 text-center border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-300 bg-green-50 text-green-700 font-semibold" 
+                    />
                   </td>
                   <td className="px-3 py-2 text-center font-bold text-gray-800">{row.total || 0}</td>
                   <td className="px-3 py-2 text-center text-gray-500">{target}</td>
                   <td className={`px-3 py-2 text-center font-semibold ${status.color}`}>{status.emoji} {status.label}</td>
                   <td className="px-3 py-2 text-center font-semibold text-gray-700">{row.running}</td>
                   <td className="px-2 py-1">
-                    <input type="text" value={rows[idx].notes} onChange={e => update(idx, 'notes', e.target.value)} placeholder="Add note…"
-                      className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-gray-300 text-gray-600" />
+                    <input 
+                      type="text" 
+                      value={rows[idx].notes} 
+                      onChange={e => update(idx, 'notes', e.target.value)} 
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          update(idx, 'notes', e.target.value, true)
+                        }
+                      }}
+                      placeholder="Add note…"
+                      className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-gray-300 text-gray-600" 
+                    />
                   </td>
                 </tr>
               )
