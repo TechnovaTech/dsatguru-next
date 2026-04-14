@@ -1,5 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import { renderContent } from '../../components/admin/LatexRenderer'
+import { FiX, FiHelpCircle } from 'react-icons/fi'
 
 const SECTIONS = ['Math', 'Reading & Writing']
 const DIFFICULTIES = ['E', 'M', 'H']
@@ -15,7 +17,7 @@ function Cell({ children, className = '' }) {
   return <td className={`border border-gray-200 px-2 py-1 text-sm ${className}`}>{children}</td>
 }
 
-function EditableCell({ value, onChange, type = 'text', options, placeholder = '', className = '' }) {
+function EditableCell({ value, onChange, type = 'text', options, placeholder = '', className = '', onClick, onKeyDown }) {
   if (options) {
     return (
       <Cell className={className}>
@@ -29,12 +31,26 @@ function EditableCell({ value, onChange, type = 'text', options, placeholder = '
       </Cell>
     )
   }
+  if (onClick) {
+    return (
+      <Cell className={className}>
+        <div
+          onClick={onClick}
+          className="w-full text-sm min-w-[60px] cursor-pointer hover:text-blue-600 underline decoration-dotted truncate max-w-[200px]"
+          title="Click to preview question"
+        >
+          {value || placeholder}
+        </div>
+      </Cell>
+    )
+  }
   return (
     <Cell className={className}>
       <input
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         className="w-full bg-transparent focus:outline-none text-sm min-w-[60px]"
       />
@@ -51,7 +67,35 @@ export default function ErrorLogPage() {
   const [importing, setImporting] = useState(false)
   const [importMsg, setImportMsg] = useState('')
 
+  // Modal State
+  const [selectedQuestion, setSelectedQuestion] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [loadingQuestion, setLoadingQuestion] = useState(false)
+  const [currentUserAnswer, setCurrentUserAnswer] = useState('')
+
   const token = () => typeof window !== 'undefined' ? localStorage.getItem('token') : ''
+
+  const fetchQuestion = async (questionId, userAnswer) => {
+    if (!questionId) return
+    setCurrentUserAnswer(userAnswer || '')
+    setLoadingQuestion(true)
+    setIsModalOpen(true)
+    try {
+      const res = await fetch(`/api/questions/${questionId}`, {
+        headers: { Authorization: `Bearer ${token()}` }
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setSelectedQuestion(data.data)
+      } else {
+        setSelectedQuestion({ error: 'Question not found' })
+      }
+    } catch (err) {
+      setSelectedQuestion({ error: 'Failed to load question' })
+    } finally {
+      setLoadingQuestion(false)
+    }
+  }
 
   useEffect(() => {
     fetch('/api/error-log', { headers: { Authorization: `Bearer ${token()}` } })
@@ -74,13 +118,12 @@ export default function ErrorLogPage() {
     return data.log
   }, [])
 
-  const update = useCallback((idx, field, value) => {
+  const update = useCallback((idx, field, value, immediate = false) => {
     setRows(prev => {
       const next = [...prev]
       next[idx] = { ...next[idx], [field]: value }
-      // debounce save
-      clearTimeout(next[idx]._timer)
-      next[idx]._timer = setTimeout(async () => {
+      
+      const performSave = async () => {
         const saved = await saveRow(next[idx])
         if (saved && !next[idx]._id) {
           setRows(r => {
@@ -89,7 +132,15 @@ export default function ErrorLogPage() {
             return updated
           })
         }
-      }, 800)
+      }
+
+      // debounce save
+      clearTimeout(next[idx]._timer)
+      if (immediate) {
+        performSave()
+      } else {
+        next[idx]._timer = setTimeout(performSave, 800)
+      }
       return next
     })
   }, [saveRow])
@@ -224,21 +275,8 @@ export default function ErrorLogPage() {
           <option value="H">Hard</option>
         </select>
         <span className="ml-auto text-xs text-gray-400">
-          {importMsg || (saving ? '💾 Saving...' : saved ? '✅ Saved' : '')}
+          {saving ? '💾 Saving...' : saved ? '✅ Saved' : ''}
         </span>
-        <button
-          onClick={importFromLastTest}
-          disabled={importing}
-          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors"
-        >
-          {importing ? 'Importing...' : '⬇ Import from Last Test'}
-        </button>
-        <button
-          onClick={addRow}
-          className="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors"
-        >
-          + Add Error
-        </button>
       </div>
 
       {/* Table */}
@@ -257,14 +295,13 @@ export default function ErrorLogPage() {
               <th className="border border-gray-600 px-2 py-3 text-center w-24">Redo Due Date</th>
               <th className="border border-gray-600 px-2 py-3 text-center w-24">Redo Answer</th>
               <th className="border border-gray-600 px-2 py-3 text-center w-20">Redo Result ✓/✗</th>
-              <th className="border border-gray-600 px-2 py-3 text-center w-10"></th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={12} className="text-center py-10 text-gray-400">
-                  No errors logged yet. Click <strong>+ Add Error</strong> to start tracking.
+                <td colSpan={12} className="text-center py-10 text-gray-400 font-medium">
+                  No errors logged yet. Mistakes from your completed Admin Tests will appear here automatically.
                 </td>
               </tr>
             )}
@@ -274,20 +311,22 @@ export default function ErrorLogPage() {
               const redoBg = row.redoResult === '✓' ? 'bg-green-50' : row.redoResult === '✗' ? 'bg-red-50' : ''
               return (
                 <tr key={row._id || idx} className={`border-b hover:bg-blue-50 transition-colors ${isEven ? 'bg-white' : 'bg-gray-50'} ${redoBg}`}>
-                  <EditableCell value={row.day} onChange={v => update(realIdx, 'day', v)} placeholder="1" className="text-center text-gray-500 font-medium" />
-                  <EditableCell value={row.date} onChange={v => update(realIdx, 'date', v)} placeholder="DD Mon YYYY" className="text-center" />
+                  <EditableCell value={row.day} onChange={v => update(realIdx, 'day', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'day', e.target.value, true)} placeholder="1" className="text-center text-gray-500 font-medium" />
+                  <EditableCell value={row.date} onChange={v => update(realIdx, 'date', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'date', e.target.value, true)} placeholder="DD Mon YYYY" className="text-center" />
                   <EditableCell value={row.section} onChange={v => update(realIdx, 'section', v)} options={SECTIONS} />
-                  <EditableCell value={row.topic} onChange={v => update(realIdx, 'topic', v)} placeholder="e.g. Algebra" />
-                  <EditableCell value={row.questionDesc} onChange={v => update(realIdx, 'questionDesc', v)} placeholder="Q ID or short description" />
-                  <EditableCell value={row.whyWrong} onChange={v => update(realIdx, 'whyWrong', v)} placeholder="e.g. misread the question" />
-                  <EditableCell value={row.correctRule} onChange={v => update(realIdx, 'correctRule', v)} placeholder="e.g. subject-verb agreement" />
+                  <EditableCell value={row.topic} onChange={v => update(realIdx, 'topic', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'topic', e.target.value, true)} placeholder="e.g. Algebra" />
+                  <EditableCell 
+                    value={row.questionDesc} 
+                    onChange={v => update(realIdx, 'questionDesc', v)} 
+                    onClick={() => fetchQuestion(row.sourceQuestionId, row.selectedAnswer)}
+                    placeholder="Q ID or short description" 
+                  />
+                  <EditableCell value={row.whyWrong} onChange={v => update(realIdx, 'whyWrong', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'whyWrong', e.target.value, true)} placeholder="e.g. misread the question" />
+                  <EditableCell value={row.correctRule} onChange={v => update(realIdx, 'correctRule', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'correctRule', e.target.value, true)} placeholder="e.g. subject-verb agreement" />
                   <EditableCell value={row.difficulty} onChange={v => update(realIdx, 'difficulty', v)} options={DIFFICULTIES} className="text-center" />
-                  <EditableCell value={row.redoDueDate} onChange={v => update(realIdx, 'redoDueDate', v)} placeholder="DD Mon YYYY" className="text-center" />
-                  <EditableCell value={row.redoAnswer} onChange={v => update(realIdx, 'redoAnswer', v)} placeholder="Your answer" className="text-center" />
+                  <EditableCell value={row.redoDueDate} onChange={v => update(realIdx, 'redoDueDate', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'redoDueDate', e.target.value, true)} placeholder="DD Mon YYYY" className="text-center" />
+                  <EditableCell value={row.redoAnswer} onChange={v => update(realIdx, 'redoAnswer', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'redoAnswer', e.target.value, true)} placeholder="Your answer" className="text-center" />
                   <EditableCell value={row.redoResult} onChange={v => update(realIdx, 'redoResult', v)} options={REDO_RESULTS} className="text-center font-bold" />
-                  <Cell className="text-center">
-                    <button onClick={() => deleteRow(realIdx)} className="text-gray-300 hover:text-red-500 transition-colors text-base leading-none">✕</button>
-                  </Cell>
                 </tr>
               )
             })}
@@ -298,6 +337,111 @@ export default function ErrorLogPage() {
       <p className="mt-4 text-xs text-gray-400">
         💡 Tip: Don&apos;t just mark it wrong and move on — write <em>why</em> you got it wrong and schedule a redo. That&apos;s what makes it stick.
       </p>
+
+      {/* Question Preview Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <FiHelpCircle className="text-blue-500" /> {selectedQuestion?.questionId ? `Question ${selectedQuestion.questionId}` : 'Question Preview'}
+              </h3>
+              <button 
+                onClick={() => { setIsModalOpen(false); setSelectedQuestion(null); }}
+                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+              >
+                <FiX className="text-gray-500" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
+              {loadingQuestion ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                  <p className="text-gray-500 animate-pulse">Loading question details...</p>
+                </div>
+              ) : selectedQuestion?.error ? (
+                <div className="text-center py-20 text-red-500 font-medium">
+                  {selectedQuestion.error}
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {/* Question Content */}
+                  <div className="prose prose-blue max-w-none text-gray-800 text-lg leading-relaxed">
+                    {renderContent(selectedQuestion?.content)}
+                  </div>
+
+                  {/* Options */}
+                  {selectedQuestion?.options && Array.isArray(selectedQuestion.options) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t">
+                      {selectedQuestion.options.map((opt, i) => {
+                        const key = opt?.key || String.fromCharCode(65 + i)
+                        const value = typeof opt === 'string' ? opt : opt?.value || ''
+                        
+                        const isStudentAnswer = key === currentUserAnswer
+
+                        return (
+                          <div 
+                            key={i} 
+                            className={`p-4 rounded-xl border-2 flex items-start gap-4 transition-all ${
+                              isStudentAnswer
+                                ? 'border-red-500 bg-red-50 shadow-sm'
+                                : 'border-gray-100 hover:border-gray-200 bg-white'
+                            }`}
+                          >
+                            <span className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold ${
+                              isStudentAnswer
+                                ? 'bg-red-500 text-white shadow-md'
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {key}
+                            </span>
+                            <div className="flex-1 text-gray-700 pt-0.5">
+                              {renderContent(value)}
+                            </div>
+                            {isStudentAnswer && (
+                              <span className="text-[10px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                Your Choice
+                              </span>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* Meta Data */}
+                  <div className="flex flex-wrap gap-3 pt-6">
+                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold uppercase tracking-wider border border-blue-100">
+                      {selectedQuestion?.subject}
+                    </span>
+                    <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-xs font-bold uppercase tracking-wider border border-purple-100">
+                      {selectedQuestion?.difficulty}
+                    </span>
+                    {selectedQuestion?.skill && (
+                      <span className="px-3 py-1 bg-gray-50 text-gray-600 rounded-full text-xs font-bold border border-gray-100">
+                        {selectedQuestion?.skill}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t bg-gray-50 flex justify-end">
+              <button 
+                onClick={() => { setIsModalOpen(false); setSelectedQuestion(null); }}
+                className="px-6 py-2 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-all shadow-lg active:scale-95"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
