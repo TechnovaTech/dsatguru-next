@@ -45,6 +45,18 @@ export default function AdminLayout({ children }) {
         { id: 'tutor-error-patterns', label: 'Error Patterns', path: '/admin/tutor/error-patterns', icon: <FiAlertCircle /> }
       ]
     },
+    { 
+      id: 'admin-tests', 
+      label: 'Admin Tests', 
+      icon: <FiList />, 
+      path: '#',
+      submenu: [
+        { id: 'admin-question-bank', label: 'Question Bank', path: '/admin/admin-tests/question-bank', icon: <FiDatabase /> },
+        { id: 'admin-create-test', label: 'Create Test', path: '/admin/admin-tests/create-test', icon: <FiEdit /> },
+        { id: 'admin-test-sheets', label: 'Test Sheets', path: '/admin/admin-tests/test-sheets', icon: <FiFileText /> },
+        { id: 'admin-results', label: 'Result Analysis', path: '/admin/admin-tests/results', icon: <FiAward /> }
+      ]
+    },
     { id: 'test-sessions', label: 'Test Session Monitoring', icon: <FiBarChart />, path: '/admin/test-sessions' },
     { id: 'user-results', label: 'User Result Management', icon: <FiUsers />, path: '/admin/user-results' },
     { id: 'student-progress', label: 'Student Progress', icon: <FiTrendingUp />, path: '/admin/student-progress' },
@@ -129,7 +141,7 @@ export default function AdminLayout({ children }) {
                   <button 
                     onClick={() => toggleSubmenu(item.id)}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-lg mb-2 text-left transition-colors ${
-                      pathname.startsWith('/admin/tutor') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+                      (item.id === 'tutor-tests' && pathname.startsWith('/admin/tutor')) || (item.id === 'admin-tests' && pathname.startsWith('/admin/admin-tests')) ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     <div className="flex items-center gap-3">
