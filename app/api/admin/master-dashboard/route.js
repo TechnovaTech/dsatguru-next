@@ -72,19 +72,16 @@ export async function GET(req) {
       }
 
       // Status Logic
-      // 🟢 On Track: >= 100% of target
-      // 🟡 At Risk: 80-99% of target
-      // 🔴 Behind: < 80% of target
-      let onTrack = '🟢'
+      let onTrack = 'On Track'
       let alertStatus = '—'
       
       const percentage = (questionsDoneToday / dailyTarget) * 100
       if (percentage >= 100) {
-        onTrack = '🟢'
+        onTrack = 'On Track'
       } else if (percentage >= 80) {
-        onTrack = '🟡'
+        onTrack = 'At Risk'
       } else {
-        onTrack = '🔴'
+        onTrack = 'Behind'
         alertStatus = '⚠️ REACH OUT'
       }
 

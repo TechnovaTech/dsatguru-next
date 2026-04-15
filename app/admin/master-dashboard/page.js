@@ -43,9 +43,9 @@ export default function MasterDashboard() {
             <p className="text-gray-500 mt-2 text-sm flex items-center gap-2">
               <span className="font-bold text-blue-600">dsatguru.com</span> | 
               <span>Real-time progress for all students</span> | 
-              <span className="flex items-center gap-1"><span className="text-red-500">🔴</span> = Needs Attention</span>
-              <span className="flex items-center gap-1"><span className="text-yellow-500">🟡</span> = At Risk</span>
-              <span className="flex items-center gap-1"><span className="text-green-500">🟢</span> = On Track</span>
+              <span className="flex items-center gap-1"><span className="text-red-500 font-bold">🔴 Behind</span></span>
+              <span className="flex items-center gap-1"><span className="text-yellow-500 font-bold">🟡 At Risk</span></span>
+              <span className="flex items-center gap-1"><span className="text-green-500 font-bold">🟢 On Track</span></span>
             </p>
           </div>
           <div className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest">
@@ -63,21 +63,21 @@ export default function MasterDashboard() {
           </div>
           <div className="bg-white p-6 rounded-xl border shadow-sm border-l-4 border-l-red-500">
             <div className="flex items-center gap-3 text-red-500 text-xs font-bold uppercase tracking-wider mb-2">
-              <FiAlertCircle /> Needs Attention
+              <FiAlertCircle /> Behind
             </div>
-            <p className="text-3xl font-black text-gray-900">{data.filter(s => s.onTrack === '🔴').length}</p>
+            <p className="text-3xl font-black text-gray-900">{data.filter(s => s.onTrack === 'Behind').length}</p>
           </div>
           <div className="bg-white p-6 rounded-xl border shadow-sm border-l-4 border-l-yellow-500">
             <div className="flex items-center gap-3 text-yellow-500 text-xs font-bold uppercase tracking-wider mb-2">
               <FiClock /> At Risk
             </div>
-            <p className="text-3xl font-black text-gray-900">{data.filter(s => s.onTrack === '🟡').length}</p>
+            <p className="text-3xl font-black text-gray-900">{data.filter(s => s.onTrack === 'At Risk').length}</p>
           </div>
           <div className="bg-white p-6 rounded-xl border shadow-sm border-l-4 border-l-green-500">
             <div className="flex items-center gap-3 text-green-500 text-xs font-bold uppercase tracking-wider mb-2">
               <FiCheckCircle /> On Track
             </div>
-            <p className="text-3xl font-black text-gray-900">{data.filter(s => s.onTrack === '🟢').length}</p>
+            <p className="text-3xl font-black text-gray-900">{data.filter(s => s.onTrack === 'On Track').length}</p>
           </div>
         </div>
       </div>
@@ -149,8 +149,14 @@ export default function MasterDashboard() {
                   <td className="px-4 py-5 text-sm font-bold text-gray-500 text-center border-r border-gray-50">
                     {student.dailyTarget}
                   </td>
-                  <td className="px-4 py-5 text-center text-xl border-r border-gray-50">
-                    {student.onTrack}
+                  <td className="px-4 py-5 text-center text-xs font-black border-r border-gray-50">
+                    <span className={`px-3 py-1 rounded-full border-2 ${
+                      student.onTrack === 'On Track' ? 'bg-green-50 text-green-700 border-green-100' :
+                      student.onTrack === 'At Risk' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
+                      'bg-red-50 text-red-700 border-red-100'
+                    }`}>
+                      {student.onTrack.toUpperCase()}
+                    </span>
                   </td>
                   <td className="px-4 py-5 text-xs text-gray-500 font-medium border-r border-gray-50">
                     {student.lastActive ? new Date(student.lastActive).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}
@@ -171,49 +177,6 @@ export default function MasterDashboard() {
               ))}
             </tbody>
           </table>
-        </div>
-
-        {/* Legend Section */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-gray-50 rounded-2xl p-8 border">
-            <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest mb-6 flex items-center gap-2">
-              <FiTarget className="text-blue-600" /> 📋 STATUS LEGEND & INSTRUCTIONS
-            </h3>
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <span className="w-24 text-sm font-black text-green-600 bg-green-50 px-3 py-1 rounded-lg border border-green-100 text-center">🟢 On Track</span>
-                <span className="text-sm text-gray-600 font-medium">Student is meeting or exceeding daily question targets</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="w-24 text-sm font-black text-yellow-600 bg-yellow-50 px-3 py-1 rounded-lg border border-yellow-100 text-center">🟡 At Risk</span>
-                <span className="text-sm text-gray-600 font-medium">Student is 10-20% below target — consider a check-in</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="w-24 text-sm font-black text-red-600 bg-red-50 px-3 py-1 rounded-lg border border-red-100 text-center">🔴 Behind</span>
-                <span className="text-sm text-gray-600 font-medium">Student is &gt;20% below target — reach out immediately</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="w-24 text-sm font-black text-red-700 bg-red-100 px-3 py-1 rounded-lg border border-red-200 text-center">⚠️ REACH OUT</span>
-                <span className="text-sm text-gray-600 font-bold">Alert triggered — student needs tutor intervention</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-blue-600 rounded-2xl p-8 text-white shadow-xl shadow-blue-100">
-            <h3 className="text-sm font-black uppercase tracking-widest mb-4">Pro Tip for Tutors</h3>
-            <p className="text-blue-100 text-sm leading-relaxed font-medium">
-              Click on the student's name to see a detailed breakdown of which specific topics the student is struggling with. Students in 🔴 RED should be prioritized for your next 1-on-1 session.
-            </p>
-            <div className="mt-8 pt-8 border-t border-blue-500/30 flex items-center justify-between">
-              <span className="text-xs font-bold text-blue-200 uppercase tracking-tighter">DSAT Guru Performance Engine</span>
-              <button 
-                onClick={fetchData}
-                className="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold text-xs hover:bg-blue-50 transition-colors"
-              >
-                Refresh Data
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -102,6 +102,9 @@ export default function RedoQueuePage() {
   }
 
   const exitFullscreen = () => {
+    const isFull = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+    if (!isFull) return;
+
     if (document.exitFullscreen) {
       document.exitFullscreen()
     } else if (document.webkitExitFullscreen) {
