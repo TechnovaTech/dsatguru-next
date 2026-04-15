@@ -75,11 +75,59 @@ export async function GET(req) {
           explanation: q.explanation || '',
           subject: q.subject || log.section,
           difficulty: q.difficulty || log.difficulty,
-          skill: q.skill || log.topic
+          skill: q.skill || log.topic,
+          // Extra metadata for table
+          dateLogged: log.date || '',
+          section: log.section || '',
+          topic: log.topic || '',
+          questionDescription: log.questionDesc || '',
+          whyWrong: log.whyWrong || '',
+          correctConcept: log.correctRule || '',
+          redoDueDate: log.redoDueDate || '',
+          status: log.redoResult === '✗' ? 'Failed' : 'Pending'
         }
       })
 
     return NextResponse.json({ date, questions })
+  }
+
+  if (mode === 'all') {
+    const logs = await ErrorLog.find({
+      userId,
+      sourceQuestionId: { $exists: true, $ne: null },
+      redoResult: { $ne: '✓' }
+    })
+      .populate('sourceQuestionId', 'questionId content options correctAnswer explanation subject difficulty skill')
+      .sort({ createdAt: -1 })
+
+    const questions = logs
+      .filter(l => l.sourceQuestionId)
+      .map(log => {
+        const q = log.sourceQuestionId
+        return {
+          logId: log._id,
+          questionId: q._id,
+          questionLabel: q.questionId || '',
+          content: q.content || '',
+          options: parseOptions(q.options),
+          correctAnswer: q.correctAnswer || '',
+          explanation: q.explanation || '',
+          subject: q.subject || log.section,
+          difficulty: q.difficulty || log.difficulty,
+          skill: q.skill || log.topic,
+          // Extra metadata for table
+          dateLogged: log.date || '',
+          section: log.section || '',
+          topic: log.topic || '',
+          questionDescription: log.questionDesc || '',
+          whyWrong: log.whyWrong || '',
+          correctConcept: log.correctRule || '',
+          redoDueDate: log.redoDueDate || '',
+          status: log.redoResult === '✗' ? 'Failed' : 'Pending'
+        }
+      })
+
+    return NextResponse.json({ questions })
   }
 
   const logs = await ErrorLog.find({
