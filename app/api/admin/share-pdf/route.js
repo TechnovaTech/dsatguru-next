@@ -27,6 +27,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
+    console.log('Received data:', { studentName, subject, testDate, fileName: pdfFile.name })
+
     // Save PDF to public/reports folder
     const bytes = await pdfFile.arrayBuffer()
     const buffer = Buffer.from(bytes)
@@ -61,7 +63,7 @@ export async function POST(request) {
         })
       }
 
-      const messageText = `${message}\n\n📊 Report Details:\n• Student: ${studentName}\n• Subject: ${subject}\n• Date: ${testDate}`
+      const messageText = `${message}`
       
       // Create message with PDF link
       const newMessage = await Message.create({

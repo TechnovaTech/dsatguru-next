@@ -759,7 +759,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                   const studentName = session.userId?.name || 'Student'
                                   const testName = session.testId?.title || 'Test'
                                   const subject = session.subject || 'General'
-                                  setShareMessage(`Hi, I'm sharing the test result for ${studentName}.\n\nTest: ${testName}\nSubject: ${subject}\n\nPlease review the attached PDF report.`)
+                                  const testDate = new Date(session.completedAt || session.updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                                  setShareMessage(`Hi,\n\nI'm sharing the test result for ${studentName}.\n\nTest: ${testName}\nSubject: ${subject}\nDate: ${testDate}\n\nPlease review the attached PDF report.`)
                                 }}
                                 className="px-6 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-md"
                             >

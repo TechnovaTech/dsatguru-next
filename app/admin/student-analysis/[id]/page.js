@@ -182,7 +182,8 @@ export default function StudentAnalysisDetail() {
   const handleOpenShareModal = () => {
     setShowShareModal(true)
     fetchUsers()
-    setShareMessage(`Hi, I'm sharing the analysis report for ${user.name}.\n\nThis comprehensive report includes performance metrics, topic mastery, and difficulty analysis.\n\nPlease review the attached PDF.`)
+    const reportDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    setShareMessage(`Hi,\n\nI'm sharing the comprehensive analysis report for ${user.name}.\n\nReport Date: ${reportDate}\n\nThis report includes:\n• Performance metrics across subjects\n• Topic mastery analysis\n• Difficulty-based performance\n• Progress trends\n\nPlease review the attached PDF.`)
   }
 
   const toggleUserSelection = (userId) => {
