@@ -60,7 +60,20 @@ export default function StudentDailyTracker() {
           setTestSessions(adminSessions)
         }
 
-        // 3. Fetch Tracker Rows
+        // 3. Fetch Error Logs for Redo (count only successful redo)
+        const errorLogRes = await fetch('/api/error-log', { headers })
+        let solvedRedoLogs = []
+        if (errorLogRes.ok) {
+          const data = await errorLogRes.json()
+          const logs = data.logs || []
+          solvedRedoLogs = logs.filter(log =>
+            log.redoResult === '✓' &&
+            log.date &&
+            (log.section === 'Math' || log.section === 'Reading & Writing')
+          )
+        }
+
+        // 4. Fetch Tracker Rows
         const trackerRes = await fetch('/api/daily-tracker', { headers })
         if (trackerRes.ok) {
           const data = await trackerRes.json()
@@ -82,13 +95,25 @@ export default function StudentDailyTracker() {
               return sDay === rowDay && sMonth === rowMonth
             })
 
+            // Count solved redo questions on the same date row (from Error Log)
+            const redoOnDate = solvedRedoLogs.filter(log => {
+              const parts = String(log.date).split(' ')
+              if (parts.length < 2) return false
+              const d = parseInt(parts[0], 10)
+              const m = parts[1]
+              return d === rowDay && m === rowMonth
+            })
+
+            const redoMathSolved = redoOnDate.filter(log => log.section === 'Math').length
+            const redoRWSolved = redoOnDate.filter(log => log.section === 'Reading & Writing').length
+
             // Calculate correct answers for Math admin tests
             const mathTotal = sessionsOnDate
               .filter(s => s.testId?.subject === 'Math' || (!s.testId?.subject && s.testId?.sections?.math === true))
               .reduce((sum, s) => {
                 const correctCount = s.responses?.filter(r => r.isCorrect).length || 0
                 return sum + Math.max(s.correctAnswers || 0, correctCount)
-              }, 0)
+              }, 0) + redoMathSolved
             
             // Calculate correct answers for RW admin tests
             const rwTotal = sessionsOnDate
@@ -100,7 +125,7 @@ export default function StudentDailyTracker() {
               .reduce((sum, s) => {
                 const correctCount = s.responses?.filter(r => r.isCorrect).length || 0
                 return sum + Math.max(s.correctAnswers || 0, correctCount)
-              }, 0)
+              }, 0) + redoRWSolved
 
             return {
               ...row,

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import connectDB from '@/lib/db'
-import RedoQueue from '@/lib/models/RedoQueue'
+import ErrorLog from '@/lib/models/ErrorLog'
 
 async function getUser(req) {
   const auth = req.headers.get('authorization') || ''
@@ -13,27 +13,154 @@ function getUserId(user) {
   return user?.userId || user?.id || user?._id
 }
 
+function parseOptions(rawOptions) {
+  if (!rawOptions) return []
+  try {
+    const parsed = typeof rawOptions === 'string' ? JSON.parse(rawOptions) : rawOptions
+    if (!Array.isArray(parsed)) return []
+    return parsed.map((opt, index) => {
+      if (typeof opt === 'string') {
+        return { key: String.fromCharCode(65 + index), value: opt }
+      }
+      return {
+        key: opt?.key || String.fromCharCode(65 + index),
+        value: opt?.value || ''
+      }
+    })
+  } catch {
+    return []
+  }
+}
+
+function parseDateLabelToTs(label) {
+  if (!label) return 0
+  const parts = String(label).split(' ')
+  if (parts.length !== 3) return 0
+  const d = new Date(`${parts[1]} ${parts[0]}, ${parts[2]}`)
+  return Number.isNaN(d.getTime()) ? 0 : d.getTime()
+}
+
 export async function GET(req) {
   const user = await getUser(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   await connectDB()
   const userId = getUserId(user)
-  const items = await RedoQueue.find({ userId })
-    .populate('questionId', 'content options correctAnswer explanation questionId')
-    .sort({ redoDueDate: 1, createdAt: -1 })
-  return NextResponse.json({ items })
+
+  const { searchParams } = new URL(req.url)
+  const mode = searchParams.get('mode') || 'dates'
+  const date = searchParams.get('date')
+
+  if (mode === 'questions' && date) {
+    const logs = await ErrorLog.find({
+      userId,
+      date,
+      sourceQuestionId: { $exists: true, $ne: null },
+      redoResult: { $ne: '✓' }
+    })
+      .populate('sourceQuestionId', 'questionId content options correctAnswer explanation subject difficulty skill')
+      .sort({ createdAt: 1 })
+
+    const questions = logs
+      .filter(l => l.sourceQuestionId)
+      .map(log => {
+        const q = log.sourceQuestionId
+        return {
+          logId: log._id,
+          questionId: q._id,
+          questionLabel: q.questionId || '',
+          content: q.content || '',
+          options: parseOptions(q.options),
+          correctAnswer: q.correctAnswer || '',
+          explanation: q.explanation || '',
+          subject: q.subject || log.section,
+          difficulty: q.difficulty || log.difficulty,
+          skill: q.skill || log.topic
+        }
+      })
+
+    return NextResponse.json({ date, questions })
+  }
+
+  const logs = await ErrorLog.find({
+    userId,
+    sourceQuestionId: { $exists: true, $ne: null },
+    redoResult: { $ne: '✓' }
+  }).select('date redoResult redoDueDate section')
+
+  const grouped = new Map()
+  for (const log of logs) {
+    const key = log.date || 'Unknown Date'
+    if (!grouped.has(key)) {
+      grouped.set(key, {
+        date: key,
+        totalQuestions: 0,
+        pending: 0,
+        failed: 0,
+        redoDueDate: log.redoDueDate || '',
+        sectionCounts: {}
+      })
+    }
+    const row = grouped.get(key)
+    row.totalQuestions += 1
+    if (log.redoResult === '✗') row.failed += 1
+    else row.pending += 1
+    const section = log.section || 'Unknown'
+    row.sectionCounts[section] = (row.sectionCounts[section] || 0) + 1
+  }
+
+  const dates = Array.from(grouped.values())
+    .map(row => ({
+      ...row,
+      sections: Object.entries(row.sectionCounts).map(([name, count]) => ({ name, count }))
+    }))
+    .sort((a, b) => parseDateLabelToTs(b.date) - parseDateLabelToTs(a.date))
+
+  return NextResponse.json({ dates })
 }
 
-export async function PATCH(req) {
+export async function POST(req) {
   const user = await getUser(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   await connectDB()
   const userId = getUserId(user)
-  const { id, status } = await req.json()
-  const item = await RedoQueue.findOneAndUpdate(
-    { _id: id, userId },
-    { status, completedAt: status === 'Completed' ? new Date() : undefined },
-    { new: true }
-  )
-  return NextResponse.json({ item })
+  const { date, answers } = await req.json()
+
+  if (!date || !answers || typeof answers !== 'object') {
+    return NextResponse.json({ error: 'date and answers are required' }, { status: 400 })
+  }
+
+  const logs = await ErrorLog.find({
+    userId,
+    date,
+    sourceQuestionId: { $exists: true, $ne: null },
+    redoResult: { $ne: '✓' }
+  }).populate('sourceQuestionId', 'correctAnswer')
+
+  let total = 0
+  let correct = 0
+
+  for (const log of logs) {
+    const chosen = answers[String(log._id)] || ''
+    if (!chosen) continue
+
+    total += 1
+    const actual = (log.sourceQuestionId?.correctAnswer || '').trim()
+    const isCorrect = chosen.trim() === actual
+    if (isCorrect) correct += 1
+
+    await ErrorLog.updateOne(
+      { _id: log._id, userId },
+      { $set: { redoAnswer: chosen, redoResult: isCorrect ? '✓' : '✗' } }
+    )
+  }
+
+  return NextResponse.json({
+    success: true,
+    date,
+    attempted: total,
+    correct,
+    wrong: total - correct
+  })
 }

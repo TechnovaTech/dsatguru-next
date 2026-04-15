@@ -24,6 +24,7 @@ export default function AdminLayout({ children }) {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <FiGrid />, path: '/admin/dashboard' },
+    { id: 'students-observation', label: 'Students Observation', icon: <FiAlertCircle />, path: '/admin/students-observation' },
     { id: 'manage-courses', label: 'Manage Courses', icon: <FiBookOpen />, path: '/admin/manage-courses' },
     { id: 'courses', label: 'Course & Question Bank', icon: <FiBookOpen />, path: '/admin/courses' },
     { id: 'sat-question-upload', label: 'SAT Question Upload', icon: <FiUpload />, path: '/admin/sat-question-upload' },

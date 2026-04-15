@@ -295,12 +295,13 @@ export default function ErrorLogPage() {
               <th className="border border-gray-600 px-2 py-3 text-center w-24">Redo Due Date</th>
               <th className="border border-gray-600 px-2 py-3 text-center w-24">Redo Answer</th>
               <th className="border border-gray-600 px-2 py-3 text-center w-20">Redo Result ✓/✗</th>
+              <th className="border border-gray-600 px-2 py-3 text-center min-w-[120px] bg-blue-900">Tutor Action</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={12} className="text-center py-10 text-gray-400 font-medium">
+                <td colSpan={13} className="text-center py-10 text-gray-400 font-medium">
                   No errors logged yet. Mistakes from your completed Admin Tests will appear here automatically.
                 </td>
               </tr>
@@ -327,6 +328,7 @@ export default function ErrorLogPage() {
                   <EditableCell value={row.redoDueDate} onChange={v => update(realIdx, 'redoDueDate', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'redoDueDate', e.target.value, true)} placeholder="DD Mon YYYY" className="text-center" />
                   <EditableCell value={row.redoAnswer} onChange={v => update(realIdx, 'redoAnswer', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'redoAnswer', e.target.value, true)} placeholder="Your answer" className="text-center" />
                   <EditableCell value={row.redoResult} onChange={v => update(realIdx, 'redoResult', v)} options={REDO_RESULTS} className="text-center font-bold" />
+                  <Cell className="bg-blue-50/50 font-medium text-blue-800">{row.tutorAction || '—'}</Cell>
                 </tr>
               )
             })}
