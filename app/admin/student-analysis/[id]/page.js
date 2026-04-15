@@ -1,8 +1,8 @@
 
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { FiArrowLeft, FiCheckCircle, FiBook, FiCpu, FiTarget, FiTrendingUp } from 'react-icons/fi'
+import { FiArrowLeft, FiCheckCircle, FiBook, FiCpu, FiTarget, FiTrendingUp, FiDownload } from 'react-icons/fi'
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell
@@ -15,6 +15,8 @@ export default function StudentAnalysisDetail() {
   const router = useRouter()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [downloading, setDownloading] = useState(false)
+  const contentRef = useRef(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,19 +47,65 @@ export default function StudentAnalysisDetail() {
 
   const { user, practiceCounts, subjectStats, topicStats, difficultyStats, performanceHistory } = data
 
+  const downloadPDF = async () => {
+    setDownloading(true)
+    try {
+      const html2canvas = (await import('html2canvas')).default
+      const jsPDF = (await import('jspdf')).default
+      
+      const element = contentRef.current
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#f9fafb'
+      })
+      
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = pdf.internal.pageSize.getHeight()
+      const imgWidth = canvas.width
+      const imgHeight = canvas.height
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
+      const imgX = (pdfWidth - imgWidth * ratio) / 2
+      const imgY = 10
+      
+      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio)
+      
+      const date = new Date().toISOString().split('T')[0]
+      pdf.save(`${user.name}_Analysis_Report_${date}.pdf`)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Failed to generate PDF')
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen font-sans">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6" ref={contentRef}>
         
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
-            <FiArrowLeft className="w-5 h-5 text-gray-600" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
-            <p className="text-gray-500">{user.email} • {user.role}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button onClick={() => router.back()} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+              <FiArrowLeft className="w-5 h-5 text-gray-600" />
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
+              <p className="text-gray-500">{user.email} • {user.role}</p>
+            </div>
           </div>
+          <button
+            onClick={downloadPDF}
+            disabled={downloading}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
+          >
+            <FiDownload className="w-5 h-5" />
+            {downloading ? 'Generating PDF...' : 'Download Report'}
+          </button>
         </div>
 
         {/* Practice Type Counters */}

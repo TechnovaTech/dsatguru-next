@@ -1,11 +1,13 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevronDown, FiChevronUp, FiActivity, FiMonitor, FiMaximize, FiCheckSquare, FiUsers, FiRefreshCw } from 'react-icons/fi'
+import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevronDown, FiChevronUp, FiActivity, FiMonitor, FiMaximize, FiCheckSquare, FiUsers, FiRefreshCw, FiDownload } from 'react-icons/fi'
 import ReassignTestModal from './admin/ReassignTestModal'
 
 export default function TestResultView({ testId, sessionId, returnUrl, viewMode, viewAnalysis }) {
   const router = useRouter()
+  const contentRef = useRef(null)
+  const [downloading, setDownloading] = useState(false)
   
   const [session, setSession] = useState(null)
   const [test, setTest] = useState(null) // Store test data including showExplanation
@@ -484,6 +486,44 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
 
   if (!session) return <div className="p-8 text-center">Session not found</div>
 
+  const downloadPDF = async () => {
+    setDownloading(true)
+    try {
+      const html2canvas = (await import('html2canvas')).default
+      const jsPDF = (await import('jspdf')).default
+      
+      const element = contentRef.current
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#f9fafb'
+      })
+      
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = pdf.internal.pageSize.getHeight()
+      const imgWidth = canvas.width
+      const imgHeight = canvas.height
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
+      const imgX = (pdfWidth - imgWidth * ratio) / 2
+      const imgY = 10
+      
+      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio)
+      
+      const studentName = session.userId?.name || 'Student'
+      const subject = session.subject || 'Test'
+      const testDate = new Date(session.completedAt || session.updatedAt).toISOString().split('T')[0]
+      pdf.save(`${studentName}_${subject}_${testDate}.pdf`)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Failed to generate PDF')
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   const handleReattempt = async () => {
     try {
       const token = localStorage.getItem('token')
@@ -579,7 +619,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-800 pb-20">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-800 pb-20" ref={contentRef}>
         {/* Header */}
         <div className="bg-white border-b sticky top-0 z-30 shadow-sm">
             <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -597,6 +637,16 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                     </div>
                 </div>
                 <div className="flex gap-3">
+                    {viewMode === 'admin' && (
+                        <button
+                            onClick={downloadPDF}
+                            disabled={downloading}
+                            className="px-6 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2 shadow-md"
+                        >
+                            <FiDownload className="w-4 h-4" />
+                            {downloading ? 'Generating...' : 'Download PDF'}
+                        </button>
+                    )}
                     {viewMode === 'admin' && (test?.isTutorTest || test?.practiceMode === 'admin') && session?.analysisSubmitted && !session?.isReassigned && (
                         <button
                             onClick={() => setShowReassignModal(true)}
