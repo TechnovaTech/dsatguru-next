@@ -1,13 +1,21 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevronDown, FiChevronUp, FiActivity, FiMonitor, FiMaximize, FiCheckSquare, FiUsers, FiRefreshCw, FiDownload } from 'react-icons/fi'
+import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevronDown, FiChevronUp, FiActivity, FiMonitor, FiMaximize, FiCheckSquare, FiUsers, FiRefreshCw, FiDownload, FiShare2, FiX } from 'react-icons/fi'
 import ReassignTestModal from './admin/ReassignTestModal'
 
 export default function TestResultView({ testId, sessionId, returnUrl, viewMode, viewAnalysis }) {
   const router = useRouter()
   const contentRef = useRef(null)
   const [downloading, setDownloading] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [shareTab, setShareTab] = useState('student')
+  const [students, setStudents] = useState([])
+  const [tutors, setTutors] = useState([])
+  const [selectedUsers, setSelectedUsers] = useState([])
+  const [shareMessage, setShareMessage] = useState('')
+  const [loadingUsers, setLoadingUsers] = useState(false)
+  const [sendingPDF, setSendingPDF] = useState(false)
   
   const [session, setSession] = useState(null)
   const [test, setTest] = useState(null) // Store test data including showExplanation
@@ -524,6 +532,103 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
     }
   }
 
+  const fetchUsers = async () => {
+    setLoadingUsers(true)
+    try {
+      const token = localStorage.getItem('token')
+      const [studentsRes, tutorsRes] = await Promise.all([
+        fetch('/api/admin/users?role=Student', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/admin/users?role=Tutor', { headers: { Authorization: `Bearer ${token}` } })
+      ])
+      if (studentsRes.ok) setStudents(await studentsRes.json())
+      if (tutorsRes.ok) setTutors(await tutorsRes.json())
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    } finally {
+      setLoadingUsers(false)
+    }
+  }
+
+  const generatePDFBlob = async () => {
+    const html2canvas = (await import('html2canvas')).default
+    const jsPDF = (await import('jspdf')).default
+    
+    const element = contentRef.current
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#f9fafb'
+    })
+    
+    const imgData = canvas.toDataURL('image/png')
+    const pdf = new jsPDF('p', 'mm', 'a4')
+    const pdfWidth = pdf.internal.pageSize.getWidth()
+    const pdfHeight = pdf.internal.pageSize.getHeight()
+    const imgWidth = canvas.width
+    const imgHeight = canvas.height
+    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
+    const imgX = (pdfWidth - imgWidth * ratio) / 2
+    const imgY = 10
+    
+    pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio)
+    return pdf.output('blob')
+  }
+
+  const handleSharePDF = async () => {
+    if (selectedUsers.length === 0) {
+      alert('Please select at least one user to share with')
+      return
+    }
+    if (!shareMessage.trim()) {
+      alert('Please enter a message')
+      return
+    }
+
+    setSendingPDF(true)
+    try {
+      const pdfBlob = await generatePDFBlob()
+      const formData = new FormData()
+      const studentName = session.userId?.name || 'Student'
+      const testName = session.testId?.title || 'Test'
+      const subject = session.subject || 'General'
+      const testDate = new Date(session.completedAt || session.updatedAt).toISOString().split('T')[0]
+      formData.append('pdf', pdfBlob, `${studentName}_${subject}_${testDate}.pdf`)
+      formData.append('userIds', JSON.stringify(selectedUsers))
+      formData.append('message', shareMessage)
+      formData.append('studentName', studentName)
+      formData.append('subject', `${testName} (${subject})`)
+      formData.append('testDate', testDate)
+
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/admin/share-pdf', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      })
+
+      if (res.ok) {
+        alert('PDF shared successfully!')
+        setShowShareModal(false)
+        setSelectedUsers([])
+        setShareMessage('')
+      } else {
+        alert('Failed to share PDF')
+      }
+    } catch (error) {
+      console.error('Error sharing PDF:', error)
+      alert('Failed to share PDF')
+    } finally {
+      setSendingPDF(false)
+    }
+  }
+
+  const toggleUserSelection = (userId) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
+    )
+  }
+
   const handleReattempt = async () => {
     try {
       const token = localStorage.getItem('token')
@@ -638,14 +743,30 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                 </div>
                 <div className="flex gap-3">
                     {viewMode === 'admin' && (
-                        <button
-                            onClick={downloadPDF}
-                            disabled={downloading}
-                            className="px-6 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2 shadow-md"
-                        >
-                            <FiDownload className="w-4 h-4" />
-                            {downloading ? 'Generating...' : 'Download PDF'}
-                        </button>
+                        <>
+                            <button
+                                onClick={downloadPDF}
+                                disabled={downloading}
+                                className="px-6 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2 shadow-md"
+                            >
+                                <FiDownload className="w-4 h-4" />
+                                {downloading ? 'Generating...' : 'Download PDF'}
+                            </button>
+                            <button
+                                onClick={() => { 
+                                  setShowShareModal(true); 
+                                  fetchUsers();
+                                  const studentName = session.userId?.name || 'Student'
+                                  const testName = session.testId?.title || 'Test'
+                                  const subject = session.subject || 'General'
+                                  setShareMessage(`Hi, I'm sharing the test result for ${studentName}.\n\nTest: ${testName}\nSubject: ${subject}\n\nPlease review the attached PDF report.`)
+                                }}
+                                className="px-6 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-md"
+                            >
+                                <FiShare2 className="w-4 h-4" />
+                                Share PDF
+                            </button>
+                        </>
                     )}
                     {viewMode === 'admin' && (test?.isTutorTest || test?.practiceMode === 'admin') && session?.analysisSubmitted && !session?.isReassigned && (
                         <button
@@ -1615,6 +1736,59 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                 >
                   OK
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Share Modal */}
+        {showShareModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+              <div className="p-6 border-b flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Share Test Result PDF</h2>
+                <button onClick={() => setShowShareModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <FiX className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="border-b">
+                <div className="flex">
+                  <button onClick={() => setShareTab('student')} className={`flex-1 px-6 py-3 font-medium transition-colors ${shareTab === 'student' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}>Students</button>
+                  <button onClick={() => setShareTab('tutor')} className={`flex-1 px-6 py-3 font-medium transition-colors ${shareTab === 'tutor' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}>Tutors</button>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto p-6">
+                {loadingUsers ? (
+                  <div className="text-center py-8 text-gray-500">Loading users...</div>
+                ) : (
+                  <div className="space-y-2">
+                    {(shareTab === 'student' ? students : tutors).map(user => (
+                      <label key={user._id} className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${selectedUsers.includes(user._id) ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200 hover:border-blue-200'}`}>
+                        <input type="checkbox" checked={selectedUsers.includes(user._id)} onChange={() => toggleUserSelection(user._id)} className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500" />
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">{user.name}</div>
+                          <div className="text-sm text-gray-500">{user.email}</div>
+                        </div>
+                      </label>
+                    ))}
+                    {(shareTab === 'student' ? students : tutors).length === 0 && (
+                      <div className="text-center py-8 text-gray-500">No {shareTab}s found</div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="p-6 border-t bg-gray-50">
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                  <textarea value={shareMessage} onChange={(e) => setShareMessage(e.target.value)} placeholder="Enter a message to send with the PDF..." className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" rows="3" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">{selectedUsers.length} user(s) selected</div>
+                  <div className="flex gap-3">
+                    <button onClick={() => setShowShareModal(false)} className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">Cancel</button>
+                    <button onClick={handleSharePDF} disabled={sendingPDF || selectedUsers.length === 0} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium">{sendingPDF ? 'Sending...' : 'Send PDF'}</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
