@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useState } from 'react'
 import { FiCheck, FiX, FiEdit2, FiImage, FiChevronDown, FiChevronUp, FiSave } from 'react-icons/fi'
 import katex from 'katex'
@@ -225,6 +225,19 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                             <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
                             {isEditing ? <select value={question.difficulty} onChange={(e) => updateQuestion(qIndex, 'difficulty', e.target.value)} className="w-full border rounded px-3 py-2"><option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option></select> : <p>{question.difficulty}</p>}
                           </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Question Type</label>
+                            {isEditing ? (
+                              <select value={question.type || 'MultipleChoice'} onChange={(e) => updateQuestion(qIndex, 'type', e.target.value)} className="w-full border rounded px-3 py-2">
+                                <option value="MultipleChoice">Multiple Choice</option>
+                                <option value="ShortAnswer">Short Answer (Grid-in)</option>
+                                <option value="TrueFalse">True/False</option>
+                                <option value="Essay">Essay</option>
+                              </select>
+                            ) : (
+                              <p className="font-medium text-blue-600">{question.type || 'MultipleChoice'}</p>
+                            )}
+                          </div>
                         </div>
 
                         {(question.questionParagraph || isEditing) && (
@@ -241,21 +254,42 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                             : <div className="bg-white p-3 rounded border">{renderContent(question.content)}</div>}
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Answer Options</label>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {(question.options || []).map((option, optIndex) => (
-                              <div key={optIndex} className="flex items-start gap-2">
-                                <span className={`px-2 py-1 rounded text-sm font-medium flex-shrink-0 ${question.correctAnswer === String.fromCharCode(65 + optIndex) ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>{String.fromCharCode(65 + optIndex)}</span>
-                                {isEditing ? <textarea value={option} onChange={(e) => updateOption(qIndex, optIndex, e.target.value)} className="flex-1 border rounded px-3 py-2 font-mono text-sm" rows={2} /> : <div className="flex-1 bg-white p-2 rounded border">{renderContent(option)}</div>}
-                              </div>
-                            ))}
+                        {(question.type !== 'ShortAnswer' || (question.options && question.options.length > 0)) && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Answer Options</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {(question.options || []).map((option, optIndex) => (
+                                <div key={optIndex} className="flex items-start gap-2">
+                                  <span className={`px-2 py-1 rounded text-sm font-medium flex-shrink-0 ${question.correctAnswer === String.fromCharCode(65 + optIndex) ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>{String.fromCharCode(65 + optIndex)}</span>
+                                  {isEditing ? <textarea value={option} onChange={(e) => updateOption(qIndex, optIndex, e.target.value)} className="flex-1 border rounded px-3 py-2 font-mono text-sm" rows={2} /> : <div className="flex-1 bg-white p-2 rounded border">{renderContent(option)}</div>}
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Correct Answer</label>
-                          {isEditing ? <select value={question.correctAnswer} onChange={(e) => updateQuestion(qIndex, 'correctAnswer', e.target.value)} className="w-full border rounded px-3 py-2"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select> : <p className="text-green-600 font-semibold">{question.correctAnswer}</p>}
+                          {isEditing ? (
+                            question.type === 'ShortAnswer' ? (
+                              <input
+                                type="text"
+                                value={question.correctAnswer}
+                                onChange={(e) => updateQuestion(qIndex, 'correctAnswer', e.target.value)}
+                                className="w-full border rounded px-3 py-2"
+                                placeholder="Enter numeric answer or text..."
+                              />
+                            ) : (
+                              <select value={question.correctAnswer} onChange={(e) => updateQuestion(qIndex, 'correctAnswer', e.target.value)} className="w-full border rounded px-3 py-2">
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                              </select>
+                            )
+                          ) : (
+                            <p className="text-green-600 font-semibold">{question.correctAnswer}</p>
+                          )}
                         </div>
 
                         <div>

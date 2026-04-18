@@ -54,7 +54,7 @@ export async function POST(request) {
       longExplanation: q.longExplanation,
       subject: q.subject,
       difficulty: q.difficulty,
-      type: 'MultipleChoice',
+      type: q.type || 'MultipleChoice',
       testType: 'Base',
       correctAnswer: q.correctAnswer,
       options: JSON.stringify(q.options),

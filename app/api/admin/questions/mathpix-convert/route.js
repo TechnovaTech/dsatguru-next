@@ -101,10 +101,10 @@ export async function GET(request) {
     const mdText = await mdRes.text()
     if (!mdText || mdText.trim().length < 10) return NextResponse.json({ status: 'processing', percent: pctDone })
 
-    // Debug: Log first 2000 characters of raw markdown for troubleshooting
-    console.log('\n📄 Mathpix Raw Markdown (first 2000 chars):')
+    // Debug: Log first 5000 characters of raw markdown for troubleshooting
+    console.log('\n📄 Mathpix Raw Markdown (first 5000 chars):')
     console.log('=' .repeat(80))
-    console.log(mdText.substring(0, 2000))
+    console.log(mdText.substring(0, 5000))
     console.log('=' .repeat(80))
     console.log('\n')
 
@@ -180,103 +180,179 @@ function cleanContent(text) {
 
 function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
   const questions = []
+  
+    // --- 1. SMART SPLITTING ---
+    // We use a unique marker to split the document.
+    const marker = '[[Q-SEP]]'
+    
+    // Normalize line endings
+    let prepared = md.replace(/\r\n/g, '\n')
+    
+    // Debug: Log the first 2000 characters to help identify markers
+    console.log('\n--- 🛠️ PRE-SPLIT DEBUG (First 2000 chars) ---')
+    console.log(prepared.substring(0, 2000))
+    console.log('-------------------------------------------\n')
 
-  // --- Pre-process: normalize all question heading variants → "N."
-  // Handles: "## Question 2", "Question 2", "Q2", "q2", bare "2" on its own line
-  const normalized = md
-    // "## Question N" / "# Question N"
-    .replace(/^#{1,3}\s*[Qq]uestion\s+(\d+)\s*$/gim, '$1.')
-    // "Question N" (no hash)
-    .replace(/^[Qq]uestion\s+(\d+)\s*$/gim, '$1.')
-    // "Q1" / "q1" alone on a line (with or without dot/paren already)
-    .replace(/^[Qq](\d+)\s*$/gm, '$1.')
-    // bare number alone on its own line e.g. just "2" — only if it's a plausible question number (1-999)
-    // must be preceded by a blank line or start of string to avoid matching numbers inside text
-    .replace(/(^|\n\n)(\d{1,3})\s*\n/g, (_, pre, num) => `${pre}${num}.\n`)
+    // 1. Split on Mathpix page breaks (--- or ***)
+    // We allow optional whitespace before/after
+    prepared = prepared.replace(/^[ \t]*[-*]{3,}[ \t]*$/gm, marker)
+    
+    // 2. Split on Topic lines (e.g. "Linear Inequalities - ...")
+    // Since every question starts with a topic line, this is a great fallback.
+    // We use a lookahead so the topic line stays inside the new block.
+    prepared = prepared.replace(/\n(?=(?:#{1,6}\s*)?[A-Z][^.!?\n]{5,60}\s*-\s*[A-Z][^.!?\n]{3,120})/gm, marker)
 
-  // Split on normalized "N." / "N)" question starters, or "QN." / "QN)" variants
-  const rawBlocks = normalized.split(/\n(?=(?:[Qq](?:uestion)?\s*)?\d+[\.\)]\s)/i).filter(b => b.trim())
+    // 3. Split on explicit headers like "Question 1", "## 1", or simply "1.", "1)", "(1)", "1"
+    // We allow it to be at start of line or preceded by multiple newlines
+    // Added \n? to ensure we catch it even if there's a preceding newline from previous content
+    prepared = prepared.replace(/(?:\n|^)[ \t]*(?:#{1,6}\s+|(?:\*\*|__)?(?:Question|Page|Q)\s+(?:\*\*|__)?|(?:\*\*|__)?\()?\b(\d{1,3})\b[\)\.]?(?:\*\*|__)?(?:[ \t]+|$)/gmi, marker)
 
-  // Sort by question number to preserve PDF order
-  const blocks = rawBlocks
-    .map(b => {
-      const numMatch = b.match(/^(?:[Qq](?:uestion)?\s*)?(\d+)[\.\)]\s/i)
-      return { block: b.trim(), num: numMatch ? parseInt(numMatch[1]) : 9999 }
-    })
-    .sort((a, b) => a.num - b.num)
-    .map(x => x.block)
+    // Split into blocks
+    const rawBlocks = prepared.split(marker)
+      .map(b => b.trim())
+      .filter(b => b.length > 0)
+    
+    console.log(`\n==================================================`)
+    console.log(`🚀 MATHPIX PARSING START`)
+    console.log(`Total blocks found after splitting: ${rawBlocks.length}`)
+    console.log(`==================================================\n`)
 
-  for (let i = 0; i < blocks.length; i++) {
-    const block = blocks[i]
-    if (!block) continue
+    // IMPORTANT: Track actual question sequence to maintain order and uniqueness
+    let addedCount = 0
+    let skippedCount = 0
 
-    // Strip any bracketed date/source labels from the entire block first
-    const cleanBlock = block.replace(/\[[^\]]{0,80}\d{4}[^\]]{0,40}\]/g, '').replace(/\n{3,}/g, '\n\n').trim()
+    for (let i = 0; i < rawBlocks.length; i++) {
+      const block = rawBlocks[i]
+      
+      // LOG EVERY BLOCK FOR THE USER
+      console.log(`\n--- 🔍 Checking Block ${i} (Length: ${block.length} chars) ---`)
+      const preview = block.substring(0, 150).replace(/\n/g, ' | ')
+      console.log(`   Preview: "${preview}..."`)
 
-    // Match question text — stop at first answer option OR markdown table row OR Answer: line
-    // Handles: "A) ...", "| A) |", "Answer:", "## Answer"
-    const qMatch = cleanBlock.match(/^(?:[Qq](?:uestion)?\s*)?\d+[\.\)]\s*([\s\S]*?)(?=\n\s*(?:\|?\s*\(?[A-D][\)\.]\s|\*{0,2}Answer|\*{0,2}Short Explanation|\*{0,2}Mathematical Shortcut|\*{0,2}Long Explanation|##\s*Answer))/i)
-    if (!qMatch) continue
+      // Rejection logic with explicit reasons
+      if (block.length <= 10) {
+          console.log(`   ❌ SKIPPED: Block is too small to be a question.`)
+          skippedCount++
+          continue
+      }
 
-    let rawQuestion = cleanContent(qMatch[1])
-    if (!rawQuestion || rawQuestion.length < 3) continue
+      // Safety checks
+      const isMCQ = /Answer:\s*[A-D]/i.test(block) || /[A-D][\)\.]\s+/.test(block)
+      const isSPR = /response:\s*([\-\d\.\/]+)/i.test(block) || /Answer:\s*([\-\d\.\/]+)/i.test(block)
+      const hasTopic = /^[ \t]*(?:#{1,6}\s*)?[A-Z][^.!?\n]{5,60}\s*-\s*[A-Z][^.!?\n]{3,120}/m.test(block)
+      const hasDifficulty = /Difficulty:\s*(Easy|Medium|Hard)/i.test(block)
 
-    // Strip subtitle lines: lines that look like "Topic - Subtopic / Category" (no sentence punctuation)
-    // These appear right after the question heading in some PDFs
-    rawQuestion = rawQuestion.replace(/^[A-Z][^.!?\n]{5,80}(?:\s*[-\/]\s*[A-Z][^.!?\n]{3,60})+\s*\n/m, '')
+      // Block 0 handling (Cover page)
+      // We ONLY skip Block 0 if it really looks like a cover page (no question indicators at all)
+      if (i === 0 && !isMCQ && !isSPR && !hasTopic && !hasDifficulty) {
+          console.log(`   ❌ SKIPPED: Block 0 identified as Info/Cover Page.`)
+          skippedCount++
+          continue
+      }
 
-    // Split passage + question text
-    let questionParagraph = ''
-    let questionText = rawQuestion.trim()
-    const paraMatch = rawQuestion.match(/^([\s\S]{80,}?)\n\n([\s\S]+)$/)
-    if (paraMatch) { questionParagraph = paraMatch[1].trim(); questionText = paraMatch[2].trim() }
-
-    // Options — handle both single-line and 2-column same-line layout
-    // e.g. "A) 33    C) 38\nB) 34    D) 39"
-    const expandedBlock = expandTwoColumnOptions(cleanBlock)
-
-    const optA = cleanContent(extractOption(expandedBlock, 'A'))
-    const optB = cleanContent(extractOption(expandedBlock, 'B'))
-    const optC = cleanContent(extractOption(expandedBlock, 'C'))
-    const optD = cleanContent(extractOption(expandedBlock, 'D'))
-
-    const ansMatch = cleanBlock.match(/(?:answer|correct\s*answer|key|ans)[:\s]+\(?([A-D])\)?/i)
-    const correctAnswer = ansMatch ? ansMatch[1].toUpperCase() : 'A'
-
-    // Short Explanation / Mathematical Shortcut / Long Explanation
-    // These appear as labeled sections in colored boxes in the PDF
-    // More flexible regex to handle various markdown formatting from Mathpix
-    const sectionRx = (label) => {
-      // Match section header with optional markdown formatting (**, ##, etc.)
-      // Capture everything until next section header or end
-      const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      return new RegExp(
-        `(?:^|\\n)(?:#{1,6}\\s*)?\\*{0,4}${escapedLabel}\\*{0,4}(?:\\s*:)?\\s*\\n?` +
-        `([\\s\\S]*?)` +
-        `(?=\\n+(?:#{1,6}\\s*)?\\*{0,4}(?:Short Explanation|Mathematical Shortcut|Long Explanation|Answer|Difficulty|Question\\s*\\d+)[:\\s*]|$)`,
-        'i'
-      )
+      // NO MORE STRING REQUIREMENTS FOR OTHER BLOCKS!
+      // If Mathpix found a block between separators, we ADD IT.
+      // This ensures we don't miss short questions or pages with only images.
+      
+      addedCount++
+      processValidBlock(block, addedCount)
     }
 
-    // Try to extract explanation sections
+    console.log(`\n==================================================`)
+    console.log(`🏁 MATHPIX PARSING COMPLETE`)
+    console.log(`✅ TOTAL ADDED: ${addedCount}`)
+    console.log(`❌ TOTAL SKIPPED: ${skippedCount}`)
+    console.log(`==================================================\n`)
+
+  function processValidBlock(block, qIndex) {
+    // rowNumber is our ABSOLUTE truth for order (001, 002, 003...)
+    const rowNumber = qIndex.toString().padStart(3, '0')
+    
+    // Detect Question Number only for logging/display
+    const qNumMatch = block.substring(0, 200).match(/(?:Question|Page|Q)\s*(\d{1,3})\b/i)
+    const displayNum = qNumMatch ? qNumMatch[1] : qIndex
+
+    // NEW: Extract Topic Tag
+    const topicMatch = block.match(/^[ \t]*(?:#{1,6}\s*)?([A-Z][^.!?\n]{5,60}\s*-\s*[A-Z][^.!?\n]{3,120})/m)
+    const detectedTopic = topicMatch ? topicMatch[1].trim() : ''
+
+    // 2. Detect Type
+    const isSPR = /response:\s*([\-\d\.\/]+)/i.test(block) || 
+                  /Correct\s*\n?\s*response:\s*([\-\d\.\/]+)/i.test(block) ||
+                  (/(?:Short Answer|Student-Produced Response)/i.test(block) && /Answer:\s*([\-\d\.\/]+)/i.test(block))
+    
+    const type = isSPR ? 'ShortAnswer' : 'MultipleChoice'
+    const cleanBlock = block.trim()
+    
+    // 3. Extract Correct Answer
+    let correctAnswer = ''
+    if (type === 'MultipleChoice') {
+      const ansMatch = cleanBlock.match(/Answer:\s*([A-D])/i)
+      correctAnswer = ansMatch ? ansMatch[1].toUpperCase() : 'A'
+    } else {
+      const sprMatch = cleanBlock.match(/response:\s*([\-\d\.\/]+)/i) || 
+                       cleanBlock.match(/Correct\s*\n?\s*response:\s*([\-\d\.\/]+)/i) ||
+                       cleanBlock.match(/Answer:\s*([\-\d\.\/]+)/i)
+      correctAnswer = sprMatch ? sprMatch[1] : ''
+    }
+
+    // 4. Extract Question Text
+    let questionText = cleanBlock.trim()
+    const headerRegex = /\n\s*(?:#{1,6}\s*)?(?:\*\*|__)?(?:Answer|Short Explanation|Mathematical Shortcut|Long Explanation|Difficulty|response|Correct\s*\n?\s*response|Topic|Category|Tags|Question|Page)\s*(?::|\d)/i
+    
+    // NEW: Refined splitting for the specific "one question per page" format
+    // We look for the FIRST occurrence of a major section header to end the question text
+    const sectionHeaders = [
+      'Answer:', 
+      'Short Explanation', 
+      'Mathematical Shortcut', 
+      'Long Explanation', 
+      'Difficulty:',
+      'Topic:'
+    ]
+    
+    let firstHeaderIndex = questionText.length
+    sectionHeaders.forEach(h => {
+      const idx = questionText.indexOf(h)
+      if (idx !== -1 && idx < firstHeaderIndex) {
+        // Ensure it's not just part of another word
+        const prevChar = idx > 0 ? questionText[idx-1] : '\n'
+        if (prevChar === '\n' || prevChar === ' ' || prevChar === '*') {
+          firstHeaderIndex = idx
+        }
+      }
+    })
+    
+    if (firstHeaderIndex < questionText.length) {
+      questionText = questionText.substring(0, firstHeaderIndex).trim()
+    }
+
+    // Cleanup leading headers from text (Question 1, 1., 1), (1), etc)
+    questionText = questionText
+      .replace(/^[ \t]*(?:#{1,6}\s+|(?:\*\*|__)?(?:Question|Page|Q)\s+(?:\*\*|__)?|(?:\*\*|__)?\()?\b\d{1,3}\b[\)\.]?(?:\*\*|__)?(?:[ \t]+|:|\.)/gmi, '')
+      // Remove the topic line if it was detected at the top
+      .replace(/^[ \t]*(?:#{1,6}\s*)?[A-Z][^.!?\n]{5,60}\s*-\s*[A-Z][^.!?\n]{3,120}[ \t]*/m, '')
+      .trim()
+
+    // 5. Options
+    let options = []
+    if (type === 'MultipleChoice') {
+      const expandedBlock = expandTwoColumnOptions(cleanBlock)
+      options = [
+        cleanContent(extractOption(expandedBlock, 'A')),
+        cleanContent(extractOption(expandedBlock, 'B')),
+        cleanContent(extractOption(expandedBlock, 'C')),
+        cleanContent(extractOption(expandedBlock, 'D'))
+      ]
+    }
+
+    // 6. Explanations
     const shortRaw = cleanBlock.match(sectionRx('Short Explanation'))
     const shortcutRaw = cleanBlock.match(sectionRx('Mathematical Shortcut'))
     const longRaw = cleanBlock.match(sectionRx('Long Explanation'))
-    const genericExplMatch = cleanBlock.match(/(?:^|\n)(?:explanation|solution|rationale)[:\s]+([\s\S]+?)(?=\n\n|\n(?:[Qq](?:uestion)?\s*)?\d+[\.\)]|$)/i)
-
-    // Debug logging for first question
-    if (i === 0) {
-      console.log('🔍 Mathpix Explanation Extraction Debug (Question 1):')
-      console.log('Short Explanation found:', !!shortRaw, shortRaw ? `(${shortRaw[1].substring(0, 100)}...)` : '')
-      console.log('Mathematical Shortcut found:', !!shortcutRaw, shortcutRaw ? `(${shortcutRaw[1].substring(0, 100)}...)` : '')
-      console.log('Long Explanation found:', !!longRaw, longRaw ? `(${longRaw[1].substring(0, 100)}...)` : '')
-    }
-
-    // Combine Short Explanation and Mathematical Shortcut into shortExplanation
+    
     let shortExplanation = ''
-    if (shortRaw && shortRaw[1]) {
-      shortExplanation = cleanContent(shortRaw[1].trim())
-    }
+    if (shortRaw && shortRaw[1]) shortExplanation = cleanContent(shortRaw[1].trim())
     if (shortcutRaw && shortcutRaw[1]) {
       const shortcutContent = cleanContent(shortcutRaw[1].trim())
       if (shortcutContent) {
@@ -285,69 +361,79 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
           : '**Mathematical Shortcut:**\n' + shortcutContent
       }
     }
-    // Fallback to generic explanation if no specific sections found
-    if (!shortExplanation && genericExplMatch) {
-      shortExplanation = cleanContent(genericExplMatch[1])
-    }
 
     const longExplanation = cleanContent(longRaw && longRaw[1] ? longRaw[1].trim() : '')
     const explanation = shortExplanation || longExplanation
 
-    // Difficulty
+    // 7. Difficulty
     let difficulty = defaultDifficulty
-    const diffMatch = cleanBlock.match(/(?:difficulty|level)[:\s]+(easy|medium|hard)/i)
+    const diffMatch = cleanBlock.match(/Difficulty:\s*(Easy|Medium|Hard)/i)
     if (diffMatch) difficulty = cap(diffMatch[1])
-    else if (/\b(easy|simple|basic)\b/i.test(questionText)) difficulty = 'Easy'
-    else if (/\b(hard|difficult|challenging|advanced)\b/i.test(questionText)) difficulty = 'Hard'
 
-    // Tags: explicit in doc + auto-detected from content
+    // 8. Tags
     const tagLineMatch = cleanBlock.match(/(?:^|\n)\s*(?:topic|tag|category|tags)[:\s]+([^\n]+)/i)
     const explicitTags = tagLineMatch ? tagLineMatch[1].split(',').map(t => t.trim()).filter(Boolean) : []
-    const autoTags = detectTopicTags(questionText + ' ' + questionParagraph, subject)
-    const tags = [...new Set([...explicitTags, ...autoTags, ...globalTags])].filter(Boolean)
+    const autoTags = detectTopicTags(questionText, subject)
+    // Add the detected topic as a primary tag
+    const tags = [...new Set([detectedTopic, ...explicitTags, ...autoTags, ...globalTags])].filter(Boolean)
 
-    // First local image in block → imageUrl
+    // 9. Image
     const imgMatch = cleanBlock.match(/!\[.*?\]\((\/uploads\/questions\/[^)]+)\)/)
     const imageUrl = imgMatch ? imgMatch[1] : ''
 
-    const questionId = generateQuestionId(subject, tags[0] || 'General', difficulty, i + 1)
+    console.log(`   ✅ SUCCESS: Added Question ${displayNum} (Type: ${type}, Answer: ${correctAnswer})`)
 
     questions.push({
-      id: `mathpix-${i + 1}`,
-      questionId,
+      id: `mathpix-${rowNumber}-${Date.now()}`, // Sortable unique ID
+      questionId: generateQuestionId(subject, tags[0] || 'General', difficulty, rowNumber),
       title: questionText.replace(/!\[.*?\]\(.*?\)/g, '').substring(0, 100),
       content: questionText,
-      questionParagraph,
       explanation,
       shortExplanation,
       longExplanation,
       subject,
       difficulty,
+      type,
       correctAnswer,
-      options: [optA, optB, optC, optD],
+      options,
       tags,
       imageUrl,
       remark: ''
     })
   }
+
+  function sectionRx(label) {
+    const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return new RegExp(
+      `(?:^|\\n)(?:#{1,6}\\s*)?\\*{0,4}${escapedLabel}\\*{0,4}(?:\\s*:)?\\s*\\n?` +
+      `([\\s\\S]*?)` +
+      `(?=\\n+(?:#{1,6}\\s*)?\\*{0,4}(?:Short Explanation|Mathematical Shortcut|Long Explanation|Answer|Difficulty|Topic|Category|Tags|Question|Page)[:\\s*]|$)`,
+      'i'
+    )
+  }
+
+  console.log(`\n==================================================`)
+  console.log(`🏁 MATHPIX PARSING COMPLETE`)
+  console.log(`Final Questions Count: ${questions.length}`)
+  console.log(`==================================================\n`)
+
   return questions
 }
 
 // Expand 2-column answer choices onto separate lines
-// Handles: "A) 33    C) 38\nB) 34    D) 39" and "| A) foo | C) bar |" table rows
+// Handles: "A) 33    C) 38", "| A) foo | C) bar |", and "A) 33 C) 38"
 function expandTwoColumnOptions(block) {
-  // Convert markdown table option rows to plain lines first
-  // e.g. "| A) foo | C) bar |" → "A) foo\nC) bar"
-  let result = block.replace(
-    /^\|?\s*(\(?[A-D][\)\.]\s+[^|]+?)\s*\|\s*(\(?[A-D][\)\.]\s+[^|]+?)\s*\|?\s*$/gm,
-    (_, left, right) => `${left.trim()}\n${right.trim()}`
-  )
-  // Then handle same-line 2-column: "A) 33    C) 38"
-  result = result.replace(
-    /^(\s*\(?([A-D])[\)\.]\s+)(.*?)\s{2,}(\(?([A-D])[\)\.]\s+.*)$/gm,
-    (_, _pfx, _l1, val1, rest, _l2) => `${_pfx}${val1}\n${rest}`
-  )
-  return result
+  let result = block
+    // 1. Convert markdown table rows to plain lines first
+    .replace(/^\|?\s*(\(?[A-D][\)\.]\s+[^|]+?)\s*\|\s*(\(?[A-D][\)\.]\s+[^|]+?)\s*\|?\s*$/gm,
+      (_, left, right) => `${left.trim()}\n${right.trim()}`)
+    
+    // 2. Handle same-line 2-column: "A) 33    C) 38" or "A) 33 C) 38"
+    // We look for A/B followed by C/D on the same line
+    .replace(/^(\s*\(?[A-B][\)\.]\s+.*?)\s{1,}(\(?([C-D])[\)\.]\s+.*)$/gm,
+      (_, left, right) => `${left.trim()}\n${right.trim()}`);
+  
+  return result;
 }
 
 function extractOption(block, letter) {
