@@ -51,11 +51,31 @@ export async function POST(request) {
       rm_spaces: true
     }))
 
-    const uploadRes = await fetch('https://api.mathpix.com/v3/pdf', {
-      method: 'POST',
-      headers: MX(),
-      body: uploadForm
-    })
+    // Retry the upload up to 3 times with exponential backoff to survive transient
+    // network drops (ECONNRESET / ETIMEDOUT) that commonly hit large multipart uploads.
+    let uploadRes
+    let lastErr
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        uploadRes = await fetch('https://api.mathpix.com/v3/pdf', {
+          method: 'POST',
+          headers: MX(),
+          body: uploadForm,
+          // Disable keep-alive reuse so a stale socket from a prior attempt isn't reused
+          keepalive: false
+        })
+        lastErr = null
+        break
+      } catch (e) {
+        lastErr = e
+        const code = e?.cause?.code || e?.code || ''
+        const isTransient = ['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'EPIPE', 'UND_ERR_SOCKET'].includes(code)
+        console.warn(`Mathpix upload attempt ${attempt}/3 failed (${code || e.message}). ${isTransient && attempt < 3 ? 'Retrying...' : ''}`)
+        if (!isTransient || attempt === 3) throw e
+        await new Promise(r => setTimeout(r, 1000 * attempt)) // 1s, 2s backoff
+      }
+    }
+    if (lastErr) throw lastErr
 
     if (!uploadRes.ok) {
       const err = await uploadRes.json().catch(() => ({}))
@@ -68,7 +88,12 @@ export async function POST(request) {
     return NextResponse.json({ success: true, pdfId: pdf_id, subject, difficulty: defaultDifficulty, tags: tagsInput, status: 'processing' })
   } catch (error) {
     console.error('Mathpix upload error:', error)
-    return NextResponse.json({ error: 'Upload failed', details: error.message }, { status: 500 })
+    const code = error?.cause?.code || error?.code || ''
+    const isNetwork = ['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'EPIPE', 'UND_ERR_SOCKET'].includes(code)
+    const friendly = isNetwork
+      ? `Network error talking to Mathpix (${code}). Check your internet connection and try again.`
+      : `Upload failed: ${error.message}`
+    return NextResponse.json({ error: friendly, details: error.message }, { status: 500 })
   }
 }
 
@@ -193,25 +218,98 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     console.log(prepared.substring(0, 2000))
     console.log('-------------------------------------------\n')
 
+    // 0. PRIMARY SPLIT: After "Difficulty: Easy|Medium|Hard" — the END marker for each question.
+    // In SAT-prep PDFs every question ends with this footer. Splitting AFTER it gives clean
+    // per-question blocks even when Mathpix flattens multiple pages onto one line without
+    // page-break markers. This is the most reliable boundary for this format.
+    prepared = prepared.replace(
+      /((?:\*{1,4}|_{1,4})?Difficulty(?:\*{1,4}|_{1,4})?\s*:?\s*(?:Easy|Medium|Hard))\b/gi,
+      '$1' + marker
+    )
+
     // 1. Split on Mathpix page breaks (--- or ***)
     // We allow optional whitespace before/after
     prepared = prepared.replace(/^[ \t]*[-*]{3,}[ \t]*$/gm, marker)
-    
-    // 2. Split on Topic lines (e.g. "Linear Inequalities - ...")
+
+    // 2. Split BEFORE Topic lines (e.g. "Linear Inequalities - ...")
     // Since every question starts with a topic line, this is a great fallback.
     // We use a lookahead so the topic line stays inside the new block.
+    // Match both newline-prefixed AND inline (after digit/punctuation) topic patterns.
     prepared = prepared.replace(/\n(?=(?:#{1,6}\s*)?[A-Z][^.!?\n]{5,60}\s*-\s*[A-Z][^.!?\n]{3,120})/gm, marker)
+    // Inline topic detection: strong pattern "Word Word(s) - Capital..." after digit or sentence punctuation
+    prepared = prepared.replace(
+      /(?<=[\d.!?\]\)])\s+(?=[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,5}\s*-\s*[A-Z][a-z])/g,
+      ' ' + marker
+    )
 
     // 3. Split on explicit headers like "Question 1", "## 1", or simply "1.", "1)", "(1)", "1"
     // We allow it to be at start of line or preceded by multiple newlines
     // Added \n? to ensure we catch it even if there's a preceding newline from previous content
     prepared = prepared.replace(/(?:\n|^)[ \t]*(?:#{1,6}\s+|(?:\*\*|__)?(?:Question|Page|Q)\s+(?:\*\*|__)?|(?:\*\*|__)?\()?\b(\d{1,3})\b[\)\.]?(?:\*\*|__)?(?:[ \t]+|$)/gmi, marker)
 
+    // 4. Inline "Question N" / "Page N" detection (no newline required)
+    prepared = prepared.replace(
+      /(?<=[\s\d.!?\]\)])(?=(?:\*{1,4}|_{1,4})?(?:Question|Page)\s+\d{1,3}\b)/gi,
+      marker
+    )
+
     // Split into blocks
-    const rawBlocks = prepared.split(marker)
+    let rawBlocks = prepared.split(marker)
       .map(b => b.trim())
       .filter(b => b.length > 0)
-    
+
+    // SAFETY NET: If any block STILL contains 2+ "Difficulty: X" markers, it means
+    // Mathpix merged questions in a way that fooled all our split patterns. Force-split.
+    const safeBlocks = []
+    const diffSplitRx = /((?:\*{1,4}|_{1,4})?Difficulty(?:\*{1,4}|_{1,4})?\s*:?\s*(?:Easy|Medium|Hard))/i
+    const diffCountRx = /(?:\*{1,4}|_{1,4})?Difficulty(?:\*{1,4}|_{1,4})?\s*:?\s*(?:Easy|Medium|Hard)/gi
+    for (const block of rawBlocks) {
+      const matches = block.match(diffCountRx)
+      if (matches && matches.length > 1) {
+        // Split capturing the delimiter so it stays at the end of each piece
+        const parts = block.split(diffSplitRx)
+        // parts = [before1, diff1, between, diff2, after, ...]
+        let current = ''
+        for (let p = 0; p < parts.length; p++) {
+          current += parts[p]
+          // After capturing a Difficulty marker (odd index), close the block
+          if (p % 2 === 1) {
+            const t = current.trim()
+            if (t.length > 0) safeBlocks.push(t)
+            current = ''
+          }
+        }
+        // Trailing remainder (after the last Difficulty)
+        const tail = current.trim()
+        if (tail.length > 0) safeBlocks.push(tail)
+      } else {
+        safeBlocks.push(block)
+      }
+    }
+    rawBlocks = safeBlocks
+
+    // ORPHAN MERGE: If a block is JUST a footer/header noise (e.g., "## Difficulty: Easy"
+    // alone, "## Answer: B" alone, or just a section header like "## Long Explanation"),
+    // it's a piece of the PREVIOUS question that got separated by the page-number split.
+    // Merge it back into the previous block so the question stays whole.
+    const ORPHAN_PATTERNS = [
+      /^(?:#{1,6}\s*)?(?:\*{1,4}|_{1,4})?Difficulty(?:\*{1,4}|_{1,4})?\s*:?\s*(?:Easy|Medium|Hard)\s*$/i,
+      /^(?:#{1,6}\s*)?(?:\*{1,4}|_{1,4})?Answer(?:\*{1,4}|_{1,4})?\s*:?\s*[A-D]\s*$/i,
+      /^(?:#{1,6}\s*)?(?:\*{1,4}|_{1,4})?(?:Short Explanation|Long Explanation|Mathematical Shortcut|Explanation|Topic|Category|Tags)(?:\*{1,4}|_{1,4})?\s*:?\s*$/i,
+      /^\d{1,3}\s*$/  // Bare page number footer
+    ]
+    const mergedBlocks = []
+    for (const block of rawBlocks) {
+      const t = block.trim()
+      const isOrphan = t.length < 60 && ORPHAN_PATTERNS.some(rx => rx.test(t))
+      if (isOrphan && mergedBlocks.length > 0) {
+        mergedBlocks[mergedBlocks.length - 1] += '\n\n' + t
+      } else {
+        mergedBlocks.push(t)
+      }
+    }
+    rawBlocks = mergedBlocks
+
     console.log(`\n==================================================`)
     console.log(`🚀 MATHPIX PARSING START`)
     console.log(`Total blocks found after splitting: ${rawBlocks.length}`)
@@ -268,8 +366,10 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     // rowNumber is our ABSOLUTE truth for order (001, 002, 003...)
     const rowNumber = qIndex.toString().padStart(3, '0')
     
-    // Detect Question Number only for logging/display
-    const qNumMatch = block.substring(0, 200).match(/(?:Question|Page|Q)\s*(\d{1,3})\b/i)
+    // Detect Question Number only for logging/display.
+    // Require explicit "Question" or "Page" word with whitespace — never single letter Q
+    // (which falsely matches things like "Q4" inside math expressions or "$\geq 150$").
+    const qNumMatch = block.substring(0, 200).match(/\b(?:Question|Page)\s+(\d{1,3})\b/i)
     const displayNum = qNumMatch ? qNumMatch[1] : qIndex
 
     // NEW: Extract Topic Tag
