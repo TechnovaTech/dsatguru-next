@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect } from 'react'
-import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock, FiVideo, FiUser, FiCalendar, FiMessageSquare } from 'react-icons/fi'
+import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock, FiVideo, FiUser, FiCalendar, FiMessageSquare, FiZap } from 'react-icons/fi'
 import { TbMathSymbols } from 'react-icons/tb'
 import { useState } from 'react'
 import { FiAlertCircle } from 'react-icons/fi'
@@ -39,6 +39,7 @@ const navItems = [
       { name: "Admin Read and Write", icon: <FiPieChart />, path: "/dashboard/admin-tests/rw" },
     ]
   },
+  { name: "Adaptive Tests", icon: <FiZap />, path: "/dashboard/adaptive-tests" },
   { name: "Live Classes", icon: <FiVideo />, path: "/dashboard/live-classes" },
   { name: "Live Courses", icon: <FiBook />, path: "/dashboard/courses" },
   { name: "Question Banks", icon: <FiDatabase />, path: "/dashboard/question-banks" },

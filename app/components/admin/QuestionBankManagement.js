@@ -78,7 +78,7 @@ const ImagePreview = ({ text }) => {
   )
 }
 
-export default function QuestionBankManagement({ isTutor = false }) {
+export default function QuestionBankManagement({ isTutor = false, isAdminTest = false }) {
   const router = useRouter()
   const [questionBanks, setQuestionBanks] = useState([])
   const [loading, setLoading] = useState(false)
@@ -141,6 +141,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
         setLoading(true)
         let url = '/api/questions?question-banks=true'
         if (isTutor) url += '&isTutor=true'
+        if (isAdminTest) url += '&isAdminTest=true'
         
         const res = await fetch(url)
         const json = await res.json()
@@ -162,6 +163,7 @@ export default function QuestionBankManagement({ isTutor = false }) {
       const params = new URLSearchParams()
       if (bankId) params.set('bankId', bankId)
       if (isTutor) params.set('isTutor', 'true')
+      if (isAdminTest && !bankId) params.set('isAdminTest', 'true')
       if (currentFilters.subject) params.set('subject', currentFilters.subject)
       if (currentFilters.difficulty) params.set('difficulty', currentFilters.difficulty)
       if (currentFilters.type) params.set('type', currentFilters.type)
@@ -286,6 +288,13 @@ export default function QuestionBankManagement({ isTutor = false }) {
       const nextFilters = { ...filters, subject }
       setFilters(nextFilters)
       fetchQuestions(null, nextFilters)
+    } else if (isAdminTest) {
+      if (bank.id === 'admintest-math') {
+        setFilters(prev => ({ ...prev, subject: 'Math' }))
+      } else if (bank.id === 'admintest-rw') {
+        setFilters(prev => ({ ...prev, subject: 'Reading and Writing' }))
+      }
+      fetchQuestions(bank.id)
     } else {
       if (bank.id === 'admin-math') {
         setFilters(prev => ({ ...prev, subject: 'Math' }))

@@ -20,6 +20,7 @@ export async function GET(request) {
     const bankId = searchParams.get('bankId')
     const tag = searchParams.get('tag')
     const isTutor = searchParams.get('isTutor')
+    const isAdminTest = searchParams.get('isAdminTest')
     const ids = searchParams.get('ids')
     
     // Handle fetching by IDs
@@ -107,11 +108,15 @@ export async function GET(request) {
       }))
 
       // Add Admin Subject-based Banks (Old Logic) - Strictly for Direct Uploads (No Question Bank)
-      const adminMathTotal = await Question.countDocuments({ isTutor: { $ne: true }, subject: 'Math', questionBankId: null })
-      const adminMathActive = await Question.countDocuments({ isTutor: { $ne: true }, subject: 'Math', isActive: true, questionBankId: null })
-      
-      const adminRwTotal = await Question.countDocuments({ isTutor: { $ne: true }, subject: 'Reading and Writing', questionBankId: null })
-      const adminRwActive = await Question.countDocuments({ isTutor: { $ne: true }, subject: 'Reading and Writing', isActive: true, questionBankId: null })
+      const adminMathTotal = await Question.countDocuments({ isTutor: { $ne: true }, isAdminTest: { $ne: true }, subject: 'Math', questionBankId: null })
+      const adminMathActive = await Question.countDocuments({ isTutor: { $ne: true }, isAdminTest: { $ne: true }, subject: 'Math', isActive: true, questionBankId: null })
+      const adminRwTotal = await Question.countDocuments({ isTutor: { $ne: true }, isAdminTest: { $ne: true }, subject: 'Reading and Writing', questionBankId: null })
+      const adminRwActive = await Question.countDocuments({ isTutor: { $ne: true }, isAdminTest: { $ne: true }, subject: 'Reading and Writing', isActive: true, questionBankId: null })
+
+      const adminTestMathTotal = await Question.countDocuments({ isAdminTest: true, isTutor: { $ne: true }, subject: 'Math' })
+      const adminTestMathActive = await Question.countDocuments({ isAdminTest: true, isTutor: { $ne: true }, subject: 'Math', isActive: true })
+      const adminTestRwTotal = await Question.countDocuments({ isAdminTest: true, isTutor: { $ne: true }, subject: 'Reading and Writing' })
+      const adminTestRwActive = await Question.countDocuments({ isAdminTest: true, isTutor: { $ne: true }, subject: 'Reading and Writing', isActive: true })
 
       const adminBanks = [
         {
@@ -135,7 +140,38 @@ export async function GET(request) {
           createdAt: new Date().toISOString()
         }
       ]
+
+      const adminTestBanks = [
+        {
+          id: 'admintest-math',
+          title: 'Math Database',
+          questionBankType: 'Mathematics',
+          totalQuestions: adminTestMathTotal,
+          activeQuestions: adminTestMathActive,
+          draftQuestions: adminTestMathTotal - adminTestMathActive,
+          status: 'Active',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 'admintest-rw',
+          title: 'Reading & Writing Database',
+          questionBankType: 'Reading and Writing',
+          totalQuestions: adminTestRwTotal,
+          activeQuestions: adminTestRwActive,
+          draftQuestions: adminTestRwTotal - adminTestRwActive,
+          status: 'Active',
+          createdAt: new Date().toISOString()
+        }
+      ]
       
+      if (isAdminTest === 'true') {
+        return NextResponse.json({
+          success: true,
+          data: adminTestBanks,
+          message: 'Admin test question banks retrieved successfully'
+        })
+      }
+
       return NextResponse.json({
         success: true,
         data: [...adminBanks, ...questionBanksData],
@@ -153,11 +189,21 @@ export async function GET(request) {
       if (bankId === 'admin-math') {
         filter.subject = 'Math'
         filter.isTutor = { $ne: true }
+        filter.isAdminTest = { $ne: true }
         filter.questionBankId = null
       } else if (bankId === 'admin-rw') {
         filter.subject = 'Reading and Writing'
         filter.isTutor = { $ne: true }
+        filter.isAdminTest = { $ne: true }
         filter.questionBankId = null
+      } else if (bankId === 'admintest-math') {
+        filter.subject = 'Math'
+        filter.isAdminTest = true
+        filter.isTutor = { $ne: true }
+      } else if (bankId === 'admintest-rw') {
+        filter.subject = 'Reading and Writing'
+        filter.isAdminTest = true
+        filter.isTutor = { $ne: true }
       } else if (bankId === 'tutor-math') {
         filter.subject = 'Math'
         filter.isTutor = true
@@ -170,21 +216,18 @@ export async function GET(request) {
     }
     if (tag) filter.tags = { $regex: tag, $options: 'i' }
     
-    // Filter by isTutor
+    // Filter by isTutor / isAdminTest
     if (isTutor === 'true') {
       filter.isTutor = true
+    } else if (isAdminTest === 'true') {
+      filter.isAdminTest = true
+      filter.isTutor = { $ne: true }
     } else {
-      // For non-tutor requests, get admin questions (no questionBankId or specific bank)
-      // This ensures we get questions from the admin question bank
+      // /admin/question-bank: strictly NOT tutor, NOT adminTest
       if (!bankId) {
-        // Default: get admin questions (not tutor, no specific bank)
-        filter.$or = [
-          { isTutor: { $exists: false }, questionBankId: null },
-          { isTutor: false, questionBankId: null }
-        ]
-      } else if (bankId !== 'admin-math' && bankId !== 'admin-rw' && bankId !== 'tutor-math' && bankId !== 'tutor-rw') {
-        // Specific question bank ID - no additional filtering needed
-        // The questionBankId filter is already set above
+        filter.isTutor = { $ne: true }
+        filter.isAdminTest = { $ne: true }
+        filter.questionBankId = null
       }
     }
 
@@ -310,6 +353,7 @@ export async function POST(request) {
       options: JSON.stringify(questionData.options || []),
       tags: JSON.stringify(questionData.tags || []),
       isTutor: questionData.isTutor || false,
+      isAdminTest: questionData.isAdminTest || false,
       remark: questionData.remark || ''
     })
     

@@ -2,5 +2,5 @@
 import QuestionBankManagement from '../../../components/admin/QuestionBankManagement'
 
 export default function Page() {
-  return <QuestionBankManagement isTutor={false} />
+  return <QuestionBankManagement isTutor={false} isAdminTest={true} />
 }

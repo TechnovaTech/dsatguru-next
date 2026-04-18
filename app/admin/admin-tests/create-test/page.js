@@ -93,7 +93,7 @@ export default function CreateAdminTest() {
     try {
       const token = localStorage.getItem('token')
       // Fetch from Admin Question Bank (isTutor=false)
-      const res = await fetch(`/api/questions?isTutor=false&subject=${formData.subject}&isActive=true`, {
+      const res = await fetch(`/api/questions?isAdminTest=true&subject=${formData.subject}&isActive=true`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       

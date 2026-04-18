@@ -9,6 +9,7 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const isTutor = propIsTutor || searchParams?.get('isTutor') === 'true'
+  const isAdminTest = managePath.includes('admin-tests')
   const urlSubject = searchParams?.get('subject')
   const [view, setView] = useState('landing')
   const initialModeParam = searchParams?.get('mode')
@@ -197,7 +198,8 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
         body: JSON.stringify({
           questions,
           questionBankId: (isTutor || selectedQuestionBank === 'MATH_DIRECT' || selectedQuestionBank === 'RW_DIRECT') ? null : selectedQuestionBank,
-          isTutor
+          isTutor,
+          isAdminTest: !isTutor && isAdminTest
         })
       })
 
@@ -261,6 +263,7 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
         tags,
         questionBankId: (isTutor || selectedQuestionBank === 'MATH_DIRECT' || selectedQuestionBank === 'RW_DIRECT') ? null : selectedQuestionBank,
         isTutor,
+        isAdminTest: !isTutor && isAdminTest,
         questionParagraph: singleQuestion.questionParagraph || ''
       }
       const response = await fetch('/api/questions', {

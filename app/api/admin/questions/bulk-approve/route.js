@@ -17,7 +17,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { questions, questionBankId, isTutor } = await request.json()
+    const { questions, questionBankId, isTutor, isAdminTest } = await request.json()
 
     if (!questions || questions.length === 0) {
       return NextResponse.json({ error: 'No questions provided' }, { status: 400 })
@@ -64,6 +64,7 @@ export async function POST(request) {
       isActive: true,
       questionBankId: isTutor ? null : questionBankId,
       isTutor: isTutor,
+      isAdminTest: isAdminTest === true,
       createdBy: adminUser._id,
       remark: q.remark || ''
     }))

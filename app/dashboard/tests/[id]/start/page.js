@@ -439,7 +439,15 @@ export default function TakeTestPage() {
         } else {
           // Fetch questions from API (standard flow)
           const isTutor = testData.practiceMode === 'tutor' || testData.isTutorTest === true
-          const questionsUrl = `/api/questions?isTutor=${isTutor}`
+          const isAdminTest = testData.practiceMode === 'admin'
+          let questionsUrl
+          if (isTutor) {
+            questionsUrl = `/api/questions?isTutor=true`
+          } else if (isAdminTest) {
+            questionsUrl = `/api/questions?isAdminTest=true`
+          } else {
+            questionsUrl = `/api/questions?isTutor=false`
+          }
           
           console.log(`Fetching questions with isTutor=${isTutor} for test mode: ${testData.practiceMode}, configType: ${testData.configType}`)
           

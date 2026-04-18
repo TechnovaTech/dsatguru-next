@@ -1,18 +1,16 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiPlus, FiEdit, FiTrash2, FiPlay, FiPause, FiUsers, FiFileText } from 'react-icons/fi'
+import { FiPlus, FiEdit, FiTrash2, FiPlay, FiPause, FiUsers, FiFileText, FiUserPlus, FiSearch, FiX, FiCheck } from 'react-icons/fi'
 
 export default function TestManagement() {
   const [tests, setTests] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingTest, setEditingTest] = useState(null)
-  const [questionBanks, setQuestionBanks] = useState([])
   const [formData, setFormData] = useState({
     title: '',
     isActive: true,
     sections: { math: true, rw: true },
-    questionBankIds: [],
     configType: 'standard',
     customConfig: {
       rw: {
@@ -44,7 +42,6 @@ export default function TestManagement() {
 
   useEffect(() => {
     fetchTests()
-    fetchQuestionBanks()
   }, [])
 
   const fetchTests = async () => {
@@ -59,19 +56,6 @@ export default function TestManagement() {
       console.error('Error fetching tests:', error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const fetchQuestionBanks = async () => {
-    try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      const response = await fetch('/api/admin/question-banks', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-      if (response.ok) {
-        const data = await response.json()
-        setQuestionBanks(data)
-      }
-    } catch (error) {
-      console.error('Error fetching question banks:', error)
     }
   }
 
@@ -107,7 +91,6 @@ export default function TestManagement() {
       title: '',
       isActive: true,
       sections: { math: true, rw: true },
-      questionBankIds: [],
       configType: 'standard',
       customConfig: {
         rw: {
@@ -144,7 +127,6 @@ export default function TestManagement() {
       title: test.title,
       isActive: test.isActive,
       sections: test.sections || { math: true, rw: true },
-      questionBankIds: test.questionBankIds || [],
       configType: test.configType || 'standard',
       customConfig: test.customConfig || {
         rw: {
@@ -190,6 +172,70 @@ export default function TestManagement() {
       } catch (error) {
         console.error('Error deleting test:', error)
       }
+    }
+  }
+
+  // Assign to student state
+  const [showAssignModal, setShowAssignModal] = useState(false)
+  const [assigningTest, setAssigningTest] = useState(null)
+  const [allStudents, setAllStudents] = useState([])
+  const [loadingStudents, setLoadingStudents] = useState(false)
+  const [studentAssignedTests, setStudentAssignedTests] = useState({})
+  const [studentSearch, setStudentSearch] = useState('')
+  const [assignSuccess, setAssignSuccess] = useState('')
+  const [assignError, setAssignError] = useState('')
+
+  const handleOpenAssignModal = async (test) => {
+    setAssigningTest(test)
+    setShowAssignModal(true)
+    setLoadingStudents(true)
+    setStudentSearch('')
+    setAssignSuccess('')
+    setAssignError('')
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const res = await fetch('/api/admin/users?role=Student', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      if (res.ok) {
+        const students = await res.json()
+        setAllStudents(students)
+        const map = {}
+        await Promise.all(students.map(async (s) => {
+          try {
+            const r = await fetch(`/api/admin/students/${s._id}/assigned-tests`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+            if (r.ok) {
+              const d = await r.json()
+              map[s._id] = d.assignedTests || []
+            }
+          } catch {}
+        }))
+        setStudentAssignedTests(map)
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoadingStudents(false)
+    }
+  }
+
+  const handleToggleAssign = async (studentId, testId) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    const current = studentAssignedTests[studentId] || []
+    const isAssigned = current.map(id => id.toString()).includes(testId)
+    try {
+      const res = await fetch('/api/admin/students/assign-test', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ studentId, testId, action: isAssigned ? 'remove' : 'add', showExplanation: true })
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setStudentAssignedTests(prev => ({ ...prev, [studentId]: data.assignedTests }))
+        setAssignSuccess(isAssigned ? 'Test unassigned' : 'Test assigned successfully')
+        setTimeout(() => setAssignSuccess(''), 3000)
+      }
+    } catch (err) {
+      setAssignError('Failed to update assignment')
+      setTimeout(() => setAssignError(''), 3000)
     }
   }
 
@@ -250,6 +296,13 @@ export default function TestManagement() {
               </div>
               <div className="flex space-x-2">
                 <button
+                  onClick={() => handleOpenAssignModal(test)}
+                  className="text-purple-600 hover:text-purple-800"
+                  title="Assign to Student"
+                >
+                  <FiUserPlus />
+                </button>
+                <button
                   onClick={() => toggleTestStatus(test._id, test.isActive)}
                   className={`${test.isActive ? 'text-orange-600' : 'text-green-600'} hover:opacity-80`}
                   title={test.isActive ? 'Deactivate' : 'Activate'}
@@ -270,18 +323,6 @@ export default function TestManagement() {
                 </button>
               </div>
             </div>
-            {test.questionBankIds && test.questionBankIds.length > 0 && (
-              <div className="mb-3 flex flex-wrap gap-1">
-                {test.questionBankIds.map(bankId => {
-                  const bank = questionBanks.find(q => String(q._id) === String(bankId))
-                  return bank ? (
-                    <span key={bankId} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                      {bank.title}
-                    </span>
-                  ) : null
-                })}
-              </div>
-            )}
             <p className="text-gray-600 text-sm mb-4">{test.description}</p>
             
             <div className="space-y-3 text-sm">
@@ -327,7 +368,62 @@ export default function TestManagement() {
         ))}
       </div>
 
-      {/* Modal */}
+      {/* Assign to Student Modal */}
+      {showAssignModal && assigningTest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full h-[80vh] flex flex-col overflow-hidden m-4">
+            <div className="p-4 border-b flex items-center justify-between bg-gray-50">
+              <h3 className="font-bold text-lg">Assign "{assigningTest.title}" to Students</h3>
+              <button onClick={() => setShowAssignModal(false)}><FiX size={24} /></button>
+            </div>
+            <div className="p-4 border-b">
+              <div className="relative">
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={studentSearch}
+                  onChange={e => setStudentSearch(e.target.value)}
+                  placeholder="Search students..."
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg"
+                />
+              </div>
+              {assignSuccess && <p className="text-green-600 text-sm mt-2 flex items-center gap-1"><FiCheck /> {assignSuccess}</p>}
+              {assignError && <p className="text-red-600 text-sm mt-2">{assignError}</p>}
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              {loadingStudents ? (
+                <div className="text-center py-8 text-gray-500">Loading students...</div>
+              ) : (
+                <div className="space-y-2">
+                  {allStudents
+                    .filter(s => s.name.toLowerCase().includes(studentSearch.toLowerCase()) || s.email.toLowerCase().includes(studentSearch.toLowerCase()))
+                    .map(student => {
+                      const isAssigned = (studentAssignedTests[student._id] || []).map(id => id.toString()).includes(assigningTest._id)
+                      return (
+                        <div key={student._id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                          <div>
+                            <p className="font-medium text-sm">{student.name}</p>
+                            <p className="text-xs text-gray-500">{student.email}</p>
+                          </div>
+                          <button
+                            onClick={() => handleToggleAssign(student._id, assigningTest._id)}
+                            className={`px-4 py-1.5 rounded-lg text-sm font-medium ${
+                              isAssigned ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' : 'bg-purple-600 text-white hover:bg-purple-700'
+                            }`}
+                          >
+                            {isAssigned ? 'Unassign' : 'Assign'}
+                          </button>
+                        </div>
+                      )
+                    })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto m-4">
@@ -348,37 +444,6 @@ export default function TestManagement() {
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Question Banks</label>
-                  <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
-                    {questionBanks.length === 0 ? (
-                      <p className="text-sm text-gray-500">No question banks available</p>
-                    ) : (
-                      questionBanks.map((bank) => (
-                        <label key={bank._id} className="flex items-center gap-2 py-2 hover:bg-gray-50 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.questionBankIds.includes(bank._id)}
-                            onChange={(e) => {
-                              const newIds = e.target.checked
-                                ? [...formData.questionBankIds, bank._id]
-                                : formData.questionBankIds.filter(id => id !== bank._id)
-                              setFormData({ ...formData, questionBankIds: newIds })
-                            }}
-                            className="w-4 h-4"
-                          />
-                          <span className="text-sm">{bank.title}</span>
-                        </label>
-                      ))
-                    )}
-                  </div>
-                  {formData.questionBankIds.length > 0 && (
-                    <p className="text-xs text-gray-600 mt-1">
-                      {formData.questionBankIds.length} bank(s) selected
-                    </p>
-                  )}
-                </div>
-
                 {/* Configuration Type */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Test Configuration</label>
