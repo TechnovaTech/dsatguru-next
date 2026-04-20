@@ -116,13 +116,13 @@ export async function GET(request) {
         }
       }
 
+      // Only fetch from admin question bank (same source as /admin/question-bank)
       const questions = await Question.find({
         subject: dbSubject,
         isActive: true,
-        $or: [
-          { isTutor: { $exists: false } },
-          { isTutor: false }
-        ]
+        isTutor: { $ne: true },
+        isAdminTest: { $ne: true },
+        questionBankId: null
       }).select('tags difficulty')
 
       // Initialize structure based on mapping

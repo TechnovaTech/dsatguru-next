@@ -1,707 +1,478 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { FiInfo, FiCheckSquare, FiSquare, FiChevronDown, FiChevronUp, FiLock } from 'react-icons/fi'
 
 export default function CreatePracticePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [activeTab, setActiveTab] = useState('rw')
-  const [practiceMode, setPracticeMode] = useState('tutor') // tutor, timed, or untimed
-  const [questionMode, setQuestionMode] = useState('standard')
+  const [activeTab, setActiveTab] = useState('standard')
   const [isGenerating, setIsGenerating] = useState(false)
-  const [expandedSections, setExpandedSections] = useState({
-    quick: true,
-    personalize: true,
-    domains: true
-  })
 
+  const [customSubject, setCustomSubject] = useState('rw')
+  const [practiceMode, setPracticeMode] = useState('timed')
+  const [selectedDifficulties, setSelectedDifficulties] = useState({ Easy: true, Medium: true, Hard: true })
+  const [questionCount, setQuestionCount] = useState(27)
   const [domainStats, setDomainStats] = useState([])
-  const [difficultyStats, setDifficultyStats] = useState({ 
-    low: { available: 0, total: 0 }, 
-    medium: { available: 0, total: 0 }, 
-    high: { available: 0, total: 0 } 
-  })
-  const [globalCounts, setGlobalCounts] = useState({ unused: 0, total: 0 })
   const [loadingStats, setLoadingStats] = useState(false)
-
-  // Fetch Domain Stats
-  useEffect(() => {
-    const fetchStats = async () => {
-      setLoadingStats(true)
-      const token = localStorage.getItem('token')
-      try {
-        const res = await fetch(`/api/questions/stats?subject=${activeTab}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-        const data = await res.json()
-        if (data.domains) {
-          setDomainStats(data.domains)
-        }
-        if (data.difficulties) {
-          setDifficultyStats(data.difficulties)
-        }
-        if (data.counts) {
-          setGlobalCounts(data.counts)
-        }
-      } catch (error) {
-        console.error('Failed to fetch stats', error)
-      } finally {
-        setLoadingStats(false)
-      }
-    }
-    fetchStats()
-  }, [activeTab])
-  
-  // Mock Data for other counts (placeholder)
-  const counts = {
-    rw: {
-      incorrect: 0,
-      marked: 0,
-      omitted: 0,
-      correct: 0
-    },
-    math: {
-      incorrect: 0,
-      marked: 0,
-      omitted: 0,
-      correct: 0
-    }
-  }
-
-  const [selectedFilters, setSelectedFilters] = useState({
-    unused: true,
-    incorrect: false,
-    marked: false,
-    omitted: false,
-    correct: false,
-    low: true,
-    medium: true,
-    high: true
-  })
-
-  const [selectedDomains, setSelectedDomains] = useState({})
   const [selectedSubtopics, setSelectedSubtopics] = useState({})
+  const [selectedDomains, setSelectedDomains] = useState({})
+  const [expandedDomains, setExpandedDomains] = useState({})
+
+  useEffect(() => {
+    if (activeTab !== 'custom') return
+    setLoadingStats(true)
+    const token = localStorage.getItem('token')
+    const subject = customSubject === 'both' ? 'rw' : customSubject
+    fetch(`/api/questions/stats?subject=${subject}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(data => { if (data.domains) setDomainStats(data.domains) })
+      .catch(console.error)
+      .finally(() => setLoadingStats(false))
+    setSelectedSubtopics({})
+    setSelectedDomains({})
+  }, [activeTab, customSubject])
 
   useEffect(() => {
     const subject = searchParams.get('subject')
     const domain = searchParams.get('domain')
     const subtopic = searchParams.get('subtopic')
-
-    if (subject) {
-      setActiveTab(subject)
-      // If specific topic is requested, switch to custom mode
-      if (domain || subtopic) {
-        setQuestionMode('custom')
-      }
+    if (subject || domain || subtopic) {
+      setActiveTab('custom')
+      if (subject) setCustomSubject(subject)
+      if (domain) setSelectedDomains(p => ({ ...p, [domain]: true }))
+      if (subtopic) setSelectedSubtopics(p => ({ ...p, [subtopic]: true }))
     }
+  }, [searchParams])
 
+  const toggleDifficulty = d => setSelectedDifficulties(p => ({ ...p, [d]: !p[d] }))
+
+  const toggleDomain = title => {
+    const next = !selectedDomains[title]
+    setSelectedDomains(p => ({ ...p, [title]: next }))
+    const domain = domainStats.find(d => d.title === title)
     if (domain) {
-      setSelectedDomains(prev => ({ ...prev, [domain]: true }))
-      
-      // Auto-select subtopics for the domain if stats are available
-      if (domainStats.length > 0) {
-         const domainData = domainStats.find(d => d.title === domain)
-         if (domainData) {
-           setSelectedSubtopics(prev => {
-             const next = { ...prev }
-             domainData.subs.forEach(s => {
-               const sName = typeof s === 'string' ? s : s.name
-               next[sName] = true
-             })
-             return next
-           })
-         }
-      }
-    }
-
-    if (subtopic) {
-      setSelectedSubtopics(prev => ({ ...prev, [subtopic]: true }))
-    }
-  }, [searchParams, domainStats])
-
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
-  }
-
-  const toggleFilter = (filter) => {
-    setSelectedFilters(prev => ({ ...prev, [filter]: !prev[filter] }))
-  }
-
-  const toggleDomain = (domainTitle) => {
-    const isSelected = !selectedDomains[domainTitle]
-    setSelectedDomains(prev => ({ ...prev, [domainTitle]: isSelected }))
-
-    // Auto-select/deselect all subtopics for this domain
-    const domainData = domainStats.find(d => d.title === domainTitle)
-    if (domainData) {
-      const newSubtopics = { ...selectedSubtopics }
-      domainData.subs.forEach(sub => {
-        const subName = typeof sub === 'string' ? sub : sub.name
-        newSubtopics[subName] = isSelected
-      })
-      setSelectedSubtopics(newSubtopics)
+      const subs = {}
+      domain.subs.forEach(s => { subs[typeof s === 'string' ? s : s.name] = next })
+      setSelectedSubtopics(p => ({ ...p, ...subs }))
     }
   }
 
-  const toggleSubtopic = (subtopic) => {
-    setSelectedSubtopics(prev => ({ ...prev, [subtopic]: !prev[subtopic] }))
-  }
+  const toggleSubtopic = name => setSelectedSubtopics(p => ({ ...p, [name]: !p[name] }))
+  const toggleExpand = title => setExpandedDomains(p => ({ ...p, [title]: p[title] === false ? true : false }))
 
-  const currentCounts = activeTab === 'rw' ? counts.rw : counts.math
-
-  const handleStartTest = async (source) => {
+  const startTest = async mode => {
     setIsGenerating(true)
     try {
-      const mode = source === 'quick' ? 'standard' : questionMode
       const token = localStorage.getItem('token')
-      
-      const domains = Object.keys(selectedDomains).filter(k => selectedDomains[k])
-      const subtopics = Object.keys(selectedSubtopics).filter(k => selectedSubtopics[k])
-
-      // Validate: Customize mode requires topic selection
-      if (mode === 'custom' && subtopics.length === 0) {
-        alert('Please select at least one topic before starting the test.')
-        setIsGenerating(false)
-        return
+      let body = {}
+      if (mode === 'standard') {
+        body = { mode: 'standard', practiceMode: 'timed', sections: ['rw', 'math'] }
+      } else {
+        const subtopics = Object.keys(selectedSubtopics).filter(k => selectedSubtopics[k])
+        const domains = Object.keys(selectedDomains).filter(k => selectedDomains[k])
+        const difficulties = Object.keys(selectedDifficulties).filter(k => selectedDifficulties[k])
+        if (subtopics.length === 0 && domains.length === 0) { alert('Please select at least one topic.'); setIsGenerating(false); return }
+        if (difficulties.length === 0) { alert('Please select at least one difficulty.'); setIsGenerating(false); return }
+        body = { mode: 'custom', practiceMode, sections: customSubject === 'both' ? ['rw', 'math'] : [customSubject], domains, subtopics, difficulties, questionCount }
       }
-
-      // Standard mode always uses 'timed', customize mode uses selected practiceMode
-      const finalPracticeMode = mode === 'standard' ? 'timed' : practiceMode
-
-      console.log('Starting test with:', { mode, practiceMode: finalPracticeMode, activeTab, domains, subtopics })
-
       const res = await fetch('/api/tests/generate', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          mode,
-          practiceMode: finalPracticeMode,
-          sections: [activeTab],
-          domains,
-          subtopics
-        })
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body)
       })
-      
       const data = await res.json()
-      
-      if (!res.ok) {
-        console.error('Test generation failed:', data)
-        alert(`Failed to create test: ${data.error || 'Unknown error'}\n${data.details || ''}`)
-        return
-      }
-      
-      if (data.testId) {
-        console.log('Test created successfully, redirecting to:', data.testId)
-        router.push(`/dashboard/tests/${data.testId}/start`)
-      } else {
-        console.error('No testId in response:', data)
-        alert('Failed to create practice test - no test ID returned')
-      }
-    } catch (error) {
-      console.error('Error starting test:', error)
-      alert(`An error occurred: ${error.message}`)
-    } finally {
-      setIsGenerating(false)
-    }
+      if (!res.ok) { alert(data.error || 'Failed to create test'); return }
+      if (data.testId) router.push(`/dashboard/tests/${data.testId}/start`)
+    } catch (e) { alert(e.message) }
+    finally { setIsGenerating(false) }
   }
 
+  const selectedTopicsCount = Object.values(selectedSubtopics).filter(Boolean).length
+  const maxQ = customSubject === 'both' ? 98 : customSubject === 'rw' ? 54 : 44
+
   return (
-    <div className="min-h-screen bg-gray-50 pb-32 font-sans text-gray-800">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-40 shadow-sm px-8 py-5 flex items-center gap-6">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-200">
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Create Practice</h1>
-          <p className="text-xs text-gray-500 font-medium mt-0.5">Customize your learning experience</p>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#f8f9fc]">
 
-      <div className="w-full px-8 py-8 space-y-8">
-        {/* Top Actions */}
-        <div className="flex justify-end gap-4">
-          <button className="group bg-white hover:bg-blue-50 text-blue-600 border border-blue-100 px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2.5">
-            <div className="bg-blue-100 p-1 rounded-lg group-hover:scale-110 transition-transform">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            Tutorial
-          </button>
-          <button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-200 transition-all hover:shadow-blue-300 hover:-translate-y-0.5 flex items-center gap-2.5">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            Unlock Full Access
-          </button>
+      {/* ── TOP HERO HEADER ── */}
+      <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 px-8 py-8 text-white">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-1">Practice Center</p>
+          <h1 className="text-3xl font-extrabold tracking-tight">Create a Practice Test</h1>
+          <p className="text-blue-200 text-sm mt-1">Choose Standard DSAT format or build a fully custom session</p>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-6 py-8">
+
+        {/* ── TAB SWITCHER ── */}
+        <div className="flex gap-1 mb-8 bg-white rounded-2xl p-1 shadow-sm border border-gray-100 w-fit">
+          {[
+            { key: 'standard', icon: '📋', label: 'Standard DSAT' },
+            { key: 'custom',   icon: '⚙️', label: 'Customize' },
+          ].map(t => (
+            <button
+              key={t.key}
+              onClick={() => setActiveTab(t.key)}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${
+                activeTab === t.key
+                  ? t.key === 'standard'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-violet-600 text-white shadow-md'
+                  : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+              }`}
+            >
+              <span>{t.icon}</span> {t.label}
+            </button>
+          ))}
         </div>
 
-        {/* Main Content Card */}
-        <div className="bg-white overflow-hidden">
-          {/* Tabs */}
-          <div className="flex border-b bg-gray-50/50 p-2 gap-2">
-            {['rw', 'math'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-3.5 rounded-xl font-bold text-sm transition-all duration-300 ${
-                  activeTab === tab 
-                    ? 'bg-white text-blue-600 shadow-md ring-1 ring-black/5' 
-                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100/50'
-                }`}
-              >
-                {tab === 'rw' ? 'Reading and Writing' : 'Math'}
-              </button>
-            ))}
-          </div>
+        {/* ════════════════════════════════
+            STANDARD TAB
+        ════════════════════════════════ */}
+        {activeTab === 'standard' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          <div className="p-8 space-y-8">
-            
-            {/* Standard vs Customize Selection */}
-            <div className="border rounded-2xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-blue-600 rounded-lg text-white">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
+            {/* Left — main card */}
+            <div className="lg:col-span-2 space-y-5">
+
+              {/* Hero card */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-500 px-6 py-5 text-white">
+                  <h2 className="text-xl font-extrabold">Full Digital SAT Practice</h2>
+                  <p className="text-blue-100 text-sm mt-0.5">Mirrors the real DSAT — adaptive, timed, official format</p>
+                </div>
+                <div className="p-6 grid grid-cols-2 gap-4">
+                  {/* RW */}
+                  <div className="rounded-xl bg-blue-50 border border-blue-100 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm font-bold">R</div>
+                      <span className="font-bold text-blue-800 text-sm">Reading & Writing</span>
+                    </div>
+                    <div className="space-y-1.5 text-xs text-gray-600">
+                      <div className="flex justify-between"><span>Questions</span><span className="font-bold text-gray-800">54 total</span></div>
+                      <div className="flex justify-between"><span>Modules</span><span className="font-bold text-gray-800">2 × 27</span></div>
+                      <div className="flex justify-between"><span>Time</span><span className="font-bold text-gray-800">64 min</span></div>
+                      <div className="flex justify-between"><span>Module 2</span><span className="font-bold text-blue-600">Adaptive</span></div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">Test Mode for {activeTab === 'rw' ? 'Reading & Writing' : 'Math'}</h3>
-                    <p className="text-sm text-gray-600">Choose between standard SAT format or customize your practice</p>
+                  {/* Math */}
+                  <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-sm font-bold">M</div>
+                      <span className="font-bold text-emerald-800 text-sm">Math</span>
+                    </div>
+                    <div className="space-y-1.5 text-xs text-gray-600">
+                      <div className="flex justify-between"><span>Questions</span><span className="font-bold text-gray-800">44 total</span></div>
+                      <div className="flex justify-between"><span>Modules</span><span className="font-bold text-gray-800">2 × 22</span></div>
+                      <div className="flex justify-between"><span>Time</span><span className="font-bold text-gray-800">70 min</span></div>
+                      <div className="flex justify-between"><span>Module 2</span><span className="font-bold text-emerald-600">Adaptive</span></div>
+                    </div>
                   </div>
                 </div>
+              </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Standard Button */}
-                  <button
-                    onClick={() => setQuestionMode('standard')}
-                    className={`p-6 rounded-xl border-2 transition-all ${
-                      questionMode === 'standard'
-                        ? 'border-blue-600 bg-white shadow-lg ring-2 ring-blue-200'
-                        : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-md'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                        questionMode === 'standard' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
-                      }`}>
-                        {questionMode === 'standard' && (
-                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        questionMode === 'standard' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        Recommended
-                      </span>
-                    </div>
-                    <h4 className="text-lg font-bold text-gray-900 mb-2">Standard SAT</h4>
-                    <p className="text-sm text-gray-600 mb-4">
-                      {activeTab === 'rw' 
-                        ? '2 modules, 54 questions total (27 per module)'
-                        : '2 modules, 44 questions total (22 per module)'}
-                    </p>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                        <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>Adaptive difficulty</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                        <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>Official SAT format</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                        <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>{activeTab === 'rw' ? '64 minutes' : '70 minutes'} total</span>
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Customize Button */}
-                  <button
-                    onClick={() => setQuestionMode('custom')}
-                    className={`p-6 rounded-xl border-2 transition-all ${
-                      questionMode === 'custom'
-                        ? 'border-purple-600 bg-white shadow-lg ring-2 ring-purple-200'
-                        : 'border-gray-200 bg-white hover:border-purple-300 hover:shadow-md'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                        questionMode === 'custom' ? 'border-purple-600 bg-purple-600' : 'border-gray-300'
-                      }`}>
-                        {questionMode === 'custom' && (
-                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        questionMode === 'custom' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        Flexible
-                      </span>
-                    </div>
-                    <h4 className="text-lg font-bold text-gray-900 mb-2">Customize</h4>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Choose specific topics and difficulty levels for focused practice
-                    </p>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                        <svg className="w-4 h-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>Select topics</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                        <svg className="w-4 h-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>Choose difficulty</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                        <svg className="w-4 h-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>Targeted practice</span>
-                      </div>
-                    </div>
-                  </button>
-                </div>
-
-                {/* Start Standard Test Button */}
-                {questionMode === 'standard' && (
-                  <div className="mt-6">
-                    {/* Start Button */}
-                    <div className="p-4 bg-white rounded-xl border border-blue-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-bold text-gray-900 mb-1">
-                            Ready to start {activeTab === 'rw' ? 'Reading & Writing' : 'Math'} Standard Test?
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            {activeTab === 'rw' ? '2 modules • 54 questions • 64 minutes' : '2 modules • 44 questions • 70 minutes'}
-                          </p>
-                          <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Timed test with official SAT conditions
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleStartTest('standard')}
-                          disabled={isGenerating}
-                          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
-                        >
-                          {isGenerating ? 'Starting...' : 'Start Test'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
+              {/* Warning */}
+              <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+                <span className="text-lg leading-none mt-0.5">⚠️</span>
+                <p>Test runs in <strong>fullscreen</strong>. Switching tabs, pressing ESC, or exiting fullscreen will <strong>auto-submit</strong> your test immediately.</p>
               </div>
             </div>
 
+            {/* Right — start panel */}
+            <div className="space-y-4">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <h3 className="font-bold text-gray-900 mb-1">Ready to begin?</h3>
+                <p className="text-xs text-gray-500 mb-5">98 questions · 134 minutes · Fully adaptive</p>
 
-            {/* Personalize Section - Only show in Customize mode */}
-            {questionMode === 'custom' && (
-            <div className="border rounded-2xl overflow-hidden transition-all duration-300 hover:border-blue-200 hover:shadow-md bg-white">
-              <button 
-                onClick={() => toggleSection('personalize')}
-                className="w-full px-6 py-5 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`p-2.5 rounded-xl transition-colors ${expandedSections.personalize ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-400 group-hover:bg-purple-50 group-hover:text-purple-500'}`}>
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                    </svg>
-                  </div>
-                  <div className="text-left">
-                    <span className="block font-bold text-lg text-gray-800">Customize Settings</span>
-                    <span className="text-xs text-gray-500 font-medium">Tailor to your needs</span>
-                  </div>
+                <div className="space-y-2 mb-5">
+                  {[
+                    { icon: '🎯', text: 'Official SAT format' },
+                    { icon: '🔄', text: 'Adaptive difficulty' },
+                    { icon: '⏱', text: 'Timed conditions' },
+                    { icon: '📊', text: 'Full score analysis' },
+                  ].map(f => (
+                    <div key={f.text} className="flex items-center gap-2 text-sm text-gray-600">
+                      <span>{f.icon}</span> {f.text}
+                    </div>
+                  ))}
                 </div>
-                <div className={`transform transition-transform duration-300 ${expandedSections.personalize ? 'rotate-180' : ''}`}>
-                  <FiChevronDown className="w-5 h-5 text-gray-400" />
-                </div>
-              </button>
 
-              {expandedSections.personalize && (
-                <div className="p-8 border-t space-y-10 bg-white animate-in slide-in-from-top-2 duration-200">
-                  
-                  {/* Practice Mode */}
-                  <div>
-                    <div className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-4">
-                      <div className="w-1 h-4 bg-blue-500 rounded-full"></div>
-                      Practice Mode
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 max-w-3xl">
-                      {[
-                        { mode: 'tutor', label: 'Tutor', desc: 'Untimed, see answers' },
-                        { mode: 'timed', label: 'Timed', desc: 'Simulate test conditions' },
-                        { mode: 'untimed', label: 'Untimed', desc: 'Test conditions, no timer' }
-                      ].map((item) => (
-                        <label key={item.mode} className={`relative flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                          practiceMode === item.mode 
-                            ? 'border-blue-500 bg-blue-50/50' 
-                            : 'border-gray-100 hover:border-blue-200 hover:bg-gray-50'
-                        }`}>
-                          <input 
-                            type="radio" 
-                            name="practiceMode" 
-                            className="hidden" 
-                            checked={practiceMode === item.mode}
-                            onChange={() => setPracticeMode(item.mode)} 
-                          />
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${practiceMode === item.mode ? 'border-blue-500' : 'border-gray-300'}`}>
-                            {practiceMode === item.mode && <div className="w-2.5 h-2.5 bg-blue-500 rounded-full" />}
-                          </div>
-                          <div>
-                            <span className="block font-bold text-gray-800 capitalize">{item.label}</span>
-                            <span className="text-xs text-gray-500 font-medium">
-                              {item.desc}
-                            </span>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                <button
+                  onClick={() => startTest('standard')}
+                  disabled={isGenerating}
+                  className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-blue-200 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                  {isGenerating
+                    ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Starting...</span>
+                    : '🚀 Start Full DSAT'}
+                </button>
+              </div>
 
-                  {/* Status Filters */}
-                  <div>
-                    <div className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-4">
-                      <div className="w-1 h-4 bg-green-500 rounded-full"></div>
-                      Question Status
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                      {[
-                        { key: 'unused', label: 'Unused', available: globalCounts.unused, total: globalCounts.total, color: 'blue' },
-                        { key: 'incorrect', label: 'Incorrect', available: currentCounts.incorrect, total: 0, color: 'red' },
-                        { key: 'marked', label: 'Marked', available: currentCounts.marked, total: 0, color: 'yellow' },
-                        { key: 'omitted', label: 'Omitted', available: currentCounts.omitted, total: 0, color: 'gray' },
-                        { key: 'correct', label: 'Correct', available: currentCounts.correct, total: 0, color: 'green' },
-                      ].map((item) => (
-                        <button 
-                          key={item.key}
-                          onClick={() => toggleFilter(item.key)}
-                          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${
-                            selectedFilters[item.key] 
-                              ? `border-${item.color}-200 bg-${item.color}-50 ring-1 ring-${item.color}-200` 
-                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                          }`}
-                        >
-                          <div className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${
-                            selectedFilters[item.key] ? `bg-${item.color}-500 text-white` : 'bg-gray-200'
-                          }`}>
-                            {selectedFilters[item.key] && <FiCheckSquare className="w-3.5 h-3.5" />}
-                          </div>
-                          <span className={`text-sm font-medium ${selectedFilters[item.key] ? 'text-gray-900' : 'text-gray-600'}`}>
-                            {item.label}
-                          </span>
-                          <div className="flex items-center gap-1">
-                            <span className={`text-xs px-2 py-0.5 rounded-md font-bold ${
-                              selectedFilters[item.key] ? `bg-white text-${item.color}-600` : 'bg-gray-100 text-gray-500'
-                            }`}>
-                              {item.available}
-                            </span>
-                            {item.total > 0 && (
-                              <span className="flex items-center gap-0.5 text-[10px] text-gray-400 font-medium">
-                                ({item.total} <FiLock className="w-2.5 h-2.5" />)
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Want more control?</p>
+                <button
+                  onClick={() => setActiveTab('custom')}
+                  className="w-full py-3 border-2 border-violet-200 text-violet-700 font-bold rounded-xl text-sm hover:bg-violet-50 transition-all"
+                >
+                  ⚙️ Customize Instead
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-                  {/* Difficulty Level */}
-                  <div>
-                    <div className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-4">
-                      <div className="w-1 h-4 bg-orange-500 rounded-full"></div>
-                      Difficulty
-                    </div>
-                    <div className="flex gap-4">
-                      {[
-                        { key: 'low', label: 'Easy', available: difficultyStats.low.available, total: difficultyStats.low.total },
-                        { key: 'medium', label: 'Medium', available: difficultyStats.medium.available, total: difficultyStats.medium.total },
-                        { key: 'high', label: 'Hard', available: difficultyStats.high.available, total: difficultyStats.high.total },
-                      ].map((item) => (
-                        <button 
-                          key={item.key}
-                          onClick={() => toggleFilter(item.key)}
-                          className={`flex-1 flex items-center justify-center gap-3 px-4 py-3 rounded-xl border transition-all ${
-                            selectedFilters[item.key] 
-                              ? 'border-orange-200 bg-orange-50 ring-1 ring-orange-200' 
-                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                          }`}
-                        >
-                          <div className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${
-                            selectedFilters[item.key] ? 'bg-orange-500 text-white' : 'bg-gray-200'
-                          }`}>
-                            {selectedFilters[item.key] && <FiCheckSquare className="w-3.5 h-3.5" />}
-                          </div>
-                          <span className="text-sm font-bold text-gray-700">{item.label}</span>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs bg-white px-2 py-1 rounded-md border font-bold text-gray-500">
-                              {item.available}
-                            </span>
-                            <span className="flex items-center gap-0.5 text-[10px] text-gray-400 font-medium bg-gray-50 px-1.5 py-0.5 rounded border">
-                              {item.total} <FiLock className="w-2.5 h-2.5" />
-                            </span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+        {/* ════════════════════════════════
+            CUSTOMIZE TAB
+        ════════════════════════════════ */}
+        {activeTab === 'custom' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                  {/* Domains */}
-                  <div className="pt-6 border-t border-dashed">
-                     <button 
-                      className="w-full flex items-center justify-between group"
-                      onClick={() => toggleSection('domains')}
-                     >
-                        <div className="flex items-center gap-3 text-sm font-bold text-gray-800">
-                          <div className={`p-1.5 rounded-lg ${expandedSections.domains ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}>
-                            {expandedSections.domains ? <FiCheckSquare className="w-4 h-4" /> : <FiSquare className="w-4 h-4" />}
-                          </div>
-                          Domains and Skills
-                        </div>
-                        <span className="text-xs text-blue-600 font-bold hover:underline opacity-0 group-hover:opacity-100 transition-opacity">
-                          {expandedSections.domains ? 'Collapse' : 'Expand'}
-                        </span>
-                     </button>
+            {/* Left — config panels */}
+            <div className="lg:col-span-2 space-y-4">
 
-                     {expandedSections.domains && (
-                       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-8 animate-in slide-in-from-top-4 duration-300">
-                         {loadingStats ? (
-                           <div className="col-span-2 py-8 text-center text-gray-400 italic">Loading domain statistics...</div>
-                         ) : (
-                           domainStats.map((domain, idx) => (
-                             <div key={idx} className="bg-gray-50/80 p-5 rounded-2xl border border-gray-100 hover:border-blue-100 transition-colors">
-                               <label 
-                                 className="flex items-center gap-3 cursor-pointer mb-4"
-                                 onClick={(e) => {
-                                   e.preventDefault()
-                                   toggleDomain(domain.title)
-                                 }}
-                               >
-                                 <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                                   selectedDomains[domain.title] 
-                                     ? 'bg-blue-500 border-blue-500' 
-                                     : 'border-gray-300 bg-white hover:border-blue-400'
-                                 }`}>
-                                    {selectedDomains[domain.title] && <FiCheckSquare className="w-3.5 h-3.5 text-white" />}
-                                 </div>
-                                 <span className="text-sm font-bold text-gray-800">{domain.title}</span>
-                                 <div className="flex items-center gap-2 ml-auto">
-                                   <span className="text-xs bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full font-bold border border-blue-200" title="Available Questions">
-                                     {domain.count}
-                                   </span>
-                                   <span className="flex items-center gap-0.5 text-[10px] text-gray-400 font-medium bg-white px-1.5 py-0.5 rounded border" title="Total Questions">
-                                     {domain.total} <FiLock className="w-2.5 h-2.5" />
-                                   </span>
-                                 </div>
-                               </label>
-                               <div className="space-y-2 pl-8">
-                                {domain.subs.map((sub, sIdx) => {
-                                  const subName = typeof sub === 'string' ? sub : sub.name
-                                  const subCount = typeof sub === 'string' ? 0 : sub.count
-                                  return (
-                                    <label 
-                                      key={sIdx} 
-                                      className="flex items-center gap-2 cursor-pointer group w-full"
-                                      onClick={(e) => {
-                                        e.preventDefault()
-                                        toggleSubtopic(subName)
-                                      }}
-                                    >
-                                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${
-                                        selectedSubtopics[subName]
-                                          ? 'bg-blue-500 border-blue-500'
-                                          : 'border-gray-300 bg-white group-hover:border-blue-400'
-                                      }`}>
-                                        {selectedSubtopics[subName] && <FiCheckSquare className="w-3 h-3 text-white" />}
-                                      </div>
-                                      <span className={`text-xs font-medium transition-colors flex-1 ${
-                                        selectedSubtopics[subName] ? 'text-blue-700 font-bold' : 'text-gray-500 group-hover:text-blue-600'
-                                      }`}>
-                                        {subName}
-                                      </span>
-                                      {typeof sub !== 'string' && (
-                                        <span className="text-[10px] bg-white text-gray-600 px-2 py-0.5 rounded-full font-bold border border-gray-200 group-hover:border-blue-200 group-hover:text-blue-600">
-                                          {subCount}
-                                        </span>
-                                      )}
-                                    </label>
-                                  )
-                                })}
-                              </div>
-                             </div>
-                           ))
-                         )}
-                       </div>
-                     )}
-                  </div>
-
-
-
-                  {/* Generate Button */}
-                  <div className="pt-4 flex flex-col items-end gap-2">
-                    <button 
-                      onClick={() => handleStartTest('custom')}
-                      disabled={isGenerating}
-                      className={`px-10 py-3.5 rounded-xl text-sm font-bold uppercase tracking-wide transition-all ${
-                        !isGenerating
-                          ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200 cursor-pointer active:scale-95' 
-                          : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+              {/* Subject */}
+              <Section title="Subject" icon="📚">
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { key: 'rw',   label: 'Reading & Writing', icon: '📖' },
+                    { key: 'math', label: 'Math',              icon: '🔢' },
+                    { key: 'both', label: 'Both',              icon: '📋' },
+                  ].map(s => (
+                    <button
+                      key={s.key}
+                      onClick={() => setCustomSubject(s.key)}
+                      className={`flex flex-col items-center gap-1.5 py-4 rounded-xl border-2 font-semibold text-sm transition-all ${
+                        customSubject === s.key
+                          ? 'border-violet-500 bg-violet-50 text-violet-700 shadow-sm'
+                          : 'border-gray-200 text-gray-600 hover:border-violet-300 hover:bg-violet-50/40'
                       }`}
                     >
-                      {isGenerating ? 'Starting Test...' : 'Start Practice Test'}
+                      <span className="text-xl">{s.icon}</span>
+                      <span className="text-xs">{s.label}</span>
                     </button>
-                    {questionMode !== 'standard' && (
-                      <p className="text-xs text-blue-500 font-medium">
-                        * Custom mode enabled. Selected filters will be applied.
-                      </p>
-                    )}
-                  </div>
-
+                  ))}
                 </div>
+              </Section>
+
+              {/* Practice Mode */}
+              <Section title="Practice Mode" icon="🎯">
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { key: 'timed',   label: 'Timed',   desc: 'Official conditions', icon: '⏱', color: 'orange' },
+                    { key: 'untimed', label: 'Untimed', desc: 'No time pressure',    icon: '🕐', color: 'blue'   },
+                    { key: 'tutor',   label: 'Tutor',   desc: 'See answers instantly',icon: '📖', color: 'green'  },
+                  ].map(m => (
+                    <button
+                      key={m.key}
+                      onClick={() => setPracticeMode(m.key)}
+                      className={`flex flex-col items-start gap-1 p-4 rounded-xl border-2 text-left transition-all ${
+                        practiceMode === m.key
+                          ? 'border-violet-500 bg-violet-50 shadow-sm'
+                          : 'border-gray-200 hover:border-violet-300 hover:bg-violet-50/40'
+                      }`}
+                    >
+                      <span className="text-xl">{m.icon}</span>
+                      <span className={`font-bold text-sm ${practiceMode === m.key ? 'text-violet-700' : 'text-gray-800'}`}>{m.label}</span>
+                      <span className="text-xs text-gray-500">{m.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </Section>
+
+              {/* Difficulty */}
+              <Section title="Difficulty" icon="📊">
+                <div className="flex gap-3">
+                  {[
+                    { key: 'Easy',   emoji: '🟢', active: 'border-green-500 bg-green-50 text-green-700',  inactive: 'border-gray-200 text-gray-500' },
+                    { key: 'Medium', emoji: '🟡', active: 'border-yellow-500 bg-yellow-50 text-yellow-700', inactive: 'border-gray-200 text-gray-500' },
+                    { key: 'Hard',   emoji: '🔴', active: 'border-red-500 bg-red-50 text-red-700',         inactive: 'border-gray-200 text-gray-500' },
+                  ].map(d => (
+                    <button
+                      key={d.key}
+                      onClick={() => toggleDifficulty(d.key)}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-bold text-sm transition-all ${
+                        selectedDifficulties[d.key] ? d.active : d.inactive + ' hover:border-gray-300'
+                      }`}
+                    >
+                      <span>{d.emoji}</span> {d.key}
+                      {selectedDifficulties[d.key] && <span className="ml-1 text-xs">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              </Section>
+
+              {/* Question Count */}
+              <Section title="Number of Questions" icon="🔢" right={
+                <span className="text-2xl font-extrabold text-violet-600">{questionCount}</span>
+              }>
+                <input
+                  type="range" min={5} max={maxQ} step={1} value={questionCount}
+                  onChange={e => setQuestionCount(Number(e.target.value))}
+                  className="w-full h-2 rounded-full accent-violet-600 cursor-pointer"
+                />
+                <div className="flex justify-between text-xs text-gray-400 mt-1.5">
+                  <span>5 min</span>
+                  <div className="flex gap-4">
+                    {[10, 20, 30].filter(v => v < maxQ).map(v => (
+                      <button key={v} onClick={() => setQuestionCount(v)} className="hover:text-violet-600 transition-colors">{v}</button>
+                    ))}
+                  </div>
+                  <span>{maxQ} max</span>
+                </div>
+              </Section>
+
+              {/* Topics */}
+              <Section title="Topics from Question Bank" icon="📖" right={
+                selectedTopicsCount > 0
+                  ? <span className="text-xs bg-violet-100 text-violet-700 font-bold px-2.5 py-1 rounded-full">{selectedTopicsCount} selected</span>
+                  : null
+              }>
+                {loadingStats ? (
+                  <div className="flex items-center justify-center py-8 gap-2 text-gray-400">
+                    <span className="w-4 h-4 border-2 border-gray-300 border-t-violet-500 rounded-full animate-spin"></span>
+                    <span className="text-sm">Loading topics...</span>
+                  </div>
+                ) : domainStats.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-6">No topics found in question bank.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {domainStats.map(domain => {
+                      const isExpanded = expandedDomains[domain.title] !== false
+                      const subs = domain.subs.map(s => typeof s === 'string' ? { name: s, count: 0 } : s)
+                      const selectedCount = subs.filter(s => selectedSubtopics[s.name]).length
+                      const allSelected = selectedCount === subs.length && subs.length > 0
+                      const someSelected = selectedCount > 0 && !allSelected
+
+                      return (
+                        <div key={domain.title} className="rounded-xl border border-gray-100 overflow-hidden">
+                          {/* Domain row */}
+                          <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors">
+                            {/* Checkbox */}
+                            <button
+                              onClick={() => toggleDomain(domain.title)}
+                              className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                allSelected ? 'bg-violet-600 border-violet-600'
+                                : someSelected ? 'bg-violet-200 border-violet-400'
+                                : 'border-gray-300 bg-white hover:border-violet-400'
+                              }`}
+                            >
+                              {allSelected && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>}
+                              {someSelected && <div className="w-2 h-2 bg-violet-600 rounded-sm"></div>}
+                            </button>
+                            <span className="font-bold text-sm text-gray-800 flex-1">{domain.title}</span>
+                            {selectedCount > 0 && (
+                              <span className="text-xs bg-violet-100 text-violet-700 font-bold px-2 py-0.5 rounded-full">{selectedCount}/{subs.length}</span>
+                            )}
+                            <span className="text-xs text-gray-400 font-medium">{domain.count} q</span>
+                            <button onClick={() => toggleExpand(domain.title)} className="ml-1 text-gray-400 hover:text-gray-600 transition-colors">
+                              <svg className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
+                              </svg>
+                            </button>
+                          </div>
+                          {/* Subtopics */}
+                          {isExpanded && (
+                            <div className="divide-y divide-gray-50">
+                              {subs.map(sub => (
+                                <button
+                                  key={sub.name}
+                                  onClick={() => toggleSubtopic(sub.name)}
+                                  className={`w-full flex items-center gap-3 px-5 py-2.5 text-left transition-all ${
+                                    selectedSubtopics[sub.name] ? 'bg-violet-50' : 'bg-white hover:bg-gray-50'
+                                  }`}
+                                >
+                                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                    selectedSubtopics[sub.name] ? 'bg-violet-600 border-violet-600' : 'border-gray-300 bg-white'
+                                  }`}>
+                                    {selectedSubtopics[sub.name] && (
+                                      <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/>
+                                      </svg>
+                                    )}
+                                  </div>
+                                  <span className={`text-sm flex-1 ${selectedSubtopics[sub.name] ? 'text-violet-700 font-semibold' : 'text-gray-600'}`}>
+                                    {sub.name}
+                                  </span>
+                                  <span className="text-xs text-gray-400">{sub.count}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </Section>
+            </div>
+
+            {/* Right — sticky summary + start */}
+            <div className="space-y-4 lg:sticky lg:top-6 self-start">
+
+              {/* Summary card */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <h3 className="font-bold text-gray-900 mb-4">Test Summary</h3>
+                <div className="space-y-3">
+                  <SummaryRow icon="📚" label="Subject" value={
+                    customSubject === 'both' ? 'Both Sections' : customSubject === 'rw' ? 'Reading & Writing' : 'Math'
+                  } />
+                  <SummaryRow icon="🎯" label="Mode" value={
+                    practiceMode === 'timed' ? '⏱ Timed' : practiceMode === 'tutor' ? '📖 Tutor' : '🕐 Untimed'
+                  } />
+                  <SummaryRow icon="📊" label="Difficulty" value={
+                    Object.keys(selectedDifficulties).filter(k => selectedDifficulties[k]).join(', ') || 'None'
+                  } />
+                  <SummaryRow icon="🔢" label="Questions" value={`${questionCount}`} highlight />
+                  <SummaryRow icon="📖" label="Topics" value={
+                    selectedTopicsCount > 0 ? `${selectedTopicsCount} selected` : <span className="text-red-500 text-xs">None selected</span>
+                  } />
+                </div>
+              </div>
+
+              {/* Start button */}
+              <button
+                onClick={() => startTest('custom')}
+                disabled={isGenerating || selectedTopicsCount === 0}
+                className="w-full py-4 bg-violet-600 hover:bg-violet-700 active:scale-[0.98] text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-violet-200 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none"
+              >
+                {isGenerating
+                  ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Starting...</span>
+                  : selectedTopicsCount === 0
+                    ? 'Select topics to start'
+                    : '🚀 Start Custom Practice'}
+              </button>
+
+              {selectedTopicsCount === 0 && (
+                <p className="text-xs text-center text-gray-400">← Select at least one topic from the list</p>
               )}
             </div>
-            )}
           </div>
-        </div>
-      </div>
-      
-      {/* Floating Action Button */}
-      <div className="fixed bottom-8 right-8 z-50">
-        <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-green-600 font-bold border-4 border-green-50 shadow-2xl hover:scale-110 hover:-rotate-12 transition-all cursor-pointer group">
-          <span className="text-sm group-hover:hidden">1/5</span>
-          <FiCheckSquare className="w-6 h-6 hidden group-hover:block" />
-        </div>
+        )}
       </div>
     </div>
   )
+}
 
+function Section({ title, icon, right, children }) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-base">{icon}</span>
+          <h3 className="font-bold text-gray-800 text-sm">{title}</h3>
+        </div>
+        {right}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function SummaryRow({ icon, label, value, highlight }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-gray-500 flex items-center gap-1.5"><span>{icon}</span>{label}</span>
+      <span className={`font-semibold ${highlight ? 'text-violet-600 text-base' : 'text-gray-800'}`}>{value}</span>
+    </div>
+  )
 }

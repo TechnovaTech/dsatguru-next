@@ -14,7 +14,7 @@ export async function POST(request) {
     }
 
     const body = await request.json()
-    const { mode, practiceMode, sections, questionCount, difficulty, domains, subtopics } = body
+    const { mode, practiceMode, sections, questionCount, difficulties, domains, subtopics } = body
 
     console.log('Test generation request:', { mode, practiceMode, sections, domains, subtopics })
 
@@ -71,10 +71,12 @@ export async function POST(request) {
     // Standard and Customize modes both use 2-module adaptive structure
     // Difference: Customize allows topic/difficulty selection, Standard uses all topics
     const testData = {
-      title: mode === 'standard' ? 'Standard SAT Practice' : 'Custom Practice Test',
-      description: mode === 'standard' 
-        ? 'Standard SAT format practice test' 
-        : 'Custom practice test with selected topics',
+      title: mode === 'standard'
+        ? `Standard DSAT — ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`
+        : `Custom Practice — ${(sections || []).map(s => s === 'rw' ? 'R&W' : 'Math').join(' + ')} — ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`,
+      description: mode === 'standard'
+        ? 'Full Standard DSAT format — 2 adaptive modules per section'
+        : `Custom practice: ${(subtopics || []).slice(0, 3).join(', ')}${(subtopics || []).length > 3 ? '...' : ''}`,
       testType: 'Practice',
       excludeUsedQuestions: true,
       configType: mode === 'standard' ? 'standard' : 'custom',
@@ -86,7 +88,9 @@ export async function POST(request) {
       sections: includedSections,
       filters: {
         domains: domains || [],
-        subtopics: subtopics || []
+        subtopics: subtopics || [],
+        difficulties: difficulties || [],
+        questionCount: questionCount || null
       },
       // Standard adaptive configuration (used by both Standard and Customize modes)
       customConfig: {
@@ -133,7 +137,7 @@ export async function POST(request) {
     // Force update filters to ensure they are saved even if Schema is stale in memory
     await Test.collection.updateOne(
         { _id: test._id },
-        { $set: { filters: { domains: domains || [], subtopics: subtopics || [] } } }
+        { $set: { filters: { domains: domains || [], subtopics: subtopics || [], difficulties: difficulties || [], questionCount: questionCount || null } } }
     )
 
     console.log('Test filters updated')
