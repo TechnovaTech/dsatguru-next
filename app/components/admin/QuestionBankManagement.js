@@ -312,6 +312,18 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
       next.mathSubtopic = ''
       next.readingWritingTopic = ''
       next.tag = ''
+
+      // When switching subject tab, also switch selectedBank to the matching bank
+      if (!isTutor) {
+        const isMath = value === 'Math'
+        if (isAdminTest) {
+          const matchBank = questionBanks.find(b => b.id === (isMath ? 'admintest-math' : 'admintest-rw'))
+          if (matchBank) setSelectedBank(matchBank)
+        } else {
+          const matchBank = questionBanks.find(b => b.id === (isMath ? 'admin-math' : 'admin-rw'))
+          if (matchBank) setSelectedBank(matchBank)
+        }
+      }
     }
     if (next.subject === 'Math') {
       next.tag = next.mathSubtopic || next.mathTopic || next.tag
@@ -319,7 +331,17 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
       next.tag = next.readingWritingTopic || next.tag
     }
     setFilters(next)
-    if (selectedBank || isTutor) fetchQuestions(selectedBank?.id, next)
+
+    // Determine correct bankId for fetch
+    let bankId = selectedBank?.id
+    if (key === 'subject' && !isTutor) {
+      const isMath = value === 'Math'
+      bankId = isAdminTest
+        ? (isMath ? 'admintest-math' : 'admintest-rw')
+        : (isMath ? 'admin-math' : 'admin-rw')
+    }
+
+    if (bankId || isTutor) fetchQuestions(bankId, next)
   }
 
   const toggleActive = async (q) => {
@@ -582,38 +604,37 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
             )}
           </div>
 
-          {isTutor && (
-            <div className="mb-6">
-              <div className="border-b border-gray-200">
-                <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                  <button
-                    onClick={() => handleFilterChange('subject', 'Math')}
-                    className={`${
-                      filters.subject === 'Math'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-                  >
-                    Math Database
-                  </button>
-                  <button
-                    onClick={() => handleFilterChange('subject', 'Reading and Writing')}
-                    className={`${
-                      filters.subject === 'Reading and Writing'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-                  >
-                    Reading & Writing Database
-                  </button>
-                </nav>
-              </div>
+          {/* Subject tab switcher — shown for all question bank modes */}
+          <div className="mb-6">
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                <button
+                  onClick={() => handleFilterChange('subject', 'Math')}
+                  className={`${
+                    filters.subject === 'Math'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                >
+                  Math Database
+                </button>
+                <button
+                  onClick={() => handleFilterChange('subject', 'Reading and Writing')}
+                  className={`${
+                    filters.subject === 'Reading and Writing'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                >
+                  Reading & Writing Database
+                </button>
+              </nav>
             </div>
-          )}
+          </div>
 
           <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
             <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-              {!isTutor && (!selectedBank || (selectedBank.id !== 'admin-math' && selectedBank.id !== 'admin-rw')) && (
+              {!isTutor && (!selectedBank || (selectedBank.id !== 'admin-math' && selectedBank.id !== 'admin-rw' && selectedBank.id !== 'admintest-math' && selectedBank.id !== 'admintest-rw')) && false && (
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Subject</label>
                   <select value={filters.subject} onChange={(e) => handleFilterChange('subject', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
