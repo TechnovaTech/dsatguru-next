@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useAuth } from '../components/AuthContext'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { FiGrid, FiHelpCircle, FiCalendar, FiUsers, FiMessageSquare, FiBarChart, FiDollarSign, FiSettings, FiLogOut, FiBookOpen, FiTarget, FiClipboard, FiTrendingUp, FiUpload, FiDatabase, FiFileText, FiCheckSquare, FiChevronDown, FiChevronRight, FiActivity, FiEdit, FiList, FiAward, FiMonitor, FiAlertCircle } from 'react-icons/fi'
+import { FiGrid, FiHelpCircle, FiCalendar, FiUsers, FiMessageSquare, FiBarChart, FiDollarSign, FiSettings, FiLogOut, FiBookOpen, FiTarget, FiClipboard, FiTrendingUp, FiUpload, FiDatabase, FiFileText, FiCheckSquare, FiChevronDown, FiChevronRight, FiActivity, FiEdit, FiList, FiAward, FiMonitor, FiAlertCircle, FiZap } from 'react-icons/fi'
 
 export default function AdminLayout({ children }) {
   const { user, logout, loading } = useAuth()
@@ -57,6 +57,7 @@ export default function AdminLayout({ children }) {
         { id: 'admin-results', label: 'Result Analysis', path: '/admin/admin-tests/results', icon: <FiAward /> }
       ]
     },
+    { id: 'demo-test', label: 'Demo Test', icon: <FiZap />, path: '/admin/demo-test' },
     { id: 'test-sessions', label: 'Test Session Monitoring', icon: <FiBarChart />, path: '/admin/test-sessions' },
     { id: 'user-results', label: 'User Result Management', icon: <FiUsers />, path: '/admin/user-results' },
     { id: 'student-progress', label: 'Student Progress', icon: <FiTrendingUp />, path: '/admin/student-progress' },
