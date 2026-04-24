@@ -397,9 +397,32 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
     }
   }
 
+  const getFilteredQuestions = () => {
+    return questions.filter(q => {
+      if (filters.remark && filters.remark.trim()) {
+        const remarkFilterLower = filters.remark.toLowerCase().trim()
+        const qRemark = (q.remark || '').toLowerCase()
+        if (!qRemark.includes(remarkFilterLower)) return false
+      }
+      if (questionSearch.trim()) {
+        const searchLower = questionSearch.toLowerCase().trim()
+        const questionId = (q.questionId || '').toLowerCase()
+        const content = (q.content || '').toLowerCase()
+        const remark = (q.remark || '').toLowerCase()
+        const serialNumber = q.questionId ? q.questionId.split('-').pop() : ''
+        return questionId.includes(searchLower) ||
+               content.includes(searchLower) ||
+               remark.includes(searchLower) ||
+               serialNumber === searchLower.replace('#', '')
+      }
+      return true
+    })
+  }
+
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedQuestions(questions.map(q => q.id))
+      // Only select currently visible/filtered questions
+      setSelectedQuestions(getFilteredQuestions().map(q => q.id))
     } else {
       setSelectedQuestions([])
     }
@@ -749,19 +772,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                 )}
                 <div className="text-sm text-gray-500">
                   {qLoading ? 'Loading...' : (() => {
-                    const filteredCount = questions.filter(q => {
-                      if (filters.remark && filters.remark.trim()) {
-                        if (!(q.remark || '').toLowerCase().includes(filters.remark.toLowerCase().trim())) return false
-                      }
-                      if (questionSearch.trim()) {
-                        const s = questionSearch.toLowerCase().trim()
-                        return (q.questionId || '').toLowerCase().includes(s) ||
-                               (q.content || '').toLowerCase().includes(s) ||
-                               (q.remark || '').toLowerCase().includes(s) ||
-                               (q.questionId ? q.questionId.split('-').pop() : '') === s.replace('#', '')
-                      }
-                      return true
-                    }).length
+                    const filteredCount = getFilteredQuestions().length
                     return `${filteredCount} result(s)${questionSearch.trim() ? ` (filtered from ${questions.length})` : ''}`
                   })()}
                 </div>
@@ -774,7 +785,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     <th className="px-6 py-3 text-left">
                       <input
                         type="checkbox"
-                        checked={selectedQuestions.length === questions.length && questions.length > 0}
+                        checked={(() => { const fq = getFilteredQuestions(); return fq.length > 0 && fq.every(q => selectedQuestions.includes(q.id)) })()}
                         onChange={handleSelectAll}
                         className="rounded border-gray-300"
                       />
@@ -791,25 +802,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {(() => {
-                    const filteredQs = questions.filter(q => {
-                      if (filters.remark && filters.remark.trim()) {
-                        const remarkFilterLower = filters.remark.toLowerCase().trim()
-                        const qRemark = (q.remark || '').toLowerCase()
-                        if (!qRemark.includes(remarkFilterLower)) return false
-                      }
-                      if (questionSearch.trim()) {
-                        const searchLower = questionSearch.toLowerCase().trim()
-                        const questionId = (q.questionId || '').toLowerCase()
-                        const content = (q.content || '').toLowerCase()
-                        const remark = (q.remark || '').toLowerCase()
-                        const serialNumber = q.questionId ? q.questionId.split('-').pop() : ''
-                        return questionId.includes(searchLower) ||
-                               content.includes(searchLower) ||
-                               remark.includes(searchLower) ||
-                               serialNumber === searchLower.replace('#', '')
-                      }
-                      return true
-                    })
+                    const filteredQs = getFilteredQuestions()
 
                     const totalPages = Math.ceil(filteredQs.length / PAGE_SIZE)
                     const safePage = Math.min(currentPage, totalPages || 1)
@@ -894,19 +887,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
 
             {/* Pagination — outside scroll container so it's always visible */}
             {(() => {
-              const filteredQs = questions.filter(q => {
-                if (filters.remark && filters.remark.trim()) {
-                  if (!(q.remark || '').toLowerCase().includes(filters.remark.toLowerCase().trim())) return false
-                }
-                if (questionSearch.trim()) {
-                  const s = questionSearch.toLowerCase().trim()
-                  return (q.questionId || '').toLowerCase().includes(s) ||
-                         (q.content || '').toLowerCase().includes(s) ||
-                         (q.remark || '').toLowerCase().includes(s) ||
-                         (q.questionId ? q.questionId.split('-').pop() : '') === s.replace('#', '')
-                }
-                return true
-              })
+              const filteredQs = getFilteredQuestions()
               const totalPages = Math.ceil(filteredQs.length / PAGE_SIZE)
               if (totalPages <= 1) return null
               const safePage = Math.min(currentPage, totalPages)
