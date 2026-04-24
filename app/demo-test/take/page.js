@@ -291,38 +291,41 @@ function DemoTestTake() {
 
       {/* Main split */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left - passage */}
+        {/* Left - passage + question text + image */}
         <div className="w-1/2 border-r overflow-y-auto p-8 bg-gray-50">
-          {currentQ.questionParagraph ? (
-            <div className="prose max-w-none">
+          {/* Passage */}
+          {currentQ.questionParagraph && (
+            <div className="prose max-w-none mb-8">
               <div className="whitespace-pre-line text-gray-800 leading-relaxed">{currentQ.questionParagraph}</div>
             </div>
-          ) : (
-            <div className="h-full flex items-center justify-center text-gray-400 text-sm">No passage for this question</div>
+          )}
+
+          {/* Question number + mark for review */}
+          <div className="flex items-center gap-4 mb-4">
+            <div className="bg-black text-white w-10 h-10 rounded flex items-center justify-center font-bold flex-shrink-0">{currentIndex + 1}</div>
+            <button onClick={toggleMark} className={`flex items-center gap-2 text-sm ${marked[currentQ.id] ? 'text-amber-600' : 'text-gray-500 hover:text-gray-700'}`}>
+              <FiFlag className={marked[currentQ.id] ? 'fill-current' : ''} />
+              {marked[currentQ.id] ? 'Marked for Review' : 'Mark for Review'}
+            </button>
+          </div>
+
+          {/* Question text */}
+          <div className="mb-6">
+            <p className="text-gray-900 text-base leading-relaxed whitespace-pre-line">{currentQ.content}</p>
+          </div>
+
+          {/* Question image */}
+          {currentQ.imageUrl && (
+            <div className="mb-4">
+              <img src={currentQ.imageUrl} alt="Question" className="max-w-full h-auto rounded border" />
+            </div>
           )}
         </div>
 
-        {/* Right - question */}
+        {/* Right - answer options only */}
         <div className="w-1/2 overflow-y-auto p-8 bg-white">
           <div className="max-w-2xl">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="bg-black text-white w-10 h-10 rounded flex items-center justify-center font-bold">{currentIndex + 1}</div>
-              <button onClick={toggleMark} className={`flex items-center gap-2 text-sm ${marked[currentQ.id] ? 'text-amber-600' : 'text-gray-500 hover:text-gray-700'}`}>
-                <FiFlag className={marked[currentQ.id] ? 'fill-current' : ''} />
-                {marked[currentQ.id] ? 'Marked for Review' : 'Mark for Review'}
-              </button>
-            </div>
-
-            <div className="mb-6">
-              <p className="text-gray-900 text-base leading-relaxed whitespace-pre-line">{currentQ.content}</p>
-            </div>
-
-            {currentQ.imageUrl && (
-              <div className="mb-6">
-                <img src={currentQ.imageUrl} alt="Question" className="max-w-full h-auto rounded border" />
-              </div>
-            )}
-
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Choose an Answer</p>
             <div className="space-y-3">
               {(currentQ.options || []).map((opt, i) => {
                 const letter = String.fromCharCode(65 + i)
