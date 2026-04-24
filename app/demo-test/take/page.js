@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
@@ -11,7 +11,11 @@ function formatTime(s) {
   return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`
 }
 
-export default function DemoTestTake() {
+export default function DemoTestTakePage() {
+  return <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white text-gray-500">Loading...</div>}><DemoTestTake /></Suspense>
+}
+
+function DemoTestTake() {
   const router = useRouter()
   const params = useSearchParams()
   const attemptId = params.get('attemptId')

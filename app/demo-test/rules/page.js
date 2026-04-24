@@ -1,10 +1,14 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { FiClock, FiMonitor, FiCheckCircle, FiAlertTriangle, FiArrowRight, FiBookOpen } from 'react-icons/fi'
 
-export default function DemoTestRules() {
+export default function DemoTestRulesPage() {
+  return <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">Loading...</div>}><DemoTestRules /></Suspense>
+}
+
+function DemoTestRules() {
   const router = useRouter()
   const params = useSearchParams()
   const attemptId = params.get('attemptId')
