@@ -99,6 +99,8 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
   const [accessLoading, setAccessLoading] = useState(false)
   const [selectedQuestions, setSelectedQuestions] = useState([])
   const [isDeleting, setIsDeleting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 50
 
   const mathSubtopics = {
     'algebra': {
@@ -331,6 +333,9 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
       next.tag = next.readingWritingTopic || next.tag
     }
     setFilters(next)
+
+    // Reset to page 1 when filters change
+    setCurrentPage(1)
 
     // Determine correct bankId for fetch
     let bankId = selectedBank?.id
@@ -727,7 +732,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                   <input
                     type="text"
                     value={questionSearch}
-                    onChange={(e) => setQuestionSearch(e.target.value)}
+                    onChange={(e) => { setQuestionSearch(e.target.value); setCurrentPage(1) }}
                     placeholder="Search by Question ID or Remark..."
                     className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -743,16 +748,22 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                   </button>
                 )}
                 <div className="text-sm text-gray-500">
-                  {qLoading ? 'Loading...' : `${questions.filter(q => {
-                    if (questionSearch.trim()) {
-                      const searchLower = questionSearch.toLowerCase().trim()
-                      const questionId = (q.questionId || '').toLowerCase()
-                      const content = (q.content || '').toLowerCase()
-                      const serialNumber = q.questionId ? q.questionId.split('-').pop() : ''
-                      return questionId.includes(searchLower) || content.includes(searchLower) || serialNumber === searchLower.replace('#', '')
-                    }
-                    return true
-                  }).length} result(s)${questionSearch.trim() ? ` (filtered from ${questions.length})` : ''}`}
+                  {qLoading ? 'Loading...' : (() => {
+                    const filteredCount = questions.filter(q => {
+                      if (filters.remark && filters.remark.trim()) {
+                        if (!(q.remark || '').toLowerCase().includes(filters.remark.toLowerCase().trim())) return false
+                      }
+                      if (questionSearch.trim()) {
+                        const s = questionSearch.toLowerCase().trim()
+                        return (q.questionId || '').toLowerCase().includes(s) ||
+                               (q.content || '').toLowerCase().includes(s) ||
+                               (q.remark || '').toLowerCase().includes(s) ||
+                               (q.questionId ? q.questionId.split('-').pop() : '') === s.replace('#', '')
+                      }
+                      return true
+                    }).length
+                    return `${filteredCount} result(s)${questionSearch.trim() ? ` (filtered from ${questions.length})` : ''}`
+                  })()}
                 </div>
               </div>
             </div>
@@ -779,92 +790,98 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {questions
-                    .filter(q => {
-                      // Filter by remark filter field
+                  {(() => {
+                    const filteredQs = questions.filter(q => {
                       if (filters.remark && filters.remark.trim()) {
                         const remarkFilterLower = filters.remark.toLowerCase().trim()
                         const qRemark = (q.remark || '').toLowerCase()
-                        if (!qRemark.includes(remarkFilterLower)) {
-                          return false
-                        }
+                        if (!qRemark.includes(remarkFilterLower)) return false
                       }
-                      
-                      // Filter by question search
                       if (questionSearch.trim()) {
                         const searchLower = questionSearch.toLowerCase().trim()
                         const questionId = (q.questionId || '').toLowerCase()
                         const content = (q.content || '').toLowerCase()
                         const remark = (q.remark || '').toLowerCase()
                         const serialNumber = q.questionId ? q.questionId.split('-').pop() : ''
-                        
-                        return questionId.includes(searchLower) || 
+                        return questionId.includes(searchLower) ||
                                content.includes(searchLower) ||
                                remark.includes(searchLower) ||
                                serialNumber === searchLower.replace('#', '')
                       }
                       return true
                     })
-                    .map((q, index) => {
-                    // Extract serial number from questionId (e.g., "TRIMATH-ES-1" -> "1")
-                    const serialNumber = q.questionId ? q.questionId.split('-').pop() : (index + 1)
-                    // Parse options and tags if they're strings
-                    const parsedOptions = typeof q.options === 'string' ? JSON.parse(q.options) : (Array.isArray(q.options) ? q.options : [])
-                    const parsedTags = typeof q.tags === 'string' ? JSON.parse(q.tags) : (Array.isArray(q.tags) ? q.tags : [])
-                    return (
-                      <tr key={q.id || q._id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <input
-                            type="checkbox"
-                            checked={selectedQuestions.includes(q.id)}
-                            onChange={() => handleSelectQuestion(q.id)}
-                            className="rounded border-gray-300"
-                          />
-                        </td>
-                        <td className="px-6 py-4 text-sm">
-                          <div className="font-mono text-gray-900">{q.questionId || `Q-${index + 1}`}</div>
-                          <div className="text-xs text-gray-500">#{serialNumber}</div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{q.subject}</td>
-                        <td className="px-6 py-4 text-sm">
-                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            q.difficulty === 'Easy' ? 'bg-green-100 text-green-800' :
-                            q.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                            q.difficulty === 'Hard' ? 'bg-red-100 text-red-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {q.difficulty}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{q.type || 'MultipleChoice'}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{parsedTags.join(', ') || '-'}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title={q.remark || ''}>
-                          {q.remark || <span className="text-gray-400 italic">-</span>}
-                        </td>
-                        <td className="px-6 py-4 text-sm">
-                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${q.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                            {q.isActive ? 'Active' : 'Inactive'}
-                          </span>
-                        </td>
-                      <td className="px-6 py-4 text-sm">
-                        <div className="flex items-center gap-2">
-                          <button className="inline-flex items-center px-2 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded" onClick={() => handleOpenEdit(q)}>
-                            <FiEdit className="mr-1" /> Edit
-                          </button>
-                          <button className="inline-flex items-center px-2 py-1 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded" onClick={() => setPreview(q)}>
-                            <FiPreview className="mr-1" /> Preview
-                          </button>
-                          <button className="inline-flex items-center px-2 py-1 text-amber-600 hover:text-amber-800 hover:bg-amber-100 rounded" onClick={() => toggleActive(q)}>
-                            {q.isActive ? <><FiX className="mr-1" /> Disable</> : <><FiCheck className="mr-1" /> Enable</>}
-                          </button>
-                          <button className="inline-flex items-center px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded" onClick={() => softDelete(q)}>
-                            <FiTrash className="mr-1" /> Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                  })}
+
+                    const totalPages = Math.ceil(filteredQs.length / PAGE_SIZE)
+                    const safePage = Math.min(currentPage, totalPages || 1)
+                    const paginated = filteredQs.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
+                    if (paginated.length === 0 && !qLoading) {
+                      return (
+                        <tr>
+                          <td colSpan={9} className="px-6 py-4 text-center text-sm text-gray-500">No questions found for the selected filters.</td>
+                        </tr>
+                      )
+                    }
+
+                    return paginated.map((q, index) => {
+                      const serialNumber = q.questionId ? q.questionId.split('-').pop() : ((safePage - 1) * PAGE_SIZE + index + 1)
+                      const parsedOptions = typeof q.options === 'string' ? JSON.parse(q.options) : (Array.isArray(q.options) ? q.options : [])
+                      const parsedTags = typeof q.tags === 'string' ? JSON.parse(q.tags) : (Array.isArray(q.tags) ? q.tags : [])
+                      return (
+                        <tr key={q.id || q._id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4">
+                            <input
+                              type="checkbox"
+                              checked={selectedQuestions.includes(q.id)}
+                              onChange={() => handleSelectQuestion(q.id)}
+                              className="rounded border-gray-300"
+                            />
+                          </td>
+                          <td className="px-6 py-4 text-sm">
+                            <div className="font-mono text-gray-900">{q.questionId || `Q-${index + 1}`}</div>
+                            <div className="text-xs text-gray-500">#{serialNumber}</div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900">{q.subject}</td>
+                          <td className="px-6 py-4 text-sm">
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                              q.difficulty === 'Easy' ? 'bg-green-100 text-green-800' :
+                              q.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                              q.difficulty === 'Hard' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {q.difficulty}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900">{q.type || 'MultipleChoice'}</td>
+                          <td className="px-6 py-4 text-sm text-gray-900">{parsedTags.join(', ') || '-'}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title={q.remark || ''}>
+                            {q.remark || <span className="text-gray-400 italic">-</span>}
+                          </td>
+                          <td className="px-6 py-4 text-sm">
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${q.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                              {q.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm">
+                            <div className="flex items-center gap-2">
+                              <button className="inline-flex items-center px-2 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded" onClick={() => handleOpenEdit(q)}>
+                                <FiEdit className="mr-1" /> Edit
+                              </button>
+                              <button className="inline-flex items-center px-2 py-1 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded" onClick={() => setPreview(q)}>
+                                <FiPreview className="mr-1" /> Preview
+                              </button>
+                              <button className="inline-flex items-center px-2 py-1 text-amber-600 hover:text-amber-800 hover:bg-amber-100 rounded" onClick={() => toggleActive(q)}>
+                                {q.isActive ? <><FiX className="mr-1" /> Disable</> : <><FiCheck className="mr-1" /> Enable</>}
+                              </button>
+                              <button className="inline-flex items-center px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded" onClick={() => softDelete(q)}>
+                                <FiTrash className="mr-1" /> Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  })()}
                   {questions.length === 0 && !qLoading && (
                     <tr>
                       <td colSpan={9} className="px-6 py-4 text-center text-sm text-gray-500">No questions found for the selected filters.</td>
@@ -873,6 +890,92 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                 </tbody>
               </table>
             </div>
+            {/* END overflow-x-auto */}
+
+            {/* Pagination — outside scroll container so it's always visible */}
+            {(() => {
+              const filteredQs = questions.filter(q => {
+                if (filters.remark && filters.remark.trim()) {
+                  if (!(q.remark || '').toLowerCase().includes(filters.remark.toLowerCase().trim())) return false
+                }
+                if (questionSearch.trim()) {
+                  const s = questionSearch.toLowerCase().trim()
+                  return (q.questionId || '').toLowerCase().includes(s) ||
+                         (q.content || '').toLowerCase().includes(s) ||
+                         (q.remark || '').toLowerCase().includes(s) ||
+                         (q.questionId ? q.questionId.split('-').pop() : '') === s.replace('#', '')
+                }
+                return true
+              })
+              const totalPages = Math.ceil(filteredQs.length / PAGE_SIZE)
+              if (totalPages <= 1) return null
+              const safePage = Math.min(currentPage, totalPages)
+
+              // Build page numbers: show 5 around current page
+              const delta = 2
+              const pages = []
+              for (let p = Math.max(1, safePage - delta); p <= Math.min(totalPages, safePage + delta); p++) {
+                pages.push(p)
+              }
+
+              return (
+                <div className="px-6 py-4 border-t flex items-center justify-between bg-white sticky bottom-0 z-10 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
+                  <div className="text-sm text-gray-500">
+                    Page {safePage} of {totalPages} &nbsp;·&nbsp; {filteredQs.length} questions
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {/* Previous */}
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={safePage === 1}
+                      className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      ← Prev
+                    </button>
+
+                    {/* First page + ellipsis */}
+                    {pages[0] > 1 && (
+                      <>
+                        <button onClick={() => setCurrentPage(1)} className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-600 hover:bg-gray-50">1</button>
+                        {pages[0] > 2 && <span className="px-2 text-gray-400">…</span>}
+                      </>
+                    )}
+
+                    {/* Page numbers */}
+                    {pages.map(p => (
+                      <button
+                        key={p}
+                        onClick={() => setCurrentPage(p)}
+                        className={`px-3 py-1.5 text-sm rounded border ${
+                          p === safePage
+                            ? 'bg-blue-600 text-white border-blue-600 font-semibold'
+                            : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+
+                    {/* Last page + ellipsis */}
+                    {pages[pages.length - 1] < totalPages && (
+                      <>
+                        {pages[pages.length - 1] < totalPages - 1 && <span className="px-2 text-gray-400">…</span>}
+                        <button onClick={() => setCurrentPage(totalPages)} className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-600 hover:bg-gray-50">{totalPages}</button>
+                      </>
+                    )}
+
+                    {/* Next */}
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={safePage === totalPages}
+                      className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
 
           {preview && (
