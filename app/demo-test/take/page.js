@@ -29,6 +29,21 @@ export default function DemoTestTake() {
   const startTimeRef = useRef(Date.now())
   const qStartTimeRef = useRef(Date.now())
 
+  // Calculator (Desmos)
+  const [showCalculator, setShowCalculator] = useState(false)
+  const [calcPosition, setCalcPosition] = useState({ x: 80, y: 80 })
+  const [isDraggingCalc, setIsDraggingCalc] = useState(false)
+  const calcDragStart = useRef({ x: 0, y: 0 })
+  const calculatorRef = useRef(null)
+  const [desmosLoaded, setDesmosLoaded] = useState(false)
+  const [calculatorInstance, setCalculatorInstance] = useState(null)
+
+  // Reference sheet
+  const [showReference, setShowReference] = useState(false)
+  const [refPosition, setRefPosition] = useState({ x: 120, y: 80 })
+  const [isDraggingRef, setIsDraggingRef] = useState(false)
+  const refDragStart = useRef({ x: 0, y: 0 })
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     const raw = sessionStorage.getItem('demoTestSession')
@@ -69,6 +84,61 @@ export default function DemoTestTake() {
   useEffect(() => {
     qStartTimeRef.current = Date.now()
   }, [currentIndex, module])
+
+  // Load Desmos
+  useEffect(() => {
+    if (!document.getElementById('desmos-script')) {
+      const script = document.createElement('script')
+      script.id = 'desmos-script'
+      script.src = 'https://www.desmos.com/api/v1.10/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6'
+      script.async = true
+      script.onload = () => setDesmosLoaded(true)
+      document.body.appendChild(script)
+    } else {
+      setDesmosLoaded(true)
+    }
+  }, [])
+
+  // Init Desmos calculator
+  useEffect(() => {
+    if (desmosLoaded && showCalculator && calculatorRef.current && !calculatorInstance) {
+      if (window.Desmos) {
+        const calc = window.Desmos.GraphingCalculator(calculatorRef.current, {
+          keypad: true, graphpaper: true, expressions: true,
+          settingsMenu: true, zoomButtons: true, expressionsCollapsed: false
+        })
+        setCalculatorInstance(calc)
+      }
+    }
+  }, [desmosLoaded, showCalculator, calculatorRef])
+
+  // Drag handlers for calculator
+  useEffect(() => {
+    const onMove = (e) => {
+      if (!isDraggingCalc) return
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY
+      setCalcPosition({ x: clientX - calcDragStart.current.x, y: clientY - calcDragStart.current.y })
+    }
+    const onUp = () => setIsDraggingCalc(false)
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
+  }, [isDraggingCalc])
+
+  // Drag handlers for reference sheet
+  useEffect(() => {
+    const onMove = (e) => {
+      if (!isDraggingRef) return
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY
+      setRefPosition({ x: clientX - refDragStart.current.x, y: clientY - refDragStart.current.y })
+    }
+    const onUp = () => setIsDraggingRef(false)
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
+  }, [isDraggingRef])
 
   const recordTimeForCurrent = () => {
     if (!currentQ) return
@@ -188,7 +258,31 @@ export default function DemoTestTake() {
           <FiClock size={16} />
           <span className="font-mono font-semibold">{formatTime(remaining)}</span>
         </div>
-        <div className="text-sm text-gray-500">{answeredCount}/{currentList.length} answered</div>
+        <div className="flex items-center gap-3">
+          {module === 'math' && (
+            <>
+              <button
+                onClick={() => setShowCalculator(v => !v)}
+                className={`p-2 rounded transition-colors ${showCalculator ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-100'}`}
+                title="Calculator"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setShowReference(v => !v)}
+                className={`p-2 rounded transition-colors ${showReference ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-100'}`}
+                title="Reference Sheet"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </button>
+            </>
+          )}
+          <div className="text-sm text-gray-500">{answeredCount}/{currentList.length} answered</div>
+        </div>
       </div>
 
       {/* Main split */}
@@ -306,6 +400,85 @@ export default function DemoTestTake() {
 
       {error && (
         <div className="fixed top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg z-50">{error}</div>
+      )}
+
+      {/* Floating Calculator (Desmos) — Math only */}
+      {showCalculator && (
+        <div
+          style={{ left: calcPosition.x, top: calcPosition.y, position: 'fixed', zIndex: 60 }}
+          className="bg-white rounded-lg shadow-2xl border border-gray-300 w-[min(90vw,520px)] h-[400px] flex flex-col overflow-hidden"
+        >
+          <div
+            className="bg-gray-800 px-3 py-2 flex items-center justify-between cursor-move select-none"
+            onMouseDown={e => { setIsDraggingCalc(true); calcDragStart.current = { x: e.clientX - calcPosition.x, y: e.clientY - calcPosition.y } }}
+          >
+            <span className="text-white text-sm font-semibold">Calculator</span>
+            <button onClick={() => setShowCalculator(false)} className="text-gray-400 hover:text-white p-1">
+              <FiX size={16} />
+            </button>
+          </div>
+          <div ref={calculatorRef} className="flex-1" />
+        </div>
+      )}
+
+      {/* Floating Reference Sheet — Math only */}
+      {showReference && (
+        <div
+          style={{ left: refPosition.x, top: refPosition.y, position: 'fixed', zIndex: 60 }}
+          className="bg-white rounded-lg shadow-2xl border border-gray-300 w-[min(90vw,560px)] h-[480px] flex flex-col overflow-hidden"
+        >
+          <div
+            className="bg-gray-800 px-3 py-2 flex items-center justify-between cursor-move select-none"
+            onMouseDown={e => { setIsDraggingRef(true); refDragStart.current = { x: e.clientX - refPosition.x, y: e.clientY - refPosition.y } }}
+          >
+            <span className="text-white text-sm font-semibold">Reference Sheet</span>
+            <button onClick={() => setShowReference(false)} className="text-gray-400 hover:text-white p-1">
+              <FiX size={16} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 text-sm">
+            <div className="grid grid-cols-2 gap-6 max-w-lg mx-auto">
+              {/* Circle */}
+              <div className="flex flex-col items-center">
+                <svg width="70" height="70" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="black" strokeWidth="1.5"/><line x1="50" y1="50" x2="90" y2="50" stroke="black" strokeWidth="1"/><text x="68" y="44" fontSize="12" fontFamily="serif">r</text></svg>
+                <div className="text-center font-serif mt-1"><div>A = πr²</div><div>C = 2πr</div></div>
+              </div>
+              {/* Rectangle */}
+              <div className="flex flex-col items-center">
+                <svg width="70" height="70" viewBox="0 0 100 80"><rect x="10" y="15" width="80" height="50" fill="none" stroke="black" strokeWidth="1.5"/><text x="45" y="75" fontSize="11" fontFamily="serif">l</text><text x="92" y="45" fontSize="11" fontFamily="serif">w</text></svg>
+                <div className="text-center font-serif mt-1"><div>A = lw</div></div>
+              </div>
+              {/* Triangle */}
+              <div className="flex flex-col items-center">
+                <svg width="70" height="70" viewBox="0 0 100 90"><polygon points="50,5 5,85 95,85" fill="none" stroke="black" strokeWidth="1.5"/><text x="45" y="55" fontSize="11" fontFamily="serif">h</text><text x="45" y="95" fontSize="11" fontFamily="serif">b</text></svg>
+                <div className="text-center font-serif mt-1"><div>A = ½bh</div></div>
+              </div>
+              {/* Right Triangle */}
+              <div className="flex flex-col items-center">
+                <svg width="70" height="70" viewBox="0 0 100 90"><polygon points="5,85 5,5 95,85" fill="none" stroke="black" strokeWidth="1.5"/><text x="8" y="50" fontSize="11" fontFamily="serif">a</text><text x="45" y="95" fontSize="11" fontFamily="serif">b</text><text x="50" y="40" fontSize="11" fontFamily="serif">c</text></svg>
+                <div className="text-center font-serif mt-1"><div>c² = a² + b²</div></div>
+              </div>
+              {/* Cylinder */}
+              <div className="flex flex-col items-center">
+                <svg width="70" height="70" viewBox="0 0 100 100"><ellipse cx="50" cy="20" rx="40" ry="12" fill="none" stroke="black" strokeWidth="1.5"/><ellipse cx="50" cy="80" rx="40" ry="12" fill="none" stroke="black" strokeWidth="1.5"/><line x1="10" y1="20" x2="10" y2="80" stroke="black" strokeWidth="1.5"/><line x1="90" y1="20" x2="90" y2="80" stroke="black" strokeWidth="1.5"/><text x="92" y="55" fontSize="11" fontFamily="serif">h</text><text x="50" y="18" fontSize="11" fontFamily="serif">r</text></svg>
+                <div className="text-center font-serif mt-1"><div>V = πr²h</div></div>
+              </div>
+              {/* Sphere */}
+              <div className="flex flex-col items-center">
+                <svg width="70" height="70" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="black" strokeWidth="1.5"/><text x="55" y="48" fontSize="11" fontFamily="serif">r</text></svg>
+                <div className="text-center font-serif mt-1"><div>V = (4/3)πr³</div></div>
+              </div>
+              {/* Special triangles */}
+              <div className="col-span-2 border-t pt-3">
+                <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Special Right Triangles</div>
+                <div className="flex justify-around">
+                  <div className="text-center font-serif text-xs"><div>30-60-90</div><div>1 : √3 : 2</div></div>
+                  <div className="text-center font-serif text-xs"><div>45-45-90</div><div>1 : 1 : √2</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
