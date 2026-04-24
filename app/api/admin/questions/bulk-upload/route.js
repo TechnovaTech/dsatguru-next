@@ -307,6 +307,32 @@ export async function POST(request) {
     }
     
     const toCreate = []
+
+    // --- Pre-compute starting serial numbers per (subject, tag, difficulty) group ---
+    // So new uploads always continue from the last existing number, never overwrite.
+    const serialCounters = {} // key: "subject|tag|difficulty" → next serial number
+
+    const getNextSerial = async (subject, tag, difficulty) => {
+      const key = `${subject}|${tag}|${difficulty}`
+      if (serialCounters[key] === undefined) {
+        // Count how many questions already exist with this combo
+        // questionId format: "PREFIX-TAG-DIFF-N" — find the max N
+        const prefix = generateQuestionId(subject, tag, difficulty, 0).replace(/-0$/, '')
+        const existing = await Question.find({
+          questionId: { $regex: `^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-` }
+        }).select('questionId').lean()
+
+        let maxSerial = 0
+        for (const q of existing) {
+          const parts = q.questionId.split('-')
+          const num = parseInt(parts[parts.length - 1])
+          if (!isNaN(num) && num > maxSerial) maxSerial = num
+        }
+        serialCounters[key] = maxSerial + 1
+      }
+      return serialCounters[key]++
+    }
+
     for (let r = 1; r < rows.length; r++) {
       const cols = rows[r]
       if (!cols || cols.length === 0) continue
@@ -379,13 +405,10 @@ export async function POST(request) {
         ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean)
         : []
       
-      // Generate custom question ID based on Subject, Tag, Difficulty, Row Number
-      const questionId = generateQuestionId(
-        subject,
-        tagsArr[0] || 'General',
-        difficulty,
-        r
-      )
+      // Generate question ID continuing from last existing serial for this group
+      const tag0 = tagsArr[0] || 'General'
+      const serial = await getNextSerial(subject, tag0, difficulty)
+      const questionId = generateQuestionId(subject, tag0, difficulty, serial)
       
       toCreate.push({
         questionId,
@@ -420,22 +443,18 @@ export async function POST(request) {
     console.log('Sample question data:', JSON.stringify(toCreate[0], null, 2))
     
     try {
-      // Use bulkWrite with upsert to handle updates/duplicates gracefully
+      // Always insert as new — IDs are unique (continue from last serial)
       const operations = toCreate.map(q => ({
-        updateOne: {
-          filter: { questionId: q.questionId },
-          update: { $set: q },
-          upsert: true
-        }
+        insertOne: { document: q }
       }))
 
       const result = await Question.bulkWrite(operations)
-      console.log(`Bulk write result: Matched ${result.matchedCount}, Modified ${result.modifiedCount}, Upserted ${result.upsertedCount}`)
+      console.log(`Bulk write result: Inserted ${result.insertedCount}`)
       
       return NextResponse.json({
         success: true,
         message: 'Questions uploaded successfully',
-        count: result.upsertedCount + result.modifiedCount + result.matchedCount
+        count: result.insertedCount
       })
     } catch (dbError) {
       console.error('Database insertion error:', dbError)
