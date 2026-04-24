@@ -1,11 +1,12 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from './AuthContext'
 import { useCourses } from './CourseContext'
 import { FiMenu, FiX, FiHome, FiBookOpen, FiInfo, FiPhone, FiArrowUp, FiChevronDown } from 'react-icons/fi'
 import { motion, AnimatePresence } from 'framer-motion'
+import { usePathname } from 'next/navigation'
 
 const colors = [
   { bg: "bg-rose-50", border: "border-rose-300", text: "text-rose-700" },
@@ -16,9 +17,12 @@ const colors = [
 export default function Header() {
   const { user } = useAuth()
   const { courses } = useCourses()
+  const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
+  const [showDemoBanner, setShowDemoBanner] = useState(true)
+  const lastScrollY = useRef(0)
   const [dropdownHover, setDropdownHover] = useState(false)
   const [questionBankHover, setQuestionBankHover] = useState(false)
   const [dsatHover, setDsatHover] = useState(false)
@@ -37,6 +41,13 @@ export default function Header() {
       const y = window.scrollY
       setScrolled(y > 10)
       setShowScrollTop(y > 300)
+      // Show banner when scrolling down, hide when scrolling up (after initial scroll)
+      if (y > 80) {
+        setShowDemoBanner(y < lastScrollY.current)
+      } else {
+        setShowDemoBanner(true)
+      }
+      lastScrollY.current = y
     }
 
     const fetchQuestionBanks = async () => {
@@ -329,12 +340,6 @@ export default function Header() {
             ) : (
               <div className="flex space-x-4 items-center">
                 <a
-                  href="/demo-test"
-                  className="text-sm bg-gradient-to-r from-cyan-500 to-purple-600 text-white px-4 py-2 rounded-md font-medium hover:opacity-90 transition cursor-pointer"
-                >
-                  Demo Test
-                </a>
-                <a
                   href="/login"
                   className="text-sm bg-blue-600 text-white px-5 py-2 rounded-md font-medium hover:bg-blue-700 transition cursor-pointer"
                 >
@@ -579,6 +584,37 @@ export default function Header() {
           )}
         </AnimatePresence>
       </nav>
+
+      {/* Demo Test Sub-Banner — home page only */}
+      {!user && pathname === '/' && (
+        <AnimatePresence>
+          {showDemoBanner && (
+            <motion.div
+              key="demo-banner"
+              initial={{ y: -40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -40, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="sticky top-[72px] z-40 bg-blue-600 text-white"
+            >
+              <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
+                <p className="text-sm font-medium hidden sm:block">
+                  🎯 Experience the real DSAT interface — free, no signup needed. Two modules, instant scoring.
+                </p>
+                <p className="text-sm font-medium sm:hidden">
+                  🎯 Try a free DSAT Demo Test — no signup!
+                </p>
+                <a
+                  href="/demo-test"
+                  className="flex-shrink-0 bg-white text-blue-600 text-sm font-semibold px-4 py-1.5 rounded-md hover:bg-blue-50 transition"
+                >
+                  Start Demo Test →
+                </a>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
 
       <AnimatePresence>
         {showScrollTop && (
