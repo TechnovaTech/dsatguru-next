@@ -176,7 +176,7 @@ export default function ProgramSection({ landingPlanRef }) {
   const headerHeight = `${220 + maxBatchLength * 20}px`
 
   return (
-    <section className="w-full bg-white py-20 px-4 sm:px-6 lg:px-8" ref={landingPlanRef}>
+    <section id="programs" className="w-full bg-white py-20 px-4 sm:px-6 lg:px-8" ref={landingPlanRef}>
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}

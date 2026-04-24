@@ -5,7 +5,6 @@ import HeroSection from './components/HeroSection'
 import IntroSection from './components/IntroSection'
 import ProgramSection from './components/ProgramSection'
 import MediaShowcase from './components/MediaShowcase'
-import DemoTestCTA from './components/DemoTestCTA'
 
 const BenefitSection = dynamic(() => import('./components/BenefitSection'))
 const FeaturesSection = dynamic(() => import('./components/FeaturesSection'))
@@ -23,7 +22,6 @@ export default function Home() {
     <div className="font-[Poppins]">
       <HeroSection landingPlanRef={landingPlanRef} />
       <IntroSection />
-      <DemoTestCTA />
       <FeaturesSection />
       <ProgramSection landingPlanRef={landingPlanRef} />
       <PersonalizedLearningSection landingPlanRef={landingPlanRef} />

@@ -34,10 +34,15 @@ export async function GET(request, { params }) {
       qMap.set(d.id, d)
     }
 
-    const responses = attempt.responses.map(r => ({
-      ...r.toObject?.() || r,
-      question: qMap.get(String(r.questionId)) || null
-    }))
+    const responses = attempt.responses.map(r => {
+      const resp = r.toObject ? r.toObject() : { ...r }
+      const qid = resp.questionId ? resp.questionId.toString() : null
+      return {
+        ...resp,
+        questionId: qid,
+        question: qid ? (qMap.get(qid) || null) : null
+      }
+    })
 
     return NextResponse.json({
       success: true,

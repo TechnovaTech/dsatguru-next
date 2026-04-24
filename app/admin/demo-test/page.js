@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import { FiSettings, FiUsers, FiSave, FiTrash2, FiEdit2, FiSearch, FiX, FiEye } from 'react-icons/fi'
+import { FiSettings, FiUsers, FiSave, FiTrash2, FiEdit2, FiSearch, FiX, FiEye, FiPlus } from 'react-icons/fi'
 
 function getToken() {
   if (typeof window === 'undefined') return null
@@ -62,6 +62,8 @@ export default function AdminDemoTestPage() {
   const [rwSearch, setRwSearch] = useState('')
 
   const [pickerOpen, setPickerOpen] = useState(null) // 'math' | 'rw' | null
+  const [pickerSearch, setPickerSearch] = useState('')
+  const [pickerFilters, setPickerFilters] = useState({ difficulty: '', mathTopic: '', mathSubtopic: '', readingWritingTopic: '', tag: '', remark: '' })
 
   const [editingQuestion, setEditingQuestion] = useState(null)
   const [attempts, setAttempts] = useState([])
@@ -281,123 +283,78 @@ export default function AdminDemoTestPage() {
   const renderModuleConfig = (module) => {
     const isMath = module === 'math'
     const label = isMath ? 'Math (Module 1)' : 'Reading & Writing (Module 2)'
-    const source = isMath ? mathSource : rwSource
-    const setSource = isMath ? setMathSource : setRwSource
-    const questionsLoading = isMath ? mathQuestionsLoading : rwQuestionsLoading
     const selected = (isMath ? demoTest.mathQuestions : demoTest.rwQuestions) || []
     const targetCount = isMath ? demoTest.mathQuestionCount : demoTest.rwQuestionCount
-    const allQs = isMath ? mathBankQuestions : rwBankQuestions
-    const filteredQs = getFilteredQuestions(module)
-    const filters = isMath ? mathFilters : rwFilters
-    const setFilters = isMath ? setMathFilters : setRwFilters
-    const search = isMath ? mathSearch : rwSearch
-    const setSearch = isMath ? setMathSearch : setRwSearch
-    const selectedIds = new Set(selected.map(x => String(x.id || x._id)))
 
     return (
       <div className="bg-white rounded-xl border shadow-sm">
-        <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{label}</h2>
-          <span className={`text-sm font-medium px-3 py-1 rounded-full ${selected.length === targetCount ? 'bg-green-100 text-green-700' : selected.length > targetCount ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}>
-            {selected.length} / {targetCount || 0} selected
-          </span>
-        </div>
-        <div className="p-4 border-b bg-gray-50 flex items-center gap-3 flex-wrap">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Source:</span>
-          {SOURCE_OPTIONS.map(opt => (
-            <label key={opt.id} className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 cursor-pointer transition text-sm ${source === opt.id ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'}`}>
-              <input type="radio" name={`source-${module}`} checked={source === opt.id} onChange={() => setSource(opt.id)} className="hidden" />
-              {opt.label}
-            </label>
-          ))}
-          <span className="text-xs text-gray-400 ml-auto">{questionsLoading ? 'Loading...' : `${allQs.length} questions available`}</span>
-        </div>
-        <div className="p-3 border-b">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-            <div className="relative md:col-span-2">
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by ID, content, remark..." className="w-full border rounded px-2 py-1.5 pl-8 text-sm" />
-            </div>
-            <select value={filters.difficulty} onChange={e => setFilters({ ...filters, difficulty: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm">
-              <option value="">All Difficulty</option>
-              <option value="Easy">Easy</option>
-              <option value="Medium">Medium</option>
-              <option value="Hard">Hard</option>
-            </select>
-            {isMath ? (
-              <>
-                <select value={filters.mathTopic} onChange={e => setFilters({ ...filters, mathTopic: e.target.value, mathSubtopic: '' })} className="w-full border rounded px-2 py-1.5 text-sm">
-                  <option value="">All Topics</option>
-                  {Object.entries(mathSubtopics).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-                </select>
-                <select value={filters.mathSubtopic} onChange={e => setFilters({ ...filters, mathSubtopic: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm" disabled={!filters.mathTopic}>
-                  <option value="">All Subtopics</option>
-                  {filters.mathTopic && Object.entries(mathSubtopics[filters.mathTopic]?.subtopics || {}).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </select>
-              </>
-            ) : (
-              <select value={filters.readingWritingTopic} onChange={e => setFilters({ ...filters, readingWritingTopic: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm">
-                <option value="">All Topics</option>
-                {Object.entries(readingWritingTopics).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-              </select>
+        <div className="p-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">{label}</h2>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {selected.length} question{selected.length !== 1 ? 's' : ''} selected
+              {targetCount ? ` (target: ${targetCount})` : ''}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className={`text-sm font-medium px-3 py-1 rounded-full ${selected.length === targetCount ? 'bg-green-100 text-green-700' : selected.length > targetCount ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}>
+              {selected.length} / {targetCount || 0}
+            </span>
+            <button
+              onClick={() => openPicker(module)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+            >
+              <FiPlus size={14} /> Pick Questions
+            </button>
+            {selected.length > 0 && (
+              <button
+                onClick={() => setDemoTest({ ...demoTest, [isMath ? 'mathQuestions' : 'rwQuestions']: [] })}
+                className="text-xs text-red-600 hover:text-red-800 border border-red-200 px-3 py-2 rounded-lg hover:bg-red-50"
+              >
+                Clear all
+              </button>
             )}
           </div>
         </div>
-        <div className="overflow-x-auto" style={{ maxHeight: '480px', overflowY: 'auto' }}>
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50 sticky top-0 z-10">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-10">✓</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Question ID</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Content</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Difficulty</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tags</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Remark</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Edit</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {questionsLoading ? (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">Loading questions...</td></tr>
-              ) : filteredQs.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">No questions found.</td></tr>
-              ) : filteredQs.map(q => {
-                const qid = String(q.id || q._id)
-                const isSelected = selectedIds.has(qid)
-                const custom = (demoTest.customQuestions || {})[qid]
-                const parsedTags = typeof q.tags === 'string' ? JSON.parse(q.tags || '[]') : (q.tags || [])
-                return (
-                  <tr key={qid} className={`hover:bg-gray-50 cursor-pointer ${isSelected ? 'bg-blue-50' : ''}`} onClick={() => toggleQuestion(qid, module)}>
-                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                      <input type="checkbox" checked={isSelected} onChange={() => toggleQuestion(qid, module)} className="rounded border-gray-300" />
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs text-gray-700 whitespace-nowrap">{q.questionId || qid.slice(-6)}</td>
-                    <td className="px-4 py-3 max-w-xs">
-                      <div className="text-sm text-gray-800 line-clamp-2">{custom?.content || q.content || q.title || '(no content)'}</div>
-                      {custom && <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 mt-1 inline-block">Edited</span>}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${q.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : q.difficulty === 'Hard' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{q.difficulty || 'Medium'}</span>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-gray-500 max-w-[120px] truncate">{parsedTags.join(', ') || '-'}</td>
-                    <td className="px-4 py-3 text-xs text-gray-500 max-w-[120px] truncate" title={q.remark || ''}>{q.remark || '-'}</td>
-                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                      {isSelected && (
-                        <button onClick={() => openEdit(q, module)} className="p-1.5 text-blue-600 hover:bg-blue-100 rounded" title="Edit for demo">
-                          <FiEdit2 size={14} />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+
+        {/* Selected questions summary */}
         {selected.length > 0 && (
-          <div className="p-3 border-t bg-blue-50 flex items-center justify-between">
-            <span className="text-sm text-blue-700 font-medium">{selected.length} question{selected.length !== 1 ? 's' : ''} selected for this module</span>
-            <button onClick={() => setDemoTest({ ...demoTest, [isMath ? 'mathQuestions' : 'rwQuestions']: [] })} className="text-xs text-red-600 hover:text-red-800">Clear all</button>
+          <div className="border-t">
+            <div className="overflow-x-auto max-h-64 overflow-y-auto">
+              <table className="min-w-full divide-y divide-gray-100 text-sm">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Question ID</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Content</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Difficulty</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Remove</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {selected.map((q, i) => {
+                    const qid = String(q.id || q._id)
+                    return (
+                      <tr key={qid} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 text-gray-400 text-xs">{i + 1}</td>
+                        <td className="px-4 py-2 font-mono text-xs text-gray-600 whitespace-nowrap">{q.questionId || qid.slice(-6)}</td>
+                        <td className="px-4 py-2 max-w-xs">
+                          <div className="text-sm text-gray-800 line-clamp-1">{q.content || q.title || '(no content)'}</div>
+                        </td>
+                        <td className="px-4 py-2 whitespace-nowrap">
+                          <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${q.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : q.difficulty === 'Hard' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{q.difficulty || 'Medium'}</span>
+                        </td>
+                        <td className="px-4 py-2">
+                          <button onClick={() => toggleQuestion(qid, module)} className="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded">
+                            <FiX size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
@@ -507,6 +464,7 @@ export default function AdminDemoTestPage() {
                   <tr>
                     <th className="px-4 py-3">Name</th>
                     <th className="px-4 py-3">Email</th>
+                    <th className="px-4 py-3">Phone</th>
                     <th className="px-4 py-3">Math</th>
                     <th className="px-4 py-3">RW</th>
                     <th className="px-4 py-3">Total</th>
@@ -522,6 +480,7 @@ export default function AdminDemoTestPage() {
                     <tr key={a.id} className="border-t hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium">{a.name}</td>
                       <td className="px-4 py-3">{a.email}</td>
+                      <td className="px-4 py-3 text-gray-600">{a.phone || <span className="text-gray-300">—</span>}</td>
                       <td className="px-4 py-3">{a.mathScore || '-'}</td>
                       <td className="px-4 py-3">{a.rwScore || '-'}</td>
                       <td className="px-4 py-3 font-semibold">{a.totalScore || '-'}</td>
@@ -543,6 +502,134 @@ export default function AdminDemoTestPage() {
         </div>
       )}
 
+
+      {/* Question Picker Modal */}
+      {pickerOpen && (() => {
+        const isMath = pickerOpen === 'math'
+        const source = isMath ? mathSource : rwSource
+        const setSource = isMath ? setMathSource : setRwSource
+        const questionsLoading = isMath ? mathQuestionsLoading : rwQuestionsLoading
+        const allQs = isMath ? mathBankQuestions : rwBankQuestions
+        const filteredQs = getFilteredQuestions(pickerOpen)
+        const filters = isMath ? mathFilters : rwFilters
+        const setFilters = isMath ? setMathFilters : setRwFilters
+        const search = isMath ? mathSearch : rwSearch
+        const setSearch = isMath ? setMathSearch : setRwSearch
+        const selected = (isMath ? demoTest.mathQuestions : demoTest.rwQuestions) || []
+        const selectedIds = new Set(selected.map(x => String(x.id || x._id)))
+        const label = isMath ? 'Math (Module 1)' : 'Reading & Writing (Module 2)'
+
+        return (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl">
+              {/* Modal header */}
+              <div className="p-4 border-b flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-lg">Pick Questions — {label}</h3>
+                  <p className="text-sm text-gray-500">{selectedIds.size} selected</p>
+                </div>
+                <button onClick={() => setPickerOpen(null)} className="p-2 hover:bg-gray-100 rounded text-gray-500"><FiX /></button>
+              </div>
+
+              {/* Source picker */}
+              <div className="px-4 py-3 border-b bg-gray-50 flex items-center gap-3 flex-wrap">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Source:</span>
+                {SOURCE_OPTIONS.map(opt => (
+                  <label key={opt.id} className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 cursor-pointer transition text-sm ${source === opt.id ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'}`}>
+                    <input type="radio" name={`picker-source-${pickerOpen}`} checked={source === opt.id} onChange={() => setSource(opt.id)} className="hidden" />
+                    {opt.label}
+                  </label>
+                ))}
+                <span className="text-xs text-gray-400 ml-auto">{questionsLoading ? 'Loading...' : `${allQs.length} questions available`}</span>
+              </div>
+
+              {/* Filters */}
+              <div className="px-4 py-3 border-b">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                  <div className="relative md:col-span-2">
+                    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                    <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by ID, content, remark..." className="w-full border rounded px-2 py-1.5 pl-8 text-sm" />
+                  </div>
+                  <select value={filters.difficulty} onChange={e => setFilters({ ...filters, difficulty: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm">
+                    <option value="">All Difficulty</option>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                  </select>
+                  {isMath ? (
+                    <>
+                      <select value={filters.mathTopic} onChange={e => setFilters({ ...filters, mathTopic: e.target.value, mathSubtopic: '' })} className="w-full border rounded px-2 py-1.5 text-sm">
+                        <option value="">All Topics</option>
+                        {Object.entries(mathSubtopics).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                      </select>
+                      <select value={filters.mathSubtopic} onChange={e => setFilters({ ...filters, mathSubtopic: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm" disabled={!filters.mathTopic}>
+                        <option value="">All Subtopics</option>
+                        {filters.mathTopic && Object.entries(mathSubtopics[filters.mathTopic]?.subtopics || {}).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                      </select>
+                    </>
+                  ) : (
+                    <select value={filters.readingWritingTopic} onChange={e => setFilters({ ...filters, readingWritingTopic: e.target.value })} className="w-full border rounded px-2 py-1.5 text-sm">
+                      <option value="">All Topics</option>
+                      {Object.entries(readingWritingTopics).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              {/* Question table */}
+              <div className="flex-1 overflow-auto">
+                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                  <thead className="bg-gray-50 sticky top-0 z-10">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-10">✓</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Question ID</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Content</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Difficulty</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tags</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Remark</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {questionsLoading ? (
+                      <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">Loading questions...</td></tr>
+                    ) : filteredQs.length === 0 ? (
+                      <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">No questions found.</td></tr>
+                    ) : filteredQs.map(q => {
+                      const qid = String(q.id || q._id)
+                      const isSelected = selectedIds.has(qid)
+                      const parsedTags = typeof q.tags === 'string' ? JSON.parse(q.tags || '[]') : (q.tags || [])
+                      return (
+                        <tr key={qid} className={`hover:bg-gray-50 cursor-pointer ${isSelected ? 'bg-blue-50' : ''}`} onClick={() => toggleQuestion(qid, pickerOpen)}>
+                          <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                            <input type="checkbox" checked={isSelected} onChange={() => toggleQuestion(qid, pickerOpen)} className="rounded border-gray-300" />
+                          </td>
+                          <td className="px-4 py-3 font-mono text-xs text-gray-700 whitespace-nowrap">{q.questionId || qid.slice(-6)}</td>
+                          <td className="px-4 py-3 max-w-xs">
+                            <div className="text-sm text-gray-800 line-clamp-2">{q.content || q.title || '(no content)'}</div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${q.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : q.difficulty === 'Hard' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{q.difficulty || 'Medium'}</span>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-500 max-w-[120px] truncate">{parsedTags.join(', ') || '-'}</td>
+                          <td className="px-4 py-3 text-xs text-gray-500 max-w-[120px] truncate" title={q.remark || ''}>{q.remark || '-'}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t flex items-center justify-between bg-gray-50">
+                <span className="text-sm text-gray-600">{selectedIds.size} question{selectedIds.size !== 1 ? 's' : ''} selected</span>
+                <button onClick={() => setPickerOpen(null)} className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm">
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Edit question modal */}
       {editingQuestion && (
@@ -603,6 +690,7 @@ export default function AdminDemoTestPage() {
               <div>
                 <h3 className="font-semibold">{attemptDetail.name}</h3>
                 <p className="text-sm text-gray-500">{attemptDetail.email}</p>
+                {attemptDetail.phone && <p className="text-sm text-gray-500">{attemptDetail.phone}</p>}
               </div>
               <button onClick={() => setAttemptDetail(null)} className="p-1 hover:bg-gray-100 rounded"><FiX /></button>
             </div>

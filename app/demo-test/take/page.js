@@ -167,14 +167,14 @@ export default function DemoTestTake() {
               </div>
               <h2 className="text-2xl font-bold mb-2">Math module complete!</h2>
               <p className="text-gray-600 mb-6">You answered {answeredCount} of {currentList.length} questions. Ready for Reading & Writing?</p>
-              <button onClick={proceedToRW} className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-semibold py-3 rounded-lg">Start Module 2 →</button>
+              <button onClick={proceedToRW} className="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700">Start Module 2 →</button>
             </motion.div>
           </motion.div>
         )}
         {moduleTransition === 'submitting' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-50 bg-slate-950/95 flex items-center justify-center">
             <motion.div className="text-center">
-              <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }} className="w-16 h-16 border-4 border-cyan-400 border-t-transparent rounded-full mx-auto mb-4" />
+              <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }} className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
               <div className="text-white text-lg font-medium">Calculating your score...</div>
             </motion.div>
           </motion.div>

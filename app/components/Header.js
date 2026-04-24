@@ -327,7 +327,13 @@ export default function Header() {
                 Go to Dashboard
               </a>
             ) : (
-              <div className="flex space-x-4">
+              <div className="flex space-x-4 items-center">
+                <a
+                  href="/demo-test"
+                  className="text-sm bg-gradient-to-r from-cyan-500 to-purple-600 text-white px-4 py-2 rounded-md font-medium hover:opacity-90 transition cursor-pointer"
+                >
+                  Demo Test
+                </a>
                 <a
                   href="/login"
                   className="text-sm bg-blue-600 text-white px-5 py-2 rounded-md font-medium hover:bg-blue-700 transition cursor-pointer"
