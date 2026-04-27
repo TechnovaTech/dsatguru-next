@@ -292,6 +292,12 @@ export async function DELETE(request) {
     // Delete associated sessions
     const deleteSessions = await TestSession.deleteMany({ testId: { $in: idList } })
 
+    // Remove deleted testIds from all students' assignedTests arrays
+    await User.updateMany(
+      { assignedTests: { $in: idList } },
+      { $pull: { assignedTests: { $in: idList } } }
+    )
+
     return NextResponse.json({ 
         success: true, 
         deletedTests: deleteTests.deletedCount, 

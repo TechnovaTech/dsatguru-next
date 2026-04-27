@@ -43,6 +43,9 @@ export default function TutorRWPage() {
       const sessions = data.sessions || data || []
       
       const tutorSessions = sessions.filter(s => {
+        // Skip sessions where the test has been deleted
+        if (!s.testId) return false
+
         // Ensure testId exists and is a Tutor test
         // EXCLUDE Admin tests (practiceMode === 'admin')
         const isTutor = (s.testId?.practiceMode === 'tutor' || s.testId?.isTutorTest === true) && s.testId?.practiceMode !== 'admin'

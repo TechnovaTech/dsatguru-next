@@ -19,8 +19,11 @@ export async function GET(request) {
       .populate('testId', 'title configType testType practiceMode totalQuestions questions difficulty subject sections isTutorTest isTimed duration')
       .select('_id userId testId questionBankId status state totalQuestions answeredQuestions correctAnswers moduleScores moduleAnswers rwScore mathScore totalScore completedAt createdAt updatedAt startTime endTime responses analysisSubmitted analysisSubmittedAt')
       .sort({ createdAt: -1 })
+
+    // Filter out sessions whose test has been deleted (testId populated as null)
+    const validSessions = sessions.filter(s => s.testId !== null)
     
-    return NextResponse.json({ sessions })
+    return NextResponse.json({ sessions: validSessions })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch sessions' }, { status: 500 })
   }
