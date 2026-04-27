@@ -23,6 +23,12 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
+    // Check for duplicate name within tutor tests only
+    const existing = await Test.findOne({ title: title.trim(), isTutorTest: true })
+    if (existing) {
+      return NextResponse.json({ error: `A tutor test named "${title.trim()}" already exists. Please use a different name.` }, { status: 409 })
+    }
+
     // Create test
     const test = await Test.create({
       title,

@@ -19,15 +19,13 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
+    // Check for duplicate name within admin tests only
+    const existing = await Test.findOne({ title: title.trim(), practiceMode: 'admin', isTutorTest: false })
+    if (existing) {
+      return NextResponse.json({ error: `An admin test named "${title.trim()}" already exists. Please use a different name.` }, { status: 409 })
+    }
+
     const test = await Test.create({
-      title,
-      subject,
-      questions: questionIds,
-      customQuestions: customQuestions || null,
-      duration: duration || 0,
-      isTimed: isTimed === true,
-      isTutorTest: false,
-      practiceMode: 'admin',
       testType: 'Practice',
       isActive: true
     })
