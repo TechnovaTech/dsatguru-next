@@ -38,7 +38,7 @@ export async function GET(request) {
         isTutorTest: true
       })
         .sort({ createdAt: -1 })
-        .select('title subject totalQuestions duration createdAt assignedTo practiceMode isTutorTest')
+        .select('title subject totalQuestions duration isTimed createdAt assignedTo practiceMode isTutorTest')
         .populate('assignedTo', 'name')
       
       console.log(`Found ${tests.length} tutor-created tests`)
