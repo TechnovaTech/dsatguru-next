@@ -52,7 +52,7 @@ export default function TutorMathPage() {
         const isMath = s.testId?.subject === 'Math' || (!s.testId?.subject && s.testId?.sections?.math === true)
         
         // Check if test is assigned to this student
-        const isAssigned = testIds.length === 0 || testIds.includes(s.testId?._id)
+        const isAssigned = testIds.length === 0 || testIds.map(id => id?.toString()).includes(s.testId?._id?.toString())
         
         return isTutor && isMath && isAssigned
       })

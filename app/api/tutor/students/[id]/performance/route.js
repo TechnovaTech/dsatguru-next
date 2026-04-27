@@ -19,7 +19,7 @@ export async function GET(request, { params }) {
     const student = await User.findById(studentId).lean()
     if (!student) return NextResponse.json({ error: 'Student not found' }, { status: 404 })
 
-    if (decoded.role === 'Tutor' && student.assignedTutor?.toString() !== decoded.userId) {
+    if (decoded.role === 'Tutor' && !(student.assignedTutors || []).map(id => id.toString()).includes(decoded.userId)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 

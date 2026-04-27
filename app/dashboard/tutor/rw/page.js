@@ -52,7 +52,7 @@ export default function TutorRWPage() {
         const isRW = s.testId?.subject === 'Reading and Writing' || (!s.testId?.subject && s.testId?.sections?.rw === true)
         
         // Check if test is assigned to this student
-        const isAssigned = testIds.length === 0 || testIds.includes(s.testId?._id)
+        const isAssigned = testIds.length === 0 || testIds.map(id => id?.toString()).includes(s.testId?._id?.toString())
         
         return isTutor && isRW && isAssigned
       })

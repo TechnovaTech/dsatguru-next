@@ -10,7 +10,7 @@ export async function PUT(request) {
     const token = getTokenFromRequest(request)
     const decoded = verifyToken(token)
     
-    if (!decoded || decoded.role !== 'Tutor') {
+    if (!decoded || !['Tutor', 'TutorAdmin'].includes(decoded.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -25,8 +25,8 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 })
     }
 
-    // Check if student is assigned to this tutor
-    if (student.assignedTutor?.toString() !== decoded.userId) {
+    // TutorAdmin can assign to any student; Tutor can only assign to their own students
+    if (decoded.role === 'Tutor' && !(student.assignedTutors || []).map(id => id.toString()).includes(decoded.userId)) {
       return NextResponse.json({ error: 'You can only assign tests to your assigned students' }, { status: 403 })
     }
 

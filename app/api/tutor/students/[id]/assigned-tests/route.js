@@ -9,7 +9,7 @@ export async function GET(request, { params }) {
     const token = getTokenFromRequest(request)
     const decoded = verifyToken(token)
     
-    if (!decoded || decoded.role !== 'Tutor') {
+    if (!decoded || !['Tutor', 'TutorAdmin'].includes(decoded.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -24,8 +24,8 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 })
     }
 
-    // Check if student is assigned to this tutor
-    if (student.assignedTutor?.toString() !== decoded.userId) {
+    // TutorAdmin can view any student; Tutor can only view their own students
+    if (decoded.role === 'Tutor' && !(student.assignedTutors || []).map(id => id.toString()).includes(decoded.userId)) {
       return NextResponse.json({ error: 'You can only view tests for your assigned students' }, { status: 403 })
     }
 
