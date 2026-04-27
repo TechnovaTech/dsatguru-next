@@ -6,7 +6,12 @@ import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
 export async function GET() {
   try {
     await connectDB()
-    const tests = await Test.find().sort({ createdAt: -1 })
+    // Only return adaptive/standard tests — exclude tutor tests and admin-panel tests
+    const tests = await Test.find({
+      isTutorTest: { $ne: true },
+      isAdminTest: { $ne: true },
+      practiceMode: { $nin: ['tutor', 'admin'] }
+    }).sort({ createdAt: -1 })
     return NextResponse.json(tests)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch tests' }, { status: 500 })
