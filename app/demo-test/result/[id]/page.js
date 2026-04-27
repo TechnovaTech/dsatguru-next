@@ -157,7 +157,7 @@ export default function DemoTestResult() {
                         )}
                       </div>
                     ) : <span className="text-gray-400 text-sm">{item.totalQuestions || 0} questions</span>}
-                    <Link href={item.type === 'course' ? `/enrollment?course=${item.id}` : `/enrollment?bank=${item.id}`} className="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg">
+                    <Link href={`/enrollment/${item.id}`} className="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg">
                       <FiShoppingCart size={14} /> Buy
                     </Link>
                   </div>
@@ -170,7 +170,7 @@ export default function DemoTestResult() {
         )}
 
         <div className="text-center mt-10">
-          <Link href="/programs" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium">
+          <Link href="/#programs" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium">
             Browse all programs <FiArrowRight />
           </Link>
         </div>
