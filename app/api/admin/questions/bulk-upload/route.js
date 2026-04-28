@@ -150,7 +150,7 @@ export async function POST(request) {
     }
     
     const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
+    if (!decoded || !['Admin', 'TutorAdmin'].includes(decoded.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
