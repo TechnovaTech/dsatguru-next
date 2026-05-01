@@ -12,7 +12,6 @@ export default function AdminTestSheets() {
   const [success, setSuccess] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [filterMode, setFilterMode] = useState('all') // all, timed, untimed
-  const [activeTab, setActiveTab] = useState('Math') // Math, Reading and Writing
   
   // View test modal
   const [showViewModal, setShowViewModal] = useState(false)
@@ -265,7 +264,6 @@ export default function AdminTestSheets() {
   }
 
   const filteredTests = tests.filter(test => {
-    if (test.subject !== activeTab) return false
     if (test.isReassigned) return false
     if (searchTerm && !test.title.toLowerCase().includes(searchTerm.toLowerCase())) return false
     if (filterMode === 'timed' && !test.isTimed) return false
@@ -297,17 +295,6 @@ export default function AdminTestSheets() {
             <FiCheck /> {success}
           </div>
         )}
-
-        <div className="mb-6 border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button onClick={() => setActiveTab('Math')} className={`${activeTab === 'Math' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}>
-              Math Tests
-            </button>
-            <button onClick={() => setActiveTab('Reading and Writing')} className={`${activeTab === 'Reading and Writing' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}>
-              Reading & Writing Tests
-            </button>
-          </nav>
-        </div>
 
         <div className="bg-white rounded-lg shadow-sm p-4 mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="relative">

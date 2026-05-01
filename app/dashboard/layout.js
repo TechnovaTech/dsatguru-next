@@ -31,13 +31,9 @@ const navItems = [
     ]
   },
   { 
-    name: "Admin Test", 
+    name: "Admin Tests", 
     icon: <FiClipboard />, 
-    path: "/dashboard/admin-tests",
-    children: [
-      { name: "Admin Math", icon: <FiActivity />, path: "/dashboard/admin-tests/math" },
-      { name: "Admin Read and Write", icon: <FiPieChart />, path: "/dashboard/admin-tests/rw" },
-    ]
+    path: "/dashboard/admin-tests"
   },
   { name: "Adaptive Tests", icon: <FiZap />, path: "/dashboard/adaptive-tests" },
   { name: "Live Classes", icon: <FiVideo />, path: "/dashboard/live-classes" },
