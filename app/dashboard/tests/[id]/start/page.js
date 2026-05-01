@@ -307,7 +307,7 @@ export default function TakeTestPage() {
 
     // Detect window blur (minimize or focus loss)
     const handleWindowBlur = async () => {
-      const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+      const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin' || test?.practiceMode === 'timed'
       if (isSecureMode && isFullscreen && !testCompleted && !showModuleSummary) {
         // Small delay to avoid false positives
         setTimeout(async () => {
@@ -349,9 +349,9 @@ export default function TakeTestPage() {
     }
   }
 
-  // Auto-enter fullscreen when test starts (for tutor and admin tests)
+  // Auto-enter fullscreen when test starts (for tutor, admin and adaptive/timed tests)
   useEffect(() => {
-    const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+    const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin' || test?.practiceMode === 'timed'
     if (isSecureMode && !loading && !checkingHistory && !testCompleted && !showModuleSummary && moduleQuestions.length > 0 && !isFullscreen) {
       enterFullscreen()
     }
