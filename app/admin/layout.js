@@ -31,7 +31,16 @@ export default function AdminLayout({ children }) {
     { id: 'sat-question-upload', label: 'SAT Question Upload', icon: <FiUpload />, path: '/admin/sat-question-upload' },
     { id: 'question-bank', label: 'Question Bank Management', icon: <FiDatabase />, path: '/admin/question-bank' },
     { id: 'study-plan', label: 'Study Plan Management', icon: <FiTarget />, path: '/admin/study-plan' },
-    { id: 'test-management', label: 'Adaptive Test Management', icon: <FiClipboard />, path: '/admin/test-management' },
+    {
+      id: 'adaptive-tests',
+      label: 'Adaptive Test Management',
+      icon: <FiClipboard />,
+      path: '#',
+      submenu: [
+        { id: 'adaptive-test-management', label: 'Test Management', path: '/admin/test-management', icon: <FiClipboard /> },
+        { id: 'adaptive-results', label: 'Student Results', path: '/admin/adaptive-tests/results', icon: <FiAward /> }
+      ]
+    },
     { 
       id: 'tutor-tests', 
       label: 'Tutor Tests', 
