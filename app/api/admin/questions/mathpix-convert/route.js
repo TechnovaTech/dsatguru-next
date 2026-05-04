@@ -1,10 +1,9 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 import { generateQuestionId } from '../../../../../lib/idGenerator'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
-import Anthropic from '@anthropic-ai/sdk'
 
 const MATHPIX_APP_ID = process.env.MATHPIX_APP_ID
 const MATHPIX_APP_KEY = process.env.MATHPIX_APP_KEY
@@ -176,17 +175,15 @@ export async function GET(request) {
       })
     }
 
-    // --- Claude AI: fill missing data for incomplete questions ---
-    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
-    if (ANTHROPIC_API_KEY) {
-      const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY })
+    // --- Gemini AI: fill missing data for incomplete questions ---
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+    if (GEMINI_API_KEY) {
       const incompleteIndices = []
       for (let i = 0; i < questions.length; i++) {
         if (isIncomplete(questions[i])) incompleteIndices.push(i)
       }
       if (incompleteIndices.length > 0) {
-        console.log(`🤖 Claude: ${incompleteIndices.length} incomplete questions found — sending to Claude 3.5 Sonnet`)
-        // Process in parallel batches of 5 to avoid rate limits
+        console.log(`🤖 Gemini: ${incompleteIndices.length} incomplete questions — sending to Gemini 2.5 Flash`)
         const batchSize = 5
         for (let b = 0; b < incompleteIndices.length; b += batchSize) {
           const batch = incompleteIndices.slice(b, b + batchSize)
@@ -194,9 +191,8 @@ export async function GET(request) {
             try {
               const q = questions[idx]
               const rawBlock = rawBlocks[idx] || q.content || ''
-              const filled = await fillWithClaude(anthropic, rawBlock, q, subject)
+              const filled = await fillWithGemini(GEMINI_API_KEY, rawBlock, subject)
               if (filled) {
-                // Only override fields that were missing
                 if (!q.content || q.content.trim().length < 10) q.content = filled.content || q.content
                 if (!q.options || q.options.filter(o => o && o.trim()).length < 2) q.options = filled.options || q.options
                 if (!q.correctAnswer || !['A','B','C','D'].includes(q.correctAnswer)) q.correctAnswer = filled.correctAnswer || q.correctAnswer
@@ -206,16 +202,16 @@ export async function GET(request) {
                 if (filled.difficulty && q.difficulty === defaultDifficulty) q.difficulty = filled.difficulty
                 q.title = (q.content || '').replace(/!\[.*?\]\(.*?\)/g, '').substring(0, 100)
                 q.aiAssisted = true
-                console.log(`   ✅ Claude filled Q${idx + 1}`)
+                console.log(`   ✅ Gemini filled Q${idx + 1}`)
               }
             } catch (e) {
-              console.error(`   ❌ Claude failed for Q${idx + 1}:`, e.message)
+              console.error(`   ❌ Gemini failed for Q${idx + 1}:`, e.message)
             }
           }))
         }
       }
     } else {
-      console.log('ℹ️ ANTHROPIC_API_KEY not set — skipping Claude AI fill')
+      console.log('ℹ️ GEMINI_API_KEY not set — skipping Gemini AI fill')
     }
 
     return NextResponse.json({ status: 'done', questions })
@@ -284,6 +280,10 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
       /(?<=[\d.!?\]\)])\s+(?=[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,5}\s*-\s*[A-Z][a-z])/g,
       ' ' + marker
     )
+
+    // 2b. Split on "## Q1", "## Q2", "Q1", "Q2" etc. on their own line (common PDF format)
+    // Handles both "## Q1" (Mathpix heading) and bare "Q1" variants
+    prepared = prepared.replace(/(?:^|\n)[ \t]*(?:#{1,6}\s*)?Q(\d{1,3})[ \t]*[.:]?[ \t]*(?=\n|$)/gm, '\n' + marker)
 
     // 3. Split on explicit headers like "Question 1", "## 1", or simply "1.", "1)", "(1)", "1"
     // We allow it to be at start of line or preceded by multiple newlines
@@ -378,8 +378,8 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
       }
 
       // Safety checks
-      const isMCQ = /Answer:\s*[A-D]/i.test(block) || /[A-D][\)\.]\s+/.test(block)
-      const isSPR = /response:\s*([\-\d\.\/]+)/i.test(block) || /Answer:\s*([\-\d\.\/]+)/i.test(block)
+      const isMCQ = /(?:Correct\s+)?Answer:\s*[A-D]/i.test(block) || /[A-D][\)\.]\s+/.test(block)
+      const isSPR = /response:\s*([\-\d\.\/]+)/i.test(block) || /(?:Correct\s+)?Answer:\s*([\-\d\.\/]+)/i.test(block)
       const hasTopic = /^[ \t]*(?:#{1,6}\s*)?[A-Z][^.!?\n]{5,60}\s*-\s*[A-Z][^.!?\n]{3,120}/m.test(block)
       const hasDifficulty = /Difficulty:\s*(Easy|Medium|Hard)/i.test(block)
 
@@ -410,9 +410,9 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     const rowNumber = qIndex.toString().padStart(3, '0')
     
     // Detect Question Number only for logging/display.
-    // Require explicit "Question" or "Page" word with whitespace — never single letter Q
-    // (which falsely matches things like "Q4" inside math expressions or "$\geq 150$").
+    // Handles "Question 1", "Page 1", and bare "Q1" format
     const qNumMatch = block.substring(0, 200).match(/\b(?:Question|Page)\s+(\d{1,3})\b/i)
+      || block.substring(0, 50).match(/^[ \t]*Q(\d{1,3})[ \t]*[.:]?[ \t]*$/m)
     const displayNum = qNumMatch ? qNumMatch[1] : qIndex
 
     // NEW: Extract Topic Tag
@@ -430,12 +430,13 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     // 3. Extract Correct Answer
     let correctAnswer = ''
     if (type === 'MultipleChoice') {
-      const ansMatch = cleanBlock.match(/Answer:\s*([A-D])/i)
+      // Handles: "Answer: C", "Correct Answer: C", "**Correct Answer:** C"
+      const ansMatch = cleanBlock.match(/(?:Correct\s+)?Answer:\s*\**\s*([A-D])\b/i)
       correctAnswer = ansMatch ? ansMatch[1].toUpperCase() : 'A'
     } else {
       const sprMatch = cleanBlock.match(/response:\s*([\-\d\.\/]+)/i) || 
                        cleanBlock.match(/Correct\s*\n?\s*response:\s*([\-\d\.\/]+)/i) ||
-                       cleanBlock.match(/Answer:\s*([\-\d\.\/]+)/i)
+                       cleanBlock.match(/(?:Correct\s+)?Answer:\s*([\-\d\.\/]+)/i)
       correctAnswer = sprMatch ? sprMatch[1] : ''
     }
 
@@ -446,7 +447,10 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     // NEW: Refined splitting for the specific "one question per page" format
     // We look for the FIRST occurrence of a major section header to end the question text
     const sectionHeaders = [
+      'Correct Answer:',
       'Answer:', 
+      'Options',
+      'Short Explanation + SAT Tip',
       'Short Explanation', 
       'Mathematical Shortcut', 
       'Long Explanation', 
@@ -490,12 +494,16 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     }
 
     // 6. Explanations
+    // Handle both "Short Explanation" and "Short Explanation + SAT Tip" variants
     const shortRaw = cleanBlock.match(sectionRx('Short Explanation'))
+    const satTipRaw = cleanBlock.match(sectionRx('Short Explanation \\+ SAT Tip'))
     const shortcutRaw = cleanBlock.match(sectionRx('Mathematical Shortcut'))
     const longRaw = cleanBlock.match(sectionRx('Long Explanation'))
     
     let shortExplanation = ''
-    if (shortRaw && shortRaw[1]) shortExplanation = cleanContent(shortRaw[1].trim())
+    // Prefer "Short Explanation + SAT Tip" over plain "Short Explanation"
+    if (satTipRaw && satTipRaw[1]) shortExplanation = cleanContent(satTipRaw[1].trim())
+    else if (shortRaw && shortRaw[1]) shortExplanation = cleanContent(shortRaw[1].trim())
     if (shortcutRaw && shortcutRaw[1]) {
       const shortcutContent = cleanContent(shortcutRaw[1].trim())
       if (shortcutContent) {
@@ -550,7 +558,7 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     return new RegExp(
       `(?:^|\\n)(?:#{1,6}\\s*)?\\*{0,4}${escapedLabel}\\*{0,4}(?:\\s*:)?\\s*\\n?` +
       `([\\s\\S]*?)` +
-      `(?=\\n+(?:#{1,6}\\s*)?\\*{0,4}(?:Short Explanation|Mathematical Shortcut|Long Explanation|Answer|Difficulty|Topic|Category|Tags|Question|Page)[:\\s*]|$)`,
+      `(?=\\n+(?:#{1,6}\\s*)?\\*{0,4}(?:Short Explanation|Mathematical Shortcut|Long Explanation|Correct Answer|Answer|Difficulty|Topic|Category|Tags|Question|Page)[:\\s*]|$)`,
       'i'
     )
   }
@@ -639,7 +647,7 @@ function isIncomplete(q) {
   return !hasContent || !hasOptions || !hasAnswer
 }
 
-async function fillWithClaude(anthropic, rawBlock, existingQ, subject) {
+async function fillWithGemini(apiKey, rawBlock, subject) {
   if (!rawBlock || rawBlock.trim().length < 5) return null
 
   const prompt = `You are an expert SAT question extractor. Extract the following SAT question from the raw text below and return ONLY a valid JSON object with no extra text, no markdown, no code blocks.
@@ -662,33 +670,41 @@ Return this exact JSON structure:
 
 Rules:
 - content: the actual question being asked (not the answer choices)
-- options: exactly 4 strings for A, B, C, D (empty string if not applicable for ShortAnswer)
-- correctAnswer: single letter A/B/C/D for MultipleChoice, or the numeric answer for ShortAnswer
+- options: exactly 4 strings for A, B, C, D (empty string if ShortAnswer)
+- correctAnswer: single letter A/B/C/D for MultipleChoice, or numeric answer for ShortAnswer
 - Keep all math expressions exactly as they appear
 - If any field cannot be determined, use empty string`
 
-  const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
-    max_tokens: 1024,
-    messages: [{ role: 'user', content: prompt }]
-  })
+  // Use direct REST API — avoids SDK version/model compatibility issues
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.1, maxOutputTokens: 1024 }
+      })
+    }
+  )
 
-  const responseText = message.content[0]?.text?.trim() || ''
-  
-  // Extract JSON from response (handle cases where Claude adds extra text)
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err?.error?.message || `Gemini API error ${res.status}`)
+  }
+
+  const data = await res.json()
+  const responseText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ''
+
   const jsonMatch = responseText.match(/\{[\s\S]*\}/)
   if (!jsonMatch) return null
 
   const parsed = JSON.parse(jsonMatch[0])
-  
-  // Validate the response has meaningful data
   if (!parsed.content || parsed.content.trim().length < 5) return null
-  
+
   return {
     content: parsed.content || '',
-    options: Array.isArray(parsed.options) && parsed.options.length === 4
-      ? parsed.options
-      : ['', '', '', ''],
+    options: Array.isArray(parsed.options) && parsed.options.length === 4 ? parsed.options : ['', '', '', ''],
     correctAnswer: parsed.correctAnswer || '',
     shortExplanation: parsed.shortExplanation || '',
     longExplanation: parsed.longExplanation || '',
