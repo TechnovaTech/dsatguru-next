@@ -12,6 +12,7 @@
     "seed:comparison": "node scripts/seed-comparison.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.92.0",
     "@stripe/react-stripe-js": "^2.9.0",
     "@stripe/stripe-js": "^4.10.0",
     "autoprefixer": "^10.4.16",

@@ -4,6 +4,7 @@ import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 import { generateQuestionId } from '../../../../../lib/idGenerator'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
+import Anthropic from '@anthropic-ai/sdk'
 
 const MATHPIX_APP_ID = process.env.MATHPIX_APP_ID
 const MATHPIX_APP_KEY = process.env.MATHPIX_APP_KEY
@@ -165,7 +166,7 @@ export async function GET(request) {
     const globalTags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(Boolean) : []
     // Pre-clean the full markdown before parsing
     const cleanedMd = cleanContent(localMd)
-    const questions = parseMathpixMarkdown(cleanedMd, subject, defaultDifficulty, globalTags)
+    const { questions, rawBlocks } = parseMathpixMarkdown(cleanedMd, subject, defaultDifficulty, globalTags)
 
     if (questions.length === 0) {
       return NextResponse.json({
@@ -173,6 +174,48 @@ export async function GET(request) {
         error: 'No questions could be parsed. Make sure questions are numbered (1. 2. 3.) with options A) B) C) D).',
         rawPreview: mdText.substring(0, 800)
       })
+    }
+
+    // --- Claude AI: fill missing data for incomplete questions ---
+    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
+    if (ANTHROPIC_API_KEY) {
+      const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY })
+      const incompleteIndices = []
+      for (let i = 0; i < questions.length; i++) {
+        if (isIncomplete(questions[i])) incompleteIndices.push(i)
+      }
+      if (incompleteIndices.length > 0) {
+        console.log(`🤖 Claude: ${incompleteIndices.length} incomplete questions found — sending to Claude 3.5 Sonnet`)
+        // Process in parallel batches of 5 to avoid rate limits
+        const batchSize = 5
+        for (let b = 0; b < incompleteIndices.length; b += batchSize) {
+          const batch = incompleteIndices.slice(b, b + batchSize)
+          await Promise.all(batch.map(async (idx) => {
+            try {
+              const q = questions[idx]
+              const rawBlock = rawBlocks[idx] || q.content || ''
+              const filled = await fillWithClaude(anthropic, rawBlock, q, subject)
+              if (filled) {
+                // Only override fields that were missing
+                if (!q.content || q.content.trim().length < 10) q.content = filled.content || q.content
+                if (!q.options || q.options.filter(o => o && o.trim()).length < 2) q.options = filled.options || q.options
+                if (!q.correctAnswer || !['A','B','C','D'].includes(q.correctAnswer)) q.correctAnswer = filled.correctAnswer || q.correctAnswer
+                if (!q.shortExplanation && filled.shortExplanation) q.shortExplanation = filled.shortExplanation
+                if (!q.longExplanation && filled.longExplanation) q.longExplanation = filled.longExplanation
+                if (!q.explanation) q.explanation = q.shortExplanation || q.longExplanation || filled.explanation || ''
+                if (filled.difficulty && q.difficulty === defaultDifficulty) q.difficulty = filled.difficulty
+                q.title = (q.content || '').replace(/!\[.*?\]\(.*?\)/g, '').substring(0, 100)
+                q.aiAssisted = true
+                console.log(`   ✅ Claude filled Q${idx + 1}`)
+              }
+            } catch (e) {
+              console.error(`   ❌ Claude failed for Q${idx + 1}:`, e.message)
+            }
+          }))
+        }
+      }
+    } else {
+      console.log('ℹ️ ANTHROPIC_API_KEY not set — skipping Claude AI fill')
     }
 
     return NextResponse.json({ status: 'done', questions })
@@ -517,7 +560,7 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
   console.log(`Final Questions Count: ${questions.length}`)
   console.log(`==================================================\n`)
 
-  return questions
+  return { questions, rawBlocks }
 }
 
 // Expand 2-column answer choices onto separate lines
@@ -584,3 +627,73 @@ function detectTopicTags(text, subject) {
 }
 
 function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() }
+
+// --- Claude AI helpers ---
+
+function isIncomplete(q) {
+  const hasContent = q.content && q.content.trim().length > 10
+  const hasOptions = q.type === 'ShortAnswer' || (q.options && q.options.filter(o => o && o.trim()).length >= 2)
+  const hasAnswer = q.type === 'ShortAnswer'
+    ? (q.correctAnswer && q.correctAnswer.trim().length > 0)
+    : (q.correctAnswer && ['A','B','C','D'].includes(q.correctAnswer.toUpperCase()))
+  return !hasContent || !hasOptions || !hasAnswer
+}
+
+async function fillWithClaude(anthropic, rawBlock, existingQ, subject) {
+  if (!rawBlock || rawBlock.trim().length < 5) return null
+
+  const prompt = `You are an expert SAT question extractor. Extract the following SAT question from the raw text below and return ONLY a valid JSON object with no extra text, no markdown, no code blocks.
+
+Subject: ${subject}
+
+Raw question text:
+${rawBlock.substring(0, 3000)}
+
+Return this exact JSON structure:
+{
+  "content": "full question text here",
+  "options": ["option A text", "option B text", "option C text", "option D text"],
+  "correctAnswer": "A or B or C or D",
+  "shortExplanation": "brief explanation",
+  "longExplanation": "detailed step by step explanation",
+  "difficulty": "Easy or Medium or Hard",
+  "type": "MultipleChoice or ShortAnswer"
+}
+
+Rules:
+- content: the actual question being asked (not the answer choices)
+- options: exactly 4 strings for A, B, C, D (empty string if not applicable for ShortAnswer)
+- correctAnswer: single letter A/B/C/D for MultipleChoice, or the numeric answer for ShortAnswer
+- Keep all math expressions exactly as they appear
+- If any field cannot be determined, use empty string`
+
+  const message = await anthropic.messages.create({
+    model: 'claude-3-5-sonnet-20241022',
+    max_tokens: 1024,
+    messages: [{ role: 'user', content: prompt }]
+  })
+
+  const responseText = message.content[0]?.text?.trim() || ''
+  
+  // Extract JSON from response (handle cases where Claude adds extra text)
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+  if (!jsonMatch) return null
+
+  const parsed = JSON.parse(jsonMatch[0])
+  
+  // Validate the response has meaningful data
+  if (!parsed.content || parsed.content.trim().length < 5) return null
+  
+  return {
+    content: parsed.content || '',
+    options: Array.isArray(parsed.options) && parsed.options.length === 4
+      ? parsed.options
+      : ['', '', '', ''],
+    correctAnswer: parsed.correctAnswer || '',
+    shortExplanation: parsed.shortExplanation || '',
+    longExplanation: parsed.longExplanation || '',
+    explanation: parsed.shortExplanation || parsed.longExplanation || '',
+    difficulty: ['Easy', 'Medium', 'Hard'].includes(parsed.difficulty) ? parsed.difficulty : null,
+    type: parsed.type || 'MultipleChoice'
+  }
+}
