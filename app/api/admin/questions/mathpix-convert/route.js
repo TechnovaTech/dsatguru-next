@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 import { generateQuestionId } from '../../../../../lib/idGenerator'
@@ -245,110 +245,55 @@ function cleanContent(text) {
 function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
   const questions = []
   
-    // --- 1. SMART SPLITTING ---
-    // We use a unique marker to split the document.
+    // --- SPLITTING STRATEGY ---
+    // This PDF has exactly 1 question per page. Each page starts with "Q N" on its own line
+    // (e.g. "Q 1", "Q 2", "## Q 1"). That is the ONLY split boundary we need.
+    // All other content (Difficulty, Answer Choices, ANSWER, explanations) belongs to
+    // the same question block and must NOT be split on.
+
     const marker = '[[Q-SEP]]'
-    
+
     // Normalize line endings
     let prepared = md.replace(/\r\n/g, '\n')
-    
-    // Debug: Log the first 2000 characters to help identify markers
+
+    // Debug: log first 2000 chars
     console.log('\n--- 🛠️ PRE-SPLIT DEBUG (First 2000 chars) ---')
     console.log(prepared.substring(0, 2000))
     console.log('-------------------------------------------\n')
 
-    // 0. PRIMARY SPLIT: After "Difficulty: Easy|Medium|Hard" — the END marker for each question.
-    // In SAT-prep PDFs every question ends with this footer. Splitting AFTER it gives clean
-    // per-question blocks even when Mathpix flattens multiple pages onto one line without
-    // page-break markers. This is the most reliable boundary for this format.
+    // PRIMARY SPLIT: "Q N" on its own line (with optional ## heading prefix and optional space)
+    // Matches: "Q 1", "Q1", "## Q 1", "## Q1" — only when the line contains nothing else.
     prepared = prepared.replace(
-      /((?:\*{1,4}|_{1,4})?Difficulty(?:\*{1,4}|_{1,4})?\s*:?\s*(?:Easy|Medium|Hard))\b/gi,
-      '$1' + marker
+      /(?:^|\n)[ \t]*(?:#{1,6}\s*)?Q\s*(\d{1,3})[ \t]*\n/gm,
+      '\n' + marker + 'Q $1\n'
     )
 
-    // 1. Split on Mathpix page breaks (--- or ***)
-    // We allow optional whitespace before/after
-    prepared = prepared.replace(/^[ \t]*[-*]{3,}[ \t]*$/gm, marker)
+    // FALLBACK: Mathpix horizontal rule page breaks (--- or ***)
+    // Only use these if the Q-number split didn't already handle it.
+    prepared = prepared.replace(/^[ \t]*[-*]{3,}[ \t]*$/gm, (match) => {
+      // Only insert marker if there isn't already one nearby
+      return marker
+    })
 
-    // 2. Split BEFORE Topic lines (e.g. "Linear Inequalities - ...")
-    // Since every question starts with a topic line, this is a great fallback.
-    // We use a lookahead so the topic line stays inside the new block.
-    // Match both newline-prefixed AND inline (after digit/punctuation) topic patterns.
-    prepared = prepared.replace(/\n(?=(?:#{1,6}\s*)?[A-Z][^.!?\n]{5,60}\s*-\s*[A-Z][^.!?\n]{3,120})/gm, marker)
-    // Inline topic detection: strong pattern "Word Word(s) - Capital..." after digit or sentence punctuation
-    prepared = prepared.replace(
-      /(?<=[\d.!?\]\)])\s+(?=[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,5}\s*-\s*[A-Z][a-z])/g,
-      ' ' + marker
-    )
-
-    // 2b. Split on "## Q1", "## Q2", "Q1", "Q2" etc. on their own line (common PDF format)
-    // Handles both "## Q1" (Mathpix heading) and bare "Q1" variants
-    prepared = prepared.replace(/(?:^|\n)[ \t]*(?:#{1,6}\s*)?Q(\d{1,3})[ \t]*[.:]?[ \t]*(?=\n|$)/gm, '\n' + marker)
-
-    // 3. Split on explicit headers like "Question 1", "## 1", or simply "1.", "1)", "(1)", "1"
-    // We allow it to be at start of line or preceded by multiple newlines
-    // Added \n? to ensure we catch it even if there's a preceding newline from previous content
-    prepared = prepared.replace(/(?:\n|^)[ \t]*(?:#{1,6}\s+|(?:\*\*|__)?(?:Question|Page|Q)\s+(?:\*\*|__)?|(?:\*\*|__)?\()?\b(\d{1,3})\b[\)\.]?(?:\*\*|__)?(?:[ \t]+|$)/gmi, marker)
-
-    // 4. Inline "Question N" / "Page N" detection (no newline required)
-    prepared = prepared.replace(
-      /(?<=[\s\d.!?\]\)])(?=(?:\*{1,4}|_{1,4})?(?:Question|Page)\s+\d{1,3}\b)/gi,
-      marker
-    )
-
-    // Split into blocks
+    // Split into raw blocks
     let rawBlocks = prepared.split(marker)
       .map(b => b.trim())
       .filter(b => b.length > 0)
 
-    // SAFETY NET: If any block STILL contains 2+ "Difficulty: X" markers, it means
-    // Mathpix merged questions in a way that fooled all our split patterns. Force-split.
-    const safeBlocks = []
-    const diffSplitRx = /((?:\*{1,4}|_{1,4})?Difficulty(?:\*{1,4}|_{1,4})?\s*:?\s*(?:Easy|Medium|Hard))/i
-    const diffCountRx = /(?:\*{1,4}|_{1,4})?Difficulty(?:\*{1,4}|_{1,4})?\s*:?\s*(?:Easy|Medium|Hard)/gi
-    for (const block of rawBlocks) {
-      const matches = block.match(diffCountRx)
-      if (matches && matches.length > 1) {
-        // Split capturing the delimiter so it stays at the end of each piece
-        const parts = block.split(diffSplitRx)
-        // parts = [before1, diff1, between, diff2, after, ...]
-        let current = ''
-        for (let p = 0; p < parts.length; p++) {
-          current += parts[p]
-          // After capturing a Difficulty marker (odd index), close the block
-          if (p % 2 === 1) {
-            const t = current.trim()
-            if (t.length > 0) safeBlocks.push(t)
-            current = ''
-          }
-        }
-        // Trailing remainder (after the last Difficulty)
-        const tail = current.trim()
-        if (tail.length > 0) safeBlocks.push(tail)
-      } else {
-        safeBlocks.push(block)
-      }
-    }
-    rawBlocks = safeBlocks
-
-    // ORPHAN MERGE: If a block is JUST a footer/header noise (e.g., "## Difficulty: Easy"
-    // alone, "## Answer: B" alone, or just a section header like "## Long Explanation"),
-    // it's a piece of the PREVIOUS question that got separated by the page-number split.
-    // Merge it back into the previous block so the question stays whole.
-    const ORPHAN_PATTERNS = [
-      /^(?:#{1,6}\s*)?(?:\*{1,4}|_{1,4})?Difficulty(?:\*{1,4}|_{1,4})?\s*:?\s*(?:Easy|Medium|Hard)\s*$/i,
-      /^(?:#{1,6}\s*)?(?:\*{1,4}|_{1,4})?Answer(?:\*{1,4}|_{1,4})?\s*:?\s*[A-D]\s*$/i,
-      /^(?:#{1,6}\s*)?(?:\*{1,4}|_{1,4})?(?:Short Explanation|Long Explanation|Mathematical Shortcut|Explanation|Topic|Category|Tags)(?:\*{1,4}|_{1,4})?\s*:?\s*$/i,
-      /^\d{1,3}\s*$/  // Bare page number footer
-    ]
+    // MERGE ORPHANS: Any block that has no question content (no answer choices, no
+    // Difficulty, no question text) is a stray fragment — merge it into the previous block.
     const mergedBlocks = []
     for (const block of rawBlocks) {
-      const t = block.trim()
-      const isOrphan = t.length < 60 && ORPHAN_PATTERNS.some(rx => rx.test(t))
-      if (isOrphan && mergedBlocks.length > 0) {
-        mergedBlocks[mergedBlocks.length - 1] += '\n\n' + t
+      const hasQuestionContent =
+        /[A-D][\)\.]\s+/i.test(block) ||           // answer choices
+        /Difficulty:\s*(Easy|Medium|Hard)/i.test(block) ||  // difficulty label
+        /Correct\s+Answer:/i.test(block) ||          // answer label
+        /Q\s*\d{1,3}/i.test(block) ||               // Q number header
+        block.length > 200                           // substantial content
+      if (!hasQuestionContent && mergedBlocks.length > 0) {
+        mergedBlocks[mergedBlocks.length - 1] += '\n\n' + block
       } else {
-        mergedBlocks.push(t)
+        mergedBlocks.push(block)
       }
     }
     rawBlocks = mergedBlocks
@@ -377,23 +322,30 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
           continue
       }
 
-      // Safety checks
-      const isMCQ = /(?:Correct\s+)?Answer:\s*[A-D]/i.test(block) || /[A-D][\)\.]\s+/.test(block)
-      const isSPR = /response:\s*([\-\d\.\/]+)/i.test(block) || /(?:Correct\s+)?Answer:\s*([\-\d\.\/]+)/i.test(block)
-      const hasTopic = /^[ \t]*(?:#{1,6}\s*)?[A-Z][^.!?\n]{5,60}\s*-\s*[A-Z][^.!?\n]{3,120}/m.test(block)
-      const hasDifficulty = /Difficulty:\s*(Easy|Medium|Hard)/i.test(block)
+      // Skip blocks that are ONLY answer choices / explanation fragments with no question text.
+      // A valid question block must have either a Q-number header OR actual question text
+      // (i.e. something before the first answer choice / Difficulty label).
+      const hasQHeader = /Q\s*\d{1,3}/i.test(block.substring(0, 30))
+      const hasQuestionText = (() => {
+        // Find where answer choices or Difficulty starts
+        const firstSectionIdx = Math.min(
+          ...[
+            block.indexOf('Difficulty:'),
+            block.indexOf('Answer Choices'),
+            block.indexOf('ANSWER'),
+            block.search(/\n[A-D][\)\.]\s/)
+          ].filter(i => i > -1)
+        )
+        if (firstSectionIdx === Infinity) return block.length > 20
+        // There must be at least 15 chars of question text before the first section
+        return firstSectionIdx > 15
+      })()
 
-      // Block 0 handling (Cover page)
-      // We ONLY skip Block 0 if it really looks like a cover page (no question indicators at all)
-      if (i === 0 && !isMCQ && !isSPR && !hasTopic && !hasDifficulty) {
-          console.log(`   ❌ SKIPPED: Block 0 identified as Info/Cover Page.`)
+      if (!hasQHeader && !hasQuestionText) {
+          console.log(`   ❌ SKIPPED: Block has no question text — only answer/explanation fragment.`)
           skippedCount++
           continue
       }
-
-      // NO MORE STRING REQUIREMENTS FOR OTHER BLOCKS!
-      // If Mathpix found a block between separators, we ADD IT.
-      // This ensures we don't miss short questions or pages with only images.
       
       addedCount++
       processValidBlock(block, addedCount)
