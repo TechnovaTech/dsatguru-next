@@ -8,6 +8,12 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  // Increase body size limit for large bulk question uploads (Mathpix batches)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb'
+    }
+  },
   async redirects() {
     return [
       {
