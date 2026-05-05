@@ -45,21 +45,28 @@ export async function POST(request) {
       })
     }
 
-    // Build serial counters — find max existing serial per subject+tag prefix GLOBALLY
-    // (across all question banks) so IDs are always unique in the entire collection.
+    // Build serial counters — find max existing serial per bankType+subject+tag+difficulty
+    // so IDs like TMGE-M-1 and TMGE-H-1 are tracked separately and never collide.
     const serialCounters = {}
+    // Track every ID assigned in this batch so in-batch collisions are caught.
+    // Different full tags can share the same 2-letter tagCode prefix (e.g. "geometry" and
+    // "general" both → "GE"). Without this Set, two such tags would both query the DB,
+    // find the same max serial, and generate identical IDs since neither sees the other's
+    // pending insert (insertMany hasn't run yet).
+    const usedIds = new Set()
 
-    const getNextSerial = async (subject, tag) => {
+    const getNextSerial = async (subject, tag, difficulty) => {
       const bankType = isTutor ? 'tutor' : isAdminTest ? 'admintest' : 'admin'
-      const key = `${bankType}|${subject}|${tag}`
-      if (serialCounters[key] === undefined) {
-        const subjectCode = subject === 'Math' ? 'M' : 'R'
-        const tagCode = tag ? tag.replace(/[^a-zA-Z]/g, '').substring(0, 2).toUpperCase() : 'GN'
-        const bankPrefix = isTutor ? 'T' : isAdminTest ? 'AT' : ''
-        const prefix = `${bankPrefix}${subjectCode}${tagCode}-`
+      const key = `${bankType}|${subject}|${tag}|${difficulty}`
+      const subjectCode = subject === 'Math' ? 'M' : 'R'
+      const tagCode = tag ? tag.replace(/[^a-zA-Z]/g, '').substring(0, 2).toUpperCase() : 'GN'
+      const diffCode = difficulty === 'Easy' ? 'E' : difficulty === 'Hard' ? 'H' : 'M'
+      const bankPrefix = isTutor ? 'T' : isAdminTest ? 'AT' : ''
+      const prefix = `${bankPrefix}${subjectCode}${tagCode}-${diffCode}-`
 
+      if (serialCounters[key] === undefined) {
         const existing = await Question.find({
-          questionId: { $regex: '^' + prefix }
+          questionId: { $regex: '^' + prefix.replace(/[-]/g, '\\-') }
         }).select('questionId').lean()
 
         let maxSerial = 0
@@ -68,18 +75,39 @@ export async function POST(request) {
           const num = parseInt(parts[parts.length - 1])
           if (!isNaN(num) && num > maxSerial) maxSerial = num
         }
+        // Also account for IDs already assigned in this batch that share the same prefix
+        for (const id of usedIds) {
+          if (id.startsWith(prefix)) {
+            const parts = id.split('-')
+            const num = parseInt(parts[parts.length - 1])
+            if (!isNaN(num) && num > maxSerial) maxSerial = num
+          }
+        }
         serialCounters[key] = maxSerial + 1
       }
       return serialCounters[key]++
     }
 
-    // Build documents to upsert
+    // Build documents to insert
     const toCreate = []
     for (const q of validQuestions) {
       const tag0 = (Array.isArray(q.tags) ? q.tags[0] : (q.tags || '')) || 'General'
-      const serial = await getNextSerial(q.subject || 'Math', tag0)
+      const difficulty = q.difficulty || 'Medium'
       const bankType = isTutor ? 'tutor' : isAdminTest ? 'admintest' : 'admin'
-      const newQuestionId = generateQuestionId(q.subject || 'Math', tag0, q.difficulty || 'Medium', serial, bankType)
+
+      // getNextSerial now includes difficulty — TMGE-M-* and TMGE-H-* are separate counters
+      // In-memory counter increments per call so same-tag questions in one batch never collide
+      let serial = await getNextSerial(q.subject || 'Math', tag0, difficulty)
+      let newQuestionId = generateQuestionId(q.subject || 'Math', tag0, difficulty, serial, bankType)
+      // Cross-key collision: a different tag with the same 2-letter prefix may have already
+      // claimed this ID in this batch. Keep bumping the counter for this key until free.
+      const cKey = `${bankType}|${q.subject || 'Math'}|${tag0}|${difficulty}`
+      while (usedIds.has(newQuestionId)) {
+        serial = serialCounters[cKey]++
+        newQuestionId = generateQuestionId(q.subject || 'Math', tag0, difficulty, serial, bankType)
+      }
+      usedIds.add(newQuestionId)
+      console.log(`🔑 ${newQuestionId} | tag=${tag0} | diff=${difficulty} | serial=${serial}`)
 
       toCreate.push({
         questionId: newQuestionId,
@@ -90,7 +118,7 @@ export async function POST(request) {
         shortExplanation: q.shortExplanation || '',
         longExplanation: q.longExplanation || '',
         subject: q.subject || 'Math',
-        difficulty: q.difficulty || 'Medium',
+        difficulty,
         type: q.type || 'MultipleChoice',
         testType: 'Base',
         correctAnswer: q.correctAnswer,
@@ -107,31 +135,29 @@ export async function POST(request) {
       })
     }
 
-    // Upsert — match on questionId + isTutor so tutor and non-tutor banks
-    // never overwrite each other even if they generate the same questionId.
-    const operations = toCreate.map(q => ({
-      updateOne: {
-        filter: { questionId: q.questionId, isTutor: !!isTutor },
-        update: { $set: q },
-        upsert: true
-      }
-    }))
+    // Insert all questions — ordered:false means if one fails others still insert
+    const result = await Question.insertMany(toCreate, { ordered: false })
 
-    const result = await Question.bulkWrite(operations, { ordered: false })
-
-    console.log('✅ Bulk write done:', {
-      upserted: result.upsertedCount,
-      modified: result.modifiedCount
-    })
+    console.log('✅ Insert done:', { inserted: result.length })
 
     return NextResponse.json({
       success: true,
       message: 'Questions saved successfully',
-      count: result.upsertedCount + result.modifiedCount
+      count: result.length
     })
 
   } catch (error) {
     console.error('Bulk approve error:', error)
+    // Handle duplicate key errors from insertMany — some docs may have inserted
+    if (error.code === 11000 || error.name === 'BulkWriteError') {
+      const inserted = error.result?.nInserted || error.insertedDocs?.length || 0
+      console.warn(`⚠️ Duplicate key — ${inserted} inserted, some skipped`)
+      return NextResponse.json({
+        success: true,
+        message: `${inserted} questions saved (some duplicates skipped)`,
+        count: inserted
+      })
+    }
     if (error.name === 'ValidationError') {
       const fields = Object.keys(error.errors).map(k => `${k}: ${error.errors[k].message}`).join(', ')
       return NextResponse.json({ error: 'Validation failed', details: fields }, { status: 500 })

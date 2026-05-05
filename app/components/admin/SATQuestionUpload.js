@@ -403,6 +403,98 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
     }
   }
 
+  const downloadMathpixTemplate = async () => {
+    const qs = [
+      { num: 1, topic: 'Radian measure and degree conversion', difficulty: 'Medium', text: 'The measure of angle R is 2π/3 radians. The measure of angle T is 23π/18 radians greater than the measure of angle R. What is the measure of angle T, in degrees?', options: ['120', '230', '350', '700'], answer: 'C', short: 'Shortcut: add the radian measures first, then convert once. Since 2π/3 = 12π/18, T = 12π/18 + 23π/18 = 35π/18. Then 35π/18 × 180/π = 350°. Pattern: same-denominator radian addition followed by a clean degree conversion.', long: 'Step 1: Convert 2π/3 to eighteenths: 2π/3 = 12π/18.\nStep 2: Add the increase: 12π/18 + 23π/18 = 35π/18.\nStep 3: Convert radians to degrees using π radians = 180°.\nStep 4: 35π/18 × 180/π = 35 × 10 = 350.\nShortcut placement: The shortcut fits at the beginning: combine the fractions first, so you only convert one angle.' },
+      { num: 2, topic: 'algebra', difficulty: 'Medium', text: 'In the xy-plane, the point (p, r) lies on the line 4x + 3y = c. The point (7p, 11r) lies on x + y = c. Which expression must be equivalent to p/r?', options: ['-8/3', '-3/8', '3/8', '8/3'], answer: 'A', short: 'Substitute both points: 4p+3r=c and 7p+11r=c, so 4p+3r=7p+11r. This gives -3p=8r, so p/r = -8/3.', long: 'Step 1: 4p+3r=c.\nStep 2: 7p+11r=c.\nStep 3: Set equal: 4p+3r=7p+11r.\nStep 4: -3p=8r.\nStep 5: p/r = -8/3.' },
+      { num: 3, topic: 'geometry', difficulty: 'Medium', text: 'The height of a right circular cylinder is 36 inches, and the circumference of its base is 360 inches. Which expression represents the total surface area, in square inches?', options: ['(36)(360) + 2π(180/π)²', '(36)(360) + π(180/π)²', 'π(180/π)² × 36', '(36)(360)'], answer: 'A', short: 'Lateral area = C×h = 360×36. Since 2πr=360, r=180/π. Total = (36)(360) + 2π(180/π)².', long: 'Step 1: Lateral area = Ch = (360)(36).\nStep 2: r = 180/π.\nStep 3: Two bases = 2π(180/π)².\nStep 4: Add lateral + bases.' },
+      { num: 4, topic: 'geometry', difficulty: 'Medium', text: 'In triangle ABC, angle A = 62° and AC = 24. In triangle PQR, angle P = 62° and PR = 72. Which additional piece of information proves triangle ABC similar to PQR?', options: ['AB=18 and PQ=18', 'AB=18 and QR=54', 'Angle B=50° and angle R=68°', 'Angle B=62° and angle Q=50°'], answer: 'C', short: 'Choice C gives B=50°, so C=68°. Also R=68°. Since A=P=62°, two angles match — AA similarity.', long: 'Step 1: A=P=62° already.\nStep 2: B=50° → C=68°.\nStep 3: R=68°.\nStep 4: Both triangles: 62°,50°,68°.\nStep 5: AA similarity proven.' },
+      { num: 5, topic: 'geometry', difficulty: 'Medium', text: 'A circle has center G, and MH and NH are tangent at M and N. Radius = 160 mm, perimeter of GMHN = 3840 mm. What is the distance GH?', options: ['1767', '1776', '1760', '160'], answer: 'A', short: 'MH=NH=x. 160+x+x+160=3840, x=1760. GH=√(160²+1760²)≈1767.', long: 'Step 1: GM=GN=160.\nStep 2: MH=NH=x.\nStep 3: 320+2x=3840, x=1760.\nStep 4: Right triangle: GH=√(160²+1760²)≈1767.' },
+      { num: 6, topic: 'exponents', difficulty: 'Medium', text: 'If ⁵√(x^(7a+3)) = x / ⁵√(x^17), what is the value of a?', options: ['-15/7', '-7/15', '7/15', '15/7'], answer: 'A', short: 'Left = x^((7a+3)/5). Right = x^(1-17/5) = x^(-12/5). So (7a+3)/5 = -12/5, giving a = -15/7.', long: 'Step 1: Left = x^((7a+3)/5).\nStep 2: Right denominator = x^(17/5).\nStep 3: x/x^(17/5) = x^(-12/5).\nStep 4: 7a+3 = -12.\nStep 5: a = -15/7.' },
+      { num: 7, topic: 'geometry', difficulty: 'Medium', text: 'A circle has center (-5,5). Line t is tangent at (6,-1). Which point also lies on line t?', options: ['(0, 11/6)', '(1, 16)', '(12, 10)', '(17, 5)'], answer: 'C', short: 'Radius slope = -6/11. Tangent slope = 11/6. From (6,-1): +6x → +11y → (12,10).', long: 'Step 1: Slope of radius = (-1-5)/(6+5) = -6/11.\nStep 2: Tangent slope = 11/6.\nStep 3: From (6,-1), Δx=6, Δy=11.\nStep 4: Point = (12,10).' },
+      { num: 8, topic: 'geometry', difficulty: 'Medium', text: 'In triangle JKL, angle J=90b°, angle K=66a°, angle L=24a°. Which must be true?', options: ['cosL > sinK', 'cosL = sinK', 'cosL < sinK', 'Not enough information'], answer: 'D', short: '90b+90a=180, so a+b=2. This does not fix a single value of a, so K and L are not determined.', long: 'Step 1: 90b+66a+24a=180.\nStep 2: 90a+90b=180, a+b=2.\nStep 3: a is not fixed.\nStep 4: K and L can vary.\nStep 5: Cannot compare cosL and sinK.' },
+      { num: 9, topic: 'ratios', difficulty: 'Medium', text: 'Jordan opened an account with $900. After 6 months: +0.8% of original. After that: +0.3% every 2 months. Which equation represents B(x)?', options: ['B(x)=907.2(1.003)^(x/2-3)', 'B(x)=907.2(1.003)^(x/2-6)', 'B(x)=907.2(1.003)^(2x-12)', 'B(x)=907.2(1.003)^(2x-6)'], answer: 'A', short: 'Balance at 6 months = 907.2. Growth 0.3% per 2 months. Periods = (x-6)/2 = x/2-3.', long: 'Step 1: 900×0.008=7.2, balance=907.2.\nStep 2: Factor=1.003 per 2 months.\nStep 3: Periods=(x-6)/2.\nStep 4: B(x)=907.2(1.003)^((x-6)/2).' },
+      { num: 10, topic: 'algebra', difficulty: 'Medium', text: '6x⁴+17x²+5 = (3x²+a)(2x²+b) with a,b positive integers, or (3x²+c)(2x²+d) with c,d positive non-integers. What is a+c?', options: ['8.5', '17.5', '7.5', '1'], answer: 'A', short: 'ab=5, 3b+2a=17 → a=1,b=5. For non-integers: cd=5, 3d+2c=17 → c=7.5. a+c=8.5.', long: 'Step 1: ab=5, 3b+2a=17.\nStep 2: a=1,b=5 works.\nStep 3: cd=5, 3d+2c=17.\nStep 4: 3d²-17d+10=0, d=2/3.\nStep 5: c=7.5, a+c=8.5.' },
+      { num: 11, topic: 'functions', difficulty: 'Medium', text: 'For polynomial f(x), when divided by x-3 the remainder is 4. Which must be true about y=f(x)?', options: ['Passes through (3,-4)', 'Passes through (-3,4)', 'Passes through (4,3)', 'Passes through (3,4)'], answer: 'D', short: 'Remainder Theorem: f(3)=4. So graph passes through (3,4).', long: 'Step 1: Remainder Theorem: f(a) = remainder when divided by x-a.\nStep 2: Divisor x-3, so a=3.\nStep 3: f(3)=4.\nStep 4: Point is (3,4).' },
+      { num: 12, topic: 'algebra', difficulty: 'Medium', text: '0.14x + 0.28y = 0.20(x+y). What volume y of 28% solution mixes with 30 gallons of 14% to produce 20%?', options: ['10.5', '60', '22.5', '45'], answer: 'C', short: 'Plug x=30: 4.2+0.28y=6+0.20y → 0.08y=1.8 → y=22.5.', long: 'Step 1: x=30.\nStep 2: 0.14(30)+0.28y=0.20(30+y).\nStep 3: 4.2+0.28y=6+0.20y.\nStep 4: 0.08y=1.8.\nStep 5: y=22.5.' },
+      { num: 13, topic: 'quadratics', difficulty: 'Medium', text: 'f(x) = x²+6x-135. Which form displays the minimum value as a constant?', options: ['f(x)=(x+3)²-144', 'f(x)=(x-3)²-126', 'f(x)=x(x+6)-135', 'f(x)=x²+6x-45'], answer: 'A', short: 'Complete the square: x²+6x=(x+3)²-9. So f(x)=(x+3)²-144. Minimum = -144.', long: 'Step 1: f(x)=x²+6x-135.\nStep 2: Half of 6 = 3.\nStep 3: x²+6x=(x+3)²-9.\nStep 4: f(x)=(x+3)²-144.\nStep 5: Minimum = -144.' },
+      { num: 14, topic: 'ratios', difficulty: 'Medium', text: "An object's speed increases at 7.9 m/s². What is this in miles per minute²? (1 mile = 1609 m)", options: ['12711', '17.67', '3.53', '211.85'], answer: 'B', short: '7.9 × (1/1609) × 60² ≈ 17.67. Square the time conversion for acceleration.', long: 'Step 1: 7.9 m/s².\nStep 2: ×(1/1609) for miles.\nStep 3: ×60²=3600 for min².\nStep 4: 7.9×3600/1609≈17.67.' },
+      { num: 15, topic: 'quadratics', difficulty: 'Medium', text: '4x²-px+w=-83 has exactly one real solution. p,w are integers. Which is NOT a possible value of w?', options: ['-19', '17', '36', '317'], answer: 'C', short: 'Discriminant=0: p²=16(w+83). w+83 must be perfect square. 36+83=119 — not a perfect square.', long: 'Step 1: 4x²-px+(w+83)=0.\nStep 2: p²-16(w+83)=0.\nStep 3: w+83 must be perfect square.\nStep 4: -19+83=64✓, 17+83=100✓, 36+83=119✗, 317+83=400✓.\nStep 5: w=36 is NOT possible.' },
+      { num: 16, topic: 'functions', difficulty: 'Medium', text: 'Graph of y=f(x)-2 shown: decreasing exponential, asymptote y=4, crosses x-axis at (2,0). f(x)=ab^x+c, a,b,c integers, c≥0. Which defines f?', options: ['f(x)=-(2^x)+4', 'f(x)=-(2^x)+5', 'f(x)=-(2^x)+6', 'f(x)=-(3^x)+6'], answer: 'C', short: 'Asymptote of f(x)-2 is y=4, so f has asymptote y=6. f(2)=2. Choice C: -(2²)+6=2. ✓', long: 'Step 1: Graph is f(x)-2.\nStep 2: Asymptote y=4 → f asymptote y=6.\nStep 3: Eliminates A,B.\nStep 4: f(2)-2=0 → f(2)=2.\nStep 5: C: -(4)+6=2 ✓' },
+      { num: 17, topic: 'statistics', difficulty: 'Medium', text: 'Graph in t,d-plane with positive linear trend. Line passes near (230,403) and (270,483), slope≈2. Which is the best linear model?', options: ['d=-62.1+2.02t', 'd=162.1+2.02t', 'd=357.8+2.02t', 'd=392.8+2.02t'], answer: 'A', short: 'All have slope 2.02. At t=230: A gives -62.1+464.6=402.5≈403. ✓', long: 'Step 1: All slopes = 2.02.\nStep 2: Use point (230,403).\nStep 3: A: -62.1+2.02(230)=402.5≈403.\nStep 4: Others give too-high values.\nStep 5: A is correct.' },
+      { num: 18, topic: 'ratios', difficulty: 'Medium', text: '1 gallon of sealant costs $19, covers 350 sq ft. Deck area = d sq ft. Which equation gives cost c to cover deck TWICE?', options: ['c=350d/19', 'c=700d/19', 'c=19·d/175', 'c=19·d/350'], answer: 'C', short: 'Two coats = 2d sq ft. Gallons = 2d/350 = d/175. Cost = 19·d/175.', long: 'Step 1: Two coats = 2d sq ft.\nStep 2: Gallons = 2d/350.\nStep 3: Simplify = d/175.\nStep 4: Cost = 19×d/175.' },
+      { num: 19, topic: 'functions', difficulty: 'Medium', text: 'f(x)=(x-a)(x-b)(x+53), f(-50)>0, f(-48)<0. f(x)÷(x+45) remainder=0. f passes through (c,0), c integer. Largest possible c?', options: ['-52', '-45', '-53', '-54'], answer: 'B', short: 'x+45 remainder 0 → -45 is root. x+53 → -53 root. Sign change between -50,-48 → root at -49. Largest = -45.', long: 'Step 1: f(-45)=0, so -45 is root.\nStep 2: -53 is root.\nStep 3: Sign change → root between -50,-48.\nStep 4: Integer root = -49.\nStep 5: Roots: -53,-49,-45. Largest = -45.' },
+      { num: 20, topic: 'geometry', difficulty: 'Medium', text: 'Circle center C=(h,k). A=(h+1,k+√222), angle ACB=90°. What is length AB?', options: ['√446', '2√222', '223√2', '223√3'], answer: 'A', short: 'CA=√(1²+(√222)²)=√223. Angle ACB=90° → AB=r√2=√223·√2=√446.', long: 'Step 1: CA=√(1+222)=√223.\nStep 2: CA=CB=radii.\nStep 3: Angle ACB=90°.\nStep 4: AB=r√2=√223·√2=√446.' }
+    ]
+
+    const letters = ['A', 'B', 'C', 'D']
+    const { jsPDF } = await import('jspdf')
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+    const margin = 20
+    const maxW = 210 - margin * 2
+
+    qs.forEach((q, idx) => {
+      if (idx > 0) doc.addPage()
+      let y = 20
+
+      const writeLine = (text, size = 11, style = 'normal') => {
+        doc.setFontSize(size)
+        doc.setFont('helvetica', style)
+        doc.setTextColor(0, 0, 0)
+        const lines = doc.splitTextToSize(String(text), maxW)
+        // Check if we need a new page
+        if (y + lines.length * (size * 0.42) > 275) {
+          doc.addPage()
+          y = 20
+        }
+        doc.text(lines, margin, y)
+        y += lines.length * (size * 0.42) + 1.5
+      }
+
+      const blankLine = () => { y += 4 }
+
+      // ## Q1
+      writeLine(`## Q${q.num}`, 14, 'bold')
+      blankLine()
+
+      // Question text
+      writeLine(q.text, 11, 'normal')
+      blankLine()
+
+      // ## Options
+      writeLine('## Options', 11, 'bold')
+      q.options.forEach((opt, i) => writeLine(`${letters[i]}. ${opt}`, 11, 'normal'))
+      blankLine()
+
+      // Correct Answer: C
+      writeLine(`Correct Answer: ${q.answer}`, 11, 'normal')
+      blankLine()
+
+      // Topic: geometry
+      writeLine(`Topic: ${q.topic}`, 11, 'normal')
+      // Difficulty: Medium
+      writeLine(`Difficulty: ${q.difficulty}`, 11, 'normal')
+      blankLine()
+
+      // ## Short Explanation
+      writeLine('## Short Explanation', 11, 'bold')
+      writeLine(q.short, 11, 'normal')
+      blankLine()
+
+      // ## Long Explanation
+      writeLine('## Long Explanation', 11, 'bold')
+      writeLine(q.long, 11, 'normal')
+
+      // Page footer
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(150, 150, 150)
+      doc.text(`SAT Question Template - Page ${idx + 1}`, 105, 290, { align: 'center' })
+    })
+
+    doc.save('mathpix_question_template_20q.pdf')
+  }
+
   const handleCSVFileChange = async (e) => {
     const f = e.target.files?.[0]
     if (!f) return
@@ -954,9 +1046,27 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                     <div className="bg-purple-50 border border-purple-200 rounded-md p-4">
                       <div className="flex items-start gap-3">
                         <span className="text-2xl">🔬</span>
-                        <div>
+                        <div className="flex-1">
                           <h3 className="text-sm font-medium text-purple-900 mb-1">Mathpix AI Conversion</h3>
                           <p className="text-sm text-purple-700">Upload a DOCX or PDF containing SAT questions. Mathpix will extract text, math formulas, and structure them automatically — then you review before saving.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Template Download */}
+                    <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                      <div className="flex items-start gap-3">
+                        <FiDownload className="text-green-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <h3 className="text-sm font-medium text-green-900 mb-1">Download PDF Template</h3>
+                          <p className="text-sm text-green-700 mb-3">Download a sample PDF showing the exact format your questions should follow — including Topic, Difficulty, Options, Answer, and Explanations.</p>
+                          <button
+                            type="button"
+                            onClick={downloadMathpixTemplate}
+                            className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors"
+                          >
+                            <FiDownload className="mr-2" /> Download Template PDF
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -999,12 +1109,15 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                     </div>
 
                     <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-sm text-amber-800">
-                      <strong>Tips for best results:</strong>
+                      <strong>Required PDF format:</strong>
                       <ul className="mt-1 list-disc pl-4 space-y-1">
-                        <li>Number each question: <code>1.</code> or <code>Q1.</code></li>
-                        <li>Label options: <code>A)</code> <code>B)</code> <code>C)</code> <code>D)</code></li>
-                        <li>Mark answer: <code>Answer: B</code></li>
-                        <li>Optionally add: <code>Explanation: ...</code></li>
+                        <li>Start each question with <code>## Q1</code>, <code>## Q2</code> etc.</li>
+                        <li>Add <code>Topic: geometry</code> (algebra, quadratics, functions, etc.)</li>
+                        <li>Add <code>Difficulty: Medium</code> (Easy / Medium / Hard)</li>
+                        <li>Label options: <code>A.</code> <code>B.</code> <code>C.</code> <code>D.</code></li>
+                        <li>Mark answer: <code>Correct Answer: B</code></li>
+                        <li>Add <code>## Short Explanation</code> and <code>## Long Explanation</code></li>
+                        <li>Download the template above to see a full example</li>
                       </ul>
                     </div>
 

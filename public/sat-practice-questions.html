@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SAT Practice Questions</title>
+<style>
+  @page { size: letter; margin: 0.75in 0.9in; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Times New Roman', Georgia, serif; font-size: 10.5pt; color: #111; background: #fff; }
+
+  .page {
+    page-break-after: always;
+    min-height: 9.5in;
+    position: relative;
+    padding-bottom: 40px;
+  }
+  .page:last-child { page-break-after: avoid; }
+
+  .q-number {
+    font-size: 42pt;
+    font-weight: bold;
+    color: #1a237e;
+    font-family: Georgia, serif;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .section-label {
+    font-size: 11.5pt;
+    font-weight: bold;
+    color: #1a237e;
+    margin-top: 10px;
+    margin-bottom: 3px;
+  }
+
+  .topic-text { font-size: 10.5pt; margin-bottom: 2px; color: #111; }
+  .difficulty-text { font-size: 10.5pt; margin-bottom: 2px; color: #111; }
+
+  .question-box {
+    border: 1px solid #bbb;
+    padding: 7px 10px;
+    margin: 4px 0 6px 0;
+    background: #fafafa;
+    font-size: 10.5pt;
+    line-height: 1.5;
+  }
+
+  .options { margin: 4px 0 2px 0; }
+  .option { margin: 3px 0; font-size: 10.5pt; padding-left: 4px; }
+  .option span.letter { font-weight: bold; margin-right: 4px; }
+
+  .correct-answer-line {
+    font-size: 10.5pt;
+    margin-top: 6px;
+    margin-bottom: 2px;
+  }
+  .correct-answer-line strong { color: #1a237e; }
+
+  .explanation-text {
+    font-size: 10pt;
+    line-height: 1.5;
+    margin-top: 3px;
+    color: #111;
+  }
+
+  .step { margin: 2px 0; font-size: 10pt; line-height: 1.4; }
+  .step strong { font-weight: bold; }
+
+  .footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    font-size: 7.5pt;
+    color: #888;
+    text-align: center;
+    border-top: 1px solid #ddd;
+    padding-top: 4px;
+  }
+
+  hr.divider { border: none; border-top: 1px solid #ddd; margin: 6px 0; }
+</style>
+</head>
+<body>
+
+<!-- Q1 -->
+<div class="page">
+  <div class="q-number">Q1</div>
+  <div class="question-box">The measure of angle R is 2π/3 radians. The measure of angle T is 23π/18 radians greater than the measure of angle R. What is the measure of angle T, in degrees?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> 120</div>
+    <div class="option"><span class="letter">B.</span> 230</div>
+    <div class="option"><span class="letter">C.</span> 350</div>
+    <div class="option"><span class="letter">D.</span> 700</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">C</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Radian measure and degree conversion</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Medium</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: add the radian measures first, then convert once. Since 2π/3 = 12π/18, T = 12π/18 + 23π/18 = 35π/18. Then (35π/18) · (180/π) = 350°. Pattern: same-denominator radian addition followed by a clean degree conversion.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Convert 2π/3 to eighteenths: 2π/3 = 12π/18.</div>
+  <div class="step"><strong>Step 2:</strong> Add the increase: 12π/18 + 23π/18 = 35π/18.</div>
+  <div class="step"><strong>Step 3:</strong> Convert radians to degrees using π radians = 180°.</div>
+  <div class="step"><strong>Step 4:</strong> (35π/18) · (180/π) = 35 · 10 = 350.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut fits at the beginning — combine the fractions first, so you only convert one angle.</div>
+  <div class="footer">SAT Practice — Page 1</div>
+</div>
+
+<!-- Q2 -->
+<div class="page">
+  <div class="q-number">Q2</div>
+  <div class="question-box">In the xy-plane, the point (p, r) lies on the line with equation 4x + 3y = c, where c, p, and r are nonzero constants. The point (7p, 11r) lies on the line with equation x + y = c. Which expression must be equivalent to p/r?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> −8/3</div>
+    <div class="option"><span class="letter">B.</span> −3/8</div>
+    <div class="option"><span class="letter">C.</span> 3/8</div>
+    <div class="option"><span class="letter">D.</span> 8/3</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">A</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Linear equations and systems</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Medium-Hard</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: plug in both points, then use the repeated constant c. From the first line, 4p + 3r = c. From the second line, 7p + 11r = c. Set them equal: 4p + 3r = 7p + 11r, so −3p = 8r and p/r = −8/3. Pattern: when two expressions equal the same constant, set them equal immediately.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Substitute (p, r) into 4x + 3y = c: 4p + 3r = c.</div>
+  <div class="step"><strong>Step 2:</strong> Substitute (7p, 11r) into x + y = c: 7p + 11r = c.</div>
+  <div class="step"><strong>Step 3:</strong> Set the two expressions equal because both equal c: 4p + 3r = 7p + 11r.</div>
+  <div class="step"><strong>Step 4:</strong> Move terms: −3p = 8r.</div>
+  <div class="step"><strong>Step 5:</strong> Divide by r and by −3: p/r = −8/3.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is recognizing that you never need to solve for c.</div>
+  <div class="footer">SAT Practice — Page 2</div>
+</div>
+
+<!-- Q3 -->
+<div class="page">
+  <div class="q-number">Q3</div>
+  <div class="question-box">The height of a right circular cylinder is 36 inches, and the circumference of its base is 360 inches. Which expression represents the total surface area, in square inches, of the cylinder?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> (36)(360) + 2π(180/π)²</div>
+    <div class="option"><span class="letter">B.</span> (36)(360) + π(180/π)²</div>
+    <div class="option"><span class="letter">C.</span> π(180/π)² · 36</div>
+    <div class="option"><span class="letter">D.</span> (36)(360)</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">A</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Cylinder surface area</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Medium</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: total surface area is lateral area plus two bases. The lateral area is circumference times height: 360 · 36. Since 2πr = 360, r = 180/π. The two bases contribute 2π(180/π)². Pattern: when circumference is already given, use Ch for the curved side.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> The lateral surface area of a cylinder is 2πrh = circumference × height = Ch.</div>
+  <div class="step"><strong>Step 2:</strong> Here C = 360 and h = 36, so the lateral area is (360)(36).</div>
+  <div class="step"><strong>Step 3:</strong> Find the radius from 2πr = 360: r = 180/π.</div>
+  <div class="step"><strong>Step 4:</strong> The two circular bases have combined area 2πr² = 2π(180/π)².</div>
+  <div class="step"><strong>Step 5:</strong> Add lateral area and base area: (36)(360) + 2π(180/π)².</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is using Ch instead of first finding r for the lateral area.</div>
+  <div class="footer">SAT Practice — Page 3</div>
+</div>
+
+<!-- Q4 -->
+<div class="page">
+  <div class="q-number">Q4</div>
+  <div class="question-box">In triangle ABC, the measure of angle A is 62° and AC = 24. In triangle PQR, the measure of angle P is 62° and PR = 72. Which additional piece of information is sufficient to prove that triangle ABC is similar to triangle PQR?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> AB = 18 and PQ = 18</div>
+    <div class="option"><span class="letter">B.</span> AB = 18 and QR = 54</div>
+    <div class="option"><span class="letter">C.</span> The measures of angle B and angle R are 50° and 68°, respectively</div>
+    <div class="option"><span class="letter">D.</span> The measures of angle B and angle Q are 62° and 50°, respectively</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">C</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Triangle similarity</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Medium</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: use angle-angle similarity. Choice C gives B = 50°, so C = 180 − 62 − 50 = 68°. It also gives R = 68°. Since A = P = 62°, the triangles have two matching angles. Pattern: for similarity, angle information is usually cleaner than side lengths.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Both triangles already have one equal angle: A = P = 62°.</div>
+  <div class="step"><strong>Step 2:</strong> In choice C, angle B = 50°. Therefore angle C = 180° − 62° − 50° = 68°.</div>
+  <div class="step"><strong>Step 3:</strong> Choice C also says angle R = 68°.</div>
+  <div class="step"><strong>Step 4:</strong> Now the triangles share two corresponding angles: 62° and 68°.</div>
+  <div class="step"><strong>Step 5:</strong> By angle-angle similarity, the triangles are similar.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is to spot the two-angle match instead of checking side ratios.</div>
+  <div class="footer">SAT Practice — Page 4</div>
+</div>
+
+<!-- Q5 -->
+<div class="page">
+  <div class="q-number">Q5</div>
+  <div class="question-box">A circle has center G, and points M and N lie on the circle. Line segments MH and NH are tangent to the circle at points M and N, respectively. If the radius of the circle is 160 millimeters and the perimeter of quadrilateral GMHN is 3,840 millimeters, what is the distance, in millimeters, between points G and H?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> 1767</div>
+    <div class="option"><span class="letter">B.</span> 1776</div>
+    <div class="option"><span class="letter">C.</span> 1760</div>
+    <div class="option"><span class="letter">D.</span> 160</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">A</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Circle tangents and right triangles</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Hard</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: tangents from the same outside point are equal, so let MH = NH = x. The perimeter gives 160 + x + x + 160 = 3840, so x = 1760. A radius to a tangent is perpendicular, so GH = √(160² + 1760²) ≈ 1767. Pattern: tangent questions usually create a right triangle.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> GM and GN are radii, so each is 160.</div>
+  <div class="step"><strong>Step 2:</strong> Tangents from the same external point are equal, so MH = NH = x.</div>
+  <div class="step"><strong>Step 3:</strong> Use the perimeter: 160 + x + x + 160 = 3840.</div>
+  <div class="step"><strong>Step 4:</strong> Solve: 2x + 320 = 3840, so x = 1760.</div>
+  <div class="step"><strong>Step 5:</strong> The radius GM is perpendicular to tangent MH, so triangle GMH is a right triangle.</div>
+  <div class="step"><strong>Step 6:</strong> GH = √(160² + 1760²) ≈ 1767.3, so the closest option is 1767.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is moving directly from equal tangents to the right-triangle setup.</div>
+  <div class="footer">SAT Practice — Page 5</div>
+</div>
+
+<!-- Q6 -->
+<div class="page">
+  <div class="q-number">Q6</div>
+  <div class="question-box">If ⁵√(x^(7a+3)) = x / ⁵√(x^17), what is the value of a?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> −15/7</div>
+    <div class="option"><span class="letter">B.</span> −7/15</div>
+    <div class="option"><span class="letter">C.</span> 7/15</div>
+    <div class="option"><span class="letter">D.</span> 15/7</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">A</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Radicals and rational exponents</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Medium</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: convert radicals to exponents. The left side is x^((7a+3)/5). The right side is x¹ / x^(17/5) = x^(−12/5). Therefore 7a + 3 = −12, so a = −15/7. Pattern: same base means set exponents equal.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Rewrite the fifth root: ⁵√(x^(7a+3)) = x^((7a+3)/5).</div>
+  <div class="step"><strong>Step 2:</strong> Rewrite the denominator: ⁵√(x^17) = x^(17/5).</div>
+  <div class="step"><strong>Step 3:</strong> Divide powers of x: x / x^(17/5) = x^(1 − 17/5) = x^(−12/5).</div>
+  <div class="step"><strong>Step 4:</strong> Since the bases match, set exponents equal: (7a+3)/5 = −12/5.</div>
+  <div class="step"><strong>Step 5:</strong> Solve: 7a + 3 = −12, so 7a = −15 and a = −15/7.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is treating every radical as a fractional exponent immediately.</div>
+  <div class="footer">SAT Practice — Page 6</div>
+</div>
+
+<!-- Q7 -->
+<div class="page">
+  <div class="q-number">Q7</div>
+  <div class="question-box">A circle in the xy-plane has its center at (−5, 5). Line t is tangent to this circle at the point (6, −1). Which of the following points also lies on line t?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> (0, 11/6)</div>
+    <div class="option"><span class="letter">B.</span> (1, 16)</div>
+    <div class="option"><span class="letter">C.</span> (12, 10)</div>
+    <div class="option"><span class="letter">D.</span> (17, 5)</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">C</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Circle tangent lines and slope</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Medium-Hard</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: the tangent is perpendicular to the radius. The radius slope from (−5, 5) to (6, −1) is (−1−5)/(6+5) = −6/11, so the tangent slope is 11/6. From (6, −1), increasing x by 6 increases y by 11, giving (12, 10). Pattern: tangent to a circle means perpendicular radius.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Find the slope of the radius: m = (−1−5)/(6+5) = −6/11.</div>
+  <div class="step"><strong>Step 2:</strong> A tangent line is perpendicular to the radius, so its slope is the negative reciprocal, 11/6.</div>
+  <div class="step"><strong>Step 3:</strong> Use the point (6, −1). If x increases by 6, y increases by 11.</div>
+  <div class="step"><strong>Step 4:</strong> (6 + 6, −1 + 11) = (12, 10).</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is using rise over run to test the answer choices without writing the full line equation.</div>
+  <div class="footer">SAT Practice — Page 7</div>
+</div>
+
+<!-- Q8 -->
+<div class="page">
+  <div class="q-number">Q8</div>
+  <div class="question-box">In triangle JKL, the measure of angle J is 90b°, the measure of angle K is 66a°, and the measure of angle L is 24a°, where a and b are constants. Which of the following must be true?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> cos L &gt; sin K</div>
+    <div class="option"><span class="letter">B.</span> cos L = sin K</div>
+    <div class="option"><span class="letter">C.</span> cos L &lt; sin K</div>
+    <div class="option"><span class="letter">D.</span> There is not enough information to compare the values of cos L and sin K</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">D</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Triangle angle relationships and trigonometry</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Hard</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: use the angle sum. 90b + 66a + 24a = 180, so 90(a + b) = 180 and a + b = 2. This does not force one value of a, so K and L are not fixed. Pattern: if a variable is not fixed, do not assume a special triangle.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Add the triangle angles: 90b + 66a + 24a = 180.</div>
+  <div class="step"><strong>Step 2:</strong> Simplify: 90b + 90a = 180, so a + b = 2.</div>
+  <div class="step"><strong>Step 3:</strong> This gives a relationship between a and b but does not determine the exact value of a.</div>
+  <div class="step"><strong>Step 4:</strong> Since K = 66a° and L = 24a°, their exact values can change as a changes.</div>
+  <div class="step"><strong>Step 5:</strong> Therefore the comparison between cos L and sin K is not guaranteed.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is noticing that one equation with two constants is not enough information.</div>
+  <div class="footer">SAT Practice — Page 8</div>
+</div>
+
+<!-- Q9 -->
+<div class="page">
+  <div class="q-number">Q9</div>
+  <div class="question-box">A certain investment account offers a special interest rate for the first 6 months followed by a lower rate for the remaining time. Jordan opened an account with $900 and made no other deposits or withdrawals. 6 months after opening, the balance increased by 0.8% of the original balance. 8 months after opening, the balance increased by an additional 0.3% of the balance at the end of month 6. Every 2 months after the first 8 months, the balance increases by an additional 0.3% of the balance 2 months before. Which equation could represent the account balance B(x), in dollars, x months after the account was opened?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> B(x) = 907.2 · (1.003)^(x/2 − 3)</div>
+    <div class="option"><span class="letter">B.</span> B(x) = 907.2 · (1.003)^(x/2 − 6)</div>
+    <div class="option"><span class="letter">C.</span> B(x) = 907.2 · (1.003)^(2x − 12)</div>
+    <div class="option"><span class="letter">D.</span> B(x) = 907.2 · (1.003)^(2x − 6)</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">A</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Exponential growth and account balance models</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Hard</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: balance at 6 months = 900 + 0.008(900) = 907.2. After that, growth is 0.3% every 2 months. Number of 2-month periods after month 6 is (x−6)/2 = x/2 − 3. Pattern: the exponent counts growth periods, not months.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> The first 6 months create a one-time increase: 0.008 · 900 = 7.2.</div>
+  <div class="step"><strong>Step 2:</strong> Balance at month 6 = 900 + 7.2 = 907.2.</div>
+  <div class="step"><strong>Step 3:</strong> After month 6, the balance grows 0.3% every 2 months, so the factor is 1.003.</div>
+  <div class="step"><strong>Step 4:</strong> From month 6 to month x, the number of 2-month periods is (x−6)/2.</div>
+  <div class="step"><strong>Step 5:</strong> Therefore B(x) = 907.2(1.003)^((x−6)/2), which matches choice A.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is identifying the starting amount after the special period, then making the exponent count periods.</div>
+  <div class="footer">SAT Practice — Page 9</div>
+</div>
+
+<!-- Q10 -->
+<div class="page">
+  <div class="q-number">Q10</div>
+  <div class="question-box">The expression 6x⁴ + 17x² + 5 can be rewritten as (3x² + a)(2x² + b), where a and b are positive integers, or as (3x² + c)(2x² + d), where c and d are positive non-integers. What is the value of a + c?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> 8.5</div>
+    <div class="option"><span class="letter">B.</span> 17.5</div>
+    <div class="option"><span class="letter">C.</span> 7.5</div>
+    <div class="option"><span class="letter">D.</span> 1</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">A</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Polynomial factoring and coefficient comparison</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Hard</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: (3x² + a)(2x² + b) = 6x⁴ + (3b + 2a)x² + ab. For integers: ab = 5 and 3b + 2a = 17, giving a = 1, b = 5. For non-integers: cd = 5 and 3d + 2c = 17, giving c = 7.5. Thus a + c = 8.5. Pattern: compare coefficients, not roots.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Expand (3x² + a)(2x² + b): middle coefficient is 3b + 2a, constant is ab.</div>
+  <div class="step"><strong>Step 2:</strong> We need ab = 5 and 3b + 2a = 17.</div>
+  <div class="step"><strong>Step 3:</strong> Integer factors of 5: a = 1, b = 5 works since 3(5) + 2(1) = 17.</div>
+  <div class="step"><strong>Step 4:</strong> For (3x² + c)(2x² + d): cd = 5 and 3d + 2c = 17.</div>
+  <div class="step"><strong>Step 5:</strong> Substitute c = 5/d: 3d + 10/d = 17 → 3d² − 17d + 10 = 0 → d = 5 or d = 2/3.</div>
+  <div class="step"><strong>Step 6:</strong> Non-integer case: d = 2/3, c = 5/(2/3) = 7.5. So a + c = 1 + 7.5 = 8.5.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is testing factor pairs for the integer case before doing algebra.</div>
+  <div class="footer">SAT Practice — Page 10</div>
+</div>
+
+<!-- Q11 -->
+<div class="page">
+  <div class="q-number">Q11</div>
+  <div class="question-box">For the polynomial function, when f(x) is divided by x − 3, the remainder is 4. Which of the following must be true about the graph of y = f(x) in the xy-plane?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> It passes through the point (3, −4)</div>
+    <div class="option"><span class="letter">B.</span> It passes through the point (−3, 4)</div>
+    <div class="option"><span class="letter">C.</span> It passes through the point (4, 3)</div>
+    <div class="option"><span class="letter">D.</span> It passes through the point (3, 4)</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">D</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Remainder Theorem</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Easy-Medium</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: use the Remainder Theorem. Dividing by x − 3 means plug in x = 3. The remainder is f(3) = 4, so the graph passes through (3, 4). Pattern: x − a tells you the input is a.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> The Remainder Theorem: when f(x) is divided by x − a, the remainder is f(a).</div>
+  <div class="step"><strong>Step 2:</strong> The divisor is x − 3, so a = 3.</div>
+  <div class="step"><strong>Step 3:</strong> The remainder is 4, so f(3) = 4.</div>
+  <div class="step"><strong>Step 4:</strong> A point on y = f(x) has coordinates (x, f(x)), so the point is (3, 4).</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is to avoid polynomial division and plug the value from the divisor into the function.</div>
+  <div class="footer">SAT Practice — Page 11</div>
+</div>
+
+<!-- Q12 -->
+<div class="page">
+  <div class="q-number">Q12</div>
+  <div class="question-box">The equation 0.14x + 0.28y = 0.20(x + y) gives a volume x, in gallons, of a 14% saltwater solution that could be mixed with a volume y, in gallons, of a 28% saltwater solution to produce a 20% saltwater solution. What volume, in gallons, of the 28% solution could be mixed with 30.0 gallons of the 14% solution to produce a 20% solution? Assume the volume of the mixture equals the sum of the two volumes.</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> 10.5</div>
+    <div class="option"><span class="letter">B.</span> 60</div>
+    <div class="option"><span class="letter">C.</span> 22.5</div>
+    <div class="option"><span class="letter">D.</span> 45</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">C</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Mixture equations and weighted averages</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Medium</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: plug in the given amount first. Set x = 30: 0.14(30) + 0.28y = 0.20(30 + y). This gives 4.2 + 0.28y = 6 + 0.20y, so 0.08y = 1.8 and y = 22.5. Pattern: mixture equations are weighted-average equations.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Set x = 30.</div>
+  <div class="step"><strong>Step 2:</strong> Substitute: 0.14(30) + 0.28y = 0.20(30 + y).</div>
+  <div class="step"><strong>Step 3:</strong> Simplify: 4.2 + 0.28y = 6 + 0.20y.</div>
+  <div class="step"><strong>Step 4:</strong> Subtract 0.20y: 4.2 + 0.08y = 6.</div>
+  <div class="step"><strong>Step 5:</strong> Subtract 4.2: 0.08y = 1.8.</div>
+  <div class="step"><strong>Step 6:</strong> Divide: y = 22.5.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is substituting the given volume before building a new equation from scratch.</div>
+  <div class="footer">SAT Practice — Page 12</div>
+</div>
+
+<!-- Q13 -->
+<div class="page">
+  <div class="q-number">Q13</div>
+  <div class="question-box">The function f is defined by f(x) = x² + 6x − 135. Which of the following equivalent forms of the equation displays the minimum value of the function as a constant or coefficient?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> f(x) = (x + 3)² − 144</div>
+    <div class="option"><span class="letter">B.</span> f(x) = (x − 3)² − 126</div>
+    <div class="option"><span class="letter">C.</span> f(x) = x(x + 6) − 135</div>
+    <div class="option"><span class="letter">D.</span> f(x) = x² + 6x − 45</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">A</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Quadratic vertex form</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Medium</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: complete the square. x² + 6x = (x + 3)² − 9, so f(x) = (x + 3)² − 144. The minimum value is the constant −144. Pattern: vertex form displays the minimum or maximum.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Start with f(x) = x² + 6x − 135.</div>
+  <div class="step"><strong>Step 2:</strong> Complete the square using half of 6, which is 3.</div>
+  <div class="step"><strong>Step 3:</strong> x² + 6x = (x + 3)² − 9.</div>
+  <div class="step"><strong>Step 4:</strong> Substitute: f(x) = (x + 3)² − 9 − 135 = (x + 3)² − 144.</div>
+  <div class="step"><strong>Step 5:</strong> Since (x + 3)² ≥ 0, the minimum value is −144.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is recognizing that the answer must be vertex form, (x − h)² + k.</div>
+  <div class="footer">SAT Practice — Page 13</div>
+</div>
+
+<!-- Q14 -->
+<div class="page">
+  <div class="q-number">Q14</div>
+  <div class="question-box">An object's speed is increasing at a rate of 7.9 meters per second squared. What is this rate in miles per minute squared? Use 1 mile = 1609 meters.</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> 12711</div>
+    <div class="option"><span class="letter">B.</span> 17.67</div>
+    <div class="option"><span class="letter">C.</span> 3.53</div>
+    <div class="option"><span class="letter">D.</span> 211.85</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">B</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Unit conversion with squared time units</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Hard</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: convert meters to miles and seconds² to minutes²: 7.9 × (1/1609) × 60² ≈ 17.67. Pattern: for squared time units, square the time conversion factor.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Start with 7.9 meters/second².</div>
+  <div class="step"><strong>Step 2:</strong> Convert meters to miles: multiply by 1/1609.</div>
+  <div class="step"><strong>Step 3:</strong> Convert per second² to per minute²: since 1 minute = 60 seconds, multiply by 60² = 3600.</div>
+  <div class="step"><strong>Step 4:</strong> Compute 7.9 × 3600 / 1609 ≈ 17.67.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is remembering acceleration uses squared time, so multiply by 60², not just 60.</div>
+  <div class="footer">SAT Practice — Page 14</div>
+</div>
+
+<!-- Q15 -->
+<div class="page">
+  <div class="q-number">Q15</div>
+  <div class="question-box">In the given equation, p and w are integer constants. The equation 4x² − px + w = −83 has exactly one real solution. Which is NOT a possible value of w?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> −19</div>
+    <div class="option"><span class="letter">B.</span> 17</div>
+    <div class="option"><span class="letter">C.</span> 36</div>
+    <div class="option"><span class="letter">D.</span> 317</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">C</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Quadratic discriminant</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Hard</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: rewrite as 4x² − px + (w + 83) = 0. Exactly one solution means discriminant = 0: p² − 16(w + 83) = 0. So w + 83 must be a perfect square. For w = 36: 36 + 83 = 119, not a perfect square. Pattern: one solution means discriminant = 0.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Rewrite: 4x² − px + (w + 83) = 0.</div>
+  <div class="step"><strong>Step 2:</strong> Exactly one real solution when b² − 4ac = 0.</div>
+  <div class="step"><strong>Step 3:</strong> Here a = 4, b = −p, c = w + 83.</div>
+  <div class="step"><strong>Step 4:</strong> Discriminant: p² − 16(w + 83) = 0, so p² = 16(w + 83).</div>
+  <div class="step"><strong>Step 5:</strong> Since p is an integer, w + 83 must be a perfect square.</div>
+  <div class="step"><strong>Step 6:</strong> Check: −19+83=64 ✓, 17+83=100 ✓, 36+83=119 ✗, 317+83=400 ✓. Only 119 is not a perfect square.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is checking w + 83 against square numbers.</div>
+  <div class="footer">SAT Practice — Page 15</div>
+</div>
+
+<!-- Q16 -->
+<div class="page">
+  <div class="q-number">Q16</div>
+  <div class="question-box">The graph of y = f(x) − 2 is shown, where f is defined by an equation of the form f(x) = ab^x + c. The shown graph has a horizontal asymptote at y = 4 and crosses the x-axis at x = 2. If a, b, and c are integer constants and c ≥ 0, which equation defines the function f?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> f(x) = −(2^x) + 4</div>
+    <div class="option"><span class="letter">B.</span> f(x) = −(2^x) + 5</div>
+    <div class="option"><span class="letter">C.</span> f(x) = −(2^x) + 6</div>
+    <div class="option"><span class="letter">D.</span> f(x) = −(3^x) + 6</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">C</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Exponential graphs and vertical shifts</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Hard</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: the graph is y = f(x) − 2, so add 2 to get features of f. Asymptote of shown graph is y = 4, so f has asymptote y = 6 → narrows to C or D. Shown graph crosses (2, 0), so f(2) = 2. Choice C: −(2²) + 6 = 2. Pattern: account for vertical shifts before matching equations.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> The displayed graph is f(x) − 2, not f(x).</div>
+  <div class="step"><strong>Step 2:</strong> Asymptote y = 4 for f(x) − 2 means f(x) has asymptote y = 6.</div>
+  <div class="step"><strong>Step 3:</strong> Eliminates A (c = 4) and B (c = 5).</div>
+  <div class="step"><strong>Step 4:</strong> Graph crosses x-axis at x = 2: f(2) − 2 = 0, so f(2) = 2.</div>
+  <div class="step"><strong>Step 5:</strong> Test C: −(2²) + 6 = 2 ✓. Test D: −(3²) + 6 = −3 ✗.</div>
+  <div class="step"><strong>Step 6:</strong> Choice C works.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is using the asymptote to eliminate two answers, then testing one visible point.</div>
+  <div class="footer">SAT Practice — Page 16</div>
+</div>
+
+<!-- Q17 -->
+<div class="page">
+  <div class="q-number">Q17</div>
+  <div class="question-box">The graph shows data in the t, d-plane with a positive linear trend. Which of the following equations is the most appropriate linear model for the data shown?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> d = −62.1 + 2.02t</div>
+    <div class="option"><span class="letter">B.</span> d = 162.1 + 2.02t</div>
+    <div class="option"><span class="letter">C.</span> d = 357.8 + 2.02t</div>
+    <div class="option"><span class="letter">D.</span> d = 392.8 + 2.02t</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">A</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Linear modeling from a scatterplot</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Medium</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: all choices have slope 2.02, so test one point from the graph. At t = 230, the line is around d = 403. Choice A gives −62.1 + 2.02(230) = 402.5, which matches. Pattern: when slopes are the same, choose by intercept using one point.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Notice every answer has the same slope, 2.02. Only the intercept differs.</div>
+  <div class="step"><strong>Step 2:</strong> Use a visible point on the model line near (230, 403).</div>
+  <div class="step"><strong>Step 3:</strong> Test choice A: d = −62.1 + 2.02(230) = 402.5 ≈ 403 ✓.</div>
+  <div class="step"><strong>Step 4:</strong> The other choices give values much too high at t = 230.</div>
+  <div class="step"><strong>Step 5:</strong> Therefore choice A is the most appropriate model.</div>
+  <div class="step"><strong>Shortcut placement:</strong> Avoid full regression — test the shared-slope answers with one easy graph point.</div>
+  <div class="footer">SAT Practice — Page 17</div>
+</div>
+
+<!-- Q18 -->
+<div class="page">
+  <div class="q-number">Q18</div>
+  <div class="question-box">One gallon of sealant costs $19 and will cover 350 square feet of a surface. A deck has a total surface area of d square feet. Which equation represents the cost c, in dollars, of the sealant needed to cover the deck twice?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> c = 350d / 19</div>
+    <div class="option"><span class="letter">B.</span> c = 700d / 19</div>
+    <div class="option"><span class="letter">C.</span> c = 19 · d/175</div>
+    <div class="option"><span class="letter">D.</span> c = 19 · d/350</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">C</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Rates, unit conversion, and linear equations</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Easy-Medium</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: covering twice means 2d square feet. Gallons needed: 2d/350 = d/175. Cost = 19 × gallons, so c = 19 · d/175. Pattern: units tell you the equation.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Two coats cover 2d square feet.</div>
+  <div class="step"><strong>Step 2:</strong> Gallons needed = 2d / 350.</div>
+  <div class="step"><strong>Step 3:</strong> Simplify: 2d/350 = d/175.</div>
+  <div class="step"><strong>Step 4:</strong> Each gallon costs $19, so multiply by 19.</div>
+  <div class="step"><strong>Step 5:</strong> c = 19 · d/175.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is converting square feet to gallons first, then gallons to dollars.</div>
+  <div class="footer">SAT Practice — Page 18</div>
+</div>
+
+<!-- Q19 -->
+<div class="page">
+  <div class="q-number">Q19</div>
+  <div class="question-box">The function f(x) is defined by (x − a)(x − b)(x + 53), where a and b are constants and f(−50) &gt; 0, f(−48) &lt; 0. When f(x) is divided by x + 45, the remainder is 0. If f(x) passes through the point (c, 0), where c is an integer constant, what is the largest possible value of c?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> −52</div>
+    <div class="option"><span class="letter">B.</span> −45</div>
+    <div class="option"><span class="letter">C.</span> −53</div>
+    <div class="option"><span class="letter">D.</span> −54</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">B</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Polynomial roots and the Remainder Theorem</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Hard</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: remainder 0 when divided by x + 45 means −45 is a root. The factor (x + 53) gives root −53. The sign change between −50 and −48 forces another root between them: −49. The largest integer root among −53, −49, −45 is −45. Pattern: remainder zero means a root, then use sign changes to locate roots.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Division by x + 45 gives remainder 0 → f(−45) = 0 → −45 is a root.</div>
+  <div class="step"><strong>Step 2:</strong> The factor (x + 53) gives root −53.</div>
+  <div class="step"><strong>Step 3:</strong> The roots are −53, −45, and a third root d.</div>
+  <div class="step"><strong>Step 4:</strong> f(−50) &gt; 0 and f(−48) &lt; 0 → sign change → a root lies between −50 and −48.</div>
+  <div class="step"><strong>Step 5:</strong> The only integer in (−50, −48) is −49.</div>
+  <div class="step"><strong>Step 6:</strong> Integer roots: −53, −49, −45. The largest is −45.</div>
+  <div class="step"><strong>Shortcut placement:</strong> Use the answer choices as possible roots and find the largest that is possible.</div>
+  <div class="footer">SAT Practice — Page 19</div>
+</div>
+
+<!-- Q20 -->
+<div class="page">
+  <div class="q-number">Q20</div>
+  <div class="question-box">In the xy-plane, a circle has center C with coordinates (h, k). Points A and B lie on the circle. Point A has coordinates (h+1, k+√222), and angle ACB is a right angle. What is the length of AB?</div>
+  <div class="section-label">Options</div>
+  <div class="options">
+    <div class="option"><span class="letter">A.</span> √446</div>
+    <div class="option"><span class="letter">B.</span> 2√222</div>
+    <div class="option"><span class="letter">C.</span> 223√2</div>
+    <div class="option"><span class="letter">D.</span> 223√3</div>
+  </div>
+  <div class="section-label">Correct Answer:</div>
+  <div class="difficulty-text">A</div>
+  <div class="section-label">Topic</div>
+  <div class="topic-text">Circle chords and distance formula</div>
+  <div class="section-label">Difficulty:</div>
+  <div class="difficulty-text">Medium-Hard</div>
+  <div class="section-label">Short Explanation</div>
+  <div class="explanation-text">Shortcut: find the radius CA. From (h, k) to (h+1, k+√222): distance = √(1² + (√222)²) = √223. Since angle ACB = 90°, chord AB = r√2 = √223 · √2 = √446. Pattern: a 90° central angle creates a 45-45-90 triangle with the chord.</div>
+  <div class="section-label">Long Explanation</div>
+  <div class="step"><strong>Step 1:</strong> Center is (h, k), point A is (h+1, k+√222).</div>
+  <div class="step"><strong>Step 2:</strong> Horizontal change = 1, vertical change = √222.</div>
+  <div class="step"><strong>Step 3:</strong> Radius CA = √(1² + (√222)²) = √(1 + 222) = √223.</div>
+  <div class="step"><strong>Step 4:</strong> CA and CB are both radii.</div>
+  <div class="step"><strong>Step 5:</strong> Angle ACB = 90° → triangle ACB is right with legs r and r.</div>
+  <div class="step"><strong>Step 6:</strong> AB = r√2 = √223 · √2 = √446.</div>
+  <div class="step"><strong>Shortcut placement:</strong> The shortcut is recognizing that the chord opposite a 90° central angle is r√2.</div>
+  <div class="footer">SAT Practice — Page 20</div>
+</div>
+
+</body>
+</html>

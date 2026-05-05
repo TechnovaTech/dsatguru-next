@@ -367,10 +367,6 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
       || block.substring(0, 50).match(/^[ \t]*Q(\d{1,3})[ \t]*[.:]?[ \t]*$/m)
     const displayNum = qNumMatch ? qNumMatch[1] : qIndex
 
-    // NEW: Extract Topic Tag
-    const topicMatch = block.match(/^[ \t]*(?:#{1,6}\s*)?([A-Z][^.!?\n]{5,60}\s*-\s*[A-Z][^.!?\n]{3,120})/m)
-    const detectedTopic = topicMatch ? topicMatch[1].trim() : ''
-
     // 2. Detect Type
     const isSPR = /response:\s*([\-\d\.\/]+)/i.test(block) || 
                   /Correct\s*\n?\s*response:\s*([\-\d\.\/]+)/i.test(block) ||
@@ -399,8 +395,9 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     // NEW: Refined splitting for the specific "one question per page" format
     // We look for the FIRST occurrence of a major section header to end the question text
     const sectionHeaders = [
+      '## Correct Answer:',
       'Correct Answer:',
-      'Answer:', 
+      '## Options',
       'Options',
       'Short Explanation + SAT Tip',
       'Short Explanation', 
@@ -414,11 +411,7 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     sectionHeaders.forEach(h => {
       const idx = questionText.indexOf(h)
       if (idx !== -1 && idx < firstHeaderIndex) {
-        // Ensure it's not just part of another word
-        const prevChar = idx > 0 ? questionText[idx-1] : '\n'
-        if (prevChar === '\n' || prevChar === ' ' || prevChar === '*') {
-          firstHeaderIndex = idx
-        }
+        firstHeaderIndex = idx
       }
     })
     
@@ -427,10 +420,12 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     }
 
     // Cleanup leading headers from text (Question 1, 1., 1), (1), etc)
+    // Also strip Topic:, Difficulty:, and ## Options lines — metadata, not question text
     questionText = questionText
       .replace(/^[ \t]*(?:#{1,6}\s+|(?:\*\*|__)?(?:Question|Page|Q)\s+(?:\*\*|__)?|(?:\*\*|__)?\()?\b\d{1,3}\b[\)\.]?(?:\*\*|__)?(?:[ \t]+|:|\.)/gmi, '')
-      // Remove the topic line if it was detected at the top
-      .replace(/^[ \t]*(?:#{1,6}\s*)?[A-Z][^.!?\n]{5,60}\s*-\s*[A-Z][^.!?\n]{3,120}[ \t]*/m, '')
+      .replace(/^[ \t]*(?:#{1,6}\s*)?(?:Topic|Difficulty)\s*:\s*[^\n]*\n?/gmi, '')
+      .replace(/^[ \t]*#{1,6}\s*Options?\s*\n?/gmi, '')
+      .replace(/^[ \t]*#{1,6}\s*Correct\s+Answer\s*:.*\n?/gmi, '')
       .trim()
 
     // 5. Options
@@ -470,15 +465,22 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
 
     // 7. Difficulty
     let difficulty = defaultDifficulty
-    const diffMatch = cleanBlock.match(/Difficulty:\s*(Easy|Medium|Hard)/i)
+    const diffMatch = cleanBlock.match(/Difficulty:\s*(Easy-Medium|Medium-Hard|Easy|Medium|Hard)/i)
     if (diffMatch) difficulty = cap(diffMatch[1])
 
     // 8. Tags
-    const tagLineMatch = cleanBlock.match(/(?:^|\n)\s*(?:topic|tag|category|tags)[:\s]+([^\n]+)/i)
+    // Priority order:
+    //   1. Explicit "Topic: geometry" line in the block  ← highest priority
+    //   2. Auto-detected from question text              ← fallback
+    //   3. Global tags passed from UI
+    //   4. detectedTopic from heading regex              ← lowest (often noisy)
+    const tagLineMatch = cleanBlock.match(/(?:^|\n)\s*(?:topic|tag|category|tags)\s*:\s*([^\n]+)/i)
+                      || cleanBlock.match(/(?:^|\n)\s*(?:topic|tag|category|tags)\s*\n\s*([^\n]+)/i)
     const explicitTags = tagLineMatch ? tagLineMatch[1].split(',').map(t => t.trim()).filter(Boolean) : []
-    const autoTags = detectTopicTags(questionText, subject)
-    // Add the detected topic as a primary tag
-    const tags = [...new Set([detectedTopic, ...explicitTags, ...autoTags, ...globalTags])].filter(Boolean)
+    const autoTags = explicitTags.length === 0 ? detectTopicTags(questionText, subject) : []
+    // Only use detectedTopic if no explicit or auto tags found
+    const fallbackTopic = ''
+    const tags = [...new Set([...explicitTags, ...autoTags, fallbackTopic, ...globalTags])].filter(Boolean)
 
     // 9. Image
     const imgMatch = cleanBlock.match(/!\[.*?\]\((\/uploads\/questions\/[^)]+)\)/)
