@@ -59,7 +59,9 @@ export async function POST(request) {
       const bankType = isTutor ? 'tutor' : isAdminTest ? 'admintest' : 'admin'
       const key = `${bankType}|${subject}|${tag}|${difficulty}`
       const subjectCode = subject === 'Math' ? 'M' : 'R'
-      const tagCode = tag ? tag.replace(/[^a-zA-Z]/g, '').substring(0, 2).toUpperCase() : 'GN'
+      const tagCode = (!tag || tag === 'General')
+        ? 'GN'
+        : tag.replace(/[^a-zA-Z]/g, '').substring(0, 2).toUpperCase()
       const diffCode = difficulty === 'Easy' ? 'E' : difficulty === 'Hard' ? 'H' : 'M'
       const bankPrefix = isTutor ? 'T' : isAdminTest ? 'AT' : ''
       const prefix = `${bankPrefix}${subjectCode}${tagCode}-${diffCode}-`

@@ -466,7 +466,12 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     // 7. Difficulty
     let difficulty = defaultDifficulty
     const diffMatch = cleanBlock.match(/Difficulty:\s*(Easy-Medium|Medium-Hard|Easy|Medium|Hard)/i)
-    if (diffMatch) difficulty = cap(diffMatch[1])
+    if (diffMatch) {
+      const raw = diffMatch[1].toLowerCase()
+      if (raw === 'easy-medium') difficulty = 'Easy'
+      else if (raw === 'medium-hard') difficulty = 'Hard'
+      else difficulty = cap(diffMatch[1])
+    }
 
     // 8. Tags
     // Priority order:
@@ -474,8 +479,9 @@ function parseMathpixMarkdown(md, subject, defaultDifficulty, globalTags) {
     //   2. Auto-detected from question text              ← fallback
     //   3. Global tags passed from UI
     //   4. detectedTopic from heading regex              ← lowest (often noisy)
-    const tagLineMatch = cleanBlock.match(/(?:^|\n)\s*(?:topic|tag|category|tags)\s*:\s*([^\n]+)/i)
-                      || cleanBlock.match(/(?:^|\n)\s*(?:topic|tag|category|tags)\s*\n\s*([^\n]+)/i)
+    // Match "Topic: value" (same line) OR "## Topic\nvalue" (next line, Mathpix heading style)
+    const tagLineMatch = cleanBlock.match(/(?:^|\n)\s*(?:#{1,6}\s*)?(?:topic|tag|category|tags)\s*:\s*([^\n]+)/i)
+                      || cleanBlock.match(/(?:^|\n)\s*(?:#{1,6}\s*)(?:topic|tag|category|tags)\s*\n\s*([^\n#][^\n]*)/i)
     const explicitTags = tagLineMatch ? tagLineMatch[1].split(',').map(t => t.trim()).filter(Boolean) : []
     const autoTags = explicitTags.length === 0 ? detectTopicTags(questionText, subject) : []
     // Only use detectedTopic if no explicit or auto tags found
