@@ -3,8 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../components/AuthContext'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
-import JitsiMeeting from '../../components/JitsiMeeting'
-import { FiCalendar, FiVideo, FiClock, FiRefreshCw, FiBell } from 'react-icons/fi'
+import { FiCalendar, FiVideo, FiClock, FiRefreshCw, FiBell, FiExternalLink } from 'react-icons/fi'
 
 export default function LiveClassesPage() {
   const { user, loading: authLoading } = useAuth()
@@ -13,7 +12,6 @@ export default function LiveClassesPage() {
   const [meetings, setMeetings] = useState([])
   const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
-  const [activeMeeting, setActiveMeeting] = useState(null)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -79,18 +77,6 @@ export default function LiveClassesPage() {
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
-    )
-  }
-
-  if (activeMeeting) {
-    return (
-      <JitsiMeeting 
-        roomName={activeMeeting.link} 
-        displayName={user.name} 
-        email={user.email}
-        onClose={() => setActiveMeeting(null)}
-        isAdmin={user.role === 'Admin'}
-      />
     )
   }
 
@@ -184,10 +170,10 @@ export default function LiveClassesPage() {
                       {isValidDate(meeting.parsedDate) ? meeting.parsedDate.toLocaleString() : meeting.date}
                     </div>
                     <button
-                      onClick={() => setActiveMeeting(meeting)}
+                      onClick={() => meeting.link && window.open(meeting.link.startsWith('http') ? meeting.link : `https://meet.jit.si/${meeting.link}`, '_blank')}
                       className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors"
                     >
-                      <FiVideo /> Join Class
+                      <FiExternalLink /> Join Class
                     </button>
                   </div>
                 ))}

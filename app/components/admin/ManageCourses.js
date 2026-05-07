@@ -1,7 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2, FiFolder, FiUpload, FiFile, FiBell } from 'react-icons/fi'
-import JitsiMeeting from '../JitsiMeeting'
 import CourseCalendar from './CourseCalendar'
 import moment from 'moment'
 
@@ -139,7 +138,6 @@ function CourseContentManager({ course, onBack }) {
   })
   const [viewingAssignment, setViewingAssignment] = useState(null)
   const [editingAssignmentIndex, setEditingAssignmentIndex] = useState(null)
-  const [activeAdminMeeting, setActiveAdminMeeting] = useState(null)
 
   useEffect(() => {
     fetchContent()
@@ -467,11 +465,14 @@ function CourseContentManager({ course, onBack }) {
                     </button>
                     {m.link && (
                       <button
-                        onClick={() => setActiveAdminMeeting(m)}
+                        onClick={() => {
+                          navigator.clipboard?.writeText(m.link)
+                          alert('Room link copied to clipboard!')
+                        }}
                         className="bg-green-100 text-green-700 px-3 py-2 rounded hover:bg-green-200 text-sm whitespace-nowrap flex items-center"
-                        title="Join Meeting as Admin"
+                        title="Copy meeting link"
                       >
-                        <FiVideo className="mr-1" /> Join
+                        <FiVideo className="mr-1" /> Copy Link
                       </button>
                     )}
                   </div>
@@ -1862,16 +1863,6 @@ function CourseContentManager({ course, onBack }) {
         </div>
       )}
 
-      {/* Admin Jitsi Meeting Modal */}
-      {activeAdminMeeting && (
-        <JitsiMeeting
-          roomName={activeAdminMeeting.link}
-          displayName={`Admin (Host)`}
-          email="admin@dsatguru.com" // You might want to get real admin email if available
-          isAdmin={true}
-          onClose={() => setActiveAdminMeeting(null)}
-        />
-      )}
     </div>
   )
 }
