@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2, FiFolder, FiUpload, FiFile, FiBell } from 'react-icons/fi'
 import CourseCalendar from './CourseCalendar'
 import moment from 'moment'
+import dynamic from 'next/dynamic'
+const LiveKitMeeting = dynamic(() => import('../LiveKitMeeting'), { ssr: false })
 
 export default function ManageCourses() {
   const [courses, setCourses] = useState([])
@@ -138,6 +140,7 @@ function CourseContentManager({ course, onBack }) {
   })
   const [viewingAssignment, setViewingAssignment] = useState(null)
   const [editingAssignmentIndex, setEditingAssignmentIndex] = useState(null)
+  const [activeAdminMeeting, setActiveAdminMeeting] = useState(null)
 
   useEffect(() => {
     fetchContent()
@@ -465,14 +468,11 @@ function CourseContentManager({ course, onBack }) {
                     </button>
                     {m.link && (
                       <button
-                        onClick={() => {
-                          navigator.clipboard?.writeText(m.link)
-                          alert('Room link copied to clipboard!')
-                        }}
+                        onClick={() => setActiveAdminMeeting(m)}
                         className="bg-green-100 text-green-700 px-3 py-2 rounded hover:bg-green-200 text-sm whitespace-nowrap flex items-center"
-                        title="Copy meeting link"
+                        title="Join Meeting"
                       >
-                        <FiVideo className="mr-1" /> Copy Link
+                        <FiVideo className="mr-1" /> Join
                       </button>
                     )}
                   </div>
@@ -1863,6 +1863,15 @@ function CourseContentManager({ course, onBack }) {
         </div>
       )}
 
+      {/* LiveKit Meeting Modal */}
+      {activeAdminMeeting && (
+        <LiveKitMeeting
+          roomName={activeAdminMeeting.link}
+          displayName="Admin (Host)"
+          isAdmin={true}
+          onClose={() => setActiveAdminMeeting(null)}
+        />
+      )}
     </div>
   )
 }
