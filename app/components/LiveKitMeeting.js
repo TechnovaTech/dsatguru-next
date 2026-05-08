@@ -102,78 +102,71 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
 
   // ── Live Captions via Web Speech API ──────────────────────────────────────
   const CAPTION_CHANNEL = 'caption'
-  const captionsOnRef = useRef(false) // stable ref for onend callback
+  const captionsOnRef = useRef(false)
+  const captionLangRef = useRef(captionLang)
+  useEffect(() => { captionLangRef.current = captionLang }, [captionLang])
 
   const startCaptions = useCallback(() => {
     if (typeof window === 'undefined') return
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SR) { alert('Live captions need Chrome or Edge browser.'); return }
 
-    // Stop any existing instance cleanly
     if (recognitionRef.current) {
       try { recognitionRef.current.abort() } catch {}
       recognitionRef.current = null
     }
 
-    const rec = new SR()
-    rec.continuous = true
-    rec.interimResults = true
-    rec.lang = captionLang
-    recognitionRef.current = rec
+    const createRec = () => {
+      const rec = new SR()
+      rec.continuous = true
+      rec.interimResults = true
+      rec.lang = captionLangRef.current  // ← always latest language
 
-    rec.onresult = (e) => {
-      let interim = ''
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const transcript = e.results[i][0].transcript
-        if (e.results[i].isFinal) {
-          const text = transcript.trim()
-          if (!text) return
-          setInterimText('')
-          const id = Date.now()
-          setFinalLines(prev => [...prev.slice(-2), { id, speaker: displayName, text }])
-          setTimeout(() => setFinalLines(prev => prev.filter(l => l.id !== id)), 5000)
-          // Broadcast
-          if (room) {
-            try {
-              const payload = JSON.stringify({ type: CAPTION_CHANNEL, speaker: displayName, text })
-              room.localParticipant.publishData(new TextEncoder().encode(payload), { reliable: false })
-            } catch {}
+      rec.onresult = (e) => {
+        let interim = ''
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const transcript = e.results[i][0].transcript
+          if (e.results[i].isFinal) {
+            const text = transcript.trim()
+            if (!text) continue
+            setInterimText('')
+            const id = Date.now()
+            setFinalLines(prev => [...prev.slice(-2), { id, speaker: displayName, text }])
+            setTimeout(() => setFinalLines(prev => prev.filter(l => l.id !== id)), 5000)
+            if (room) {
+              try {
+                const payload = JSON.stringify({ type: CAPTION_CHANNEL, speaker: displayName, text })
+                room.localParticipant.publishData(new TextEncoder().encode(payload), { reliable: false })
+              } catch {}
+            }
+          } else {
+            interim += transcript
           }
-        } else {
-          interim += transcript
         }
+        if (interim) setInterimText(interim)
       }
-      if (interim) setInterimText(interim)
-    }
 
-    rec.onerror = (e) => {
-      // network/no-speech errors — just ignore and let onend restart
-      if (e.error === 'aborted') return
-    }
+      rec.onerror = (e) => {
+        if (e.error === 'aborted') return
+      }
 
-    rec.onend = () => {
-      setInterimText('')
-      // Auto-restart as long as captions are on
-      if (captionsOnRef.current) {
+      rec.onend = () => {
+        setInterimText('')
+        if (!captionsOnRef.current) return
+        // Restart with latest language (handles language change)
         setTimeout(() => {
           if (!captionsOnRef.current) return
-          try {
-            const newRec = new SR()
-            newRec.continuous = true
-            newRec.interimResults = true
-            newRec.lang = captionLang
-            newRec.onresult = rec.onresult
-            newRec.onerror = rec.onerror
-            newRec.onend = rec.onend
-            newRec.start()
-            recognitionRef.current = newRec
-          } catch {}
-        }, 100)
+          const newRec = createRec()
+          try { newRec.start(); recognitionRef.current = newRec } catch {}
+        }, 150)
       }
+
+      return rec
     }
 
-    try { rec.start() } catch {}
-  }, [room, displayName, captionLang])
+    const rec = createRec()
+    try { rec.start(); recognitionRef.current = rec } catch {}
+  }, [room, displayName])
 
   // Receive captions from others
   useEffect(() => {
@@ -618,14 +611,17 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
                           key={l.code}
                           onClick={() => {
                             setCaptionLang(l.code)
+                            captionLangRef.current = l.code  // update ref immediately
                             setShowLangPicker(false)
                             setLangSearch('')
+                            // Restart recognition with new language immediately
                             if (recognitionRef.current) {
-                              recognitionRef.current.onend = null
-                              recognitionRef.current.stop()
+                              try { recognitionRef.current.abort() } catch {}
                               recognitionRef.current = null
                             }
-                            setTimeout(() => startCaptions(), 200)
+                            if (captionsOnRef.current) {
+                              setTimeout(() => startCaptions(), 200)
+                            }
                           }}
                           className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/10 transition-colors text-left ${captionLang === l.code ? 'bg-blue-600/30 text-blue-300' : 'text-white'}`}
                         >
