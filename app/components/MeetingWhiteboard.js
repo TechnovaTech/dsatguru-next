@@ -1,41 +1,53 @@
 'use client'
-import { useEffect, useRef, useCallback } from 'react'
-import { Tldraw, createTLStore, defaultShapeUtils } from 'tldraw'
-import 'tldraw/tldraw.css'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { useRoomContext } from '@livekit/components-react'
 import { RoomEvent } from 'livekit-client'
+
+const Excalidraw = dynamic(
+  () => import('@excalidraw/excalidraw').then(m => m.Excalidraw),
+  { ssr: false, loading: () => <div className="w-full h-full flex items-center justify-center bg-white"><span className="text-gray-400">Loading whiteboard...</span></div> }
+)
 
 const WB_CHANNEL = 'whiteboard-sync'
 
 export default function MeetingWhiteboard({ isAdmin }) {
   const room = useRoomContext()
-  const storeRef = useRef(null)
-  const suppressRef = useRef(false) // prevent echo loop
+  const excalidrawApiRef = useRef(null)
+  const suppressRef = useRef(false)
+  const [ready, setReady] = useState(false)
 
-  // When admin changes the board → broadcast to all via LiveKit data channel
-  const handleStoreChange = useCallback(() => {
-    if (!isAdmin || !room || suppressRef.current) return
+  // Admin: broadcast changes to all participants
+  const handleChange = useCallback((elements, appState) => {
+    if (!isAdmin || !room || suppressRef.current || !ready) return
     try {
-      const snapshot = storeRef.current?.getSnapshot()
-      if (!snapshot) return
-      const payload = JSON.stringify({ type: WB_CHANNEL, snapshot })
+      const payload = JSON.stringify({
+        type: WB_CHANNEL,
+        elements: elements.filter(el => !el.isDeleted),
+        appState: {
+          viewBackgroundColor: appState.viewBackgroundColor,
+          currentItemStrokeColor: appState.currentItemStrokeColor,
+        }
+      })
       const encoded = new TextEncoder().encode(payload)
-      // Only send if small enough (< 15KB to avoid fragmentation)
-      if (encoded.length < 15000) {
+      if (encoded.length < 60000) {
         room.localParticipant.publishData(encoded, { reliable: true })
       }
     } catch {}
-  }, [isAdmin, room])
+  }, [isAdmin, room, ready])
 
-  // Receive board updates (students receive from admin)
+  // Students: receive and render admin's board
   useEffect(() => {
     if (!room || isAdmin) return
     const handler = (payload) => {
       try {
         const msg = JSON.parse(new TextDecoder().decode(payload))
-        if (msg.type !== WB_CHANNEL || !msg.snapshot) return
+        if (msg.type !== WB_CHANNEL || !excalidrawApiRef.current) return
         suppressRef.current = true
-        storeRef.current?.loadSnapshot(msg.snapshot)
+        excalidrawApiRef.current.updateScene({
+          elements: msg.elements || [],
+          appState: msg.appState || {}
+        })
         suppressRef.current = false
       } catch {}
     }
@@ -44,25 +56,32 @@ export default function MeetingWhiteboard({ isAdmin }) {
   }, [room, isAdmin])
 
   return (
-    <div className="w-full h-full relative">
-      {/* Read-only overlay for students */}
-      {!isAdmin && (
-        <div className="absolute inset-0 z-10 cursor-not-allowed" title="View only" />
-      )}
-      <Tldraw
-        onMount={(editor) => {
-          storeRef.current = editor.store
-          if (isAdmin) {
-            // Listen for any change and broadcast
-            editor.store.listen(handleStoreChange, { scope: 'document' })
-          }
-          if (!isAdmin) {
-            // Hide toolbar for students
-            editor.updateInstanceState({ isReadonly: true })
-          }
+    <div className="w-full h-full relative bg-white">
+      <Excalidraw
+        excalidrawAPI={(api) => {
+          excalidrawApiRef.current = api
+          setReady(true)
         }}
-        hideUi={!isAdmin}
+        onChange={isAdmin ? handleChange : undefined}
+        viewModeEnabled={!isAdmin}
+        zenModeEnabled={false}
+        gridModeEnabled={false}
+        theme="light"
+        UIOptions={{
+          canvasActions: {
+            export: false,
+            loadScene: isAdmin,
+            saveToActiveFile: false,
+            toggleTheme: false,
+          },
+          tools: { image: false }
+        }}
       />
+      {!isAdmin && (
+        <div className="absolute top-2 right-2 bg-yellow-100 border border-yellow-300 text-yellow-800 text-xs px-3 py-1 rounded-full z-10">
+          👁 View only
+        </div>
+      )}
     </div>
   )
 }
