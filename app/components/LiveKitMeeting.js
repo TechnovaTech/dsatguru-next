@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   LiveKitRoom,
   RoomAudioRenderer,
@@ -19,7 +19,7 @@ import {
   FiMic, FiMicOff, FiVideo, FiVideoOff, FiMonitor,
   FiPhoneOff, FiUsers, FiMessageSquare, FiMoreVertical,
   FiLoader, FiMaximize, FiMinimize, FiGrid, FiUser,
-  FiEdit3
+  FiEdit3, FiType
 } from 'react-icons/fi'
 
 // ─── Inner room UI (must be inside <LiveKitRoom>) ───────────────────────────
@@ -34,6 +34,10 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   const [showParticipants, setShowParticipants] = useState(false)
   const [showChat, setShowChat] = useState(false)
   const [showWhiteboard, setShowWhiteboard] = useState(false)
+  const [captionsOn, setCaptionsOn] = useState(false)
+  const [captions, setCaptions] = useState([]) // [{speaker, text, id}]
+  const captionRef = useRef(null)
+  const recognitionRef = useRef(null)
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
   const [pinnedParticipant, setPinnedParticipant] = useState(null)
@@ -45,6 +49,86 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
     const t = setInterval(() => setElapsed(s => s + 1), 1000)
     return () => clearInterval(t)
   }, [])
+
+  // ── Live Captions via Web Speech API ──────────────────────────────────────
+  const CAPTION_CHANNEL = 'caption'
+
+  const startCaptions = useCallback(() => {
+    if (typeof window === 'undefined') return
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SR) { alert('Live captions not supported in this browser. Use Chrome or Edge.'); return }
+
+    const rec = new SR()
+    rec.continuous = true
+    rec.interimResults = true
+    rec.lang = 'en-US'
+
+    rec.onresult = (e) => {
+      let interim = '', final = ''
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript
+        if (e.results[i].isFinal) final += t
+        else interim += t
+      }
+      const text = final || interim
+      if (!text.trim()) return
+
+      // Show locally
+      const id = Date.now()
+      setCaptions(prev => {
+        const updated = [...prev.filter(c => c.id !== 'interim'), { id: final ? id : 'interim', speaker: displayName, text, final: !!final }]
+        return updated.slice(-5) // keep last 5
+      })
+
+      // Broadcast to others via LiveKit data channel
+      if (room && final) {
+        try {
+          const payload = JSON.stringify({ type: CAPTION_CHANNEL, speaker: displayName, text: final })
+          room.localParticipant.publishData(new TextEncoder().encode(payload), { reliable: false })
+        } catch {}
+      }
+    }
+
+    rec.onerror = () => {}
+    rec.onend = () => { if (captionsOn) rec.start() }
+    rec.start()
+    recognitionRef.current = rec
+  }, [room, displayName, captionsOn])
+
+  // Receive captions from others
+  useEffect(() => {
+    if (!room) return
+    const handler = (payload, participant) => {
+      try {
+        const msg = JSON.parse(new TextDecoder().decode(payload))
+        if (msg.type !== CAPTION_CHANNEL) return
+        const id = Date.now()
+        setCaptions(prev => [...prev, { id, speaker: msg.speaker || participant?.identity, text: msg.text, final: true }].slice(-5))
+      } catch {}
+    }
+    room.on(RoomEvent.DataReceived, handler)
+    return () => room.off(RoomEvent.DataReceived, handler)
+  }, [room])
+
+  // Toggle captions
+  const toggleCaptions = () => {
+    if (!captionsOn) {
+      setCaptionsOn(true)
+      startCaptions()
+    } else {
+      setCaptionsOn(false)
+      recognitionRef.current?.stop()
+      recognitionRef.current = null
+      setCaptions([])
+    }
+  }
+
+  // Auto-clear old captions
+  useEffect(() => {
+    if (captions.length === 0) return
+    const t = setTimeout(() => setCaptions(prev => prev.filter(c => c.id === 'interim')), 5000)
+    return () => clearTimeout(t)
+  }, [captions])
 
   // Chat via data channel
   useEffect(() => {
@@ -351,6 +435,22 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
         )}
       </div>
 
+      {/* ── CAPTIONS OVERLAY ── */}
+      {captionsOn && captions.length > 0 && (
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 pointer-events-none z-20">
+          <div className="space-y-1">
+            {captions.map(c => (
+              <div key={c.id} className={`text-center ${c.id === 'interim' ? 'opacity-60' : 'opacity-100'}`}>
+                <span className="inline-block bg-black/80 text-white text-sm px-4 py-1.5 rounded-lg backdrop-blur-sm">
+                  <span className="text-blue-300 font-medium mr-2">{c.speaker}:</span>
+                  {c.text}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── BOTTOM CONTROLS ── */}
       <div className="flex items-center justify-between px-6 py-3 bg-[#1a1a2e] border-t border-white/10">
 
@@ -398,6 +498,11 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
 
         {/* Right — participants & chat */}
         <div className="flex items-center gap-2 w-32 justify-end">
+          <button onClick={toggleCaptions}
+            className={`p-3 rounded-full transition-all ${captionsOn ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+            title={captionsOn ? 'Turn off captions' : 'Turn on captions'}>
+            <FiType size={18} />
+          </button>
           <button onClick={() => { setShowParticipants(v => !v); setShowChat(false) }}
             className={`p-3 rounded-full transition-all ${showParticipants ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
             title="Participants">
