@@ -37,6 +37,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   const [captionsOn, setCaptionsOn] = useState(false)
   const [interimText, setInterimText] = useState('')
   const [finalLines, setFinalLines] = useState([])
+  const [captionLang, setCaptionLang] = useState('en-US')
   const captionRef = useRef(null)
   const recognitionRef = useRef(null)
   const [chatMessages, setChatMessages] = useState([])
@@ -62,7 +63,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
     const rec = new SR()
     rec.continuous = true
     rec.interimResults = true
-    rec.lang = 'en-US'
+    rec.lang = captionLang
 
     rec.onresult = (e) => {
       let interim = ''
@@ -105,7 +106,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
 
     rec.start()
     recognitionRef.current = rec
-  }, [room, displayName])
+  }, [room, displayName, captionLang])
 
   // Receive captions from others
   useEffect(() => {
@@ -517,6 +518,66 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
             title={captionsOn ? 'Turn off captions' : 'Turn on captions'}>
             CC
           </button>
+          {captionsOn && (
+            <select
+              value={captionLang}
+              onChange={e => {
+                setCaptionLang(e.target.value)
+                // Restart recognition with new language
+                if (recognitionRef.current) {
+                  recognitionRef.current.onend = null
+                  recognitionRef.current.stop()
+                  recognitionRef.current = null
+                }
+                setTimeout(() => startCaptions(), 200)
+              }}
+              className="bg-white/10 text-white text-xs rounded-full px-2 py-1.5 outline-none border border-white/20 hover:bg-white/20 cursor-pointer"
+              style={{ maxWidth: 110 }}
+            >
+              <option value="en-US">🇺🇸 English</option>
+              <option value="hi-IN">🇮🇳 Hindi</option>
+              <option value="es-ES">🇪🇸 Spanish</option>
+              <option value="fr-FR">🇫🇷 French</option>
+              <option value="de-DE">🇩🇪 German</option>
+              <option value="it-IT">🇮🇹 Italian</option>
+              <option value="pt-BR">🇧🇷 Portuguese</option>
+              <option value="ru-RU">🇷🇺 Russian</option>
+              <option value="ar-SA">🇸🇦 Arabic</option>
+              <option value="zh-CN">🇨🇳 Chinese</option>
+              <option value="ja-JP">🇯🇵 Japanese</option>
+              <option value="ko-KR">🇰🇷 Korean</option>
+              <option value="tr-TR">🇹🇷 Turkish</option>
+              <option value="nl-NL">🇳🇱 Dutch</option>
+              <option value="pl-PL">🇵🇱 Polish</option>
+              <option value="sv-SE">🇸🇪 Swedish</option>
+              <option value="da-DK">🇩🇰 Danish</option>
+              <option value="fi-FI">🇫🇮 Finnish</option>
+              <option value="nb-NO">🇳🇴 Norwegian</option>
+              <option value="id-ID">🇮🇩 Indonesian</option>
+              <option value="ms-MY">🇲🇾 Malay</option>
+              <option value="th-TH">🇹🇭 Thai</option>
+              <option value="vi-VN">🇻🇳 Vietnamese</option>
+              <option value="uk-UA">🇺🇦 Ukrainian</option>
+              <option value="cs-CZ">🇨🇿 Czech</option>
+              <option value="ro-RO">🇷🇴 Romanian</option>
+              <option value="hu-HU">🇭🇺 Hungarian</option>
+              <option value="el-GR">🇬🇷 Greek</option>
+              <option value="he-IL">🇮🇱 Hebrew</option>
+              <option value="bn-BD">🇧🇩 Bengali</option>
+              <option value="ta-IN">🇮🇳 Tamil</option>
+              <option value="te-IN">🇮🇳 Telugu</option>
+              <option value="mr-IN">🇮🇳 Marathi</option>
+              <option value="gu-IN">🇮🇳 Gujarati</option>
+              <option value="kn-IN">🇮🇳 Kannada</option>
+              <option value="ml-IN">🇮🇳 Malayalam</option>
+              <option value="pa-IN">🇮🇳 Punjabi</option>
+              <option value="ur-PK">🇵🇰 Urdu</option>
+              <option value="fa-IR">🇮🇷 Persian</option>
+              <option value="af-ZA">🇿🇦 Afrikaans</option>
+              <option value="sw-KE">🇰🇪 Swahili</option>
+              <option value="zu-ZA">🇿🇦 Zulu</option>
+            </select>
+          )}
           <button onClick={() => { setShowParticipants(v => !v); setShowChat(false) }}
             className={`p-3 rounded-full transition-all ${showParticipants ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
             title="Participants">
