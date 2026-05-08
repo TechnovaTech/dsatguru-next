@@ -139,63 +139,115 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
 
         {/* Video grid */}
         <div className={`flex flex-col overflow-hidden p-2 gap-2 ${showWhiteboard ? 'w-1/2' : 'flex-1'}`}>
+          {(() => {
+            // Separate screen share tracks from camera tracks
+            const screenTracks = videoTracks.filter(t => t.source === Track.Source.ScreenShare && t.publication?.track)
+            const camTracks    = videoTracks.filter(t => t.source !== Track.Source.ScreenShare)
+            const hasScreen    = screenTracks.length > 0
 
-          {/* Pinned / Speaker view */}
-          {!gridView && pinned ? (
-            <div className="flex-1 relative rounded-xl overflow-hidden bg-[#2d2d44] cursor-pointer" onClick={() => setPinnedParticipant(null)}>
-              {pinned.publication?.track
-                ? <VideoTrack trackRef={pinned} className="w-full h-full object-cover" />
-                : <div className="w-full h-full flex items-center justify-center">
-                    <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold">
-                      {(pinned.participant?.identity || '?')[0].toUpperCase()}
+            if (hasScreen) {
+              // ── SCREEN SHARE LAYOUT ──
+              // Main area = screen share, bottom strip = cameras
+              return (
+                <>
+                  {/* Main screen share */}
+                  <div className="flex-1 relative rounded-xl overflow-hidden bg-black">
+                    <VideoTrack trackRef={screenTracks[0]} className="w-full h-full object-contain" />
+                    <div className="absolute top-2 left-2 bg-blue-600/90 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                      <FiMonitor size={12} /> {screenTracks[0].participant?.name || screenTracks[0].participant?.identity} is sharing screen
                     </div>
                   </div>
-              }
-              <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                {pinned.participant?.identity}
-              </div>
-            </div>
-          ) : null}
-
-          {/* Grid */}
-          <div className={`${!gridView && pinned ? 'h-28 flex gap-2 overflow-x-auto' : 'flex-1 grid gap-2'}`}
-            style={gridView || !pinned ? {
-              gridTemplateColumns: videoTracks.length <= 1 ? '1fr'
-                : videoTracks.length <= 2 ? 'repeat(2,1fr)'
-                : videoTracks.length <= 4 ? 'repeat(2,1fr)'
-                : 'repeat(3,1fr)'
-            } : {}}>
-            {(gridView || !pinned ? videoTracks : others).map((trackRef, i) => {
-              const identity = trackRef.participant?.identity || ''
-              const isSelf = identity === localParticipant?.identity
-              return (
-                <div
-                  key={i}
-                  className={`relative rounded-xl overflow-hidden bg-[#2d2d44] cursor-pointer group ${!gridView && pinned ? 'flex-shrink-0 w-28' : ''}`}
-                  onClick={() => !gridView && setPinnedParticipant(identity)}
-                >
-                  {trackRef.publication?.track
-                    ? <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex items-center justify-center min-h-[120px]">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                          {identity[0]?.toUpperCase() || '?'}
-                        </div>
-                      </div>
-                  }
-                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
-                    <span className="bg-black/60 text-white text-xs px-2 py-0.5 rounded truncate max-w-[80%]">
-                      {isSelf ? `${trackRef.participant?.name || identity} (You)` : (trackRef.participant?.name || identity)}
-                    </span>
-                  </div>
-                  {!gridView && (
-                    <div className="absolute inset-0 bg-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <FiMaximize className="text-white" size={20} />
+                  {/* Camera strip */}
+                  {camTracks.length > 0 && (
+                    <div className="h-24 flex gap-2 overflow-x-auto flex-shrink-0">
+                      {camTracks.map((trackRef, i) => {
+                        const identity = trackRef.participant?.identity || ''
+                        const isSelf   = identity === localParticipant?.identity
+                        return (
+                          <div key={i} className="relative flex-shrink-0 w-32 rounded-lg overflow-hidden bg-[#2d2d44]">
+                            {trackRef.publication?.track
+                              ? <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
+                              : <div className="w-full h-full flex items-center justify-center">
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold">
+                                    {identity[0]?.toUpperCase() || '?'}
+                                  </div>
+                                </div>
+                            }
+                            <div className="absolute bottom-1 left-1 right-1">
+                              <span className="bg-black/70 text-white text-xs px-1.5 py-0.5 rounded truncate block text-center">
+                                {isSelf ? 'You' : (trackRef.participant?.name || identity)}
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
-                </div>
+                </>
               )
-            })}
-          </div>
+            }
+
+            // ── NORMAL GRID LAYOUT ──
+            return (
+              <>
+                {/* Pinned speaker view */}
+                {!gridView && pinned ? (
+                  <div className="flex-1 relative rounded-xl overflow-hidden bg-[#2d2d44] cursor-pointer" onClick={() => setPinnedParticipant(null)}>
+                    {pinned.publication?.track
+                      ? <VideoTrack trackRef={pinned} className="w-full h-full object-cover" />
+                      : <div className="w-full h-full flex items-center justify-center">
+                          <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold">
+                            {(pinned.participant?.identity || '?')[0].toUpperCase()}
+                          </div>
+                        </div>
+                    }
+                    <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                      {pinned.participant?.name || pinned.participant?.identity}
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Grid */}
+                <div className={`${!gridView && pinned ? 'h-28 flex gap-2 overflow-x-auto' : 'flex-1 grid gap-2'}`}
+                  style={gridView || !pinned ? {
+                    gridTemplateColumns: camTracks.length <= 1 ? '1fr'
+                      : camTracks.length <= 2 ? 'repeat(2,1fr)'
+                      : camTracks.length <= 4 ? 'repeat(2,1fr)'
+                      : 'repeat(3,1fr)'
+                  } : {}}>
+                  {(gridView || !pinned ? camTracks : camTracks.filter(t => t.participant?.identity !== pinnedParticipant)).map((trackRef, i) => {
+                    const identity = trackRef.participant?.identity || ''
+                    const isSelf   = identity === localParticipant?.identity
+                    return (
+                      <div key={i}
+                        className={`relative rounded-xl overflow-hidden bg-[#2d2d44] cursor-pointer group ${!gridView && pinned ? 'flex-shrink-0 w-28' : ''}`}
+                        onClick={() => !gridView && setPinnedParticipant(identity)}
+                      >
+                        {trackRef.publication?.track
+                          ? <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
+                          : <div className="w-full h-full flex items-center justify-center min-h-[120px]">
+                              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                                {identity[0]?.toUpperCase() || '?'}
+                              </div>
+                            </div>
+                        }
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <span className="bg-black/60 text-white text-xs px-2 py-0.5 rounded truncate max-w-[80%] block">
+                            {isSelf ? `${trackRef.participant?.name || identity} (You)` : (trackRef.participant?.name || identity)}
+                          </span>
+                        </div>
+                        {!gridView && (
+                          <div className="absolute inset-0 bg-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <FiMaximize className="text-white" size={20} />
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
+            )
+          })()}
         </div>
 
         {/* ── WHITEBOARD PANEL ── */}
