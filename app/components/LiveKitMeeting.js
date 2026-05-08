@@ -13,10 +13,13 @@ import {
 } from '@livekit/components-react'
 import '@livekit/components-styles'
 import { Track, RoomEvent } from 'livekit-client'
+import dynamic from 'next/dynamic'
+const MeetingWhiteboard = dynamic(() => import('./MeetingWhiteboard'), { ssr: false })
 import {
   FiMic, FiMicOff, FiVideo, FiVideoOff, FiMonitor,
   FiPhoneOff, FiUsers, FiMessageSquare, FiMoreVertical,
-  FiLoader, FiMaximize, FiMinimize, FiGrid, FiUser
+  FiLoader, FiMaximize, FiMinimize, FiGrid, FiUser,
+  FiEdit3
 } from 'react-icons/fi'
 
 // ─── Inner room UI (must be inside <LiveKitRoom>) ───────────────────────────
@@ -30,6 +33,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   const [screenSharing, setScreenSharing] = useState(false)
   const [showParticipants, setShowParticipants] = useState(false)
   const [showChat, setShowChat] = useState(false)
+  const [showWhiteboard, setShowWhiteboard] = useState(false)
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
   const [pinnedParticipant, setPinnedParticipant] = useState(null)
@@ -134,7 +138,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
       <div className="flex flex-1 overflow-hidden">
 
         {/* Video grid */}
-        <div className="flex-1 flex flex-col overflow-hidden p-2 gap-2">
+        <div className={`flex flex-col overflow-hidden p-2 gap-2 ${showWhiteboard ? 'w-1/2' : 'flex-1'}`}>
 
           {/* Pinned / Speaker view */}
           {!gridView && pinned ? (
@@ -193,6 +197,22 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
             })}
           </div>
         </div>
+
+        {/* ── WHITEBOARD PANEL ── */}
+        {showWhiteboard && (
+          <div className="w-1/2 bg-white flex flex-col border-l border-white/10">
+            <div className="flex items-center justify-between px-4 py-2 bg-[#242438] border-b border-white/10">
+              <span className="text-white text-sm font-medium flex items-center gap-2">
+                <FiEdit3 size={16} /> Whiteboard
+                {!isAdmin && <span className="text-xs text-yellow-400 ml-2">View only</span>}
+              </span>
+              <button onClick={() => setShowWhiteboard(false)} className="text-gray-400 hover:text-white text-xs">Close</button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <MeetingWhiteboard isAdmin={isAdmin} />
+            </div>
+          </div>
+        )}
 
         {/* ── SIDE PANEL ── */}
         {(showParticipants || showChat) && (
@@ -290,6 +310,13 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
             className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${screenSharing ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
             title={screenSharing ? 'Stop sharing' : 'Share screen'}>
             <FiMonitor size={20} />
+          </button>
+
+          {/* Whiteboard */}
+          <button onClick={() => setShowWhiteboard(v => !v)}
+            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${showWhiteboard ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+            title="Whiteboard">
+            <FiEdit3 size={20} />
           </button>
 
           {/* Leave */}
