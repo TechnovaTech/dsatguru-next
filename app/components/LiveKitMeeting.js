@@ -1,13 +1,330 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   LiveKitRoom,
-  VideoConference,
-  RoomAudioRenderer
+  RoomAudioRenderer,
+  useParticipants,
+  useTracks,
+  VideoTrack,
+  useLocalParticipant,
+  useRoomContext,
+  TrackToggle,
+  DisconnectButton,
 } from '@livekit/components-react'
 import '@livekit/components-styles'
-import { FiX, FiLoader } from 'react-icons/fi'
+import { Track, RoomEvent } from 'livekit-client'
+import {
+  FiMic, FiMicOff, FiVideo, FiVideoOff, FiMonitor,
+  FiPhoneOff, FiUsers, FiMessageSquare, FiMoreVertical,
+  FiLoader, FiMaximize, FiMinimize, FiGrid, FiUser
+} from 'react-icons/fi'
 
+// ─── Inner room UI (must be inside <LiveKitRoom>) ───────────────────────────
+function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
+  const participants = useParticipants()
+  const { localParticipant } = useLocalParticipant()
+  const room = useRoomContext()
+
+  const [micOn, setMicOn] = useState(true)
+  const [camOn, setCamOn] = useState(true)
+  const [screenSharing, setScreenSharing] = useState(false)
+  const [showParticipants, setShowParticipants] = useState(false)
+  const [showChat, setShowChat] = useState(false)
+  const [chatMessages, setChatMessages] = useState([])
+  const [chatInput, setChatInput] = useState('')
+  const [pinnedParticipant, setPinnedParticipant] = useState(null)
+  const [gridView, setGridView] = useState(true)
+  const [elapsed, setElapsed] = useState(0)
+
+  // Timer
+  useEffect(() => {
+    const t = setInterval(() => setElapsed(s => s + 1), 1000)
+    return () => clearInterval(t)
+  }, [])
+
+  // Chat via data channel
+  useEffect(() => {
+    if (!room) return
+    const handler = (payload, participant) => {
+      try {
+        const msg = JSON.parse(new TextDecoder().decode(payload))
+        if (msg.type === 'chat') {
+          setChatMessages(prev => [...prev, {
+            sender: participant?.identity || 'Unknown',
+            text: msg.text,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }])
+        }
+      } catch {}
+    }
+    room.on(RoomEvent.DataReceived, handler)
+    return () => room.off(RoomEvent.DataReceived, handler)
+  }, [room])
+
+  const sendChat = () => {
+    if (!chatInput.trim() || !room) return
+    const msg = JSON.stringify({ type: 'chat', text: chatInput.trim() })
+    room.localParticipant.publishData(new TextEncoder().encode(msg), { reliable: true })
+    setChatMessages(prev => [...prev, {
+      sender: displayName,
+      text: chatInput.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      self: true
+    }])
+    setChatInput('')
+  }
+
+  const toggleMic = async () => {
+    await localParticipant.setMicrophoneEnabled(!micOn)
+    setMicOn(v => !v)
+  }
+
+  const toggleCam = async () => {
+    await localParticipant.setCameraEnabled(!camOn)
+    setCamOn(v => !v)
+  }
+
+  const toggleScreen = async () => {
+    if (!screenSharing) {
+      await localParticipant.setScreenShareEnabled(true)
+      setScreenSharing(true)
+    } else {
+      await localParticipant.setScreenShareEnabled(false)
+      setScreenSharing(false)
+    }
+  }
+
+  const fmt = s => `${String(Math.floor(s / 3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`
+
+  // All video tracks
+  const videoTracks = useTracks(
+    [{ source: Track.Source.Camera, withPlaceholder: true },
+     { source: Track.Source.ScreenShare, withPlaceholder: false }],
+    { onlySubscribed: false }
+  )
+
+  const pinned = pinnedParticipant
+    ? videoTracks.find(t => t.participant?.identity === pinnedParticipant)
+    : null
+
+  const others = videoTracks.filter(t => t.participant?.identity !== pinnedParticipant)
+
+  return (
+    <div className="fixed inset-0 bg-[#1a1a2e] z-50 flex flex-col select-none" style={{ fontFamily: 'Google Sans, sans-serif' }}>
+
+      {/* ── TOP BAR ── */}
+      <div className="flex items-center justify-between px-4 py-2 bg-[#1a1a2e] border-b border-white/10">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">D</div>
+          <div>
+            <div className="text-white text-sm font-medium">{roomName}</div>
+            <div className="text-gray-400 text-xs">{fmt(elapsed)}</div>
+          </div>
+          {isAdmin && <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">Host</span>}
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setGridView(v => !v)} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors" title={gridView ? 'Speaker view' : 'Grid view'}>
+            {gridView ? <FiUser size={18} /> : <FiGrid size={18} />}
+          </button>
+          <span className="text-gray-400 text-sm">{participants.length} participant{participants.length !== 1 ? 's' : ''}</span>
+        </div>
+      </div>
+
+      {/* ── MAIN AREA ── */}
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* Video grid */}
+        <div className="flex-1 flex flex-col overflow-hidden p-2 gap-2">
+
+          {/* Pinned / Speaker view */}
+          {!gridView && pinned ? (
+            <div className="flex-1 relative rounded-xl overflow-hidden bg-[#2d2d44] cursor-pointer" onClick={() => setPinnedParticipant(null)}>
+              {pinned.publication?.track
+                ? <VideoTrack trackRef={pinned} className="w-full h-full object-cover" />
+                : <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold">
+                      {(pinned.participant?.identity || '?')[0].toUpperCase()}
+                    </div>
+                  </div>
+              }
+              <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                {pinned.participant?.identity}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Grid */}
+          <div className={`${!gridView && pinned ? 'h-28 flex gap-2 overflow-x-auto' : 'flex-1 grid gap-2'}`}
+            style={gridView || !pinned ? {
+              gridTemplateColumns: videoTracks.length <= 1 ? '1fr'
+                : videoTracks.length <= 2 ? 'repeat(2,1fr)'
+                : videoTracks.length <= 4 ? 'repeat(2,1fr)'
+                : 'repeat(3,1fr)'
+            } : {}}>
+            {(gridView || !pinned ? videoTracks : others).map((trackRef, i) => {
+              const identity = trackRef.participant?.identity || ''
+              const isSelf = identity === localParticipant?.identity
+              return (
+                <div
+                  key={i}
+                  className={`relative rounded-xl overflow-hidden bg-[#2d2d44] cursor-pointer group ${!gridView && pinned ? 'flex-shrink-0 w-28' : ''}`}
+                  onClick={() => !gridView && setPinnedParticipant(identity)}
+                >
+                  {trackRef.publication?.track
+                    ? <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center min-h-[120px]">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                          {identity[0]?.toUpperCase() || '?'}
+                        </div>
+                      </div>
+                  }
+                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+                    <span className="bg-black/60 text-white text-xs px-2 py-0.5 rounded truncate max-w-[80%]">
+                      {isSelf ? `${identity} (You)` : identity}
+                    </span>
+                  </div>
+                  {!gridView && (
+                    <div className="absolute inset-0 bg-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <FiMaximize className="text-white" size={20} />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* ── SIDE PANEL ── */}
+        {(showParticipants || showChat) && (
+          <div className="w-72 bg-[#242438] border-l border-white/10 flex flex-col">
+            <div className="flex border-b border-white/10">
+              <button onClick={() => { setShowParticipants(true); setShowChat(false) }}
+                className={`flex-1 py-3 text-sm font-medium transition-colors ${showParticipants ? 'text-white border-b-2 border-blue-500' : 'text-gray-400 hover:text-white'}`}>
+                People ({participants.length})
+              </button>
+              <button onClick={() => { setShowChat(true); setShowParticipants(false) }}
+                className={`flex-1 py-3 text-sm font-medium transition-colors ${showChat ? 'text-white border-b-2 border-blue-500' : 'text-gray-400 hover:text-white'}`}>
+                Chat
+              </button>
+            </div>
+
+            {showParticipants && (
+              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                {participants.map(p => (
+                  <div key={p.identity} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                      {p.identity[0]?.toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-white text-sm truncate">
+                        {p.identity}
+                        {p.identity === localParticipant?.identity && <span className="text-gray-400 text-xs ml-1">(You)</span>}
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      {!p.isMicrophoneEnabled && <FiMicOff size={14} className="text-red-400" />}
+                      {!p.isCameraEnabled && <FiVideoOff size={14} className="text-red-400" />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {showChat && (
+              <>
+                <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                  {chatMessages.length === 0 && (
+                    <div className="text-center text-gray-500 text-sm mt-8">No messages yet</div>
+                  )}
+                  {chatMessages.map((msg, i) => (
+                    <div key={i} className={`flex flex-col ${msg.self ? 'items-end' : 'items-start'}`}>
+                      <span className="text-gray-400 text-xs mb-1">{msg.self ? 'You' : msg.sender} · {msg.time}</span>
+                      <div className={`px-3 py-2 rounded-2xl text-sm max-w-[90%] break-words ${msg.self ? 'bg-blue-600 text-white' : 'bg-white/10 text-white'}`}>
+                        {msg.text}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-3 border-t border-white/10 flex gap-2">
+                  <input
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && sendChat()}
+                    placeholder="Send a message..."
+                    className="flex-1 bg-white/10 text-white placeholder-gray-500 rounded-full px-4 py-2 text-sm outline-none focus:bg-white/15"
+                  />
+                  <button onClick={sendChat} className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 text-sm transition-colors">
+                    Send
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── BOTTOM CONTROLS ── */}
+      <div className="flex items-center justify-between px-6 py-3 bg-[#1a1a2e] border-t border-white/10">
+
+        {/* Left — time */}
+        <div className="text-gray-400 text-sm w-32 hidden md:block">{fmt(elapsed)}</div>
+
+        {/* Center — controls */}
+        <div className="flex items-center gap-3">
+          {/* Mic */}
+          <button onClick={toggleMic}
+            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${micOn ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+            title={micOn ? 'Mute' : 'Unmute'}>
+            {micOn ? <FiMic size={20} /> : <FiMicOff size={20} />}
+          </button>
+
+          {/* Camera */}
+          <button onClick={toggleCam}
+            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${camOn ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+            title={camOn ? 'Turn off camera' : 'Turn on camera'}>
+            {camOn ? <FiVideo size={20} /> : <FiVideoOff size={20} />}
+          </button>
+
+          {/* Screen share */}
+          <button onClick={toggleScreen}
+            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${screenSharing ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+            title={screenSharing ? 'Stop sharing' : 'Share screen'}>
+            <FiMonitor size={20} />
+          </button>
+
+          {/* Leave */}
+          <button onClick={onClose}
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-full transition-all font-medium"
+            title="Leave meeting">
+            <FiPhoneOff size={20} />
+            <span className="hidden md:inline text-sm">Leave</span>
+          </button>
+        </div>
+
+        {/* Right — participants & chat */}
+        <div className="flex items-center gap-2 w-32 justify-end">
+          <button onClick={() => { setShowParticipants(v => !v); setShowChat(false) }}
+            className={`p-3 rounded-full transition-all ${showParticipants ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+            title="Participants">
+            <FiUsers size={18} />
+          </button>
+          <button onClick={() => { setShowChat(v => !v); setShowParticipants(false) }}
+            className={`relative p-3 rounded-full transition-all ${showChat ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+            title="Chat">
+            <FiMessageSquare size={18} />
+            {chatMessages.length > 0 && !showChat && (
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      <RoomAudioRenderer />
+    </div>
+  )
+}
+
+// ─── Outer wrapper — handles token fetch ────────────────────────────────────
 export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin = false }) {
   const [token, setToken] = useState(null)
   const [wsUrl, setWsUrl] = useState(null)
@@ -37,10 +354,11 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-gray-900 z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-[#1a1a2e] z-50 flex items-center justify-center">
         <div className="text-white text-center">
           <FiLoader className="animate-spin w-10 h-10 mx-auto mb-4" />
-          <p>Joining meeting...</p>
+          <p className="text-lg">Joining meeting...</p>
+          <p className="text-gray-400 text-sm mt-1">{roomName}</p>
         </div>
       </div>
     )
@@ -48,11 +366,14 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
 
   if (error) {
     return (
-      <div className="fixed inset-0 bg-gray-900 z-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-8 max-w-md text-center">
-          <p className="text-red-600 font-semibold mb-2">Failed to join meeting</p>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button onClick={onClose} className="bg-gray-800 text-white px-6 py-2 rounded">
+      <div className="fixed inset-0 bg-[#1a1a2e] z-50 flex items-center justify-center">
+        <div className="bg-[#242438] rounded-2xl p-8 max-w-md text-center border border-white/10">
+          <div className="w-16 h-16 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FiPhoneOff className="text-red-400" size={28} />
+          </div>
+          <p className="text-white font-semibold text-lg mb-2">Failed to join meeting</p>
+          <p className="text-gray-400 mb-6">{error}</p>
+          <button onClick={onClose} className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-full transition-colors">
             Close
           </button>
         </div>
@@ -61,39 +382,21 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-900 z-50 flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-800 text-white">
-        <div>
-          <span className="font-semibold">{roomName}</span>
-          {isAdmin && (
-            <span className="ml-2 text-xs bg-blue-600 px-2 py-0.5 rounded">Host</span>
-          )}
-        </div>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-gray-700 rounded-full transition-colors"
-          title="Leave meeting"
-        >
-          <FiX className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* LiveKit Room */}
-      <div className="flex-1 overflow-hidden">
-        <LiveKitRoom
-          token={token}
-          serverUrl={wsUrl}
-          connect={true}
-          video={true}
-          audio={true}
-          onDisconnected={onClose}
-          style={{ height: '100%' }}
-        >
-          <VideoConference />
-          <RoomAudioRenderer />
-        </LiveKitRoom>
-      </div>
-    </div>
+    <LiveKitRoom
+      token={token}
+      serverUrl={wsUrl}
+      connect={true}
+      video={true}
+      audio={true}
+      onDisconnected={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 50 }}
+    >
+      <MeetingRoom
+        roomName={roomName}
+        displayName={displayName}
+        isAdmin={isAdmin}
+        onClose={onClose}
+      />
+    </LiveKitRoom>
   )
 }
