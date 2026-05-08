@@ -35,7 +35,8 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   const [showChat, setShowChat] = useState(false)
   const [showWhiteboard, setShowWhiteboard] = useState(false)
   const [captionsOn, setCaptionsOn] = useState(false)
-  const [captions, setCaptions] = useState([]) // [{speaker, text, id}]
+  const [interimText, setInterimText] = useState('')
+  const [finalLines, setFinalLines] = useState([])
   const captionRef = useRef(null)
   const recognitionRef = useRef(null)
   const [chatMessages, setChatMessages] = useState([])
@@ -52,11 +53,13 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
 
   // ── Live Captions via Web Speech API ──────────────────────────────────────
   const CAPTION_CHANNEL = 'caption'
+  const [interimText, setInterimText] = useState('')
+  const [finalLines, setFinalLines] = useState([]) // [{id, speaker, text}]
 
   const startCaptions = useCallback(() => {
     if (typeof window === 'undefined') return
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) { alert('Live captions not supported in this browser. Use Chrome or Edge.'); return }
+    if (!SR) { alert('Live captions need Chrome or Edge browser.'); return }
 
     const rec = new SR()
     rec.continuous = true
@@ -64,36 +67,47 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
     rec.lang = 'en-US'
 
     rec.onresult = (e) => {
-      let interim = '', final = ''
+      let interim = ''
+      let finalText = ''
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const t = e.results[i][0].transcript
-        if (e.results[i].isFinal) final += t
+        if (e.results[i].isFinal) finalText += t
         else interim += t
       }
-      const text = final || interim
-      if (!text.trim()) return
 
-      // Show locally
-      const id = Date.now()
-      setCaptions(prev => {
-        const updated = [...prev.filter(c => c.id !== 'interim'), { id: final ? id : 'interim', speaker: displayName, text, final: !!final }]
-        return updated.slice(-5) // keep last 5
-      })
+      // Show interim (live typing effect)
+      setInterimText(interim)
 
-      // Broadcast to others via LiveKit data channel
-      if (room && final) {
-        try {
-          const payload = JSON.stringify({ type: CAPTION_CHANNEL, speaker: displayName, text: final })
-          room.localParticipant.publishData(new TextEncoder().encode(payload), { reliable: false })
-        } catch {}
+      if (finalText.trim()) {
+        setInterimText('')
+        const id = Date.now()
+        setFinalLines(prev => [...prev.slice(-3), { id, speaker: displayName, text: finalText.trim() }])
+
+        // Broadcast final text to others
+        if (room) {
+          try {
+            const payload = JSON.stringify({ type: CAPTION_CHANNEL, speaker: displayName, text: finalText.trim() })
+            room.localParticipant.publishData(new TextEncoder().encode(payload), { reliable: false })
+          } catch {}
+        }
+
+        // Auto clear after 4s
+        setTimeout(() => setFinalLines(prev => prev.filter(l => l.id !== id)), 4000)
       }
     }
 
-    rec.onerror = () => {}
-    rec.onend = () => { if (captionsOn) rec.start() }
+    rec.onerror = (e) => { if (e.error !== 'no-speech') console.warn('Speech error:', e.error) }
+    rec.onend = () => {
+      setInterimText('')
+      // Restart if still on
+      if (recognitionRef.current) {
+        try { recognitionRef.current.start() } catch {}
+      }
+    }
+
     rec.start()
     recognitionRef.current = rec
-  }, [room, displayName, captionsOn])
+  }, [room, displayName])
 
   // Receive captions from others
   useEffect(() => {
@@ -103,7 +117,8 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
         const msg = JSON.parse(new TextDecoder().decode(payload))
         if (msg.type !== CAPTION_CHANNEL) return
         const id = Date.now()
-        setCaptions(prev => [...prev, { id, speaker: msg.speaker || participant?.identity, text: msg.text, final: true }].slice(-5))
+        setFinalLines(prev => [...prev.slice(-3), { id, speaker: msg.speaker || participant?.identity, text: msg.text }])
+        setTimeout(() => setFinalLines(prev => prev.filter(l => l.id !== id)), 4000)
       } catch {}
     }
     room.on(RoomEvent.DataReceived, handler)
@@ -117,18 +132,15 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
       startCaptions()
     } else {
       setCaptionsOn(false)
-      recognitionRef.current?.stop()
-      recognitionRef.current = null
-      setCaptions([])
+      if (recognitionRef.current) {
+        recognitionRef.current.onend = null
+        recognitionRef.current.stop()
+        recognitionRef.current = null
+      }
+      setInterimText('')
+      setFinalLines([])
     }
   }
-
-  // Auto-clear old captions
-  useEffect(() => {
-    if (captions.length === 0) return
-    const t = setTimeout(() => setCaptions(prev => prev.filter(c => c.id === 'interim')), 5000)
-    return () => clearTimeout(t)
-  }, [captions])
 
   // Chat via data channel
   useEffect(() => {
@@ -436,17 +448,21 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
       </div>
 
       {/* ── CAPTIONS OVERLAY ── */}
-      {captionsOn && captions.length > 0 && (
-        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 pointer-events-none z-20">
-          <div className="space-y-1">
-            {captions.map(c => (
-              <div key={c.id} className={`text-center ${c.id === 'interim' ? 'opacity-60' : 'opacity-100'}`}>
-                <span className="inline-block bg-black/80 text-white text-sm px-4 py-1.5 rounded-lg backdrop-blur-sm">
-                  <span className="text-blue-300 font-medium mr-2">{c.speaker}:</span>
-                  {c.text}
-                </span>
+      {captionsOn && (finalLines.length > 0 || interimText) && (
+        <div className="absolute bottom-20 left-0 right-0 flex justify-center pointer-events-none z-30 px-4">
+          <div className="bg-black/75 rounded-xl px-5 py-3 max-w-2xl w-full backdrop-blur-sm">
+            {finalLines.map(l => (
+              <div key={l.id} className="text-white text-base leading-relaxed">
+                <span className="text-blue-300 font-semibold mr-2">{l.speaker}:</span>
+                {l.text}
               </div>
             ))}
+            {interimText && (
+              <div className="text-white/60 text-base leading-relaxed italic">
+                <span className="text-blue-200 font-semibold mr-2">{displayName}:</span>
+                {interimText}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -499,9 +515,9 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
         {/* Right — participants & chat */}
         <div className="flex items-center gap-2 w-32 justify-end">
           <button onClick={toggleCaptions}
-            className={`p-3 rounded-full transition-all ${captionsOn ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+            className={`px-3 py-2 rounded-full transition-all text-sm font-bold ${captionsOn ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
             title={captionsOn ? 'Turn off captions' : 'Turn on captions'}>
-            <FiType size={18} />
+            CC
           </button>
           <button onClick={() => { setShowParticipants(v => !v); setShowChat(false) }}
             className={`p-3 rounded-full transition-all ${showParticipants ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
