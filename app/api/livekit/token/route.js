@@ -12,7 +12,6 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url)
     const room = searchParams.get('room')
-    const participantName = searchParams.get('name') || decoded.name || 'Participant'
 
     if (!room) return NextResponse.json({ error: 'Room name required' }, { status: 400 })
 
@@ -23,10 +22,30 @@ export async function GET(request) {
       return NextResponse.json({ error: 'LiveKit not configured' }, { status: 500 })
     }
 
+    const isHost = ['Admin', 'TutorAdmin'].includes(decoded.role)
+    const role = decoded.role || 'Student'
+    const name = decoded.name || decoded.email || 'Participant'
+    const email = decoded.email || ''
+
+    // Display name format: "Name (Role) | email"
+    // e.g. "Vivek Vora (Admin) | vivek@dsatguru.com"
+    // e.g. "John Doe (Student) | john@gmail.com"
+    const displayName = `${name} (${role})`
+
+    // Identity = unique user ID
+    const identity = decoded.userId || decoded.id || decoded._id || email || name
+
     const at = new AccessToken(apiKey, apiSecret, {
-      identity: decoded.userId || decoded.id || decoded.email,
-      name: participantName,
-      ttl: '4h'
+      identity,
+      name: displayName,
+      ttl: '4h',
+      // Store metadata as JSON — accessible in participants panel
+      metadata: JSON.stringify({
+        name,
+        email,
+        role,
+        isHost
+      })
     })
 
     at.addGrant({
@@ -35,15 +54,15 @@ export async function GET(request) {
       canPublish: true,
       canSubscribe: true,
       canPublishData: true,
-      // Admin/Tutor gets room admin privileges
-      roomAdmin: ['Admin', 'TutorAdmin'].includes(decoded.role)
+      roomAdmin: isHost
     })
 
     const livekitToken = await at.toJwt()
 
     return NextResponse.json({
       token: livekitToken,
-      wsUrl: process.env.LIVEKIT_WS_URL || 'ws://localhost:7880'
+      wsUrl: process.env.LIVEKIT_WS_URL || 'ws://localhost:7880',
+      userInfo: { name, email, role, isHost }
     })
   } catch (error) {
     console.error('LiveKit token error:', error)

@@ -184,7 +184,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
                   }
                   <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
                     <span className="bg-black/60 text-white text-xs px-2 py-0.5 rounded truncate max-w-[80%]">
-                      {isSelf ? `${identity} (You)` : identity}
+                      {isSelf ? `${trackRef.participant?.name || identity} (You)` : (trackRef.participant?.name || identity)}
                     </span>
                   </div>
                   {!gridView && (
@@ -230,23 +230,39 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
 
             {showParticipants && (
               <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                {participants.map(p => (
-                  <div key={p.identity} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                      {p.identity[0]?.toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-white text-sm truncate">
-                        {p.identity}
-                        {p.identity === localParticipant?.identity && <span className="text-gray-400 text-xs ml-1">(You)</span>}
+                {participants.map(p => {
+                  let meta = {}
+                  try { meta = JSON.parse(p.metadata || '{}') } catch {}
+                  const displayRole = meta.role || 'Student'
+                  const displayEmail = meta.email || ''
+                  const displayName = meta.name || p.name || p.identity
+                  const isHost = meta.isHost
+                  const isSelf = p.identity === localParticipant?.identity
+                  return (
+                    <div key={p.identity} className="flex items-start gap-3 p-2 rounded-lg hover:bg-white/5">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${isHost ? 'bg-blue-600' : 'bg-gradient-to-br from-green-500 to-teal-600'}`}>
+                        {displayName[0]?.toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-white text-sm font-medium truncate">{displayName}</span>
+                          {isSelf && <span className="text-gray-400 text-xs">(You)</span>}
+                          {isHost
+                            ? <span className="text-xs bg-blue-600 text-white px-1.5 py-0.5 rounded-full">Host</span>
+                            : <span className="text-xs bg-green-700 text-white px-1.5 py-0.5 rounded-full">{displayRole}</span>
+                          }
+                        </div>
+                        {displayEmail && (
+                          <div className="text-gray-400 text-xs truncate mt-0.5">{displayEmail}</div>
+                        )}
+                      </div>
+                      <div className="flex gap-1 mt-1">
+                        {!p.isMicrophoneEnabled && <FiMicOff size={13} className="text-red-400" />}
+                        {!p.isCameraEnabled && <FiVideoOff size={13} className="text-red-400" />}
                       </div>
                     </div>
-                    <div className="flex gap-1">
-                      {!p.isMicrophoneEnabled && <FiMicOff size={14} className="text-red-400" />}
-                      {!p.isCameraEnabled && <FiVideoOff size={14} className="text-red-400" />}
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
 

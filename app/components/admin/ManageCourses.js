@@ -1867,7 +1867,7 @@ function CourseContentManager({ course, onBack }) {
       {activeAdminMeeting && (
         <LiveKitMeeting
           roomName={activeAdminMeeting.link}
-          displayName="Admin (Host)"
+          displayName="Admin"
           isAdmin={true}
           onClose={() => setActiveAdminMeeting(null)}
         />
