@@ -102,58 +102,77 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
 
   // ── Live Captions via Web Speech API ──────────────────────────────────────
   const CAPTION_CHANNEL = 'caption'
+  const captionsOnRef = useRef(false) // stable ref for onend callback
 
   const startCaptions = useCallback(() => {
     if (typeof window === 'undefined') return
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SR) { alert('Live captions need Chrome or Edge browser.'); return }
 
+    // Stop any existing instance cleanly
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort() } catch {}
+      recognitionRef.current = null
+    }
+
     const rec = new SR()
     rec.continuous = true
     rec.interimResults = true
     rec.lang = captionLang
+    recognitionRef.current = rec
 
     rec.onresult = (e) => {
       let interim = ''
-      let finalText = ''
       for (let i = e.resultIndex; i < e.results.length; i++) {
-        const t = e.results[i][0].transcript
-        if (e.results[i].isFinal) finalText += t
-        else interim += t
-      }
-
-      // Show interim (live typing effect)
-      setInterimText(interim)
-
-      if (finalText.trim()) {
-        setInterimText('')
-        const id = Date.now()
-        setFinalLines(prev => [...prev.slice(-3), { id, speaker: displayName, text: finalText.trim() }])
-
-        // Broadcast final text to others
-        if (room) {
-          try {
-            const payload = JSON.stringify({ type: CAPTION_CHANNEL, speaker: displayName, text: finalText.trim() })
-            room.localParticipant.publishData(new TextEncoder().encode(payload), { reliable: false })
-          } catch {}
+        const transcript = e.results[i][0].transcript
+        if (e.results[i].isFinal) {
+          const text = transcript.trim()
+          if (!text) return
+          setInterimText('')
+          const id = Date.now()
+          setFinalLines(prev => [...prev.slice(-2), { id, speaker: displayName, text }])
+          setTimeout(() => setFinalLines(prev => prev.filter(l => l.id !== id)), 5000)
+          // Broadcast
+          if (room) {
+            try {
+              const payload = JSON.stringify({ type: CAPTION_CHANNEL, speaker: displayName, text })
+              room.localParticipant.publishData(new TextEncoder().encode(payload), { reliable: false })
+            } catch {}
+          }
+        } else {
+          interim += transcript
         }
-
-        // Auto clear after 4s
-        setTimeout(() => setFinalLines(prev => prev.filter(l => l.id !== id)), 4000)
       }
+      if (interim) setInterimText(interim)
     }
 
-    rec.onerror = (e) => { if (e.error !== 'no-speech') console.warn('Speech error:', e.error) }
+    rec.onerror = (e) => {
+      // network/no-speech errors — just ignore and let onend restart
+      if (e.error === 'aborted') return
+    }
+
     rec.onend = () => {
       setInterimText('')
-      // Restart if still on
-      if (recognitionRef.current) {
-        try { recognitionRef.current.start() } catch {}
+      // Auto-restart as long as captions are on
+      if (captionsOnRef.current) {
+        setTimeout(() => {
+          if (!captionsOnRef.current) return
+          try {
+            const newRec = new SR()
+            newRec.continuous = true
+            newRec.interimResults = true
+            newRec.lang = captionLang
+            newRec.onresult = rec.onresult
+            newRec.onerror = rec.onerror
+            newRec.onend = rec.onend
+            newRec.start()
+            recognitionRef.current = newRec
+          } catch {}
+        }, 100)
       }
     }
 
-    rec.start()
-    recognitionRef.current = rec
+    try { rec.start() } catch {}
   }, [room, displayName, captionLang])
 
   // Receive captions from others
@@ -164,8 +183,8 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
         const msg = JSON.parse(new TextDecoder().decode(payload))
         if (msg.type !== CAPTION_CHANNEL) return
         const id = Date.now()
-        setFinalLines(prev => [...prev.slice(-3), { id, speaker: msg.speaker || participant?.identity, text: msg.text }])
-        setTimeout(() => setFinalLines(prev => prev.filter(l => l.id !== id)), 4000)
+        setFinalLines(prev => [...prev.slice(-2), { id, speaker: msg.speaker || participant?.identity, text: msg.text }])
+        setTimeout(() => setFinalLines(prev => prev.filter(l => l.id !== id)), 5000)
       } catch {}
     }
     room.on(RoomEvent.DataReceived, handler)
@@ -175,13 +194,14 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   // Toggle captions
   const toggleCaptions = () => {
     if (!captionsOn) {
+      captionsOnRef.current = true
       setCaptionsOn(true)
       startCaptions()
     } else {
+      captionsOnRef.current = false
       setCaptionsOn(false)
       if (recognitionRef.current) {
-        recognitionRef.current.onend = null
-        recognitionRef.current.stop()
+        try { recognitionRef.current.abort() } catch {}
         recognitionRef.current = null
       }
       setInterimText('')
