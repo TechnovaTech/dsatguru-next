@@ -38,8 +38,56 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   const [interimText, setInterimText] = useState('')
   const [finalLines, setFinalLines] = useState([])
   const [captionLang, setCaptionLang] = useState('en-US')
+  const [langSearch, setLangSearch] = useState('')
+  const [showLangPicker, setShowLangPicker] = useState(false)
   const captionRef = useRef(null)
   const recognitionRef = useRef(null)
+
+  const LANGUAGES = [
+    { code: 'en-US', label: 'English (US)', flag: '🇺🇸' },
+    { code: 'en-GB', label: 'English (UK)', flag: '🇬🇧' },
+    { code: 'hi-IN', label: 'Hindi', flag: '🇮🇳' },
+    { code: 'es-ES', label: 'Spanish', flag: '🇪🇸' },
+    { code: 'fr-FR', label: 'French', flag: '🇫🇷' },
+    { code: 'de-DE', label: 'German', flag: '🇩🇪' },
+    { code: 'it-IT', label: 'Italian', flag: '🇮🇹' },
+    { code: 'pt-BR', label: 'Portuguese', flag: '🇧🇷' },
+    { code: 'ru-RU', label: 'Russian', flag: '🇷🇺' },
+    { code: 'ar-SA', label: 'Arabic', flag: '🇸🇦' },
+    { code: 'zh-CN', label: 'Chinese (Simplified)', flag: '🇨🇳' },
+    { code: 'zh-TW', label: 'Chinese (Traditional)', flag: '🇹🇼' },
+    { code: 'ja-JP', label: 'Japanese', flag: '🇯🇵' },
+    { code: 'ko-KR', label: 'Korean', flag: '🇰🇷' },
+    { code: 'tr-TR', label: 'Turkish', flag: '🇹🇷' },
+    { code: 'nl-NL', label: 'Dutch', flag: '🇳🇱' },
+    { code: 'pl-PL', label: 'Polish', flag: '🇵🇱' },
+    { code: 'sv-SE', label: 'Swedish', flag: '🇸🇪' },
+    { code: 'da-DK', label: 'Danish', flag: '🇩🇰' },
+    { code: 'fi-FI', label: 'Finnish', flag: '🇫🇮' },
+    { code: 'nb-NO', label: 'Norwegian', flag: '🇳🇴' },
+    { code: 'id-ID', label: 'Indonesian', flag: '🇮🇩' },
+    { code: 'ms-MY', label: 'Malay', flag: '🇲🇾' },
+    { code: 'th-TH', label: 'Thai', flag: '🇹🇭' },
+    { code: 'vi-VN', label: 'Vietnamese', flag: '🇻🇳' },
+    { code: 'uk-UA', label: 'Ukrainian', flag: '🇺🇦' },
+    { code: 'cs-CZ', label: 'Czech', flag: '🇨🇿' },
+    { code: 'ro-RO', label: 'Romanian', flag: '🇷🇴' },
+    { code: 'hu-HU', label: 'Hungarian', flag: '🇭🇺' },
+    { code: 'el-GR', label: 'Greek', flag: '🇬🇷' },
+    { code: 'he-IL', label: 'Hebrew', flag: '🇮🇱' },
+    { code: 'bn-BD', label: 'Bengali', flag: '🇧🇩' },
+    { code: 'ta-IN', label: 'Tamil', flag: '🇮🇳' },
+    { code: 'te-IN', label: 'Telugu', flag: '🇮🇳' },
+    { code: 'mr-IN', label: 'Marathi', flag: '🇮🇳' },
+    { code: 'gu-IN', label: 'Gujarati', flag: '🇮🇳' },
+    { code: 'kn-IN', label: 'Kannada', flag: '🇮🇳' },
+    { code: 'ml-IN', label: 'Malayalam', flag: '🇮🇳' },
+    { code: 'pa-IN', label: 'Punjabi', flag: '🇮🇳' },
+    { code: 'ur-PK', label: 'Urdu', flag: '🇵🇰' },
+    { code: 'fa-IR', label: 'Persian', flag: '🇮🇷' },
+    { code: 'af-ZA', label: 'Afrikaans', flag: '🇿🇦' },
+    { code: 'sw-KE', label: 'Swahili', flag: '🇰🇪' },
+  ]
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
   const [pinnedParticipant, setPinnedParticipant] = useState(null)
@@ -519,64 +567,58 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
             CC
           </button>
           {captionsOn && (
-            <select
-              value={captionLang}
-              onChange={e => {
-                setCaptionLang(e.target.value)
-                // Restart recognition with new language
-                if (recognitionRef.current) {
-                  recognitionRef.current.onend = null
-                  recognitionRef.current.stop()
-                  recognitionRef.current = null
-                }
-                setTimeout(() => startCaptions(), 200)
-              }}
-              className="bg-white/10 text-white text-xs rounded-full px-2 py-1.5 outline-none border border-white/20 hover:bg-white/20 cursor-pointer"
-              style={{ maxWidth: 110 }}
-            >
-              <option value="en-US">🇺🇸 English</option>
-              <option value="hi-IN">🇮🇳 Hindi</option>
-              <option value="es-ES">🇪🇸 Spanish</option>
-              <option value="fr-FR">🇫🇷 French</option>
-              <option value="de-DE">🇩🇪 German</option>
-              <option value="it-IT">🇮🇹 Italian</option>
-              <option value="pt-BR">🇧🇷 Portuguese</option>
-              <option value="ru-RU">🇷🇺 Russian</option>
-              <option value="ar-SA">🇸🇦 Arabic</option>
-              <option value="zh-CN">🇨🇳 Chinese</option>
-              <option value="ja-JP">🇯🇵 Japanese</option>
-              <option value="ko-KR">🇰🇷 Korean</option>
-              <option value="tr-TR">🇹🇷 Turkish</option>
-              <option value="nl-NL">🇳🇱 Dutch</option>
-              <option value="pl-PL">🇵🇱 Polish</option>
-              <option value="sv-SE">🇸🇪 Swedish</option>
-              <option value="da-DK">🇩🇰 Danish</option>
-              <option value="fi-FI">🇫🇮 Finnish</option>
-              <option value="nb-NO">🇳🇴 Norwegian</option>
-              <option value="id-ID">🇮🇩 Indonesian</option>
-              <option value="ms-MY">🇲🇾 Malay</option>
-              <option value="th-TH">🇹🇭 Thai</option>
-              <option value="vi-VN">🇻🇳 Vietnamese</option>
-              <option value="uk-UA">🇺🇦 Ukrainian</option>
-              <option value="cs-CZ">🇨🇿 Czech</option>
-              <option value="ro-RO">🇷🇴 Romanian</option>
-              <option value="hu-HU">🇭🇺 Hungarian</option>
-              <option value="el-GR">🇬🇷 Greek</option>
-              <option value="he-IL">🇮🇱 Hebrew</option>
-              <option value="bn-BD">🇧🇩 Bengali</option>
-              <option value="ta-IN">🇮🇳 Tamil</option>
-              <option value="te-IN">🇮🇳 Telugu</option>
-              <option value="mr-IN">🇮🇳 Marathi</option>
-              <option value="gu-IN">🇮🇳 Gujarati</option>
-              <option value="kn-IN">🇮🇳 Kannada</option>
-              <option value="ml-IN">🇮🇳 Malayalam</option>
-              <option value="pa-IN">🇮🇳 Punjabi</option>
-              <option value="ur-PK">🇵🇰 Urdu</option>
-              <option value="fa-IR">🇮🇷 Persian</option>
-              <option value="af-ZA">🇿🇦 Afrikaans</option>
-              <option value="sw-KE">🇰🇪 Swahili</option>
-              <option value="zu-ZA">🇿🇦 Zulu</option>
-            </select>
+            <div className="relative">
+              <button
+                onClick={() => setShowLangPicker(v => !v)}
+                className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs rounded-full px-3 py-2 border border-white/20 transition-all"
+              >
+                <span>{LANGUAGES.find(l => l.code === captionLang)?.flag}</span>
+                <span className="max-w-[70px] truncate">{LANGUAGES.find(l => l.code === captionLang)?.label}</span>
+                <span className="text-gray-400">▾</span>
+              </button>
+
+              {showLangPicker && (
+                <div className="absolute bottom-12 right-0 w-56 bg-[#1e1e2e] border border-white/20 rounded-xl shadow-2xl z-50 overflow-hidden">
+                  {/* Search */}
+                  <div className="p-2 border-b border-white/10">
+                    <input
+                      autoFocus
+                      value={langSearch}
+                      onChange={e => setLangSearch(e.target.value)}
+                      placeholder="Search language..."
+                      className="w-full bg-white/10 text-white placeholder-gray-500 text-sm rounded-lg px-3 py-1.5 outline-none focus:bg-white/15"
+                    />
+                  </div>
+                  {/* List */}
+                  <div className="max-h-52 overflow-y-auto">
+                    {LANGUAGES
+                      .filter(l => l.label.toLowerCase().includes(langSearch.toLowerCase()))
+                      .map(l => (
+                        <button
+                          key={l.code}
+                          onClick={() => {
+                            setCaptionLang(l.code)
+                            setShowLangPicker(false)
+                            setLangSearch('')
+                            if (recognitionRef.current) {
+                              recognitionRef.current.onend = null
+                              recognitionRef.current.stop()
+                              recognitionRef.current = null
+                            }
+                            setTimeout(() => startCaptions(), 200)
+                          }}
+                          className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/10 transition-colors text-left ${captionLang === l.code ? 'bg-blue-600/30 text-blue-300' : 'text-white'}`}
+                        >
+                          <span className="text-base">{l.flag}</span>
+                          <span>{l.label}</span>
+                          {captionLang === l.code && <span className="ml-auto text-blue-400">✓</span>}
+                        </button>
+                      ))
+                    }
+                  </div>
+                </div>
+              )}
+            </div>
           )}
           <button onClick={() => { setShowParticipants(v => !v); setShowChat(false) }}
             className={`p-3 rounded-full transition-all ${showParticipants ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
