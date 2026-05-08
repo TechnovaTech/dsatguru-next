@@ -53,8 +53,6 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
 
   // ── Live Captions via Web Speech API ──────────────────────────────────────
   const CAPTION_CHANNEL = 'caption'
-  const [interimText, setInterimText] = useState('')
-  const [finalLines, setFinalLines] = useState([]) // [{id, speaker, text}]
 
   const startCaptions = useCallback(() => {
     if (typeof window === 'undefined') return
