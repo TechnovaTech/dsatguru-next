@@ -97,16 +97,21 @@ export async function POST(request) {
       const difficulty = q.difficulty || 'Medium'
       const bankType = isTutor ? 'tutor' : isAdminTest ? 'admintest' : 'admin'
 
+      // Normalize subject — only 'Math' or 'Reading and Writing' allowed
+      // If CSV has something else (e.g. 'Geometry', 'Algebra'), default to 'Math'
+      const rawSubject = q.subject || ''
+      const normalizedSubject = rawSubject.toLowerCase().includes('reading') || rawSubject.toLowerCase().includes('writing')
+        ? 'Reading and Writing'
+        : 'Math'
+
       // getNextSerial now includes difficulty — TMGE-M-* and TMGE-H-* are separate counters
       // In-memory counter increments per call so same-tag questions in one batch never collide
-      let serial = await getNextSerial(q.subject || 'Math', tag0, difficulty)
-      let newQuestionId = generateQuestionId(q.subject || 'Math', tag0, difficulty, serial, bankType)
-      // Cross-key collision: a different tag with the same 2-letter prefix may have already
-      // claimed this ID in this batch. Keep bumping the counter for this key until free.
-      const cKey = `${bankType}|${q.subject || 'Math'}|${tag0}|${difficulty}`
+      let serial = await getNextSerial(normalizedSubject, tag0, difficulty)
+      let newQuestionId = generateQuestionId(normalizedSubject, tag0, difficulty, serial, bankType)
+      const cKey = `${bankType}|${normalizedSubject}|${tag0}|${difficulty}`
       while (usedIds.has(newQuestionId)) {
         serial = serialCounters[cKey]++
-        newQuestionId = generateQuestionId(q.subject || 'Math', tag0, difficulty, serial, bankType)
+        newQuestionId = generateQuestionId(normalizedSubject, tag0, difficulty, serial, bankType)
       }
       usedIds.add(newQuestionId)
       console.log(`🔑 ${newQuestionId} | tag=${tag0} | diff=${difficulty} | serial=${serial}`)
@@ -119,7 +124,7 @@ export async function POST(request) {
         explanation: q.explanation || '',
         shortExplanation: q.shortExplanation || '',
         longExplanation: q.longExplanation || '',
-        subject: q.subject || 'Math',
+        subject: normalizedSubject,
         difficulty,
         type: q.type || 'MultipleChoice',
         testType: 'Base',
