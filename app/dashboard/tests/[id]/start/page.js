@@ -1749,9 +1749,9 @@ export default function TakeTestPage() {
             
             {/* Question Text */}
             <div className="mt-6">
-              <p className="text-gray-900 text-base leading-relaxed font-medium">
-                {currentQ?.question || currentQ?.content}
-              </p>
+              <div className="text-gray-900 text-base leading-relaxed font-medium">
+                {renderWithImages(currentQ?.question || currentQ?.content)}
+              </div>
             </div>
 
             {/* Removed tutor mode options from left side - all tests now use standard layout */}
@@ -1897,7 +1897,7 @@ export default function TakeTestPage() {
                               <div className={`flex-1 pt-1 text-base sm:text-lg leading-relaxed ${
                                 isElim ? 'text-gray-400 line-through decoration-2 decoration-gray-400' : 'text-gray-900'
                               }`}>
-                                {currentQ?.[`option${option}`]}
+                                {renderWithImages(currentQ?.[`option${option}`])}
                               </div>
                             </button>
                           </div>
