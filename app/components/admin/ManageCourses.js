@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2, FiFolder, FiUpload, FiFile, FiBell } from 'react-icons/fi'
+import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2, FiFolder, FiUpload, FiFile, FiBell, FiEye } from 'react-icons/fi'
 import CourseCalendar from './CourseCalendar'
 import moment from 'moment'
 import dynamic from 'next/dynamic'
@@ -372,6 +372,7 @@ function CourseContentManager({ course, onBack }) {
         <div className="flex border-b">
           {[
             { id: 'meetings', label: 'Live Meetings', icon: <FiVideo size={16} /> },
+            { id: 'transcripts', label: 'Transcripts', icon: <FiFileText size={16} /> },
             { id: 'calendar', label: 'Calendar', icon: <FiCalendar size={16} /> },
             { id: 'materials', label: 'Study Materials', icon: <FiDownload size={16} /> },
             { id: 'syllabus', label: 'Course Timeline', icon: <FiCalendar size={16} /> },
@@ -921,6 +922,88 @@ function CourseContentManager({ course, onBack }) {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'transcripts' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Meeting Transcripts</h2>
+              <div className="text-sm text-gray-500 italic">
+                Transcripts are automatically generated after live meetings
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg border overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Meeting</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date & Time</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">AI Summary</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {courseData.meetings.filter(m => m.transcript || m.transcriptSummary).length > 0 ? (
+                    courseData.meetings.filter(m => m.transcript || m.transcriptSummary).map((m, index) => (
+                      <tr key={m._id || index} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                          {m.title || 'Untitled Meeting'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {m.date ? new Date(m.date).toLocaleString() : 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {m.transcriptSummary ? (
+                            <div className="max-w-xs truncate" title={m.transcriptSummary}>
+                              {m.transcriptSummary}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 italic">No summary</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm font-medium">
+                          <div className="flex gap-2">
+                            {m.transcript && (
+                              <button
+                                onClick={() => {
+                                  const blob = new Blob([m.transcript], { type: 'text/plain' });
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = `Transcript-${m.title || 'Meeting'}-${new Date(m.date).toLocaleDateString()}.txt`;
+                                  a.click();
+                                }}
+                                className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
+                                title="Download Transcript"
+                              >
+                                <FiDownload /> Download
+                              </button>
+                            )}
+                            {m.transcriptSummary && (
+                              <button
+                                onClick={() => alert(m.transcriptSummary)}
+                                className="text-green-600 hover:text-green-900 flex items-center gap-1"
+                                title="View Summary"
+                              >
+                                <FiEye /> Summary
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="px-4 py-8 text-center text-gray-500 italic">
+                        No transcripts available yet. They will appear here after meetings conclude.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}

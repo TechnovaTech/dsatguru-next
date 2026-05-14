@@ -19,7 +19,7 @@ import {
   FiMic, FiMicOff, FiVideo, FiVideoOff, FiMonitor,
   FiPhoneOff, FiUsers, FiMessageSquare, FiMoreVertical,
   FiLoader, FiMaximize, FiMinimize, FiGrid, FiUser,
-  FiEdit3, FiType
+  FiEdit3, FiType, FiFileText, FiDownload
 } from 'react-icons/fi'
 
 // ─── Inner room UI (must be inside <LiveKitRoom>) ───────────────────────────
@@ -33,6 +33,8 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   const [screenSharing, setScreenSharing] = useState(false)
   const [showParticipants, setShowParticipants] = useState(false)
   const [showChat, setShowChat] = useState(false)
+  const [showTranscript, setShowTranscript] = useState(false)
+  const [meetingTranscript, setMeetingTranscript] = useState('')
   const [showWhiteboard, setShowWhiteboard] = useState(false)
   const [captionsOn, setCaptionsOn] = useState(false)
   const [interimText, setInterimText] = useState('')
@@ -132,6 +134,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
             setInterimText('')
             const id = Date.now()
             setFinalLines(prev => [...prev.slice(-2), { id, speaker: displayName, text }])
+            setMeetingTranscript(prev => prev + `[${new Date().toLocaleTimeString()}] ${displayName}: ${text}\n`)
             setTimeout(() => setFinalLines(prev => prev.filter(l => l.id !== id)), 5000)
             if (room) {
               try {
@@ -176,7 +179,9 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
         const msg = JSON.parse(new TextDecoder().decode(payload))
         if (msg.type !== CAPTION_CHANNEL) return
         const id = Date.now()
-        setFinalLines(prev => [...prev.slice(-2), { id, speaker: msg.speaker || participant?.identity, text: msg.text }])
+        const speakerName = msg.speaker || participant?.identity || 'Guest'
+        setFinalLines(prev => [...prev.slice(-2), { id, speaker: speakerName, text: msg.text }])
+        setMeetingTranscript(prev => prev + `[${new Date().toLocaleTimeString()}] ${speakerName}: ${msg.text}\n`)
         setTimeout(() => setFinalLines(prev => prev.filter(l => l.id !== id)), 5000)
       } catch {}
     }
@@ -234,6 +239,17 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
     setChatInput('')
   }
 
+  const downloadTranscript = () => {
+    if (!meetingTranscript) return alert('No transcript captured yet.')
+    const blob = new Blob([meetingTranscript], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `Transcript-${roomName}-${new Date().toLocaleDateString()}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const toggleMic = async () => {
     await localParticipant.setMicrophoneEnabled(!micOn)
     setMicOn(v => !v)
@@ -268,6 +284,25 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
     : null
 
   const others = videoTracks.filter(t => t.participant?.identity !== pinnedParticipant)
+
+  const handleLeave = async () => {
+    if (isAdmin && meetingTranscript) {
+      try {
+        const token = localStorage.getItem('token')
+        await fetch('/api/admin/meetings/save-transcript', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ roomName, transcript: meetingTranscript })
+        })
+      } catch (e) {
+        console.error('Failed to save transcript:', e)
+      }
+    }
+    onClose()
+  }
 
   return (
     <div className="fixed inset-0 bg-[#1a1a2e] z-50 flex flex-col select-none" style={{ fontFamily: 'Google Sans, sans-serif' }}>
@@ -423,18 +458,47 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
         )}
 
         {/* ── SIDE PANEL ── */}
-        {(showParticipants || showChat) && (
+        {(showParticipants || showChat || showTranscript) && (
           <div className="w-72 bg-[#242438] border-l border-white/10 flex flex-col">
-            <div className="flex border-b border-white/10">
-              <button onClick={() => { setShowParticipants(true); setShowChat(false) }}
-                className={`flex-1 py-3 text-sm font-medium transition-colors ${showParticipants ? 'text-white border-b-2 border-blue-500' : 'text-gray-400 hover:text-white'}`}>
-                People ({participants.length})
-              </button>
-              <button onClick={() => { setShowChat(true); setShowParticipants(false) }}
-                className={`flex-1 py-3 text-sm font-medium transition-colors ${showChat ? 'text-white border-b-2 border-blue-500' : 'text-gray-400 hover:text-white'}`}>
-                Chat
-              </button>
-            </div>
+            {!showTranscript && (
+              <div className="flex border-b border-white/10">
+                <button onClick={() => { setShowParticipants(true); setShowChat(false) }}
+                  className={`flex-1 py-3 text-sm font-medium transition-colors ${showParticipants ? 'text-white border-b-2 border-blue-500' : 'text-gray-400 hover:text-white'}`}>
+                  People ({participants.length})
+                </button>
+                <button onClick={() => { setShowChat(true); setShowParticipants(false) }}
+                  className={`flex-1 py-3 text-sm font-medium transition-colors ${showChat ? 'text-white border-b-2 border-blue-500' : 'text-gray-400 hover:text-white'}`}>
+                  Chat
+                </button>
+              </div>
+            )}
+
+            {showTranscript && (
+              <div className="flex-1 flex flex-col h-full overflow-hidden">
+                <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#2d2d44]">
+                  <h3 className="text-white font-semibold flex items-center gap-2">
+                    <FiFileText className="text-blue-400" /> Live Transcript
+                  </h3>
+                  <button onClick={downloadTranscript} className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition-colors flex items-center gap-1">
+                    Save
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                  {meetingTranscript ? (
+                    <div className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">
+                      {meetingTranscript}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10">
+                      <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <FiFileText className="text-gray-500" size={24} />
+                      </div>
+                      <p className="text-gray-500 text-sm">Transcript will appear here once someone starts speaking with captions enabled.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {showParticipants && (
               <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -564,7 +628,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
           </button>
 
           {/* Leave */}
-          <button onClick={onClose}
+          <button onClick={handleLeave}
             className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-full transition-all font-medium"
             title="Leave meeting">
             <FiPhoneOff size={20} />
@@ -636,12 +700,17 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
               )}
             </div>
           )}
-          <button onClick={() => { setShowParticipants(v => !v); setShowChat(false) }}
+          <button onClick={() => { setShowParticipants(v => !v); setShowChat(false); setShowTranscript(false) }}
             className={`p-3 rounded-full transition-all ${showParticipants ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
             title="Participants">
             <FiUsers size={18} />
           </button>
-          <button onClick={() => { setShowChat(v => !v); setShowParticipants(false) }}
+          <button onClick={() => { setShowTranscript(v => !v); setShowChat(false); setShowParticipants(false) }}
+            className={`p-3 rounded-full transition-all ${showTranscript ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+            title="Meeting Transcript">
+            <FiFileText size={18} />
+          </button>
+          <button onClick={() => { setShowChat(v => !v); setShowParticipants(false); setShowTranscript(false) }}
             className={`relative p-3 rounded-full transition-all ${showChat ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
             title="Chat">
             <FiMessageSquare size={18} />
