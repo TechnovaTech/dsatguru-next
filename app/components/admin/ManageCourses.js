@@ -993,38 +993,129 @@ function CourseContentManager({ course, onBack }) {
                                   try {
                                     const jsPDF = (await import('jspdf')).default
                                     const pdf = new jsPDF()
-                                    
-                                    // Header
-                                    pdf.setFontSize(20)
-                                    pdf.setTextColor(40, 44, 52)
-                                    pdf.text('Meeting Transcript', 20, 20)
-                                    
-                                    pdf.setFontSize(12)
-                                    pdf.setTextColor(100)
-                                    pdf.text(`Meeting: ${m.title || 'Untitled Meeting'}`, 20, 30)
-                                    pdf.text(`Date: ${m.date ? new Date(m.date).toLocaleString() : 'N/A'}`, 20, 37)
-                                    
-                                    pdf.setDrawColor(200)
-                                    pdf.line(20, 45, 190, 45)
-                                    
-                                    // Content
-                                    pdf.setFontSize(10)
-                                    pdf.setTextColor(0)
-                                    const splitTranscript = pdf.splitTextToSize(m.transcript, 170)
-                                    
-                                    let y = 55
+                                    const pageWidth = pdf.internal.pageSize.width
                                     const pageHeight = pdf.internal.pageSize.height
                                     
-                                    splitTranscript.forEach(line => {
-                                      if (y > pageHeight - 20) {
-                                        pdf.addPage()
-                                        y = 20
-                                      }
-                                      pdf.text(line, 20, y)
-                                      y += 6
-                                    })
+                                    // Modern Blue Header Background
+                                    pdf.setFillColor(36, 36, 56)
+                                    pdf.rect(0, 0, pageWidth, 50, 'F')
                                     
-                                    pdf.save(`Transcript-${m.title || 'Meeting'}-${new Date(m.date).toLocaleDateString()}.pdf`)
+                                    // Title
+                                    pdf.setFont('helvetica', 'bold')
+                                    pdf.setFontSize(24)
+                                    pdf.setTextColor(255, 255, 255)
+                                    pdf.text('SESSION REPORT', 20, 30)
+                                    
+                                    // Meta Info
+                                    pdf.setFont('helvetica', 'normal')
+                                    pdf.setFontSize(10)
+                                    pdf.setTextColor(200, 200, 200)
+                                    pdf.text(`Meeting: ${m.title || 'Untitled'}`, 20, 42)
+                                    pdf.text(`Date: ${m.date ? new Date(m.date).toLocaleString() : 'N/A'}`, pageWidth - 80, 42)
+                                    
+                                    let y = 65
+
+                                    // 1. Intelligent Recap Section if exists
+                                    if (m.transcriptSummary && m.transcriptSummary !== 'Summary generation failed.') {
+                                      pdf.setFont('helvetica', 'bold')
+                                      pdf.setFontSize(16)
+                                      pdf.setTextColor(36, 36, 56)
+                                      pdf.text('Intelligent Recap', 20, y)
+                                      y += 10
+
+                                      pdf.setFont('helvetica', 'normal')
+                                      pdf.setFontSize(10)
+                                      pdf.setTextColor(50, 50, 50)
+                                      
+                                      const summaryLines = pdf.splitTextToSize(m.transcriptSummary, pageWidth - 40)
+                                      summaryLines.forEach(line => {
+                                        if (y > pageHeight - 20) {
+                                          pdf.addPage()
+                                          y = 20
+                                        }
+                                        pdf.text(line, 20, y)
+                                        y += 5
+                                      })
+                                      y += 15
+                                    }
+
+                                    // 2. Transcript Section
+                                    pdf.setFont('helvetica', 'bold')
+                                    pdf.setFontSize(16)
+                                    pdf.setTextColor(36, 36, 56)
+                                    pdf.text('Class Transcript', 20, y)
+                                    y += 10
+                                    
+                                    pdf.setDrawColor(230, 230, 230)
+                                    pdf.line(20, y, pageWidth - 20, y)
+                                    y += 10
+                                    
+                                    pdf.setFontSize(10)
+                                    const lines = (m.transcript || '').split('\n').filter(Boolean)
+                                    lines.forEach(line => {
+                                      const match = line.match(/^\[(.*?)\] (.*?): (.*)$/)
+                                      if (match) {
+                                        const [_, time, speaker, text] = match
+                                        if (y > pageHeight - 30) {
+                                          pdf.addPage()
+                                          y = 20
+                                        }
+                                        pdf.setFont('helvetica', 'bold')
+                                        pdf.setTextColor(66, 133, 244)
+                                        pdf.text(`${speaker}`, 20, y)
+                                        pdf.setFont('helvetica', 'italic')
+                                        pdf.setTextColor(150, 150, 150)
+                                        pdf.text(`[${time}]`, 20 + pdf.getTextWidth(speaker) + 5, y)
+                                        y += 6
+                                        pdf.setFont('helvetica', 'normal')
+                                        pdf.setTextColor(40, 40, 40)
+                                        const splitText = pdf.splitTextToSize(text, pageWidth - 40)
+                                        splitText.forEach(tLine => {
+                                          if (y > pageHeight - 20) {
+                                            pdf.addPage()
+                                            y = 20
+                                          }
+                                          pdf.text(tLine, 25, y)
+                                          y += 5
+                                        })
+                                        y += 4
+                                      }
+                                    })
+
+                                    // 3. Visual Highlights Section
+                                    if (m.snapshots && m.snapshots.length > 0) {
+                                      pdf.addPage()
+                                      pdf.setFillColor(36, 36, 56)
+                                      pdf.rect(0, 0, pageWidth, 40, 'F')
+                                      pdf.setFont('helvetica', 'bold')
+                                      pdf.setFontSize(20)
+                                      pdf.setTextColor(255, 255, 255)
+                                      pdf.text('VISUAL HIGHLIGHTS', 20, 25)
+                                      
+                                      y = 55
+                                      for (const snap of m.snapshots) {
+                                        if (y > pageHeight - 110) {
+                                          pdf.addPage()
+                                          y = 25
+                                        }
+                                        pdf.setDrawColor(240, 240, 240)
+                                        pdf.setFillColor(252, 252, 252)
+                                        pdf.roundedRect(15, y, pageWidth - 30, 105, 3, 3, 'FD')
+                                        pdf.setFont('helvetica', 'bold')
+                                        pdf.setFontSize(9)
+                                        pdf.setTextColor(100, 100, 100)
+                                        pdf.text(`Screen Capture - ${snap.timestamp}`, 20, y + 8)
+                                        try {
+                                          pdf.addImage(snap.imageUrl, 'JPEG', 20, y + 12, pageWidth - 40, 85)
+                                          y += 115
+                                        } catch (e) {
+                                          console.error('Failed to add image to PDF:', e)
+                                          y += 10
+                                        }
+                                      }
+                                    }
+                                    
+                                    pdf.save(`Report-${m.title || 'Meeting'}-${new Date(m.date).toLocaleDateString()}.pdf`)
                                   } catch (error) {
                                     console.error('PDF generation failed:', error)
                                     alert('Failed to generate PDF')
@@ -1087,6 +1178,25 @@ function CourseContentManager({ course, onBack }) {
                     {viewingSummary.transcriptSummary}
                   </div>
                 </div>
+
+                {viewingSummary.snapshots && viewingSummary.snapshots.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="font-bold text-gray-700 flex items-center gap-2">
+                      <FiImage /> Visual Recap
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {viewingSummary.snapshots.map((snap, i) => (
+                        <div key={i} className="bg-white p-2 rounded-lg border shadow-sm space-y-2">
+                          <img src={snap.imageUrl} alt={snap.title} className="w-full h-auto rounded border" />
+                          <div className="flex justify-between items-center text-[10px] text-gray-500">
+                            <span>{snap.title}</span>
+                            <span>{snap.timestamp}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="p-4 border-t bg-white flex justify-end">
                 <button 

@@ -13,7 +13,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { roomName, transcript } = await request.json()
+    const { roomName, transcript, snapshots } = await request.json()
     if (!roomName || !transcript) {
       return NextResponse.json({ error: 'Missing data' }, { status: 400 })
     }
@@ -45,17 +45,17 @@ export async function POST(request) {
         
         Please include:
         1. **Executive Summary**: A concise overview of the meeting (2-3 sentences).
-        2. **Key Decisions**: List any major decisions or agreements made.
-        3. **Action Items**: Extract specific tasks assigned to participants.
-        4. **Mentions & Assignments**: Track who was mentioned in relation to specific tasks or topics.
-        5. **Follow-up Tasks**: Suggest potential next steps based on the discussion.
-        6. **Topic Chapters**: Break down the meeting into main topics discussed with timestamps (e.g. [00:05:30] Introduction).
+        2. **Key Decisions**: List any major decisions, agreements, or conclusions made.
+        3. **Action Items**: Extract specific tasks assigned to participants with their names.
+        4. **Mentions & Assignments**: Track who was mentioned in relation to specific tasks, topics, or responsibilities.
+        5. **Follow-up Tasks**: Suggest potential next steps or future agenda items based on the discussion.
+        6. **Topic Chapters**: Break down the meeting into main topics discussed with clear headings and timestamps if available (e.g. [00:10:15] Math Section Review).
         
         Transcript:
         ${transcript.substring(0, 15000)}`
 
         const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -92,6 +92,9 @@ export async function POST(request) {
     course.meetings[meetingIndex].transcript = transcript
     course.meetings[meetingIndex].transcriptSummary = summary
     course.meetings[meetingIndex].transcriptGeneratedAt = new Date()
+    if (snapshots) {
+      course.meetings[meetingIndex].snapshots = snapshots
+    }
     
     await course.save()
 

@@ -35,6 +35,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   const [showChat, setShowChat] = useState(false)
   const [showTranscript, setShowTranscript] = useState(false)
   const [meetingTranscript, setMeetingTranscript] = useState('')
+  const [snapshots, setSnapshots] = useState([])
   const [showWhiteboard, setShowWhiteboard] = useState(false)
   const [captionsOn, setCaptionsOn] = useState(false)
   const [interimText, setInterimText] = useState('')
@@ -247,39 +248,122 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
     try {
       const jsPDF = (await import('jspdf')).default
       const pdf = new jsPDF()
-      
-      // Header
-      pdf.setFontSize(20)
-      pdf.setTextColor(40, 44, 52)
-      pdf.text('Live Meeting Transcript', 20, 20)
-      
-      pdf.setFontSize(12)
-      pdf.setTextColor(100)
-      pdf.text(`Meeting: ${roomName}`, 20, 30)
-      pdf.text(`Date: ${new Date().toLocaleString()}`, 20, 37)
-      pdf.text(`Host: ${displayName}`, 20, 44)
-      
-      pdf.setDrawColor(200)
-      pdf.line(20, 50, 190, 50)
-      
-      // Content
-      pdf.setFontSize(10)
-      pdf.setTextColor(0)
-      const splitTranscript = pdf.splitTextToSize(meetingTranscript, 170)
-      
-      let y = 60
+      const pageWidth = pdf.internal.pageSize.width
       const pageHeight = pdf.internal.pageSize.height
       
-      splitTranscript.forEach(line => {
-        if (y > pageHeight - 20) {
-          pdf.addPage()
-          y = 20
-        }
-        pdf.text(line, 20, y)
-        y += 6
-      })
+      // Modern Blue Header Background
+      pdf.setFillColor(36, 36, 56)
+      pdf.rect(0, 0, pageWidth, 50, 'F')
       
-      pdf.save(`Transcript-${roomName}-${new Date().toLocaleDateString()}.pdf`)
+      // Title
+      pdf.setFont('helvetica', 'bold')
+      pdf.setFontSize(24)
+      pdf.setTextColor(255, 255, 255)
+      pdf.text('SESSION REPORT', 20, 30)
+      
+      // Meta Info
+      pdf.setFont('helvetica', 'normal')
+      pdf.setFontSize(10)
+      pdf.setTextColor(200, 200, 200)
+      pdf.text(`Meeting ID: ${roomName}`, 20, 42)
+      pdf.text(`Generated: ${new Date().toLocaleString()}`, pageWidth - 80, 42)
+      
+      // Content Section
+      let y = 65
+      
+      // Intelligent Summary if exists (optional future add)
+      pdf.setFontSize(16)
+      pdf.setTextColor(36, 36, 56)
+      pdf.text('Class Transcript', 20, y)
+      y += 10
+      
+      pdf.setDrawColor(230, 230, 230)
+      pdf.line(20, y, pageWidth - 20, y)
+      y += 10
+      
+      // Transcript with Speaker Highlighting
+      pdf.setFontSize(10)
+      pdf.setTextColor(60, 60, 60)
+      
+      const lines = meetingTranscript.split('\n').filter(Boolean)
+      lines.forEach(line => {
+        const match = line.match(/^\[(.*?)\] (.*?): (.*)$/)
+        if (match) {
+          const [_, time, speaker, text] = match
+          
+          if (y > pageHeight - 30) {
+            pdf.addPage()
+            y = 20
+          }
+          
+          // Speaker & Time
+          pdf.setFont('helvetica', 'bold')
+          pdf.setTextColor(66, 133, 244)
+          pdf.text(`${speaker}`, 20, y)
+          
+          pdf.setFont('helvetica', 'italic')
+          pdf.setTextColor(150, 150, 150)
+          pdf.text(`[${time}]`, 20 + pdf.getTextWidth(speaker) + 5, y)
+          y += 6
+          
+          // Message text
+          pdf.setFont('helvetica', 'normal')
+          pdf.setTextColor(40, 40, 40)
+          const splitText = pdf.splitTextToSize(text, pageWidth - 40)
+          
+          splitText.forEach(tLine => {
+            if (y > pageHeight - 20) {
+              pdf.addPage()
+              y = 20
+            }
+            pdf.text(tLine, 25, y)
+            y += 5
+          })
+          y += 4 // Spacing between messages
+        }
+      })
+
+      // Visual Recap (Snapshots)
+      if (snapshots && snapshots.length > 0) {
+        pdf.addPage()
+        
+        // Page Header
+        pdf.setFillColor(36, 36, 56)
+        pdf.rect(0, 0, pageWidth, 40, 'F')
+        pdf.setFont('helvetica', 'bold')
+        pdf.setFontSize(20)
+        pdf.setTextColor(255, 255, 255)
+        pdf.text('VISUAL HIGHLIGHTS', 20, 25)
+        
+        y = 55
+        for (const snap of snapshots) {
+          if (y > pageHeight - 110) {
+            pdf.addPage()
+            y = 25
+          }
+          
+          // Card for image
+          pdf.setDrawColor(240, 240, 240)
+          pdf.setFillColor(252, 252, 252)
+          pdf.roundedRect(15, y, pageWidth - 30, 105, 3, 3, 'FD')
+          
+          pdf.setFont('helvetica', 'bold')
+          pdf.setFontSize(9)
+          pdf.setTextColor(100, 100, 100)
+          pdf.text(`Screen Capture - ${snap.timestamp}`, 20, y + 8)
+          
+          try {
+            // Add shadow effect or border to image
+            pdf.addImage(snap.imageUrl, 'JPEG', 20, y + 12, pageWidth - 40, 85)
+            y += 115
+          } catch (e) {
+            console.error('Failed to add image to PDF:', e)
+            y += 10
+          }
+        }
+      }
+      
+      pdf.save(`Report-${roomName}-${new Date().toLocaleDateString()}.pdf`)
     } catch (error) {
       console.error('PDF generation failed:', error)
       alert('Failed to generate PDF')
@@ -290,6 +374,69 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
     await localParticipant.setMicrophoneEnabled(!micOn)
     setMicOn(v => !v)
   }
+
+  // Effect to capture periodic snapshots of screen share
+  useEffect(() => {
+    if (!room || !isAdmin) return;
+
+    const captureInterval = setInterval(() => {
+      // Find the screen share track from ANY participant (usually host)
+      const allParticipants = [room.localParticipant, ...Array.from(room.remoteParticipants.values())];
+      let screenTrack = null;
+      
+      for (const p of allParticipants) {
+        const track = Array.from(p.videoTracks.values())
+          .find(t => t.source === 'screen_share' || t.trackName?.includes('screen'));
+        if (track?.track?.mediaStreamTrack) {
+          screenTrack = track.track.mediaStreamTrack;
+          break;
+        }
+      }
+
+      if (screenTrack) {
+        try {
+          const video = document.createElement('video');
+          video.srcObject = new MediaStream([screenTrack]);
+          video.muted = true;
+          video.setAttribute('playsinline', '');
+          
+          video.onloadedmetadata = () => {
+            video.play().then(() => {
+              setTimeout(() => {
+                const canvas = document.createElement('canvas');
+                // Use high resolution
+                canvas.width = video.videoWidth || 1280;
+                canvas.height = video.videoHeight || 720;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                
+                // Convert to compressed JPEG for PDF stability
+                const imageUrl = canvas.toDataURL('image/jpeg', 0.5);
+                
+                setSnapshots(prev => [
+                  ...prev,
+                  {
+                    timestamp: new Date().toLocaleTimeString(),
+                    imageUrl: imageUrl,
+                    title: `Screen Capture ${prev.length + 1}`
+                  }
+                ]);
+                
+                // Cleanup
+                video.pause();
+                video.srcObject = null;
+                video.remove();
+              }, 2000); // Give it 2 seconds to render a clear frame
+            }).catch(e => console.warn('Video play failed:', e));
+          };
+        } catch (err) {
+          console.warn('Failed to capture screen frame:', err);
+        }
+      }
+    }, 180000); // 3 minutes
+
+    return () => clearInterval(captureInterval);
+  }, [room, isAdmin]);
 
   const toggleCam = async () => {
     await localParticipant.setCameraEnabled(!camOn)
@@ -331,7 +478,11 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
           },
-          body: JSON.stringify({ roomName, transcript: meetingTranscript })
+          body: JSON.stringify({ 
+            roomName, 
+            transcript: meetingTranscript,
+            snapshots: snapshots 
+          })
         })
       } catch (e) {
         console.error('Failed to save transcript:', e)
@@ -529,11 +680,21 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
                         const isSelf = speaker === displayName
                         return (
                           <div key={i} className={`flex flex-col ${isSelf ? 'items-end' : 'items-start'}`}>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-[10px] text-gray-500 font-mono">{time}</span>
+                            <div className="flex items-center gap-2 mb-1 px-1">
+                              {!isSelf && (
+                                <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-indigo-400 border border-indigo-500/30">
+                                  {speaker.charAt(0).toUpperCase()}
+                                </div>
+                              )}
                               <span className={`text-xs font-bold ${isSelf ? 'text-blue-400' : 'text-indigo-400'}`}>{speaker}</span>
+                              <span className="text-[10px] text-gray-500 font-mono">{time}</span>
+                              {isSelf && (
+                                <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-[10px] font-bold text-blue-400 border border-blue-500/30">
+                                  {speaker.charAt(0).toUpperCase()}
+                                </div>
+                              )}
                             </div>
-                            <div className={`px-3 py-2 rounded-xl text-sm max-w-[90%] border ${isSelf ? 'bg-blue-600/10 border-blue-500/30 text-white' : 'bg-white/5 border-white/10 text-gray-300'}`}>
+                            <div className={`px-3 py-2 rounded-2xl text-sm max-w-[90%] border shadow-sm ${isSelf ? 'bg-blue-600/15 border-blue-500/40 text-white rounded-tr-none' : 'bg-white/5 border-white/10 text-gray-300 rounded-tl-none'}`}>
                               {text}
                             </div>
                           </div>
