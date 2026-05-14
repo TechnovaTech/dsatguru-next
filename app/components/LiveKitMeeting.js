@@ -133,14 +133,17 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
             if (!text) continue
             setInterimText('')
             const id = Date.now()
-            setFinalLines(prev => [...prev.slice(-2), { id, speaker: displayName, text }])
-            setMeetingTranscript(prev => prev + `[${new Date().toLocaleTimeString()}] ${displayName}: ${text}\n`)
+            const speakerName = displayName || localParticipant?.name || localParticipant?.identity || 'Host'
+            setFinalLines(prev => [...prev.slice(-2), { id, speaker: speakerName, text }])
+            setMeetingTranscript(prev => prev + `[${new Date().toLocaleTimeString()}] ${speakerName}: ${text}\n`)
             setTimeout(() => setFinalLines(prev => prev.filter(l => l.id !== id)), 5000)
-            if (room) {
+            if (room && room.state === 'connected') {
               try {
-                const payload = JSON.stringify({ type: CAPTION_CHANNEL, speaker: displayName, text })
+                const payload = JSON.stringify({ type: CAPTION_CHANNEL, speaker: speakerName, text })
                 room.localParticipant.publishData(new TextEncoder().encode(payload), { reliable: false })
-              } catch {}
+              } catch (err) {
+                console.warn('Failed to publish caption data:', err)
+              }
             }
           } else {
             interim += transcript
@@ -179,7 +182,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
         const msg = JSON.parse(new TextDecoder().decode(payload))
         if (msg.type !== CAPTION_CHANNEL) return
         const id = Date.now()
-        const speakerName = msg.speaker || participant?.identity || 'Guest'
+        const speakerName = msg.speaker || participant?.name || participant?.identity || 'Guest'
         setFinalLines(prev => [...prev.slice(-2), { id, speaker: speakerName, text: msg.text }])
         setMeetingTranscript(prev => prev + `[${new Date().toLocaleTimeString()}] ${speakerName}: ${msg.text}\n`)
         setTimeout(() => setFinalLines(prev => prev.filter(l => l.id !== id)), 5000)
@@ -239,15 +242,48 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
     setChatInput('')
   }
 
-  const downloadTranscript = () => {
+  const downloadTranscript = async () => {
     if (!meetingTranscript) return alert('No transcript captured yet.')
-    const blob = new Blob([meetingTranscript], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `Transcript-${roomName}-${new Date().toLocaleDateString()}.txt`
-    a.click()
-    URL.revokeObjectURL(url)
+    try {
+      const jsPDF = (await import('jspdf')).default
+      const pdf = new jsPDF()
+      
+      // Header
+      pdf.setFontSize(20)
+      pdf.setTextColor(40, 44, 52)
+      pdf.text('Live Meeting Transcript', 20, 20)
+      
+      pdf.setFontSize(12)
+      pdf.setTextColor(100)
+      pdf.text(`Meeting: ${roomName}`, 20, 30)
+      pdf.text(`Date: ${new Date().toLocaleString()}`, 20, 37)
+      pdf.text(`Host: ${displayName}`, 20, 44)
+      
+      pdf.setDrawColor(200)
+      pdf.line(20, 50, 190, 50)
+      
+      // Content
+      pdf.setFontSize(10)
+      pdf.setTextColor(0)
+      const splitTranscript = pdf.splitTextToSize(meetingTranscript, 170)
+      
+      let y = 60
+      const pageHeight = pdf.internal.pageSize.height
+      
+      splitTranscript.forEach(line => {
+        if (y > pageHeight - 20) {
+          pdf.addPage()
+          y = 20
+        }
+        pdf.text(line, 20, y)
+        y += 6
+      })
+      
+      pdf.save(`Transcript-${roomName}-${new Date().toLocaleDateString()}.pdf`)
+    } catch (error) {
+      console.error('PDF generation failed:', error)
+      alert('Failed to generate PDF')
+    }
   }
 
   const toggleMic = async () => {
@@ -480,15 +516,33 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
                     <FiFileText className="text-blue-400" /> Live Transcript
                   </h3>
                   <button onClick={downloadTranscript} className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition-colors flex items-center gap-1">
-                    Save
-                  </button>
+                  <FiDownload size={12} /> Download PDF
+                </button>
                 </div>
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                  {meetingTranscript ? (
-                    <div className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">
-                      {meetingTranscript}
-                    </div>
-                  ) : (
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                {meetingTranscript ? (
+                  <div className="space-y-4">
+                    {meetingTranscript.split('\n').filter(Boolean).map((line, i) => {
+                      const match = line.match(/^\[(.*?)\] (.*?): (.*)$/)
+                      if (match) {
+                        const [_, time, speaker, text] = match
+                        const isSelf = speaker === displayName
+                        return (
+                          <div key={i} className={`flex flex-col ${isSelf ? 'items-end' : 'items-start'}`}>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-[10px] text-gray-500 font-mono">{time}</span>
+                              <span className={`text-xs font-bold ${isSelf ? 'text-blue-400' : 'text-indigo-400'}`}>{speaker}</span>
+                            </div>
+                            <div className={`px-3 py-2 rounded-xl text-sm max-w-[90%] border ${isSelf ? 'bg-blue-600/10 border-blue-500/30 text-white' : 'bg-white/5 border-white/10 text-gray-300'}`}>
+                              {text}
+                            </div>
+                          </div>
+                        )
+                      }
+                      return <div key={i} className="text-gray-400 text-xs italic">{line}</div>
+                    })}
+                  </div>
+                ) : (
                     <div className="text-center py-10">
                       <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
                         <FiFileText className="text-gray-500" size={24} />

@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2, FiFolder, FiUpload, FiFile, FiBell, FiEye } from 'react-icons/fi'
+import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2, FiFolder, FiUpload, FiFile, FiBell, FiEye, FiSearch, FiX } from 'react-icons/fi'
 import CourseCalendar from './CourseCalendar'
 import moment from 'moment'
 import dynamic from 'next/dynamic'
@@ -123,6 +123,8 @@ function CourseContentManager({ course, onBack }) {
   })
   const [uploading, setUploading] = useState(false)
   const [viewingMaterial, setViewingMaterial] = useState(null)
+  const [transcriptSearch, setTranscriptSearch] = useState('')
+  const [viewingSummary, setViewingSummary] = useState(null)
   const [allUsers, setAllUsers] = useState([])
   const [enrollForm, setEnrollForm] = useState({
     userId: '',
@@ -930,8 +932,15 @@ function CourseContentManager({ course, onBack }) {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Meeting Transcripts</h2>
-              <div className="text-sm text-gray-500 italic">
-                Transcripts are automatically generated after live meetings
+              <div className="relative w-64">
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search in transcripts..."
+                  value={transcriptSearch}
+                  onChange={(e) => setTranscriptSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
             </div>
             
@@ -941,13 +950,25 @@ function CourseContentManager({ course, onBack }) {
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Meeting</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date & Time</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">AI Summary</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Intelligent Recap</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {courseData.meetings.filter(m => m.transcript || m.transcriptSummary).length > 0 ? (
-                    courseData.meetings.filter(m => m.transcript || m.transcriptSummary).map((m, index) => (
+                  {(() => {
+                    const filteredMeetings = courseData.meetings.filter(m => {
+                      if (!m.transcript && !m.transcriptSummary) return false;
+                      if (!transcriptSearch) return true;
+                      const searchLower = transcriptSearch.toLowerCase();
+                      return (
+                        (m.title || '').toLowerCase().includes(searchLower) ||
+                        (m.transcript || '').toLowerCase().includes(searchLower) ||
+                        (m.transcriptSummary || '').toLowerCase().includes(searchLower)
+                      );
+                    });
+
+                    return filteredMeetings.length > 0 ? (
+                      filteredMeetings.map((m, index) => (
                       <tr key={m._id || index} className="hover:bg-gray-50">
                         <td className="px-4 py-3 text-sm font-medium text-gray-900">
                           {m.title || 'Untitled Meeting'}
@@ -957,53 +978,124 @@ function CourseContentManager({ course, onBack }) {
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
                           {m.transcriptSummary ? (
-                            <div className="max-w-xs truncate" title={m.transcriptSummary}>
-                              {m.transcriptSummary}
+                            <div className="max-w-xs truncate text-blue-600 font-medium" title={m.transcriptSummary}>
+                              Recap available
                             </div>
                           ) : (
-                            <span className="text-gray-400 italic">No summary</span>
+                            <span className="text-gray-400 italic">No recap</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-sm font-medium">
                           <div className="flex gap-2">
                             {m.transcript && (
                               <button
-                                onClick={() => {
-                                  const blob = new Blob([m.transcript], { type: 'text/plain' });
-                                  const url = URL.createObjectURL(blob);
-                                  const a = document.createElement('a');
-                                  a.href = url;
-                                  a.download = `Transcript-${m.title || 'Meeting'}-${new Date(m.date).toLocaleDateString()}.txt`;
-                                  a.click();
+                                onClick={async () => {
+                                  try {
+                                    const jsPDF = (await import('jspdf')).default
+                                    const pdf = new jsPDF()
+                                    
+                                    // Header
+                                    pdf.setFontSize(20)
+                                    pdf.setTextColor(40, 44, 52)
+                                    pdf.text('Meeting Transcript', 20, 20)
+                                    
+                                    pdf.setFontSize(12)
+                                    pdf.setTextColor(100)
+                                    pdf.text(`Meeting: ${m.title || 'Untitled Meeting'}`, 20, 30)
+                                    pdf.text(`Date: ${m.date ? new Date(m.date).toLocaleString() : 'N/A'}`, 20, 37)
+                                    
+                                    pdf.setDrawColor(200)
+                                    pdf.line(20, 45, 190, 45)
+                                    
+                                    // Content
+                                    pdf.setFontSize(10)
+                                    pdf.setTextColor(0)
+                                    const splitTranscript = pdf.splitTextToSize(m.transcript, 170)
+                                    
+                                    let y = 55
+                                    const pageHeight = pdf.internal.pageSize.height
+                                    
+                                    splitTranscript.forEach(line => {
+                                      if (y > pageHeight - 20) {
+                                        pdf.addPage()
+                                        y = 20
+                                      }
+                                      pdf.text(line, 20, y)
+                                      y += 6
+                                    })
+                                    
+                                    pdf.save(`Transcript-${m.title || 'Meeting'}-${new Date(m.date).toLocaleDateString()}.pdf`)
+                                  } catch (error) {
+                                    console.error('PDF generation failed:', error)
+                                    alert('Failed to generate PDF')
+                                  }
                                 }}
                                 className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
-                                title="Download Transcript"
+                                title="Download Transcript (PDF)"
                               >
-                                <FiDownload /> Download
+                                <FiDownload /> Download PDF
                               </button>
                             )}
                             {m.transcriptSummary && (
                               <button
-                                onClick={() => alert(m.transcriptSummary)}
-                                className="text-green-600 hover:text-green-900 flex items-center gap-1"
-                                title="View Summary"
+                                onClick={() => setViewingSummary(m)}
+                                className="text-indigo-600 hover:text-indigo-900 flex items-center gap-1"
+                                title="View Intelligent Recap"
                               >
-                                <FiEye /> Summary
+                                <FiVideo /> Intelligent Recap
                               </button>
                             )}
                           </div>
                         </td>
                       </tr>
                     ))
-                  ) : (
+                    ) : (
                     <tr>
                       <td colSpan="4" className="px-4 py-8 text-center text-gray-500 italic">
-                        No transcripts available yet. They will appear here after meetings conclude.
+                        {transcriptSearch ? 'No transcripts match your search.' : 'No transcripts available yet. They will appear here after meetings conclude.'}
                       </td>
                     </tr>
-                  )}
+                    );
+                  })()}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Intelligent Recap Modal */}
+        {viewingSummary && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60] backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-fadeIn">
+              <div className="p-5 border-b flex items-center justify-between bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <FiVideo size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Intelligent Recap</h3>
+                    <p className="text-indigo-100 text-xs">{viewingSummary.title}</p>
+                  </div>
+                </div>
+                <button className="p-2 hover:bg-white/10 rounded-full transition-colors" onClick={() => setViewingSummary(null)}>
+                  <FiX size={24} />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50 custom-scrollbar">
+                <div className="prose prose-sm max-w-none prose-indigo">
+                  <div className="bg-white p-5 rounded-xl border shadow-sm whitespace-pre-wrap leading-relaxed text-gray-800 font-sans">
+                    {viewingSummary.transcriptSummary}
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 border-t bg-white flex justify-end">
+                <button 
+                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-md"
+                  onClick={() => setViewingSummary(null)}
+                >
+                  Close Recap
+                </button>
+              </div>
             </div>
           </div>
         )}
