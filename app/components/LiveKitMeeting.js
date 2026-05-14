@@ -19,7 +19,7 @@ import {
   FiMic, FiMicOff, FiVideo, FiVideoOff, FiMonitor,
   FiPhoneOff, FiUsers, FiMessageSquare, FiMoreVertical,
   FiLoader, FiMaximize, FiMinimize, FiGrid, FiUser,
-  FiEdit3, FiType, FiFileText, FiDownload
+  FiEdit3, FiType, FiFileText, FiDownload, FiImage
 } from 'react-icons/fi'
 
 // ─── Inner room UI (must be inside <LiveKitRoom>) ───────────────────────────
@@ -38,6 +38,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   const [snapshots, setSnapshots] = useState([])
   const [showWhiteboard, setShowWhiteboard] = useState(false)
   const [captionsOn, setCaptionsOn] = useState(false)
+  const [captionStatus, setCaptionStatus] = useState('idle') // idle, listening, error
   const [interimText, setInterimText] = useState('')
   const [finalLines, setFinalLines] = useState([])
   const [captionLang, setCaptionLang] = useState('en-US')
@@ -112,10 +113,14 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   const startCaptions = useCallback(() => {
     if (typeof window === 'undefined') return
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) { alert('Live captions need Chrome or Edge browser.'); return }
+    if (!SR) { 
+      setCaptionStatus('error')
+      alert('Live captions need Chrome or Edge browser.')
+      return 
+    }
 
     if (recognitionRef.current) {
-      try { recognitionRef.current.abort() } catch {}
+      try { recognitionRef.current.stop() } catch {}
       recognitionRef.current = null
     }
 
@@ -123,21 +128,34 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
       const rec = new SR()
       rec.continuous = true
       rec.interimResults = true
-      rec.lang = captionLangRef.current  // ← always latest language
+      rec.lang = captionLang || 'en-US' // Use state directly
+
+      rec.onstart = () => {
+        console.log('Speech Recognition Started with lang:', rec.lang)
+        setCaptionStatus('listening')
+      }
 
       rec.onresult = (e) => {
+        console.log('Recognition Result Received:', e.results)
         let interim = ''
+        let hasFinal = false
         for (let i = e.resultIndex; i < e.results.length; i++) {
           const transcript = e.results[i][0].transcript
           if (e.results[i].isFinal) {
+            hasFinal = true
             const text = transcript.trim()
             if (!text) continue
-            setInterimText('')
+            
             const id = Date.now()
             const speakerName = displayName || localParticipant?.name || localParticipant?.identity || 'Host'
+            
             setFinalLines(prev => [...prev.slice(-2), { id, speaker: speakerName, text }])
-            setMeetingTranscript(prev => prev + `[${new Date().toLocaleTimeString()}] ${speakerName}: ${text}\n`)
+            setMeetingTranscript(prev => {
+              const newLine = `[${new Date().toLocaleTimeString()}] ${speakerName}: ${text}\n`
+              return prev + newLine
+            })
             setTimeout(() => setFinalLines(prev => prev.filter(l => l.id !== id)), 5000)
+            
             if (room && room.state === 'connected') {
               try {
                 const payload = JSON.stringify({ type: CAPTION_CHANNEL, speaker: speakerName, text })
@@ -150,29 +168,54 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
             interim += transcript
           }
         }
-        if (interim) setInterimText(interim)
+        setInterimText(interim)
+        if (hasFinal && !interim) {
+          // If we got a final result and no interim is left, clear it explicitly
+          setInterimText('')
+        }
       }
 
       rec.onerror = (e) => {
-        if (e.error === 'aborted') return
+        console.error('Speech Recognition Error:', e.error)
+        if (e.error === 'not-allowed') {
+          setCaptionStatus('error')
+          alert('Microphone access denied for captions.')
+        } else if (e.error === 'network') {
+          setCaptionStatus('error')
+        }
       }
 
       rec.onend = () => {
+        console.log('Speech Recognition Ended')
         setInterimText('')
-        if (!captionsOnRef.current) return
-        // Restart with latest language (handles language change)
+        if (!captionsOnRef.current) {
+          setCaptionStatus('idle')
+          return
+        }
+        // Auto-restart if still enabled
         setTimeout(() => {
           if (!captionsOnRef.current) return
-          const newRec = createRec()
-          try { newRec.start(); recognitionRef.current = newRec } catch {}
-        }, 150)
+          try {
+            const newRec = createRec()
+            newRec.start()
+            recognitionRef.current = newRec
+          } catch (err) {
+            console.error('Failed to restart recognition:', err)
+          }
+        }, 300)
       }
 
       return rec
     }
 
-    const rec = createRec()
-    try { rec.start(); recognitionRef.current = rec } catch {}
+    try {
+      const rec = createRec()
+      rec.start()
+      recognitionRef.current = rec
+    } catch (err) {
+      console.error('Failed to start recognition:', err)
+      setCaptionStatus('error')
+    }
   }, [room, displayName])
 
   // Receive captions from others
@@ -196,14 +239,20 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   // Toggle captions
   const toggleCaptions = () => {
     if (!captionsOn) {
+      setShowTranscript(true)
+      setShowChat(false)
+      setShowParticipants(false)
+      
       captionsOnRef.current = true
       setCaptionsOn(true)
+      setCaptionStatus('idle') // will update to listening onstart
       startCaptions()
     } else {
       captionsOnRef.current = false
       setCaptionsOn(false)
+      setCaptionStatus('idle')
       if (recognitionRef.current) {
-        try { recognitionRef.current.abort() } catch {}
+        try { recognitionRef.current.stop() } catch {}
         recognitionRef.current = null
       }
       setInterimText('')
@@ -371,86 +420,109 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   }
 
   const toggleMic = async () => {
-    await localParticipant.setMicrophoneEnabled(!micOn)
-    setMicOn(v => !v)
+    if (!room) return
+    const enabled = !micOn
+    await room.localParticipant.setMicrophoneEnabled(enabled)
+    setMicOn(enabled)
   }
 
-  // Effect to capture periodic snapshots of screen share
-  useEffect(() => {
+  const captureManualSnapshot = () => {
     if (!room || !isAdmin) return;
+    let capturedSomething = false;
 
-    const captureInterval = setInterval(() => {
-      // Find the screen share track from ANY participant (usually host)
-      const allParticipants = [room.localParticipant, ...Array.from(room.remoteParticipants.values())];
-      let screenTrack = null;
-      
-      for (const p of allParticipants) {
-        const track = Array.from(p.videoTracks.values())
-          .find(t => t.source === 'screen_share' || t.trackName?.includes('screen'));
-        if (track?.track?.mediaStreamTrack) {
-          screenTrack = track.track.mediaStreamTrack;
-          break;
+    // 1. Capture Whiteboard if open
+    if (showWhiteboard) {
+      try {
+        const wbCanvas = document.querySelector('.tldraw-canvas canvas') || document.querySelector('canvas');
+        if (wbCanvas) {
+          const imageUrl = wbCanvas.toDataURL('image/jpeg', 0.5);
+          setSnapshots(prev => [
+            ...prev,
+            {
+              timestamp: new Date().toLocaleTimeString(),
+              imageUrl: imageUrl,
+              title: `Whiteboard Snapshot`
+            }
+          ]);
+          capturedSomething = true;
         }
+      } catch (e) {
+        console.warn('Manual Whiteboard capture failed:', e);
       }
+    }
 
-      if (screenTrack) {
-        try {
-          const video = document.createElement('video');
-          video.srcObject = new MediaStream([screenTrack]);
-          video.muted = true;
-          video.setAttribute('playsinline', '');
-          
-          video.onloadedmetadata = () => {
-            video.play().then(() => {
-              setTimeout(() => {
-                const canvas = document.createElement('canvas');
-                // Use high resolution
-                canvas.width = video.videoWidth || 1280;
-                canvas.height = video.videoHeight || 720;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(video, 0, 0);
-                
-                // Convert to compressed JPEG for PDF stability
-                const imageUrl = canvas.toDataURL('image/jpeg', 0.5);
-                
-                setSnapshots(prev => [
-                  ...prev,
-                  {
-                    timestamp: new Date().toLocaleTimeString(),
-                    imageUrl: imageUrl,
-                    title: `Screen Capture ${prev.length + 1}`
-                  }
-                ]);
-                
-                // Cleanup
-                video.pause();
-                video.srcObject = null;
-                video.remove();
-              }, 2000); // Give it 2 seconds to render a clear frame
-            }).catch(e => console.warn('Video play failed:', e));
-          };
-        } catch (err) {
-          console.warn('Failed to capture screen frame:', err);
-        }
+    // 2. Capture Screen Share if exists
+    const allParticipants = [room.localParticipant, ...Array.from(room.remoteParticipants.values())];
+    let screenTrack = null;
+    
+    for (const p of allParticipants) {
+      if (!p || !p.videoTracks) continue;
+      const track = Array.from(p.videoTracks.values())
+        .find(t => t.source === 'screen_share' || t.trackName?.includes('screen') || t.isScreenShare);
+      if (track?.track?.mediaStreamTrack) {
+        screenTrack = track.track.mediaStreamTrack;
+        break;
       }
-    }, 180000); // 3 minutes
+    }
 
-    return () => clearInterval(captureInterval);
-  }, [room, isAdmin]);
+    if (screenTrack) {
+      try {
+        const video = document.createElement('video');
+        video.srcObject = new MediaStream([screenTrack]);
+        video.muted = true;
+        video.setAttribute('playsinline', '');
+        
+        video.onloadedmetadata = () => {
+          video.play().then(() => {
+            setTimeout(() => {
+              const canvas = document.createElement('canvas');
+              canvas.width = video.videoWidth || 1280;
+              canvas.height = video.videoHeight || 720;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(video, 0, 0);
+              const imageUrl = canvas.toDataURL('image/jpeg', 0.5);
+              
+              setSnapshots(prev => [
+                ...prev,
+                {
+                  timestamp: new Date().toLocaleTimeString(),
+                  imageUrl: imageUrl,
+                  title: `Screen Share Snapshot`
+                }
+              ]);
+              
+              video.pause();
+              video.srcObject = null;
+              video.remove();
+            }, 1000);
+          }).catch(e => console.warn('Manual video play failed:', e));
+        };
+        capturedSomething = true;
+      } catch (err) {
+        console.warn('Failed to capture manual screen frame:', err);
+      }
+    }
+
+    if (!capturedSomething) {
+      alert('No active screen share or whiteboard found to capture.');
+    } else {
+      // Optional: Add a brief visual feedback or sound
+      console.log('Capture triggered for active components');
+    }
+  }
 
   const toggleCam = async () => {
-    await localParticipant.setCameraEnabled(!camOn)
-    setCamOn(v => !v)
+    if (!room) return
+    const enabled = !camOn
+    await room.localParticipant.setCameraEnabled(enabled)
+    setCamOn(enabled)
   }
 
   const toggleScreen = async () => {
-    if (!screenSharing) {
-      await localParticipant.setScreenShareEnabled(true)
-      setScreenSharing(true)
-    } else {
-      await localParticipant.setScreenShareEnabled(false)
-      setScreenSharing(false)
-    }
+    if (!room) return
+    const enabled = !screenSharing
+    await room.localParticipant.setScreenShareEnabled(enabled)
+    setScreenSharing(enabled)
   }
 
   const fmt = s => `${String(Math.floor(s / 3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`
@@ -469,23 +541,34 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   const others = videoTracks.filter(t => t.participant?.identity !== pinnedParticipant)
 
   const handleLeave = async () => {
-    if (isAdmin && meetingTranscript) {
+    if (isAdmin) {
       try {
         const token = localStorage.getItem('token')
-        await fetch('/api/admin/meetings/save-transcript', {
+        const body = { 
+          roomName, 
+          transcript: meetingTranscript || '',
+          snapshots: snapshots || [] 
+        }
+        
+        console.log('Sending transcript to save:', body)
+
+        const res = await fetch('/api/admin/meetings/save-transcript', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
           },
-          body: JSON.stringify({ 
-            roomName, 
-            transcript: meetingTranscript,
-            snapshots: snapshots 
-          })
+          body: JSON.stringify(body)
         })
+        
+        const data = await res.json()
+        if (!res.ok) {
+          console.error('Failed to save transcript:', data.error)
+        } else {
+          console.log('Transcript saved successfully:', data.message)
+        }
       } catch (e) {
-        console.error('Failed to save transcript:', e)
+        console.error('Failed to save transcript error:', e)
       }
     }
     onClose()
@@ -787,19 +870,28 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
       </div>
 
       {/* ── CAPTIONS OVERLAY ── */}
-      {captionsOn && (finalLines.length > 0 || interimText) && (
+      {captionsOn && (
         <div className="absolute bottom-20 left-0 right-0 flex justify-center pointer-events-none z-30 px-4">
-          <div className="bg-black/75 rounded-xl px-5 py-3 max-w-2xl w-full backdrop-blur-sm">
-            {finalLines.map(l => (
-              <div key={l.id} className="text-white text-base leading-relaxed">
-                <span className="text-blue-300 font-semibold mr-2">{l.speaker}:</span>
-                {l.text}
-              </div>
-            ))}
-            {interimText && (
-              <div className="text-white/60 text-base leading-relaxed italic">
-                <span className="text-blue-200 font-semibold mr-2">{displayName}:</span>
-                {interimText}
+          <div className="bg-black/75 rounded-xl px-5 py-3 max-w-2xl w-full backdrop-blur-sm border border-white/10 min-h-[60px] flex flex-col justify-center">
+            {(finalLines.length > 0 || interimText) ? (
+              <>
+                {finalLines.map(l => (
+                  <div key={l.id} className="text-white text-lg animate-fadeIn flex gap-2">
+                    <span className="text-blue-400 font-bold shrink-0">{l.speaker}:</span>
+                    <span>{l.text}</span>
+                  </div>
+                ))}
+                {interimText && (
+                  <div className="text-gray-400 text-lg flex gap-2">
+                    <span className="text-blue-400/50 font-bold shrink-0">{displayName || 'Host'}:</span>
+                    <span>{interimText}</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-gray-500 text-sm italic flex items-center justify-center gap-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                {captionStatus === 'listening' ? 'Listening for speech...' : 'Initializing captions...'}
               </div>
             )}
           </div>
@@ -854,9 +946,19 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
         {/* Right — participants & chat */}
         <div className="flex items-center gap-2 w-32 justify-end">
           <button onClick={toggleCaptions}
-            className={`px-3 py-2 rounded-full transition-all text-sm font-bold ${captionsOn ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
-            title={captionsOn ? 'Turn off captions' : 'Turn on captions'}>
+            className={`relative px-3 py-2 rounded-lg transition-all text-sm font-bold border ${
+              captionsOn 
+                ? 'bg-blue-600 text-white border-blue-500' 
+                : 'bg-white/10 hover:bg-white/20 text-white border-white/10'
+            }`}
+            title="Toggle Live Captions (CC)">
             CC
+            {captionsOn && (
+              <span className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-[#1a1a2e] ${
+                captionStatus === 'listening' ? 'bg-green-500 animate-pulse' : 
+                captionStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'
+              }`} />
+            )}
           </button>
           {captionsOn && (
             <div className="relative">
@@ -919,6 +1021,11 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
             className={`p-3 rounded-full transition-all ${showParticipants ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
             title="Participants">
             <FiUsers size={18} />
+          </button>
+          <button onClick={captureManualSnapshot}
+            className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all"
+            title="Capture Screen to Transcript">
+            <FiImage size={18} />
           </button>
           <button onClick={() => { setShowTranscript(v => !v); setShowChat(false); setShowParticipants(false) }}
             className={`p-3 rounded-full transition-all ${showTranscript ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}

@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2, FiFolder, FiUpload, FiFile, FiBell, FiEye, FiSearch, FiX } from 'react-icons/fi'
+import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2, FiFolder, FiUpload, FiFile, FiBell, FiEye, FiSearch, FiX, FiImage } from 'react-icons/fi'
 import CourseCalendar from './CourseCalendar'
 import moment from 'moment'
 import dynamic from 'next/dynamic'
@@ -1136,6 +1136,48 @@ function CourseContentManager({ course, onBack }) {
                                 <FiVideo /> Intelligent Recap
                               </button>
                             )}
+                            <button
+                              onClick={async () => {
+                                if (confirm('Are you sure you want to delete this transcript and all related snapshots?')) {
+                                  try {
+                                    const token = localStorage.getItem('token')
+                                    const res = await fetch('/api/admin/meetings/delete-transcript', {
+                                      method: 'POST',
+                                      headers: {
+                                        'Content-Type': 'application/json',
+                                        Authorization: `Bearer ${token}`
+                                      },
+                                      body: JSON.stringify({ 
+                                        courseId: selectedCourse?._id || courseData?._id, 
+                                        meetingId: m._id 
+                                      })
+                                    })
+                                    const data = await res.json()
+                                    if (res.ok) {
+                                      // Update local state to reflect deletion
+                                      setCourseData(prev => ({
+                                        ...prev,
+                                        meetings: prev.meetings.map(meet => 
+                                          String(meet._id) === String(m._id) 
+                                            ? { ...meet, transcript: undefined, transcriptSummary: undefined, snapshots: [] }
+                                            : meet
+                                        )
+                                      }))
+                                      alert('Transcript deleted successfully')
+                                    } else {
+                                      alert(`Failed: ${data.error || 'Unknown error'}`)
+                                    }
+                                  } catch (error) {
+                                    console.error('Delete transcript error:', error)
+                                    alert('Failed to connect to server')
+                                  }
+                                }
+                              }}
+                              className="text-red-600 hover:text-red-900 flex items-center gap-1 ml-2"
+                              title="Delete Transcript"
+                            >
+                              <FiTrash2 /> Delete
+                            </button>
                           </div>
                         </td>
                       </tr>
