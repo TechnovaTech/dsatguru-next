@@ -472,34 +472,59 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
         video.muted = true;
         video.setAttribute('playsinline', '');
         
-        video.onloadedmetadata = () => {
-          video.play().then(() => {
-            setTimeout(() => {
-              const canvas = document.createElement('canvas');
-              canvas.width = video.videoWidth || 1280;
-              canvas.height = video.videoHeight || 720;
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(video, 0, 0);
-              const imageUrl = canvas.toDataURL('image/jpeg', 0.5);
-              
-              setSnapshots(prev => [
-                ...prev,
-                {
-                  timestamp: new Date().toLocaleTimeString(),
-                  imageUrl: imageUrl,
-                  title: `Screen Share Snapshot`
-                }
-              ]);
-              
-              video.pause();
-              video.srcObject = null;
-              video.remove();
-            }, 1000);
-          }).catch(e => console.warn('Manual video play failed:', e));
+        // Use a promise to wait for the video to be ready
+        video.onloadedmetadata = async () => {
+          try {
+            await video.play();
+            // Critical: Wait for at least 2 frames to ensure the buffer is not empty
+            // Some browsers return a black frame if we capture too quickly
+            await new Promise(resolve => setTimeout(resolve, 1500)); 
+
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 1280;
+            canvas.height = video.videoHeight || 720;
+            const ctx = canvas.getContext('2d');
+            
+            // Draw the current video frame to the canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Check if the captured frame is purely black
+            const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            let isBlack = true;
+            for (let i = 0; i < pixelData.length; i += 4) {
+              if (pixelData[i] > 10 || pixelData[i+1] > 10 || pixelData[i+2] > 10) {
+                isBlack = false;
+                break;
+              }
+            }
+
+            if (isBlack) {
+              console.warn('Captured frame is black, retrying once...');
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            }
+
+            const imageUrl = canvas.toDataURL('image/jpeg', 0.6);
+            
+            setSnapshots(prev => [
+              ...prev,
+              {
+                timestamp: new Date().toLocaleTimeString(),
+                imageUrl: imageUrl,
+                title: `Screen Share Snapshot`
+              }
+            ]);
+            
+            // Cleanup
+            video.pause();
+            video.srcObject = null;
+            video.remove();
+          } catch (e) {
+            console.warn('Manual video play/capture failed:', e);
+          }
         };
-        capturedSomething = true;
       } catch (err) {
-        console.warn('Failed to capture manual screen frame:', err);
+        console.warn('Failed to setup manual screen capture:', err);
       }
     }
 
