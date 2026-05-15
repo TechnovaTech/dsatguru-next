@@ -71,6 +71,18 @@ async function parseExcel(buffer) {
   return { rows, imagesByRow }
 }
 
+function parseJson(text) {
+  const data = JSON.parse(text)
+  const arr = Array.isArray(data) ? data : (data.questions || [])
+  if (!arr.length) return []
+  const keys = [...new Set(arr.flatMap(obj => Object.keys(obj)))]
+  const rows = [keys.map(k => k.toLowerCase())]
+  for (const obj of arr) {
+    rows.push(keys.map(k => (obj[k] !== undefined && obj[k] !== null) ? String(obj[k]) : ''))
+  }
+  return rows
+}
+
 function parseCsv(text) {
   const lines = text.split(/\r?\n/).filter(line => line.trim())
   const rows = []
@@ -140,6 +152,8 @@ export async function POST(request) {
       const result = await parseExcel(Buffer.from(buffer))
       rows = result.rows
       imagesByRow = result.imagesByRow
+    } else if (file.name.endsWith('.json')) {
+      rows = parseJson(csvText)
     } else {
       rows = parseCsv(csvText)
     }

@@ -103,6 +103,18 @@ async function parseExcel(buffer) {
           return { rows, imagesByRow }
         }
 
+function parseJson(text) {
+  const data = JSON.parse(text)
+  const arr = Array.isArray(data) ? data : (data.questions || [])
+  if (!arr.length) return []
+  const keys = [...new Set(arr.flatMap(obj => Object.keys(obj)))]
+  const rows = [keys.map(k => k.toLowerCase())]
+  for (const obj of arr) {
+    rows.push(keys.map(k => (obj[k] !== undefined && obj[k] !== null) ? String(obj[k]) : ''))
+  }
+  return rows
+}
+
 function parseCsv(text) {
   const lines = text.split(/\r?\n/).filter(line => line.trim())
   const rows = []
@@ -185,7 +197,6 @@ export async function POST(request) {
     let imagesByRow = {}
     
     if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-      // Handle Excel file
       console.log('Parsing as Excel file')
       try {
         const buffer = await file.arrayBuffer()
@@ -197,20 +208,28 @@ export async function POST(request) {
         if (rows.length > 1) console.log('Second Excel row:', rows[1])
       } catch (excelError) {
         console.error('Excel parsing failed:', excelError.message)
-        // Try CSV parsing as fallback
         console.log('Attempting CSV fallback parsing...')
         try {
           rows = parseCsv(csvText)
           console.log('CSV fallback successful, rows:', rows.length)
         } catch (csvError) {
-          return NextResponse.json({ 
-            error: 'Failed to parse file. Please ensure it is a valid Excel (.xlsx) or CSV file.', 
-            details: `Excel error: ${excelError.message}. CSV fallback also failed.` 
+          return NextResponse.json({
+            error: 'Failed to parse file. Please ensure it is a valid Excel (.xlsx) or CSV file.',
+            details: `Excel error: ${excelError.message}. CSV fallback also failed.`
           }, { status: 400 })
         }
       }
+    } else if (file.name.endsWith('.json')) {
+      console.log('Parsing as JSON file')
+      if (!csvText || csvText.trim().length === 0) {
+        return NextResponse.json({ error: 'JSON file is empty' }, { status: 400 })
+      }
+      try {
+        rows = parseJson(csvText)
+      } catch (jsonError) {
+        return NextResponse.json({ error: 'Invalid JSON file', details: jsonError.message }, { status: 400 })
+      }
     } else {
-      // Handle CSV file
       console.log('Parsing as CSV file')
       if (!csvText || csvText.trim().length === 0) {
         return NextResponse.json({ error: 'CSV file is empty' }, { status: 400 })

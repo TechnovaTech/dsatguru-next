@@ -40,7 +40,7 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
     tags: ''
   })
   const [bulkUpload, setBulkUpload] = useState({ csvRecords: [], images: [], imagePreviews: [], mapping: null, progress: 0 })
-  const [bulkTab, setBulkTab] = useState('csv') // 'csv' | 'mathpix'
+  const [bulkTab, setBulkTab] = useState('csv') // 'csv' | 'json' | 'mathpix'
   const [mathpixFile, setMathpixFile] = useState(null)
   const [mathpixConverting, setMathpixConverting] = useState(false)
   const [mathpixSubject, setMathpixSubject] = useState(urlSubject || 'Math')
@@ -879,6 +879,13 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                   </button>
                   <button
                     type="button"
+                    onClick={() => setBulkTab('json')}
+                    className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${bulkTab === 'json' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                  >
+                    <span>&#123;&#125;</span> JSON Upload
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setBulkTab('mathpix')}
                     className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${bulkTab === 'mathpix' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                   >
@@ -1040,6 +1047,66 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                   {uploading ? 'Processing...' : 'Preview Questions'}
                 </button>
               </form>
+                ) : bulkTab === 'json' ? (
+                  /* JSON Upload Tab */
+                  <form onSubmit={handleFileUpload} className="space-y-6">
+                    <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">&#123;&#125;</span>
+                        <div className="flex-1">
+                          <h3 className="text-sm font-medium text-green-900 mb-1">JSON Upload</h3>
+                          <p className="text-sm text-green-700 mb-2">Upload a <code>.json</code> file — an array of question objects. Supports the same fields as CSV/Excel.</p>
+                          <pre className="bg-white border border-green-200 rounded p-2 text-xs text-gray-700 overflow-x-auto">{`[
+  {
+    "question": "Question text here",
+    "option a": "...", "option b": "...",
+    "option c": "...", "option d": "...",
+    "correct answer": "A",
+    "difficulty": "Medium",
+    "subject": "Math",
+    "tags": "algebra",
+    "shortexplanation": "...",
+    "longexplanation": "..."
+  }
+]`}</pre>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">JSON File *</label>
+                      <div className="border-2 border-dashed border-green-300 rounded-md p-6 text-center">
+                        <label className="cursor-pointer">
+                          <span className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md">
+                            <FiUpload className="mr-2" /> Upload JSON
+                          </span>
+                          <input type="file" accept=".json" onChange={handleCSVFileChange} className="hidden" />
+                        </label>
+                        <p className="text-xs text-gray-500 mt-2">JSON files only (.json)</p>
+                        {file && (
+                          <div className="mt-3 flex items-center justify-center gap-2 text-sm text-gray-600">
+                            <FiFile /> {file.name}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {bulkUpload.progress > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center">
+                          <FiUpload className="text-green-600 mr-2" />
+                          <span className="text-sm font-medium text-green-800">Processing JSON...</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded h-2">
+                          <div className="h-2 bg-green-600 rounded" style={{ width: `${bulkUpload.progress}%` }}></div>
+                        </div>
+                      </div>
+                    )}
+
+                    <button type="submit" disabled={!file || (!isTutor && !selectedQuestionBank) || uploading} className="w-full bg-green-600 text-white py-2 rounded-md">
+                      {uploading ? 'Processing...' : 'Preview Questions'}
+                    </button>
+                  </form>
                 ) : (
                   /* Mathpix DOCX/PDF Tab */
                   <form onSubmit={handleMathpixConvert} className="space-y-6">
