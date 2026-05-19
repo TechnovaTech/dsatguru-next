@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { FiCheck, FiX, FiEdit2, FiImage, FiChevronDown, FiChevronUp, FiSave } from 'react-icons/fi'
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
@@ -10,6 +10,9 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
   const [editingQuestion, setEditingQuestion] = useState(null)
   const [approving, setApproving] = useState(false)
   const [globalRemark, setGlobalRemark] = useState('')
+  const [uploadingField, setUploadingField] = useState(null) // 'qIndex-field' or 'qIndex-opt-optIndex'
+  const imgInputRef = useRef(null)
+  const pendingUpload = useRef(null) // { qIndex, field, optIndex? }
 
   const toggleExpand = (index) => {
     const newExpanded = new Set(expandedQuestions)
@@ -48,6 +51,64 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
     const newExpanded = new Set(expandedQuestions)
     newExpanded.delete(index)
     setExpandedQuestions(newExpanded)
+  }
+
+  const triggerImageUpload = (qIndex, field, optIndex = null) => {
+    pendingUpload.current = { qIndex, field, optIndex }
+    imgInputRef.current && imgInputRef.current.click()
+  }
+
+  const handleImageFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !pendingUpload.current) return
+    const { qIndex, field, optIndex } = pendingUpload.current
+    const key = optIndex !== null ? `${qIndex}-opt-${optIndex}` : `${qIndex}-${field}`
+    setUploadingField(key)
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: fd
+      })
+      const data = await res.json()
+      if (!res.ok || !data.url) { alert(data.error || 'Image upload failed'); return }
+      const md = `![image](${data.url})`
+      if (optIndex !== null) {
+        const updated = [...editedQuestions]
+        const newOptions = [...updated[qIndex].options]
+        newOptions[optIndex] = (newOptions[optIndex] || '') + '\n' + md
+        updated[qIndex] = { ...updated[qIndex], options: newOptions }
+        setEditedQuestions(updated)
+      } else {
+        const prev = editedQuestions[qIndex][field] || ''
+        updateQuestion(qIndex, field, prev + '\n' + md)
+      }
+    } catch (err) {
+      alert('Image upload failed: ' + err.message)
+    } finally {
+      setUploadingField(null)
+      pendingUpload.current = null
+      e.target.value = ''
+    }
+  }
+
+  const ImgBtn = ({ qIndex, field, optIndex = null }) => {
+    const key = optIndex !== null ? `${qIndex}-opt-${optIndex}` : `${qIndex}-${field}`
+    const busy = uploadingField === key
+    return (
+      <button
+        type="button"
+        onClick={() => triggerImageUpload(qIndex, field, optIndex)}
+        disabled={busy}
+        title="Upload image"
+        className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded disabled:opacity-50"
+      >
+        <FiImage className="w-3 h-3" />{busy ? 'Uploading…' : 'Image'}
+      </button>
+    )
   }
 
   const handleApprove = async () => {
@@ -156,6 +217,8 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      {/* Hidden global image input shared across all fields */}
+      <input ref={imgInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageFileChange} />
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
         <div className="p-6 border-b flex items-center justify-between">
           <div>
@@ -248,7 +311,10 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                         )}
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Question Content</label>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-sm font-medium text-gray-700">Question Content</label>
+                            {isEditing && <ImgBtn qIndex={qIndex} field="content" />}
+                          </div>
                           {isEditing
                             ? <div><textarea value={question.content} onChange={(e) => updateQuestion(qIndex, 'content', e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={6} /><details className="mt-1"><summary className="text-xs text-gray-400 cursor-pointer">Raw</summary><pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">{question.content}</pre></details></div>
                             : <div className="bg-white p-3 rounded border">{renderContent(question.content)}</div>}
@@ -261,7 +327,9 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                               {(question.options || []).map((option, optIndex) => (
                                 <div key={optIndex} className="flex items-start gap-2">
                                   <span className={`px-2 py-1 rounded text-sm font-medium flex-shrink-0 ${question.correctAnswer === String.fromCharCode(65 + optIndex) ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>{String.fromCharCode(65 + optIndex)}</span>
-                                  {isEditing ? <textarea value={option} onChange={(e) => updateOption(qIndex, optIndex, e.target.value)} className="flex-1 border rounded px-3 py-2 font-mono text-sm" rows={2} /> : <div className="flex-1 bg-white p-2 rounded border">{renderContent(option)}</div>}
+                                  {isEditing
+                                    ? <div className="flex-1 space-y-1"><textarea value={option} onChange={(e) => updateOption(qIndex, optIndex, e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={2} /><ImgBtn qIndex={qIndex} field="option" optIndex={optIndex} /></div>
+                                    : <div className="flex-1 bg-white p-2 rounded border">{renderContent(option)}</div>}
                                 </div>
                               ))}
                             </div>
@@ -293,7 +361,10 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Short Explanation</label>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-sm font-medium text-gray-700">Short Explanation</label>
+                            {isEditing && <ImgBtn qIndex={qIndex} field="shortExplanation" />}
+                          </div>
                           {isEditing
                             ? <textarea value={question.shortExplanation || question.explanation || ''} onChange={(e) => updateQuestion(qIndex, 'shortExplanation', e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={4} placeholder="Add short explanation..." />
                             : (question.shortExplanation || question.explanation)
@@ -302,7 +373,10 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Long Explanation</label>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-sm font-medium text-gray-700">Long Explanation</label>
+                            {isEditing && <ImgBtn qIndex={qIndex} field="longExplanation" />}
+                          </div>
                           {isEditing
                             ? <textarea value={question.longExplanation || ''} onChange={(e) => updateQuestion(qIndex, 'longExplanation', e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={6} placeholder="Add long explanation..." />
                             : question.longExplanation
