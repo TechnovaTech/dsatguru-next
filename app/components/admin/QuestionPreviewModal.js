@@ -54,6 +54,25 @@ export default function QuestionPreviewModal({ questions, onClose, onQuestionsUp
     onClose()
   }
 
+  const ImagePreviews = ({ text }) => {
+    if (!text) return null
+    const urls = []
+    const re = /!\[.*?\]\((.*?)\)/g
+    let m
+    while ((m = re.exec(text)) !== null) urls.push(m[1])
+    if (!urls.length) return null
+    return (
+      <div className="flex flex-wrap gap-2 mt-2">
+        {urls.map((url, i) => (
+          <div key={i} className="relative group border rounded overflow-hidden bg-gray-50">
+            <img src={url} alt={`img-${i}`} className="h-20 w-auto max-w-[160px] object-contain" onError={e => { e.target.style.border = '2px solid red' }} />
+            <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-1 py-0.5 truncate opacity-0 group-hover:opacity-100 transition-opacity">{url.split('/').pop()}</div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   // renderContent imported from LatexRenderer
 
   return (
@@ -141,11 +160,11 @@ export default function QuestionPreviewModal({ questions, onClose, onQuestionsUp
                 </button>
               </div>
               {editMode.questionParagraph ? (
-                <textarea
+                <div><textarea
                   value={currentQuestion.questionParagraph}
                   onChange={(e) => handleEdit('questionParagraph', e.target.value)}
                   className="w-full p-3 border border-blue-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
-                />
+                /><ImagePreviews text={currentQuestion.questionParagraph} /></div>
               ) : (
                 <div className="text-sm text-gray-700 whitespace-pre-wrap">
                   {renderContent(currentQuestion.questionParagraph)}
@@ -166,11 +185,11 @@ export default function QuestionPreviewModal({ questions, onClose, onQuestionsUp
               </button>
             </div>
             {editMode.content ? (
-              <textarea
+              <div><textarea
                 value={currentQuestion.content}
                 onChange={(e) => handleEdit('content', e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
-              />
+              /><ImagePreviews text={currentQuestion.content} /></div>
             ) : (
               <div className="p-4 bg-white border border-gray-200 rounded-lg text-gray-900 text-sm whitespace-pre-wrap">
                 {renderContent(currentQuestion.content)}
@@ -212,12 +231,12 @@ export default function QuestionPreviewModal({ questions, onClose, onQuestionsUp
                         </button>
                       </div>
                       {editMode[`option${optionKey}`] ? (
-                        <textarea
+                        <div><textarea
                           value={currentQuestion.options[optionKey] || ''}
                           onChange={(e) => handleOptionEdit(optionKey, e.target.value)}
                           className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                           rows="2"
-                        />
+                        /><ImagePreviews text={currentQuestion.options[optionKey]} /></div>
                       ) : (
                         <div className="text-sm text-gray-700 whitespace-pre-wrap">
                           {renderContent(currentQuestion.options[optionKey] || '')}
@@ -264,11 +283,11 @@ export default function QuestionPreviewModal({ questions, onClose, onQuestionsUp
                     </button>
                   </div>
                   {editMode.shortExplanation ? (
-                    <textarea
+                    <div><textarea
                       value={currentQuestion.shortExplanation}
                       onChange={(e) => handleEdit('shortExplanation', e.target.value)}
                       className="w-full p-3 border border-yellow-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500 outline-none min-h-[80px]"
-                    />
+                    /><ImagePreviews text={currentQuestion.shortExplanation} /></div>
                   ) : (
                     <div className="text-sm text-gray-700 whitespace-pre-wrap">
                       {renderContent(currentQuestion.shortExplanation)}
@@ -289,11 +308,11 @@ export default function QuestionPreviewModal({ questions, onClose, onQuestionsUp
                     </button>
                   </div>
                   {editMode.longExplanation ? (
-                    <textarea
+                    <div><textarea
                       value={currentQuestion.longExplanation}
                       onChange={(e) => handleEdit('longExplanation', e.target.value)}
                       className="w-full p-3 border border-purple-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none min-h-[120px]"
-                    />
+                    /><ImagePreviews text={currentQuestion.longExplanation} /></div>
                   ) : (
                     <div className="text-sm text-gray-700 whitespace-pre-wrap">
                       {renderContent(currentQuestion.longExplanation)}
@@ -314,11 +333,11 @@ export default function QuestionPreviewModal({ questions, onClose, onQuestionsUp
                     </button>
                   </div>
                   {editMode.explanation ? (
-                    <textarea
+                    <div><textarea
                       value={currentQuestion.explanation}
                       onChange={(e) => handleEdit('explanation', e.target.value)}
                       className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-500 outline-none min-h-[100px]"
-                    />
+                    /><ImagePreviews text={currentQuestion.explanation} /></div>
                   ) : (
                     <div className="text-sm text-gray-700 whitespace-pre-wrap">
                       {renderContent(currentQuestion.explanation)}

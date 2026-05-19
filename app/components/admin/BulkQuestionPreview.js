@@ -118,6 +118,25 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
 
   const hasImage = (text) => !!(text && /!\[.*?\]\(.*?\)/.test(text))
 
+  const ImagePreviews = ({ text }) => {
+    if (!text) return null
+    const urls = []
+    const re = /!\[.*?\]\((.*?)\)/g
+    let m
+    while ((m = re.exec(text)) !== null) urls.push(m[1])
+    if (!urls.length) return null
+    return (
+      <div className="flex flex-wrap gap-2 mt-2">
+        {urls.map((url, i) => (
+          <div key={i} className="relative group border rounded overflow-hidden bg-gray-50">
+            <img src={url} alt={`img-${i}`} className="h-20 w-auto max-w-[160px] object-contain" onError={e => { e.target.style.border = '2px solid red' }} />
+            <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-1 py-0.5 truncate opacity-0 group-hover:opacity-100 transition-opacity">{url.split('/').pop()}</div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   const plainText = (text) => {
     if (!text) return ''
     return text
@@ -316,7 +335,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                             {isEditing && <ImgBtn qIndex={qIndex} field="content" />}
                           </div>
                           {isEditing
-                            ? <div><textarea value={question.content} onChange={(e) => updateQuestion(qIndex, 'content', e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={6} /><details className="mt-1"><summary className="text-xs text-gray-400 cursor-pointer">Raw</summary><pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">{question.content}</pre></details></div>
+                            ? <div><textarea value={question.content} onChange={(e) => updateQuestion(qIndex, 'content', e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={6} /><ImagePreviews text={question.content} /><details className="mt-1"><summary className="text-xs text-gray-400 cursor-pointer">Raw</summary><pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">{question.content}</pre></details></div>
                             : <div className="bg-white p-3 rounded border">{renderContent(question.content)}</div>}
                         </div>
 
@@ -328,7 +347,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                                 <div key={optIndex} className="flex items-start gap-2">
                                   <span className={`px-2 py-1 rounded text-sm font-medium flex-shrink-0 ${question.correctAnswer === String.fromCharCode(65 + optIndex) ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>{String.fromCharCode(65 + optIndex)}</span>
                                   {isEditing
-                                    ? <div className="flex-1 space-y-1"><textarea value={option} onChange={(e) => updateOption(qIndex, optIndex, e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={2} /><ImgBtn qIndex={qIndex} field="option" optIndex={optIndex} /></div>
+                                    ? <div className="flex-1 space-y-1"><textarea value={option} onChange={(e) => updateOption(qIndex, optIndex, e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={2} /><ImagePreviews text={option} /><ImgBtn qIndex={qIndex} field="option" optIndex={optIndex} /></div>
                                     : <div className="flex-1 bg-white p-2 rounded border">{renderContent(option)}</div>}
                                 </div>
                               ))}
@@ -366,7 +385,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                             {isEditing && <ImgBtn qIndex={qIndex} field="shortExplanation" />}
                           </div>
                           {isEditing
-                            ? <textarea value={question.shortExplanation || question.explanation || ''} onChange={(e) => updateQuestion(qIndex, 'shortExplanation', e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={4} placeholder="Add short explanation..." />
+                            ? <div><textarea value={question.shortExplanation || question.explanation || ''} onChange={(e) => updateQuestion(qIndex, 'shortExplanation', e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={4} placeholder="Add short explanation..." /><ImagePreviews text={question.shortExplanation || question.explanation} /></div>
                             : (question.shortExplanation || question.explanation)
                               ? <div className="bg-white p-3 rounded border">{renderContent(question.shortExplanation || question.explanation)}</div>
                               : <p className="text-xs text-gray-400 italic">No short explanation — click Edit to add</p>}
@@ -378,7 +397,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                             {isEditing && <ImgBtn qIndex={qIndex} field="longExplanation" />}
                           </div>
                           {isEditing
-                            ? <textarea value={question.longExplanation || ''} onChange={(e) => updateQuestion(qIndex, 'longExplanation', e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={6} placeholder="Add long explanation..." />
+                            ? <div><textarea value={question.longExplanation || ''} onChange={(e) => updateQuestion(qIndex, 'longExplanation', e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={6} placeholder="Add long explanation..." /><ImagePreviews text={question.longExplanation} /></div>
                             : question.longExplanation
                               ? <div className="bg-white p-3 rounded border">{renderContent(question.longExplanation)}</div>
                               : <p className="text-xs text-gray-400 italic">No long explanation — click Edit to add</p>}
