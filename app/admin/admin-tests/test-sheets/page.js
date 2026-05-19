@@ -253,12 +253,13 @@ export default function AdminTestSheets() {
     setTestQuestions(prev => prev.map(q => (q.id || q._id) === questionId ? { ...q, [field]: value } : q))
   }
 
-  const handleOptionChange = (questionId, optionIndex, value) => {
+  const handleOptionChange = (questionId, optionKey, value) => {
     const currentQuestion = testQuestions.find(q => (q.id || q._id) === questionId)
     const currentEdited = editedQuestionsData[questionId] || currentQuestion
-    const currentOptions = typeof currentEdited.options === 'string' ? JSON.parse(currentEdited.options) : currentEdited.options
-    const newOptions = [...currentOptions]
-    newOptions[optionIndex] = value
+    const currentOptions = typeof currentEdited.options === 'string' ? JSON.parse(currentEdited.options) : (currentEdited.options || {})
+    const newOptions = Array.isArray(currentOptions)
+      ? currentOptions.map((opt, i) => String.fromCharCode(65 + i) === optionKey ? value : opt)
+      : { ...currentOptions, [optionKey]: value }
     setEditedQuestionsData(prev => ({ ...prev, [questionId]: { ...currentEdited, options: newOptions } }))
     setTestQuestions(prev => prev.map(q => (q.id || q._id) === questionId ? { ...q, options: newOptions } : q))
   }
@@ -379,21 +380,100 @@ export default function AdminTestSheets() {
                       <div className="max-w-4xl mx-auto space-y-6">
                         <div className="flex justify-end">
                           {isEditMode && (
-                            isEditing ? <button onClick={() => setEditingQuestionId(null)} className="px-4 py-2 bg-green-600 text-white rounded-lg">Done Editing</button> : <button onClick={() => setEditingQuestionId(q.id || q._id)} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Edit Question</button>
+                            isEditing
+                              ? <button onClick={() => setEditingQuestionId(null)} className="px-4 py-2 bg-green-600 text-white rounded-lg">Done Editing</button>
+                              : <button onClick={() => setEditingQuestionId(q.id || q._id)} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Edit Question</button>
                           )}
                         </div>
-                        <div className="space-y-4">
-                          <label className="font-bold">Content</label>
-                          {isEditing ? <textarea className="w-full p-3 border rounded font-mono" rows={6} value={q.content} onChange={e => handleQuestionFieldChange(q.id || q._id, 'content', e.target.value)} /> : <div className="p-4 bg-gray-50 border rounded">{renderWithImages(q.content)}</div>}
+
+                        {/* Metadata */}
+                        <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 text-sm">
+                          <div>
+                            <span className="text-xs font-semibold text-gray-500 uppercase">Difficulty</span>
+                            <p className={`font-bold mt-1 ${q.difficulty === 'Easy' ? 'text-green-600' : q.difficulty === 'Medium' ? 'text-yellow-600' : 'text-red-600'}`}>{q.difficulty}</p>
+                          </div>
+                          <div>
+                            <span className="text-xs font-semibold text-gray-500 uppercase">Subject</span>
+                            <p className="font-medium text-gray-900 mt-1">{q.subject}</p>
+                          </div>
+                          <div>
+                            <span className="text-xs font-semibold text-gray-500 uppercase">Question ID</span>
+                            <p className="font-mono text-gray-900 mt-1 text-xs">{q.questionId || (q._id || '').toString().slice(-8)}</p>
+                          </div>
                         </div>
-                        {options && options.length > 0 && (
-                          <div className="space-y-3">
-                            {options.map((opt, i) => (
-                              <div key={i} className={`p-3 border rounded flex gap-3 ${q.correctAnswer === String.fromCharCode(65+i) ? 'bg-green-50 border-green-500' : ''}`}>
-                                <span className="font-bold">{String.fromCharCode(65+i)}.</span>
-                                {isEditing ? <textarea className="flex-1 p-2 border rounded" rows={2} value={opt} onChange={e => handleOptionChange(q.id || q._id, i, e.target.value)} /> : <div className="flex-1">{renderWithImages(opt)}</div>}
+
+                        {/* Context Paragraph */}
+                        {q.questionParagraph && (
+                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <span className="text-xs font-semibold text-blue-700 uppercase">Context Paragraph</span>
+                            <div className="mt-2 text-sm text-gray-700">{renderWithImages(q.questionParagraph)}</div>
+                          </div>
+                        )}
+
+                        {/* Question Content */}
+                        <div className="space-y-2">
+                          <span className="text-sm font-semibold text-gray-700">Question</span>
+                          {isEditing
+                            ? <textarea className="w-full p-3 border rounded font-mono" rows={6} value={q.content} onChange={e => handleQuestionFieldChange(q.id || q._id, 'content', e.target.value)} />
+                            : <div className="p-4 bg-white border border-gray-200 rounded-lg text-gray-900">{renderWithImages(q.content)}</div>
+                          }
+                        </div>
+
+                        {/* Options or Fill-in-blank */}
+                        {(() => {
+                          const optKeys = ['A','B','C','D'].filter(k => options && (options[k] || options[k.toLowerCase()]))
+                          if (optKeys.length > 0) {
+                            return (
+                              <div className="space-y-2">
+                                <span className="text-sm font-semibold text-gray-700">Answer Options</span>
+                                {optKeys.map(key => {
+                                  const optText = options[key] || options[key.toLowerCase()] || ''
+                                  const isCorrect = q.correctAnswer === key
+                                  return (
+                                    <div key={key} className={`p-3 border-2 rounded-lg ${isCorrect ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white'}`}>
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className={`font-bold text-sm ${isCorrect ? 'text-green-700' : 'text-gray-600'}`}>{key}.</span>
+                                        {isCorrect && <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded">Correct Answer</span>}
+                                      </div>
+                                      {isEditing
+                                        ? <textarea className="w-full p-2 border rounded text-sm" rows={2} value={optText} onChange={e => handleOptionChange(q.id || q._id, key, e.target.value)} />
+                                        : <div className="text-sm text-gray-700 [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain">{renderWithImages(optText)}</div>
+                                      }
+                                    </div>
+                                  )
+                                })}
                               </div>
-                            ))}
+                            )
+                          }
+                          return (
+                            <div className="p-4 border-2 border-green-500 bg-green-50 rounded-lg">
+                              <span className="text-xs font-semibold text-green-700 uppercase">Correct Answer (Fill-in-the-Blank)</span>
+                              <p className="text-lg font-bold text-green-900 mt-1">{q.correctAnswer}</p>
+                            </div>
+                          )
+                        })()}
+
+                        {/* Explanations */}
+                        {(q.shortExplanation || q.longExplanation || q.explanation) && (
+                          <div className="space-y-3">
+                            {q.shortExplanation && (
+                              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <span className="text-xs font-semibold text-yellow-700 uppercase">Short Explanation</span>
+                                <div className="mt-2 text-sm text-gray-700">{renderWithImages(q.shortExplanation)}</div>
+                              </div>
+                            )}
+                            {q.longExplanation && (
+                              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                                <span className="text-xs font-semibold text-purple-700 uppercase">Long Explanation</span>
+                                <div className="mt-2 text-sm text-gray-700">{renderWithImages(q.longExplanation)}</div>
+                              </div>
+                            )}
+                            {q.explanation && !q.shortExplanation && !q.longExplanation && (
+                              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                                <span className="text-xs font-semibold text-gray-700 uppercase">Explanation</span>
+                                <div className="mt-2 text-sm text-gray-700">{renderWithImages(q.explanation)}</div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

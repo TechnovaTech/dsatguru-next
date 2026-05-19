@@ -605,28 +605,16 @@ export default function TutorTestSheets() {
     }))
   }
 
-  const handleOptionChange = (questionId, optionIndex, value) => {
+  const handleOptionChange = (questionId, optionKey, value) => {
     const currentQuestion = testQuestions.find(q => (q.id || q._id) === questionId)
     const currentEdited = editedQuestionsData[questionId] || currentQuestion
-    const currentOptions = typeof currentEdited.options === 'string' ? JSON.parse(currentEdited.options) : currentEdited.options
-    const newOptions = [...currentOptions]
-    newOptions[optionIndex] = value
-    
-    setEditedQuestionsData(prev => ({
-      ...prev,
-      [questionId]: {
-        ...currentEdited,
-        options: newOptions
-      }
-    }))
-    
-    // Update the displayed question immediately
-    setTestQuestions(prev => prev.map(q => {
-      if ((q.id || q._id) === questionId) {
-        return { ...q, options: newOptions }
-      }
-      return q
-    }))
+    const currentOptions = typeof currentEdited.options === 'string' ? JSON.parse(currentEdited.options) : (currentEdited.options || {})
+    const newOptions = Array.isArray(currentOptions)
+      ? currentOptions.map((opt, i) => String.fromCharCode(65 + i) === optionKey ? value : opt)
+      : { ...currentOptions, [optionKey]: value }
+
+    setEditedQuestionsData(prev => ({ ...prev, [questionId]: { ...currentEdited, options: newOptions } }))
+    setTestQuestions(prev => prev.map(q => (q.id || q._id) === questionId ? { ...q, options: newOptions } : q))
   }
 
   const handleNextQuestion = () => {
@@ -641,20 +629,6 @@ export default function TutorTestSheets() {
     }
   }
 
-  const renderWithImages = (text) => {
-    if (!text) return null
-    const stringText = String(text)
-    const regex = /(!\[.*?\]\(.*?\))/g
-    const parts = stringText.split(regex)
-    
-    return parts.map((part, index) => {
-      const match = part.match(/!\[(.*?)\]\((.*?)\)/)
-      if (match) {
-        return <img key={index} src={match[2]} alt={match[1]} className="max-w-full h-auto my-2 rounded border" />
-      }
-      return <span key={index}>{part}</span>
-    })
-  }
 
   const filteredTests = tests.filter(test => {
     // Filter out reassigned tests
@@ -1053,6 +1027,14 @@ export default function TutorTestSheets() {
                             )}
                           </div>
 
+                          {/* Context Paragraph */}
+                          {q.questionParagraph && (
+                            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                              <span className="text-xs font-semibold text-blue-700 uppercase">Context Paragraph</span>
+                              <div className="mt-2 text-sm text-gray-700">{renderWithImages(q.questionParagraph)}</div>
+                            </div>
+                          )}
+
                           {/* Question Content */}
                           <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Question</label>
@@ -1074,32 +1056,39 @@ export default function TutorTestSheets() {
                           </div>
 
                           {/* Check if question has multiple choice options or is fill-in-the-blank */}
-                          {(options[0]?.trim() && options[1]?.trim() && options[2]?.trim() && options[3]?.trim()) ? (
+                          {(['A','B','C','D'].filter(k => options && (options[k] || options[k.toLowerCase()]))).length > 0 ? (
                             <>
                               {/* Multiple Choice Options */}
                               <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Answer Options (Multiple Choice)</label>
                                 <div className="space-y-2">
-                                  {['A', 'B', 'C', 'D'].map((letter, i) => (
-                                    <div key={letter} className={`p-3 border rounded-lg ${q.correctAnswer === letter ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200'}`}>
+                                  {['A', 'B', 'C', 'D'].map((letter) => {
+                                    const optText = (options && (options[letter] || options[letter.toLowerCase()])) || ''
+                                    if (!optText) return null
+                                    return (
+                                    <div key={letter} className={`p-3 border-2 rounded-lg ${q.correctAnswer === letter ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200'}`}>
                                       <div className="flex items-start gap-2">
-                                        <span className="font-medium">{letter}.</span>
+                                        <div className="flex items-center gap-1 flex-shrink-0">
+                                          <span className={`font-bold text-sm ${q.correctAnswer === letter ? 'text-green-700' : 'text-gray-600'}`}>{letter}.</span>
+                                          {q.correctAnswer === letter && <span className="text-xs font-semibold text-green-700 bg-green-100 px-1.5 py-0.5 rounded">Correct</span>}
+                                        </div>
                                         {isEditing ? (
                                           <div className="flex-1">
                                             <textarea
-                                              value={options[i] || ''}
-                                              onChange={(e) => handleOptionChange(qId, i, e.target.value)}
+                                              value={optText}
+                                              onChange={(e) => handleOptionChange(qId, letter, e.target.value)}
                                               className="w-full p-2 border border-gray-300 rounded font-mono text-sm"
                                               rows={2}
                                             />
-                                            <ImagePreview text={options[i] || ''} />
+                                            <ImagePreview text={optText} />
                                           </div>
                                         ) : (
-                                          <div className="flex-1">{renderWithImages(options[i] || '')}</div>
+                                          <div className="flex-1 [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain">{renderWithImages(optText)}</div>
                                         )}
                                       </div>
                                     </div>
-                                  ))}
+                                    )
+                                  })}
                                 </div>
                               </div>
 

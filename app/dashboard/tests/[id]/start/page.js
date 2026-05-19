@@ -120,28 +120,6 @@ export default function TakeTestPage() {
   const [isDraggingRef, setIsDraggingRef] = useState(false)
   const dragStartRefPos = useRef({ x: 0, y: 0 })
 
-  const renderWithImages = (text) => {
-    if (!text) return null
-    const str = String(text)
-    const regex = /(!\[.*?\]\(.*?\))/g
-    const parts = str.split(regex)
-    return parts.map((part, i) => {
-      const match = part.match(/!\[(.*?)\]\((.*?)\)/)
-      if (match) {
-        const alt = match[1] || ''
-        const url = match[2] || ''
-        return (
-          <img
-            key={`img-${i}`}
-            src={url}
-            alt={alt}
-            className="max-w-full h-auto my-3 rounded border"
-          />
-        )
-      }
-      return <span key={`txt-${i}`}>{part}</span>
-    })
-  }
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -1894,7 +1872,7 @@ export default function TakeTestPage() {
                               <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold transition-colors ${circleStyle}`}>
                                 {option}
                               </div>
-                              <div className={`flex-1 pt-1 text-base sm:text-lg leading-relaxed ${
+                              <div className={`flex-1 pt-1 text-base sm:text-lg leading-relaxed [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain ${
                                 isElim ? 'text-gray-400 line-through decoration-2 decoration-gray-400' : 'text-gray-900'
                               }`}>
                                 {renderWithImages(currentQ?.[`option${option}`])}

@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('next:', p.dependencies.next\\)\")"
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('next:', p.dependencies.next\\)\")",
+      "Bash(Get-ChildItem -Path \"d:\\\\OFFICE WORK\\\\dsatguru-next\\\\app\\\\components\" -Recurse -Filter \"*test*\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object FullName)",
+      "Bash(xargs grep -l \"student.*test\\\\|taking.*test\\\\|exam.*interface\")",
+      "Bash(xargs grep -l \"student.*question\\\\|RenderQuestion\\\\|DisplayQuestion\")"
     ]
   }
 }
