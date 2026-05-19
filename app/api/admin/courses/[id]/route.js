@@ -14,10 +14,23 @@ export async function PUT(request, { params }) {
     
     const body = await request.json()
     const { id } = params
-    
+
+    const updateData = {
+      ...body,
+      highlights: body.highlights?.filter(h => (typeof h === 'string' ? h.trim() : h?.text)?.trim() !== '')
+        .map((h, index) => typeof h === 'string'
+          ? { text: h, sequenceOrder: index }
+          : { text: h.text, sequenceOrder: h.sequenceOrder ?? index }) || [],
+      schedules: body.schedules?.filter(s => (typeof s === 'string' ? s : `${s?.day || ''} ${s?.time || ''}`).trim() !== '')
+        .map(s => typeof s === 'string'
+          ? { day: s.trim().split(' ')[0] || '', time: s.trim().split(' ').slice(1).join(' ') || '' }
+          : { day: s.day || '', time: s.time || '' }) || [],
+      faqs: body.faqs?.filter(f => f.question && f.answer) || []
+    }
+
     const updatedCourse = await Course.findByIdAndUpdate(
       id,
-      { ...body },
+      updateData,
       { new: true }
     )
     
