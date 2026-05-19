@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevronDown, FiChevronUp, FiActivity, FiMonitor, FiMaximize, FiCheckSquare, FiUsers, FiRefreshCw, FiDownload, FiShare2, FiX } from 'react-icons/fi'
 import ReassignTestModal from './admin/ReassignTestModal'
+import { renderContent } from './admin/LatexRenderer'
 
 export default function TestResultView({ testId, sessionId, returnUrl, viewMode, viewAnalysis }) {
   const router = useRouter()
@@ -1334,7 +1335,12 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
 
                             {/* Question Content */}
                             <div className="mb-6">
-                                <p className="text-gray-800 text-sm leading-relaxed mb-4">{q.content || q.questionText}</p>
+                                {q.questionParagraph && (
+                                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-gray-700">
+                                    {renderContent(q.questionParagraph)}
+                                  </div>
+                                )}
+                                <div className="text-gray-800 text-sm leading-relaxed mb-4">{renderContent(q.content || q.questionText)}</div>
                                 {/* Options */}
                                 <div className="space-y-2">
                                     {q.options && (typeof q.options === 'object') && (q.options.A || q.options.B || q.options.C || q.options.D) ? (
@@ -1343,7 +1349,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                             const isCorrect = q.correctAnswer === opt
                                             const isSelected = q.userAnswer === opt
                                             const isWrongSelection = isSelected && !q.isCorrect
-                                            
+
                                             // Get option text
                                             const optionText = q.options[opt] || q[`option${opt}`] || ''
 
@@ -1367,9 +1373,9 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                                     <div className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold flex-shrink-0 ${badgeStyle}`}>
                                                         {opt}
                                                     </div>
-                                                    <span className={`text-sm ${textStyle} flex-1`}>
-                                                        {optionText || <span className="text-gray-400 italic">No text</span>}
-                                                    </span>
+                                                    <div className={`text-sm ${textStyle} flex-1 [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain`}>
+                                                        {optionText ? renderContent(optionText) : <span className="text-gray-400 italic">No text</span>}
+                                                    </div>
                                                     {isCorrect && (
                                                         <FiCheckCircle className="ml-auto text-green-600 w-5 h-5 flex-shrink-0" />
                                                     )}
@@ -1643,8 +1649,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                                 </div>
                                                 <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wide">Short Explanation</h4>
                                             </div>
-                                            <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
-                                                <div dangerouslySetInnerHTML={{ __html: q.shortExplanation }} />
+                                            <div className="text-sm text-gray-700 leading-relaxed">
+                                                {renderContent(q.shortExplanation)}
                                             </div>
                                         </div>
                                     )}
@@ -1658,8 +1664,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                                 </div>
                                                 <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wide">Detailed Explanation</h4>
                                             </div>
-                                            <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
-                                                <div dangerouslySetInnerHTML={{ __html: q.longExplanation }} />
+                                            <div className="text-sm text-gray-700 leading-relaxed">
+                                                {renderContent(q.longExplanation)}
                                             </div>
                                         </div>
                                     )}
