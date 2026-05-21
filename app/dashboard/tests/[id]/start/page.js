@@ -45,6 +45,9 @@ export default function TakeTestPage() {
   const [lineReaderPos, setLineReaderPos] = useState(50) // Percentage from top
   const [assistiveTechMode, setAssistiveTechMode] = useState(false)
   const [eliminatedAnswers, setEliminatedAnswers] = useState({}) // { questionId: ['A', 'C'] }
+  const [fontSize, setFontSize] = useState(1) // 0=sm 1=base 2=lg 3=xl
+  const fontSizeClasses = ['text-sm', 'text-base', 'text-lg', 'text-xl']
+  const fontSizeClass = fontSizeClasses[fontSize]
   const [showRWInstructions, setShowRWInstructions] = useState(false)
   const [showMathInstructions, setShowMathInstructions] = useState(false)
   const [showAnswer, setShowAnswer] = useState(false) // For Tutor Mode
@@ -1589,7 +1592,24 @@ export default function TakeTestPage() {
               </button>
             </>
           )}
-          <button 
+          {/* Font Size Controls */}
+          <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setFontSize(f => Math.max(0, f - 1))}
+              disabled={fontSize === 0}
+              className="px-2 py-1.5 text-sm font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-30"
+              title="Decrease font size"
+            >A<sup>-</sup></button>
+            <span className="text-gray-300 text-xs">|</span>
+            <button
+              onClick={() => setFontSize(f => Math.min(3, f + 1))}
+              disabled={fontSize === 3}
+              className="px-2 py-1.5 text-sm font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-30"
+              title="Increase font size"
+            >A<sup>+</sup></button>
+          </div>
+
+          <button
             onClick={() => setShowFlagModal(true)}
             className="text-gray-600 hover:text-gray-800 p-2"
             title="Flag Question"
@@ -1719,15 +1739,15 @@ export default function TakeTestPage() {
             {/* Passage/Context */}
             {currentQ?.questionParagraph && (
               <div className="prose max-w-none mb-8">
-                <p className="text-gray-800 leading-relaxed whitespace-pre-line">
+                <p className={`text-gray-800 leading-relaxed whitespace-pre-line ${fontSizeClass}`}>
                   {currentQ.questionParagraph}
                 </p>
               </div>
             )}
-            
+
             {/* Question Text */}
             <div className="mt-6">
-              <div className="text-gray-900 text-base leading-relaxed font-medium">
+              <div className={`text-gray-900 leading-relaxed font-medium ${fontSizeClass}`}>
                 {renderWithImages(currentQ?.question || currentQ?.content)}
               </div>
             </div>
@@ -1872,7 +1892,7 @@ export default function TakeTestPage() {
                               <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold transition-colors ${circleStyle}`}>
                                 {option}
                               </div>
-                              <div className={`flex-1 pt-1 text-base sm:text-lg leading-relaxed [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain ${
+                              <div className={`flex-1 pt-1 leading-relaxed [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain ${fontSizeClass} ${
                                 isElim ? 'text-gray-400 line-through decoration-2 decoration-gray-400' : 'text-gray-900'
                               }`}>
                                 {renderWithImages(currentQ?.[`option${option}`])}
