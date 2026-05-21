@@ -256,10 +256,11 @@ export default function AdminTestSheets() {
   const handleOptionChange = (questionId, optionKey, value) => {
     const currentQuestion = testQuestions.find(q => (q.id || q._id) === questionId)
     const currentEdited = editedQuestionsData[questionId] || currentQuestion
-    const currentOptions = typeof currentEdited.options === 'string' ? JSON.parse(currentEdited.options) : (currentEdited.options || {})
-    const newOptions = Array.isArray(currentOptions)
-      ? currentOptions.map((opt, i) => String.fromCharCode(65 + i) === optionKey ? value : opt)
-      : { ...currentOptions, [optionKey]: value }
+    let currentOptions = (() => { try { return typeof currentEdited.options === 'string' ? JSON.parse(currentEdited.options) : (currentEdited.options || {}) } catch(e) { return {} } })()
+    if (Array.isArray(currentOptions)) {
+      currentOptions = { A: currentOptions[0] || '', B: currentOptions[1] || '', C: currentOptions[2] || '', D: currentOptions[3] || '' }
+    }
+    const newOptions = { ...currentOptions, [optionKey]: value }
     setEditedQuestionsData(prev => ({ ...prev, [questionId]: { ...currentEdited, options: newOptions } }))
     setTestQuestions(prev => prev.map(q => (q.id || q._id) === questionId ? { ...q, options: newOptions } : q))
   }
@@ -375,7 +376,18 @@ export default function AdminTestSheets() {
                     const q = testQuestions[currentQuestionIndex]
                     if (!q) return null
                     const isEditing = isEditMode && editingQuestionId === (q.id || q._id)
-                    const options = typeof q.options === 'string' ? JSON.parse(q.options) : q.options
+                    let options = null
+                    try {
+                      const _raw = typeof q.options === 'string' ? JSON.parse(q.options) : q.options
+                      if (Array.isArray(_raw)) {
+                        options = { A: _raw[0] || '', B: _raw[1] || '', C: _raw[2] || '', D: _raw[3] || '' }
+                      } else if (_raw && typeof _raw === 'object') {
+                        options = _raw
+                      }
+                    } catch(e) {}
+                    if (!options && (q.optionA || q.optionB || q.optionC || q.optionD)) {
+                      options = { A: q.optionA || '', B: q.optionB || '', C: q.optionC || '', D: q.optionD || '' }
+                    }
                     return (
                       <div className="max-w-4xl mx-auto space-y-6">
                         <div className="flex justify-end">
@@ -442,40 +454,54 @@ export default function AdminTestSheets() {
                                     </div>
                                   )
                                 })}
+                                {isEditing && (
+                                  <div className="mt-2">
+                                    <span className="text-sm font-semibold text-gray-700">Correct Answer</span>
+                                    <select value={q.correctAnswer || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'correctAnswer', e.target.value)} className="w-full mt-1 p-2 border border-gray-300 rounded-lg">
+                                      <option value="A">A</option>
+                                      <option value="B">B</option>
+                                      <option value="C">C</option>
+                                      <option value="D">D</option>
+                                    </select>
+                                  </div>
+                                )}
                               </div>
                             )
                           }
                           return (
                             <div className="p-4 border-2 border-green-500 bg-green-50 rounded-lg">
                               <span className="text-xs font-semibold text-green-700 uppercase">Correct Answer (Fill-in-the-Blank)</span>
-                              <p className="text-lg font-bold text-green-900 mt-1">{q.correctAnswer}</p>
+                              {isEditing
+                                ? <input type="text" value={q.correctAnswer || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'correctAnswer', e.target.value)} className="w-full mt-2 p-2 border border-gray-300 rounded-lg" placeholder="Enter correct answer..." />
+                                : <p className="text-lg font-bold text-green-900 mt-1">{q.correctAnswer}</p>
+                              }
                             </div>
                           )
                         })()}
 
                         {/* Explanations */}
-                        {(q.shortExplanation || q.longExplanation || q.explanation) && (
-                          <div className="space-y-3">
-                            {q.shortExplanation && (
-                              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                <span className="text-xs font-semibold text-yellow-700 uppercase">Short Explanation</span>
-                                <div className="mt-2 text-sm text-gray-700">{renderWithImages(q.shortExplanation)}</div>
-                              </div>
-                            )}
-                            {q.longExplanation && (
-                              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                                <span className="text-xs font-semibold text-purple-700 uppercase">Long Explanation</span>
-                                <div className="mt-2 text-sm text-gray-700">{renderWithImages(q.longExplanation)}</div>
-                              </div>
-                            )}
-                            {q.explanation && !q.shortExplanation && !q.longExplanation && (
-                              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                                <span className="text-xs font-semibold text-gray-700 uppercase">Explanation</span>
-                                <div className="mt-2 text-sm text-gray-700">{renderWithImages(q.explanation)}</div>
-                              </div>
-                            )}
+                        <div className="space-y-3">
+                          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <span className="text-xs font-semibold text-yellow-700 uppercase">Short Explanation</span>
+                            {isEditing
+                              ? <textarea className="w-full mt-2 p-2 border rounded text-sm" rows={3} value={q.shortExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'shortExplanation', e.target.value)} placeholder="Add short explanation..." />
+                              : <div className="mt-2 text-sm text-gray-700 min-h-[24px]">{q.shortExplanation ? renderWithImages(q.shortExplanation) : <span className="text-gray-400 italic">No short explanation added</span>}</div>
+                            }
                           </div>
-                        )}
+                          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                            <span className="text-xs font-semibold text-purple-700 uppercase">Long Explanation</span>
+                            {isEditing
+                              ? <textarea className="w-full mt-2 p-2 border rounded text-sm" rows={5} value={q.longExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'longExplanation', e.target.value)} placeholder="Add long explanation..." />
+                              : <div className="mt-2 text-sm text-gray-700 min-h-[24px]">{q.longExplanation ? renderWithImages(q.longExplanation) : <span className="text-gray-400 italic">No long explanation added</span>}</div>
+                            }
+                          </div>
+                          {q.explanation && !q.shortExplanation && !q.longExplanation && !isEditing && (
+                            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                              <span className="text-xs font-semibold text-gray-700 uppercase">Explanation</span>
+                              <div className="mt-2 text-sm text-gray-700">{renderWithImages(q.explanation)}</div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )
                   })()

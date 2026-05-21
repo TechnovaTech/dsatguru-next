@@ -608,11 +608,11 @@ export default function TutorTestSheets() {
   const handleOptionChange = (questionId, optionKey, value) => {
     const currentQuestion = testQuestions.find(q => (q.id || q._id) === questionId)
     const currentEdited = editedQuestionsData[questionId] || currentQuestion
-    const currentOptions = typeof currentEdited.options === 'string' ? JSON.parse(currentEdited.options) : (currentEdited.options || {})
-    const newOptions = Array.isArray(currentOptions)
-      ? currentOptions.map((opt, i) => String.fromCharCode(65 + i) === optionKey ? value : opt)
-      : { ...currentOptions, [optionKey]: value }
-
+    let currentOptions = (() => { try { return typeof currentEdited.options === 'string' ? JSON.parse(currentEdited.options) : (currentEdited.options || {}) } catch(e) { return {} } })()
+    if (Array.isArray(currentOptions)) {
+      currentOptions = { A: currentOptions[0] || '', B: currentOptions[1] || '', C: currentOptions[2] || '', D: currentOptions[3] || '' }
+    }
+    const newOptions = { ...currentOptions, [optionKey]: value }
     setEditedQuestionsData(prev => ({ ...prev, [questionId]: { ...currentEdited, options: newOptions } }))
     setTestQuestions(prev => prev.map(q => (q.id || q._id) === questionId ? { ...q, options: newOptions } : q))
   }
@@ -945,7 +945,18 @@ export default function TutorTestSheets() {
                     
                     const qId = q.id || q._id
                     const isEditing = isEditMode && editingQuestionId === qId
-                    const options = typeof q.options === 'string' ? JSON.parse(q.options) : q.options
+                    let options = null
+                    try {
+                      const _raw = typeof q.options === 'string' ? JSON.parse(q.options) : q.options
+                      if (Array.isArray(_raw)) {
+                        options = { A: _raw[0] || '', B: _raw[1] || '', C: _raw[2] || '', D: _raw[3] || '' }
+                      } else if (_raw && typeof _raw === 'object') {
+                        options = _raw
+                      }
+                    } catch(e) {}
+                    if (!options && (q.optionA || q.optionB || q.optionC || q.optionD)) {
+                      options = { A: q.optionA || '', B: q.optionB || '', C: q.optionC || '', D: q.optionD || '' }
+                    }
                     const tags = typeof q.tags === 'string' ? JSON.parse(q.tags) : (Array.isArray(q.tags) ? q.tags : [])
                     
                     const ImagePreview = ({ text }) => {
@@ -1141,56 +1152,52 @@ export default function TutorTestSheets() {
                           )}
 
                           {/* Short Explanation */}
-                          {(q.shortExplanation || isEditing) && (
-                            <div className="mb-4">
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Short Explanation</label>
-                              {isEditing ? (
-                                <>
-                                  <textarea
-                                    value={q.shortExplanation || ''}
-                                    onChange={(e) => handleQuestionFieldChange(qId, 'shortExplanation', e.target.value)}
-                                    className="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm"
-                                    rows={3}
-                                    placeholder="Add short explanation..."
-                                  />
-                                  <ImagePreview text={q.shortExplanation || ''} />
-                                </>
-                              ) : (
-                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                                  <div className="text-gray-700 whitespace-pre-wrap text-sm">
-                                    {renderWithImages(q.shortExplanation)}
-                                  </div>
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Short Explanation</label>
+                            {isEditing ? (
+                              <>
+                                <textarea
+                                  value={q.shortExplanation || ''}
+                                  onChange={(e) => handleQuestionFieldChange(qId, 'shortExplanation', e.target.value)}
+                                  className="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm"
+                                  rows={3}
+                                  placeholder="Add short explanation..."
+                                />
+                                <ImagePreview text={q.shortExplanation || ''} />
+                              </>
+                            ) : (
+                              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 min-h-[48px]">
+                                <div className="text-gray-700 whitespace-pre-wrap text-sm">
+                                  {q.shortExplanation ? renderWithImages(q.shortExplanation) : <span className="text-gray-400 italic">No short explanation added</span>}
                                 </div>
-                              )}
-                            </div>
-                          )}
+                              </div>
+                            )}
+                          </div>
 
                           {/* Long Explanation */}
-                          {(q.longExplanation || isEditing) && (
-                            <div className="mb-4">
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Long Explanation</label>
-                              {isEditing ? (
-                                <>
-                                  <textarea
-                                    value={q.longExplanation || ''}
-                                    onChange={(e) => handleQuestionFieldChange(qId, 'longExplanation', e.target.value)}
-                                    className="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm"
-                                    rows={5}
-                                    placeholder="Add detailed explanation..."
-                                  />
-                                  <ImagePreview text={q.longExplanation || ''} />
-                                </>
-                              ) : (
-                                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
-                                  <div className="text-gray-700 whitespace-pre-wrap text-sm">
-                                    {renderWithImages(q.longExplanation)}
-                                  </div>
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Long Explanation</label>
+                            {isEditing ? (
+                              <>
+                                <textarea
+                                  value={q.longExplanation || ''}
+                                  onChange={(e) => handleQuestionFieldChange(qId, 'longExplanation', e.target.value)}
+                                  className="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm"
+                                  rows={5}
+                                  placeholder="Add detailed explanation..."
+                                />
+                                <ImagePreview text={q.longExplanation || ''} />
+                              </>
+                            ) : (
+                              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 min-h-[48px]">
+                                <div className="text-gray-700 whitespace-pre-wrap text-sm">
+                                  {q.longExplanation ? renderWithImages(q.longExplanation) : <span className="text-gray-400 italic">No long explanation added</span>}
                                 </div>
-                              )}
-                            </div>
-                          )}
+                              </div>
+                            )}
+                          </div>
 
-                          {/* General Explanation (if no short/long) */}
+                          {/* General Explanation fallback */}
                           {!q.shortExplanation && !q.longExplanation && q.explanation && !isEditing && (
                             <div className="mb-4">
                               <label className="block text-sm font-medium text-gray-700 mb-2">Explanation</label>
