@@ -1001,7 +1001,11 @@ export default function TutorTestSheets() {
                               }`}>
                                 {q.difficulty}
                               </span>
-                              
+
+                              <span className="px-2 py-1 text-xs font-mono bg-gray-100 text-gray-700 rounded border border-gray-300">
+                                ID: {q.questionId || (q.id || q._id || '').toString().slice(-8)}
+                              </span>
+
                               {tags.length > 0 && tags.map((tag, idx) => (
                                 <span key={idx} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full">
                                   {tag}

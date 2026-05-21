@@ -410,7 +410,7 @@ export default function AdminTestSheets() {
                           </div>
                           <div>
                             <span className="text-xs font-semibold text-gray-500 uppercase">Question ID</span>
-                            <p className="font-mono text-gray-900 mt-1 text-xs">{q.questionId || (q._id || '').toString().slice(-8)}</p>
+                            <p className="font-mono text-gray-900 mt-1 text-xs">{q.questionId || (q.id || q._id || '').toString().slice(-8)}</p>
                           </div>
                         </div>
 
