@@ -17,7 +17,7 @@ export default function AdminLayout({ children }) {
       if (!user || !['Admin', 'TutorAdmin'].includes(user.role)) {
         router.push('/login')
       } else if (user.role === 'TutorAdmin') {
-        setOpenSubmenu(prev => ({ ...prev, 'tutor-tests': true }))
+        setOpenSubmenu(prev => ({ ...prev, 'tutor-tests': true, 'tutor-module-tests': true }))
       }
     }
   }, [user, loading, router, pathname])
@@ -41,10 +41,10 @@ export default function AdminLayout({ children }) {
         { id: 'adaptive-results', label: 'Student Results', path: '/admin/adaptive-tests/results', icon: <FiAward /> }
       ]
     },
-    { 
-      id: 'tutor-tests', 
-      label: 'Tutor Tests', 
-      icon: <FiCheckSquare />, 
+    {
+      id: 'tutor-tests',
+      label: 'Tutor Tests',
+      icon: <FiCheckSquare />,
       path: '#',
       submenu: [
         { id: 'tutor-question-bank', label: 'Tutor Question Bank', path: '/admin/tutor/question-bank', icon: <FiDatabase /> },
@@ -52,6 +52,17 @@ export default function AdminLayout({ children }) {
         { id: 'tutor-test-sheets', label: 'Tutor Test Sheets', path: '/admin/tutor/tests', icon: <FiFileText /> },
         { id: 'tutor-users', label: 'Tutor and Students', path: '/admin/tutor/users', icon: <FiUsers /> },
         { id: 'tutor-results', label: 'Tutor Test Results', path: '/admin/tutor/results', icon: <FiAward /> }
+      ]
+    },
+    {
+      id: 'tutor-module-tests',
+      label: 'Tutor Module Tests',
+      icon: <FiMonitor />,
+      path: '#',
+      submenu: [
+        { id: 'module-create-test', label: 'Create Module Test', path: '/admin/tutor/module-tests/create', icon: <FiEdit /> },
+        { id: 'module-test-sheets', label: 'Module Test Sheets', path: '/admin/tutor/module-tests', icon: <FiFileText /> },
+        { id: 'module-test-results', label: 'Module Test Results', path: '/admin/tutor/module-tests/results', icon: <FiAward /> }
       ]
     },
     { 
@@ -82,29 +93,27 @@ export default function AdminLayout({ children }) {
 
   const filteredMenuItems = menuItems.filter(item => {
     if (user?.role === 'TutorAdmin') {
-      // TutorAdmin can only access Tutor Tests modules
-      return item.id === 'tutor-tests'
+      return item.id === 'tutor-tests' || item.id === 'tutor-module-tests'
     }
-    // Admin has full access
     return true
   })
 
   // Convert submenu to main menu items for TutorAdmin
   const getMenuItems = () => {
     if (user?.role === 'TutorAdmin') {
-      // Show all Tutor Tests submenus as main menu items
       const tutorTestsItem = menuItems.find(item => item.id === 'tutor-tests')
-      if (tutorTestsItem && tutorTestsItem.submenu) {
-        return tutorTestsItem.submenu.map(sub => ({
-          id: sub.id,
-          label: sub.label,
-          icon: sub.icon || <FiCheckSquare />,
-          path: sub.path
-        }))
+      const moduleTestsItem = menuItems.find(item => item.id === 'tutor-module-tests')
+      const items = []
+      if (tutorTestsItem?.submenu) {
+        items.push(...tutorTestsItem.submenu.map(sub => ({ id: sub.id, label: sub.label, icon: sub.icon || <FiCheckSquare />, path: sub.path })))
       }
-      return []
+      if (moduleTestsItem?.submenu) {
+        items.push({ id: 'tutor-module-tests-divider', label: '— Module Tests —', icon: <FiMonitor />, path: '#', isDivider: true })
+        items.push(...moduleTestsItem.submenu.map(sub => ({ id: sub.id, label: sub.label, icon: sub.icon || <FiMonitor />, path: sub.path })))
+      }
+      return items
     }
-    
+
     // Admin sees normal menu with submenus
     return filteredMenuItems
   }
@@ -146,12 +155,16 @@ export default function AdminLayout({ children }) {
         <nav className="p-4">
           {displayMenuItems.map((item) => (
             <div key={item.id}>
-              {item.submenu && user?.role === 'Admin' ? (
+              {item.isDivider ? (
+                <div className="px-4 py-2 mt-2 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100">Module Tests</div>
+              ) : item.submenu && user?.role === 'Admin' ? (
                 <>
                   <button 
                     onClick={() => toggleSubmenu(item.id)}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-lg mb-2 text-left transition-colors ${
-                      (item.id === 'tutor-tests' && pathname.startsWith('/admin/tutor')) || (item.id === 'admin-tests' && pathname.startsWith('/admin/admin-tests')) ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+                      (item.id === 'tutor-tests' && pathname.startsWith('/admin/tutor') && !pathname.startsWith('/admin/tutor/module-tests')) ||
+                      (item.id === 'tutor-module-tests' && pathname.startsWith('/admin/tutor/module-tests')) ||
+                      (item.id === 'admin-tests' && pathname.startsWith('/admin/admin-tests')) ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     <div className="flex items-center gap-3">

@@ -147,7 +147,7 @@ export default function TakeTestPage() {
     if (isDraggingCalc || isDraggingRef) {
       window.addEventListener('mousemove', handleMouseMove)
       window.addEventListener('mouseup', handleMouseUp)
-    }
+    } 
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
