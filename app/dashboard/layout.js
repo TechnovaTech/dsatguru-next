@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect } from 'react'
-import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock, FiVideo, FiUser, FiCalendar, FiMessageSquare, FiZap } from 'react-icons/fi'
+import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock, FiVideo, FiUser, FiCalendar, FiMessageSquare, FiZap, FiLayers } from 'react-icons/fi'
 import { TbMathSymbols } from 'react-icons/tb'
 import { useState } from 'react'
 import { FiAlertCircle } from 'react-icons/fi'
@@ -21,18 +21,27 @@ const navItems = [
       { name: "Practice History", icon: <FiClock />, path: "/dashboard/tests/history" },
     ]
   },
-  { 
-    name: "Tutor Test", 
-    icon: <FiBook />, 
+  {
+    name: "Tutor Test",
+    icon: <FiBook />,
     path: "/dashboard/tutor",
     children: [
       { name: "Tutor Math", icon: <FiActivity />, path: "/dashboard/tutor/math" },
       { name: "Tutor Read and Write", icon: <FiPieChart />, path: "/dashboard/tutor/rw" },
     ]
   },
-  { 
-    name: "Admin Tests", 
-    icon: <FiClipboard />, 
+  {
+    name: "Tutor Module Tests",
+    icon: <FiLayers />,
+    path: "/dashboard/tutor/module-tests",
+    children: [
+      { name: "Module Math Test", icon: <FiActivity />, path: "/dashboard/tutor/module-tests/math" },
+      { name: "Module R&W Test", icon: <FiPieChart />, path: "/dashboard/tutor/module-tests/rw" },
+    ]
+  },
+  {
+    name: "Admin Tests",
+    icon: <FiClipboard />,
     path: "/dashboard/admin-tests"
   },
   { name: "Adaptive Tests", icon: <FiZap />, path: "/dashboard/adaptive-tests" },

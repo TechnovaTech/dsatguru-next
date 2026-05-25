@@ -6,6 +6,9 @@
       "Bash(Select-Object FullName)",
       "Bash(xargs grep -l \"student.*test\\\\|taking.*test\\\\|exam.*interface\")",
       "Bash(xargs grep -l \"student.*question\\\\|RenderQuestion\\\\|DisplayQuestion\")"
+    ],
+    "additionalDirectories": [
+      "d:\\OFFICE WORK\\dsatguru-next\\app\\dashboard\\tests\\[id]"
     ]
   }
 }

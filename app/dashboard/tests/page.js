@@ -45,12 +45,16 @@ export default function TestsPage() {
     }
   }
 
-  const startTest = (testId) => {
-    if (completedTestIds.includes(String(testId))) {
+  const startTest = (test) => {
+    if (completedTestIds.includes(String(test._id))) {
       alert('You have already completed this test. Check your Test History to review it.')
       return
     }
-    router.push(`/dashboard/tests/${testId}/start`)
+    if (test.isModuleTest) {
+      router.push(`/dashboard/tests/${test._id}/module-start`)
+    } else {
+      router.push(`/dashboard/tests/${test._id}/start`)
+    }
   }
 
   if (loading) {
@@ -131,29 +135,46 @@ export default function TestsPage() {
                 </div>
 
                 <div className="space-y-3 mb-6">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <FiClock size={16} />
-                    <span>Duration: {test.practiceMode === 'tutor' ? 'Untimed' : `${test.duration || 180} minutes`}</span>
-                  </div>
-                  
-                  <div className="border-t pt-3">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Sections:</p>
-                    <div className="flex gap-2">
-                      {test.sections?.math && (
-                        <span className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded">
-                          Math
-                        </span>
-                      )}
-                      {test.sections?.rw && (
-                        <span className="px-2 py-1 text-xs bg-green-50 text-green-700 rounded">
-                          Reading & Writing
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
+                  {test.isModuleTest && Array.isArray(test.modules) ? (
+                    <>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <FiFileText size={16} />
+                        <span>{test.modules.length} Module{test.modules.length > 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="border-t pt-3 space-y-1">
+                        {test.modules.map((m, i) => (
+                          <div key={i} className="flex items-center gap-2 text-xs text-gray-600">
+                            <span className="font-medium text-gray-700">M{i + 1}:</span>
+                            <span>{m.subject}</span>
+                            <span>•</span>
+                            <span>{m.numberOfQuestions || m.questions?.length || 0}q</span>
+                            <span>•</span>
+                            <span>{m.isTimed ? `${m.duration}min` : 'Untimed'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <FiClock size={16} />
+                        <span>Duration: {test.practiceMode === 'tutor' ? 'Untimed' : `${test.duration || 180} minutes`}</span>
+                      </div>
+                      <div className="border-t pt-3">
+                        <p className="text-sm font-medium text-gray-700 mb-2">Sections:</p>
+                        <div className="flex gap-2">
+                          {test.sections?.math && (
+                            <span className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded">Math</span>
+                          )}
+                          {test.sections?.rw && (
+                            <span className="px-2 py-1 text-xs bg-green-50 text-green-700 rounded">Reading & Writing</span>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
                   <div className="text-xs text-gray-500">
-                    Type: {typeLabel}
+                    Type: {test.isModuleTest ? 'Module Test' : typeLabel}
                   </div>
                 </div>
 
@@ -167,7 +188,7 @@ export default function TestsPage() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => startTest(test._id)}
+                    onClick={() => startTest(test)}
                     className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                   >
                     <FiPlay size={18} />
