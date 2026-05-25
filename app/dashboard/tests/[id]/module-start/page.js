@@ -29,6 +29,8 @@ export default function ModuleTestPage() {
   const [autoSubmitReason, setAutoSubmitReason] = useState('')
   const [showStartScreen, setShowStartScreen] = useState(true)
   const [showModuleIntro, setShowModuleIntro] = useState(false)
+  const [showBreakScreen, setShowBreakScreen] = useState(false)
+  const [breakCountdown, setBreakCountdown] = useState(0)
   const startTime = useRef(new Date())
 
   // Tools
@@ -120,6 +122,21 @@ export default function ModuleTestPage() {
     return () => clearInterval(timer)
   }, [timeRemaining, currentModuleIdx, loading, showModuleSummary, testCompleted])
 
+  // Break countdown timer
+  useEffect(() => {
+    if (!showBreakScreen || breakCountdown <= 0) return
+    const timer = setTimeout(() => {
+      if (breakCountdown <= 1) {
+        setBreakCountdown(0)
+        setShowBreakScreen(false)
+        setShowModuleIntro(true)
+      } else {
+        setBreakCountdown(p => p - 1)
+      }
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [showBreakScreen, breakCountdown])
+
   // Auto-enter fullscreen only after start screen dismissed
   useEffect(() => {
     if (!loading && !testCompleted && !showModuleSummary && !showStartScreen && modules.length > 0 && !isFullscreen) {
@@ -130,11 +147,11 @@ export default function ModuleTestPage() {
   // Fullscreen & tab detection
   useEffect(() => {
     const onVisibility = () => {
-      if (document.hidden && isFullscreen && !testCompleted && !showModuleSummary && !showStartScreen && !showModuleIntro)
+      if (document.hidden && isFullscreen && !testCompleted && !showModuleSummary && !showStartScreen && !showModuleIntro && !showBreakScreen)
         autoSubmit('You switched tabs during the test.')
     }
     const onFSChange = () => {
-      if (!document.fullscreenElement && isFullscreen && !testCompleted && !showModuleSummary && !showStartScreen && !showModuleIntro)
+      if (!document.fullscreenElement && isFullscreen && !testCompleted && !showModuleSummary && !showStartScreen && !showModuleIntro && !showBreakScreen)
         autoSubmit('You exited fullscreen mode.')
     }
     const onKey = (e) => {
@@ -258,13 +275,19 @@ export default function ModuleTestPage() {
 
   const handleNextModule = () => {
     const nextIdx = currentModuleIdx + 1
+    const breakMins = parseInt(modules[currentModuleIdx]?.breakAfter) || 0
     setCurrentModuleIdx(nextIdx)
     setCurrentQIdx(0)
     setShowModuleSummary(false)
-    setShowModuleIntro(true)
     const nextMod = modules[nextIdx]
     if (nextMod?.isTimed && nextMod?.duration) setTimeRemaining(nextMod.duration * 60)
     else setTimeRemaining(0)
+    if (breakMins > 0) {
+      setBreakCountdown(breakMins * 60)
+      setShowBreakScreen(true)
+    } else {
+      setShowModuleIntro(true)
+    }
   }
 
   const handleSubmitTest = async (isAuto = false) => {
@@ -335,12 +358,17 @@ export default function ModuleTestPage() {
             <FiAlertTriangle className="text-blue-600" size={40} />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">{test?.title}</h2>
-          <p className="text-gray-500">{modules.length} Module{modules.length > 1 ? 's' : ''} • {modules.map(m => `${m.subject === 'Reading and Writing' ? 'R&W' : m.subject} (${m.numberOfQuestions || m.questions?.length || 0}q)`).join(' → ')}</p>
+          <p className="text-gray-500">{modules.length} Module{modules.length > 1 ? 's' : ''} • {modules.map((m, i) => {
+            const part = `${m.subject === 'Reading and Writing' ? 'R&W' : m.subject} (${m.numberOfQuestions || m.questions?.length || 0}q)`
+            const brk = i < modules.length - 1 && parseInt(m.breakAfter) > 0 ? ` → [${m.breakAfter}min break]` : ''
+            return part + brk
+          }).join(' → ')}</p>
         </div>
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r-lg">
           <ul className="space-y-2 text-sm text-gray-700">
             <li>✓ Test will run in fullscreen mode</li>
             <li>✓ Each module has its own timer</li>
+            {modules.some(m => parseInt(m.breakAfter) > 0) && <li>✓ Scheduled breaks between modules — module starts automatically after break</li>}
             <li>⚠️ Switching tabs will auto-submit the test</li>
             <li>⚠️ Exiting fullscreen will auto-submit the test</li>
             <li>⚠️ Minimizing window will auto-submit the test</li>
@@ -364,6 +392,41 @@ export default function ModuleTestPage() {
       </div>
     </div>
   )
+
+  // Break screen between modules
+  if (showBreakScreen) {
+    const nextMod = modules[currentModuleIdx]
+    const mins = Math.floor(breakCountdown / 60)
+    const secs = breakCountdown % 60
+    const pct = breakCountdown / (parseInt(modules[currentModuleIdx - 1]?.breakAfter) * 60 || 1) * 100
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+          <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+            <FiClock className="text-green-600" size={36} />
+          </div>
+          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">Break Time</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">Rest Before Module {currentModuleIdx + 1}</h2>
+          <p className="text-gray-500 text-sm mb-6">
+            Next: {nextMod?.subject === 'Reading and Writing' ? 'Reading & Writing' : nextMod?.subject} — {nextMod?.numberOfQuestions || nextMod?.questions?.length || 0} Questions
+          </p>
+          <div className="text-6xl font-mono font-bold text-green-600 mb-2">
+            {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
+          </div>
+          <p className="text-sm text-gray-400 mb-6">Module starts automatically when timer ends</p>
+          <div className="w-full bg-gray-100 rounded-full h-2 mb-6">
+            <div className="bg-green-500 h-2 rounded-full transition-all duration-1000" style={{ width: `${Math.max(0, Math.min(100, (1 - breakCountdown / (parseInt(modules[currentModuleIdx - 1]?.breakAfter) * 60 || breakCountdown)) * 100))}%` }} />
+          </div>
+          <button
+            onClick={() => { setShowBreakScreen(false); setShowModuleIntro(true) }}
+            className="w-full py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors"
+          >
+            Start Module {currentModuleIdx + 1} Early
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   // Module intro screen
   if (showModuleIntro) {

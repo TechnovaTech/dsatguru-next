@@ -12,7 +12,7 @@ const mathSubtopics = {
 }
 const rwTopics = { 'craft-structure': 'Craft and Structure', 'information-ideas': 'Information and Ideas', 'standard-english-conventions': 'Standard English Conventions', 'expression-ideas': 'Expression of Ideas' }
 
-const makeDefaultModule = (subject = 'Math') => ({ subject, numberOfQuestions: 10, isTimed: true, duration: 30 })
+const makeDefaultModule = (subject = 'Math') => ({ subject, numberOfQuestions: 10, isTimed: true, duration: 30, breakAfter: 0 })
 
 export default function CreateModuleTest() {
   const router = useRouter()
@@ -210,7 +210,8 @@ export default function CreateModuleTest() {
         questions: selectedQuestions[i],
         duration: cfg.isTimed ? parseInt(cfg.duration) : 0,
         isTimed: cfg.isTimed,
-        numberOfQuestions: parseInt(cfg.numberOfQuestions)
+        numberOfQuestions: parseInt(cfg.numberOfQuestions),
+        breakAfter: i < moduleConfigs.length - 1 ? (parseInt(cfg.breakAfter) || 0) : 0
       }))
       const res = await fetch('/api/admin/tutor/module-tests/create', {
         method: 'POST',
@@ -327,6 +328,23 @@ export default function CreateModuleTest() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Time Limit (minutes)</label>
                     <input type="number" min="5" max="180" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value={cfg.duration || ''} onChange={e => updateModuleConfig(activeModuleTab, 'duration', e.target.value)} placeholder="Enter time limit" />
+                  </div>
+                )}
+
+                {activeModuleTab < numberOfModules - 1 && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <label className="block text-sm font-medium text-amber-800 mb-2">
+                      <FiClock className="inline w-4 h-4 mr-1" />
+                      Break Time after Module {activeModuleTab + 1} → Module {activeModuleTab + 2} (minutes)
+                    </label>
+                    <input
+                      type="number" min="0" max="60"
+                      className="w-full p-3 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white"
+                      value={cfg.breakAfter ?? 0}
+                      onChange={e => updateModuleConfig(activeModuleTab, 'breakAfter', parseInt(e.target.value) || 0)}
+                      placeholder="0 = no break"
+                    />
+                    <p className="text-xs text-amber-700 mt-1">Set 0 for no break between modules</p>
                   </div>
                 )}
 
