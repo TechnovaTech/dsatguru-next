@@ -13,24 +13,36 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { title, subject, questionIds, customQuestions, duration, isTimed } = await request.json()
+    const { title, numberOfModules, modules, customQuestions } = await request.json()
 
-    if (!title || !subject || !questionIds || questionIds.length === 0) {
+    if (!title || !modules || modules.length === 0) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    for (let i = 0; i < modules.length; i++) {
+      const m = modules[i]
+      if (!m.questions || m.questions.length === 0) {
+        return NextResponse.json({ error: `Module ${i + 1} has no questions selected` }, { status: 400 })
+      }
     }
 
     const existing = await Test.findOne({ title: title.trim(), isModuleTest: true })
     if (existing) {
-      return NextResponse.json({ error: `A module test named "${title.trim()}" already exists. Please use a different name.` }, { status: 409 })
+      return NextResponse.json({ error: `A module test named "${title.trim()}" already exists.` }, { status: 409 })
     }
+
+    // Flat union of all question IDs for backward compat
+    const allQuestionIds = modules.flatMap(m => m.questions)
 
     const test = await Test.create({
       title,
-      subject,
-      questions: questionIds,
+      subject: modules[0]?.subject || 'Math',
+      questions: allQuestionIds,
       customQuestions: customQuestions || null,
-      duration: duration || 0,
-      isTimed: isTimed === true,
+      duration: modules[0]?.duration || 0,
+      isTimed: modules[0]?.isTimed ?? true,
+      numberOfModules: numberOfModules || modules.length,
+      modules,
       isTutorTest: true,
       isModuleTest: true,
       practiceMode: 'tutor',
