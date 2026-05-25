@@ -37,6 +37,7 @@ export async function POST(request) {
       practiceMode: 'tutor',
       totalQuestions: questionIds.length,
       duration: originalTest.duration,
+      isTimed: originalTest.isTimed,
       showExplanation: originalTest.showExplanation,
       configType: 'custom',
       difficulty: originalTest.difficulty,
@@ -44,7 +45,9 @@ export async function POST(request) {
       sections: originalTest.sections,
       filters: originalTest.filters,
       isReassigned: true,
-      originalTestId: originalTestId
+      originalTestId: originalTestId,
+      // Keep isModuleTest flag so reassigned module tests don't appear in regular tutor pages
+      ...(originalTest.isModuleTest && { isModuleTest: true })
     })
 
     // Create a new test session for the user

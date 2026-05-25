@@ -5,10 +5,12 @@
       "Bash(Get-ChildItem -Path \"d:\\\\OFFICE WORK\\\\dsatguru-next\\\\app\\\\components\" -Recurse -Filter \"*test*\" -ErrorAction SilentlyContinue)",
       "Bash(Select-Object FullName)",
       "Bash(xargs grep -l \"student.*test\\\\|taking.*test\\\\|exam.*interface\")",
-      "Bash(xargs grep -l \"student.*question\\\\|RenderQuestion\\\\|DisplayQuestion\")"
+      "Bash(xargs grep -l \"student.*question\\\\|RenderQuestion\\\\|DisplayQuestion\")",
+      "Bash(mkdir -p \"d:\\\\OFFICE WORK\\\\dsatguru-next\\\\app\\\\admin\\\\tutor\\\\module-tests\\\\results\\\\[id]\")"
     ],
     "additionalDirectories": [
-      "d:\\OFFICE WORK\\dsatguru-next\\app\\dashboard\\tests\\[id]"
+      "d:\\OFFICE WORK\\dsatguru-next\\app\\dashboard\\tests\\[id]",
+      "d:\\OFFICE WORK\\dsatguru-next\\app\\admin\\tutor\\module-tests\\results"
     ]
   }
 }

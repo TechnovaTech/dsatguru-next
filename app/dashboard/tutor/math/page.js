@@ -48,10 +48,8 @@ export default function TutorMathPage() {
 
         // Ensure testId exists and is a Tutor test
         // EXCLUDE Admin tests (practiceMode === 'admin')
-        const isTutor = (s.testId?.practiceMode === 'tutor' || s.testId?.isTutorTest === true) && s.testId?.practiceMode !== 'admin'
-        
-        // STRICT Filtering: Only show tests explicitly marked as 'Math'
-        // FALLBACK: If 'subject' is missing (legacy data), check 'sections.math'
+        const isTutor = (s.testId?.practiceMode === 'tutor' || s.testId?.isTutorTest === true) && s.testId?.practiceMode !== 'admin' && !s.testId?.isModuleTest
+
         const isMath = s.testId?.subject === 'Math' || (!s.testId?.subject && s.testId?.sections?.math === true)
         
         // Check if test is assigned to this student

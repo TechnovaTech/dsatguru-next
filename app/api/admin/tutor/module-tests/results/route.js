@@ -30,6 +30,7 @@ export async function GET(request) {
       subject: session.testId.subject || 'N/A',
       completedAt: session.completedAt || session.updatedAt,
       totalScore: session.totalScore || 0,
+      moduleScores: session.moduleScores || {},
       analysisSubmitted: session.analysisSubmitted || false
     }))
 

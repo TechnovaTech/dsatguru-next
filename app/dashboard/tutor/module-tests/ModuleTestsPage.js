@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlay, FiFileText, FiCheckCircle, FiLayers } from 'react-icons/fi'
+import { FiPlay, FiFileText, FiCheckCircle, FiLayers, FiClock } from 'react-icons/fi'
 
 export default function ModuleTestsPage({ subject }) {
   const router = useRouter()
@@ -23,6 +23,8 @@ export default function ModuleTestsPage({ subject }) {
       const filtered = sessions.filter(s => {
         if (!s.testId?.isModuleTest) return false
         const modules = s.testId?.modules || []
+        // Reassigned module tests have no modules array — match by test subject directly
+        if (modules.length === 0) return s.testId?.subject === subject
         return modules.some(m => m.subject === subject)
       })
       setHistory(filtered)
@@ -73,7 +75,12 @@ export default function ModuleTestsPage({ subject }) {
 
         <div className="space-y-3">
           {(() => {
-            const filtered = history.filter(h => h.status === statusMap[activeTab])
+            const filtered = history.filter(h => {
+              if (h.status !== statusMap[activeTab]) return false
+              // Hide reassigned sessions from Completed and In Progress tabs
+              if (activeTab !== 'Assigned' && h.isReassigned) return false
+              return true
+            })
             if (!filtered.length) return (
               <div className="text-center py-16 bg-white rounded-lg border border-dashed border-gray-300">
                 <FiFileText className="mx-auto w-8 h-8 text-gray-400 mb-3" />
@@ -85,6 +92,7 @@ export default function ModuleTestsPage({ subject }) {
               const test = session.testId
               const modules = test?.modules || []
               const totalQ = modules.reduce((s, m) => s + (m.numberOfQuestions || m.questions?.length || 0), 0)
+              const isReassigned = test?.isReassigned === true
               return (
                 <div key={session._id} className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-all">
                   <div className="flex-1">
@@ -114,11 +122,13 @@ export default function ModuleTestsPage({ subject }) {
                   <div>
                     {session.status === 'Completed' ? (
                       <button onClick={() => router.push(`/dashboard/tests/${test?._id}/results?session_id=${session._id}&returnUrl=${returnUrl}`)}
-                        className="px-6 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
-                        <FiCheckCircle className="w-4 h-4" /> View Results
+                        className={`px-6 py-2 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2 ${
+                          session.analysisSubmitted ? 'bg-green-600 hover:bg-green-700' : 'bg-purple-900 hover:bg-purple-800'
+                        }`}>
+                        <FiCheckCircle className="w-4 h-4" /> {session.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
                       </button>
                     ) : (
-                      <button onClick={() => router.push(`/dashboard/tests/${test?._id}/module-start`)}
+                      <button onClick={() => router.push(`/dashboard/tests/${test?._id}/module-start?sessionId=${session._id}&returnUrl=${returnUrl}`)}
                         className="px-6 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
                         <FiPlay className="w-4 h-4" /> {session.status === 'InProgress' ? 'Resume' : 'Start Test'}
                       </button>

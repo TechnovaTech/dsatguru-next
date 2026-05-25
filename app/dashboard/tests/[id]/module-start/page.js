@@ -27,6 +27,8 @@ export default function ModuleTestPage() {
   const [saving, setSaving] = useState(false)
   const [alreadyTaken, setAlreadyTaken] = useState(false)
   const [autoSubmitReason, setAutoSubmitReason] = useState('')
+  const [showStartScreen, setShowStartScreen] = useState(true)
+  const [showModuleIntro, setShowModuleIntro] = useState(false)
   const startTime = useRef(new Date())
 
   // Tools
@@ -118,30 +120,30 @@ export default function ModuleTestPage() {
     return () => clearInterval(timer)
   }, [timeRemaining, currentModuleIdx, loading, showModuleSummary, testCompleted])
 
-  // Auto-enter fullscreen
+  // Auto-enter fullscreen only after start screen dismissed
   useEffect(() => {
-    if (!loading && !testCompleted && !showModuleSummary && modules.length > 0 && !isFullscreen) {
+    if (!loading && !testCompleted && !showModuleSummary && !showStartScreen && modules.length > 0 && !isFullscreen) {
       enterFullscreen()
     }
-  }, [loading, modules.length])
+  }, [loading, modules.length, showStartScreen])
 
   // Fullscreen & tab detection
   useEffect(() => {
     const onVisibility = () => {
-      if (document.hidden && isFullscreen && !testCompleted && !showModuleSummary)
+      if (document.hidden && isFullscreen && !testCompleted && !showModuleSummary && !showStartScreen && !showModuleIntro)
         autoSubmit('You switched tabs during the test.')
     }
     const onFSChange = () => {
-      if (!document.fullscreenElement && isFullscreen && !testCompleted && !showModuleSummary)
+      if (!document.fullscreenElement && isFullscreen && !testCompleted && !showModuleSummary && !showStartScreen && !showModuleIntro)
         autoSubmit('You exited fullscreen mode.')
     }
     const onKey = (e) => {
-      if (!isFullscreen || testCompleted || showModuleSummary) return
+      if (!isFullscreen || testCompleted || showModuleSummary || showStartScreen || showModuleIntro) return
       if (e.key === 'Escape' || e.key === 'F11') { e.preventDefault(); autoSubmit(`You pressed ${e.key} to exit fullscreen.`) }
       if (e.key === 'PrintScreen') { e.preventDefault(); autoSubmit('Screenshot attempt detected.') }
     }
     const onBlur = () => {
-      if (isFullscreen && !testCompleted && !showModuleSummary)
+      if (isFullscreen && !testCompleted && !showModuleSummary && !showStartScreen && !showModuleIntro)
         setTimeout(() => { if (!document.hasFocus() && isFullscreen && !testCompleted) autoSubmit('You switched away from the test.') }, 500)
     }
     document.addEventListener('visibilitychange', onVisibility)
@@ -259,6 +261,7 @@ export default function ModuleTestPage() {
     setCurrentModuleIdx(nextIdx)
     setCurrentQIdx(0)
     setShowModuleSummary(false)
+    setShowModuleIntro(true)
     const nextMod = modules[nextIdx]
     if (nextMod?.isTimed && nextMod?.duration) setTimeRemaining(nextMod.duration * 60)
     else setTimeRemaining(0)
@@ -321,7 +324,84 @@ export default function ModuleTestPage() {
   const currentQs = moduleQsMap[currentModuleIdx] || []
   const currentQ = currentQs[currentQIdx]
 
-  if (loading) return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><div className="text-center text-white"><div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div><p>Loading test...</p></div></div>
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>
+
+  // Start onboarding screen
+  if (!alreadyTaken && !testCompleted && showStartScreen && modules.length > 0) return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-6">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
+        <div className="text-center mb-6">
+          <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FiAlertTriangle className="text-blue-600" size={40} />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">{test?.title}</h2>
+          <p className="text-gray-500">{modules.length} Module{modules.length > 1 ? 's' : ''} • {modules.map(m => `${m.subject === 'Reading and Writing' ? 'R&W' : m.subject} (${m.numberOfQuestions || m.questions?.length || 0}q)`).join(' → ')}</p>
+        </div>
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r-lg">
+          <ul className="space-y-2 text-sm text-gray-700">
+            <li>✓ Test will run in fullscreen mode</li>
+            <li>✓ Each module has its own timer</li>
+            <li>⚠️ Switching tabs will auto-submit the test</li>
+            <li>⚠️ Exiting fullscreen will auto-submit the test</li>
+            <li>⚠️ Minimizing window will auto-submit the test</li>
+            <li>⚠️ Taking screenshots will auto-submit the test</li>
+            <li>⚠️ Pressing ESC or F11 will auto-submit the test</li>
+          </ul>
+          <div className="mt-3 pt-3 border-t border-yellow-300">
+            <p className="text-sm font-bold text-red-700">🚨 Any violation will auto-submit immediately. No warnings, no second chances!</p>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <button onClick={() => { setShowStartScreen(false); setShowModuleIntro(true) }}
+            className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-blue-700 transition-colors">
+            Start Test in Fullscreen
+          </button>
+          <button onClick={() => router.push('/dashboard/tests')}
+            className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  // Module intro screen
+  if (showModuleIntro) {
+    const introMod = modules[currentModuleIdx]
+    const totalQ = introMod?.numberOfQuestions || moduleQsMap[currentModuleIdx]?.length || introMod?.questions?.length || 0
+    const isMath = introMod?.subject === 'Math'
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-xl w-full text-center">
+          <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${isMath ? 'bg-blue-100' : 'bg-purple-100'}`}>
+            <span className="text-3xl">{isMath ? '📐' : '📖'}</span>
+          </div>
+          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">Module {currentModuleIdx + 1} of {modules.length}</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">{introMod?.subject === 'Reading and Writing' ? 'Reading & Writing' : introMod?.subject}</h2>
+          <div className="flex items-center justify-center gap-4 text-sm text-gray-600 mb-6">
+            <span>{totalQ} Questions</span>
+            <span>•</span>
+            <span>{introMod?.isTimed ? `${introMod.duration} minutes` : 'Untimed'}</span>
+          </div>
+          {currentModuleIdx === 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-left">
+              <p className="text-sm font-semibold text-blue-800 mb-2">Instructions</p>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Read each question carefully before selecting your answer</li>
+                <li>• Use elimination (⊘) to cross out wrong options</li>
+                <li>• Flag questions to review before finishing</li>
+                {isMath && <li>• Calculator and reference sheet are available in the toolbar</li>}
+              </ul>
+            </div>
+          )}
+          <button onClick={() => setShowModuleIntro(false)}
+            className={`w-full py-4 rounded-xl font-semibold text-lg text-white transition-colors ${isMath ? 'bg-blue-600 hover:bg-blue-700' : 'bg-purple-600 hover:bg-purple-700'}`}>
+            Begin Module {currentModuleIdx + 1}
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   if (alreadyTaken) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
