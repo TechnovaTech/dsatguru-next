@@ -1026,6 +1026,25 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                 </div>
             </div>
 
+            {/* Module Scores - only for module tests */}
+            {test?.isModuleTest && session?.moduleScores?.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 className="text-sm font-bold text-gray-900 mb-4 border-b pb-2">Module Scores</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {session.moduleScores.map((ms, i) => {
+                    const pct = ms.total > 0 ? Math.round((ms.correct / ms.total) * 100) : 0
+                    return (
+                      <div key={i} className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                        <div className="text-xs font-bold text-gray-500 uppercase mb-1">Module {i + 1} — {ms.subject}</div>
+                        <div className="text-2xl font-bold text-gray-900">{ms.correct}/{ms.total}</div>
+                        <div className={`text-xs font-semibold mt-1 ${pct >= 70 ? 'text-green-600' : pct >= 40 ? 'text-yellow-600' : 'text-red-600'}`}>{pct}% correct</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Section Overview */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 className="text-sm font-bold text-gray-900 mb-4 border-b pb-2">Section Overview</h2>
@@ -1230,19 +1249,37 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                         <div className="p-12 text-center">
                             <FiAlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                             <p className="text-gray-500 font-medium">No questions found for this filter</p>
-                            <button 
+                            <button
                                 onClick={() => setFilterStatus('all')}
                                 className="mt-3 text-sm text-purple-600 hover:text-purple-800 font-medium"
                             >
                                 Clear filter
                             </button>
                         </div>
-                    ) : (
-                        filteredQuestions.map((q, idx) => {
-                            // Find original question number
+                    ) : (() => {
+                        const qModuleMap = {}
+                        if (test?.isModuleTest && test?.modules?.length > 0) {
+                          test.modules.forEach((mod, mi) => {
+                            (mod.questions || []).forEach(qid => { qModuleMap[String(qid)] = mi })
+                          })
+                        }
+                        let lastModuleIdx = -1
+                        return filteredQuestions.flatMap((q, idx) => {
                             const originalIndex = questions.findIndex(question => question._id === q._id)
-                            return (
-                        <div key={q._id} className="p-6">
+                            const moduleIdx = qModuleMap[String(q._id)]
+                            const showModuleHeader = test?.isModuleTest && moduleIdx !== undefined && moduleIdx !== lastModuleIdx
+                            if (showModuleHeader) lastModuleIdx = moduleIdx
+                            const mod = showModuleHeader ? test.modules[moduleIdx] : null
+                            const items = []
+                            if (showModuleHeader && mod) {
+                              items.push(
+                                <div key={`module-header-${moduleIdx}`} className="px-6 py-3 bg-purple-50 border-b border-purple-200 flex items-center gap-3">
+                                  <span className="text-sm font-bold text-purple-900">Module {moduleIdx + 1} — {mod.subject}</span>
+                                  <span className="text-xs text-purple-600">{mod.numberOfQuestions || mod.questions?.length || 0} questions • {mod.isTimed ? `${mod.duration} min` : 'Untimed'}</span>
+                                </div>
+                              )
+                            }
+                            items.push(<div key={q._id} className="p-6">
                             {/* Question Header */}
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
@@ -1686,14 +1723,14 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                     )}
                                 </div>
                             )}
-                        </div>
-                        )
-                    }))}
+                        </div>)
+                            return items
+                        })
+                    })()}
                 </div>
             </div>
         </div>
-        
-        {/* Reassign Test Modal */}
+
         {showReassignModal && (
           <ReassignTestModal
             session={session}

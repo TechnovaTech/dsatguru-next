@@ -16,7 +16,7 @@ export async function GET(request) {
     
     const sessions = await TestSession.find({ userId: decoded.userId })
       .populate('questionBankId')
-      .populate('testId', 'title configType testType practiceMode totalQuestions questions difficulty subject sections isTutorTest isTimed duration')
+      .populate('testId', 'title configType testType practiceMode totalQuestions questions difficulty subject sections isTutorTest isTimed duration isModuleTest modules numberOfModules')
       .select('_id userId testId questionBankId status state totalQuestions answeredQuestions correctAnswers moduleScores moduleAnswers rwScore mathScore totalScore completedAt createdAt updatedAt startTime endTime responses analysisSubmitted analysisSubmittedAt')
       .sort({ createdAt: -1 })
 

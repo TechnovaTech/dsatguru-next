@@ -12,7 +12,7 @@ const mathSubtopics = {
 }
 const rwTopics = { 'craft-structure': 'Craft and Structure', 'information-ideas': 'Information and Ideas', 'standard-english-conventions': 'Standard English Conventions', 'expression-ideas': 'Expression of Ideas' }
 
-const makeDefaultModule = () => ({ subject: 'Math', numberOfQuestions: 10, isTimed: true, duration: 30 })
+const makeDefaultModule = (subject = 'Math') => ({ subject, numberOfQuestions: 10, isTimed: true, duration: 30 })
 
 export default function CreateModuleTest() {
   const router = useRouter()
@@ -21,6 +21,7 @@ export default function CreateModuleTest() {
   const [success, setSuccess] = useState('')
 
   const [title, setTitle] = useState('')
+  const [testSubject, setTestSubject] = useState('Math')
   const [numberOfModules, setNumberOfModules] = useState(2)
   const [activeModuleTab, setActiveModuleTab] = useState(0)
   const [moduleConfigs, setModuleConfigs] = useState([makeDefaultModule(), makeDefaultModule()])
@@ -41,12 +42,20 @@ export default function CreateModuleTest() {
   const [previewIdx, setPreviewIdx] = useState(0)
   const [editingQId, setEditingQId] = useState(null)
 
+  const handleTestSubjectChange = (subj) => {
+    setTestSubject(subj)
+    setModuleConfigs(prev => prev.map(m => ({ ...m, subject: subj })))
+    setSelectedQuestions(prev => prev.map(() => []))
+    setAvailableQuestions(prev => prev.map(() => []))
+    setFilters(prev => ({ ...prev, subject: subj, mathTopic: '', mathSubtopic: '', rwTopic: '' }))
+  }
+
   const handleNumberOfModulesChange = (n) => {
     const num = Math.max(1, Math.min(5, parseInt(n) || 1))
     setNumberOfModules(num)
     setModuleConfigs(prev => {
       const next = [...prev]
-      while (next.length < num) next.push(makeDefaultModule())
+      while (next.length < num) next.push(makeDefaultModule(testSubject))
       return next.slice(0, num)
     })
     setSelectedQuestions(prev => {
@@ -78,14 +87,13 @@ export default function CreateModuleTest() {
     setSelectorModule(moduleIdx)
     setShowSelector(true)
     setQuestionSearch('')
-    const subj = moduleConfigs[moduleIdx].subject
-    setFilters({ subject: subj, difficulty: '', mathTopic: '', mathSubtopic: '', rwTopic: '', remark: '' })
+    setFilters({ subject: testSubject, difficulty: '', mathTopic: '', mathSubtopic: '', rwTopic: '', remark: '' })
 
     if (availableQuestions[moduleIdx].length === 0) {
       setLoadingQMap(prev => ({ ...prev, [moduleIdx]: true }))
       try {
         const token = localStorage.getItem('token')
-        const res = await fetch(`/api/questions?isTutor=true&subject=${encodeURIComponent(subj)}&isActive=true`, { headers: { Authorization: `Bearer ${token}` } })
+        const res = await fetch(`/api/questions?isTutor=true&subject=${encodeURIComponent(testSubject)}&isActive=true`, { headers: { Authorization: `Bearer ${token}` } })
         if (res.ok) {
           const data = await res.json()
           setAvailableQuestions(prev => { const n = [...prev]; n[moduleIdx] = data; return n })
@@ -245,12 +253,24 @@ export default function CreateModuleTest() {
             {error && <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg flex items-center gap-2 border border-red-100"><FiAlertCircle /> {error}</div>}
             {success && <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg flex items-center gap-2 border border-green-100"><FiCheck /> {success}</div>}
 
-            {/* Title + Number of Modules */}
+            {/* Title + Subject + Number of Modules */}
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Test Title <span className="text-red-500">*</span></label>
-                  <input type="text" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g., Full Module Test - Math" value={title} onChange={e => setTitle(e.target.value)} />
+                  <input type="text" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g., Module Math Test" value={title} onChange={e => setTitle(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Subject <span className="text-red-500">*</span></label>
+                  <div className="flex gap-2 h-[46px]">
+                    {['Math', 'Reading and Writing'].map(subj => (
+                      <label key={subj} className={`flex-1 flex items-center justify-center border-2 rounded-lg cursor-pointer text-sm font-medium transition-all ${testSubject === subj ? (subj === 'Math' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-purple-50 border-purple-500 text-purple-700') : 'border-gray-300 hover:bg-gray-50'}`}>
+                        <input type="radio" checked={testSubject === subj} onChange={() => handleTestSubjectChange(subj)} className="hidden" />
+                        {subj === 'Reading and Writing' ? 'R&W' : subj}
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">All modules use same subject</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Number of Modules <span className="text-red-500">*</span></label>
@@ -284,19 +304,6 @@ export default function CreateModuleTest() {
               <div className="p-6 space-y-5">
                 <h3 className="text-base font-semibold text-gray-800">Module {activeModuleTab + 1} Configuration</h3>
 
-                {/* Subject */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                  <div className="flex gap-3">
-                    {['Math', 'Reading and Writing'].map(subj => (
-                      <label key={subj} className={`flex-1 flex items-center justify-center p-3 border-2 rounded-lg cursor-pointer transition-all ${cfg.subject === subj ? (subj === 'Math' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-purple-50 border-purple-500 text-purple-700') : 'border-gray-300 hover:bg-gray-50'}`}>
-                        <input type="radio" name={`subject-${activeModuleTab}`} checked={cfg.subject === subj} onChange={() => updateModuleConfig(activeModuleTab, 'subject', subj)} className="hidden" />
-                        <span className="font-medium">{subj === 'Reading and Writing' ? 'Reading & Writing' : subj}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Number of Questions + Time */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -326,7 +333,7 @@ export default function CreateModuleTest() {
                 {/* Select Questions */}
                 <div>
                   <button type="button" onClick={() => handleSelectQuestions(activeModuleTab)} className="w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 font-medium">
-                    Select Questions from {cfg.subject === 'Reading and Writing' ? 'R&W' : cfg.subject} Question Bank
+                    Select Questions from {testSubject === 'Reading and Writing' ? 'R&W' : testSubject} Question Bank
                   </button>
                   {selCount > 0 && (
                     <div className="mt-2 flex items-center justify-between">
@@ -388,15 +395,11 @@ export default function CreateModuleTest() {
               </div>
             </div>
 
-            {/* Subject Tabs in Selector */}
-            <div className="mb-4 border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8">
-                {['Math', 'Reading and Writing'].map(subj => (
-                  <button key={subj} type="button" onClick={() => handleFilterSubjectChange(subj)} className={`${filters.subject === subj ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'} whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm`}>
-                    {subj === 'Reading and Writing' ? 'Reading & Writing' : subj}
-                  </button>
-                ))}
-              </nav>
+            {/* Subject locked label */}
+            <div className="mb-4 border-b border-gray-200 pb-2">
+              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${testSubject === 'Math' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                {testSubject === 'Reading and Writing' ? 'Reading & Writing' : testSubject} Questions
+              </span>
             </div>
 
             {/* Filters */}
