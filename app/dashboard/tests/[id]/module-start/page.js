@@ -1,13 +1,16 @@
 'use client'
 import { renderContent as renderWithImages } from '../../../../components/admin/LatexRenderer'
 import { useState, useEffect, useRef } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import { FiClock, FiCheckCircle, FiArrowRight, FiAlertTriangle, FiMoreVertical, FiHelpCircle, FiSlash, FiGrid, FiEdit2, FiLayers } from 'react-icons/fi'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
+import { FiClock, FiCheckCircle, FiArrowRight, FiAlertTriangle, FiMoreVertical, FiHelpCircle, FiSlash, FiGrid, FiEdit2, FiLayers, FiBookOpen } from 'react-icons/fi'
 
 export default function ModuleTestPage() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const testId = params.id
+  const urlSessionId = searchParams.get('sessionId')
+  const returnUrl = searchParams.get('returnUrl') || '/dashboard/tests'
 
   const [test, setTest] = useState(null)
   const [modules, setModules] = useState([]) // [{moduleNumber, subject, questions:[ids], duration, isTimed}]
@@ -44,6 +47,7 @@ export default function ModuleTestPage() {
   const [showFlagModal, setShowFlagModal] = useState(false)
   const [flagNote, setFlagNote] = useState('')
   const [showAnswer, setShowAnswer] = useState(false)
+  const [assistiveTechMode, setAssistiveTechMode] = useState(false)
   const [showCalculator, setShowCalculator] = useState(false)
   const [calcPosition, setCalcPosition] = useState({ x: 50, y: 100 })
   const [isDraggingCalc, setIsDraggingCalc] = useState(false)
@@ -137,31 +141,29 @@ export default function ModuleTestPage() {
     return () => clearTimeout(timer)
   }, [showBreakScreen, breakCountdown])
 
-  // Auto-enter fullscreen only after start screen dismissed
+  // Auto-enter fullscreen when student is actively taking the test (not on any overlay screen)
   useEffect(() => {
-    if (!loading && !testCompleted && !showModuleSummary && !showStartScreen && modules.length > 0 && !isFullscreen) {
-      enterFullscreen()
-    }
-  }, [loading, modules.length, showStartScreen])
+    if (loading || testCompleted || showModuleSummary || showStartScreen || showModuleIntro || showBreakScreen) return
+    if (modules.length > 0 && !isFullscreen) enterFullscreen()
+  }, [loading, testCompleted, showModuleSummary, showStartScreen, showModuleIntro, showBreakScreen, modules.length])
 
-  // Fullscreen & tab detection
+  // Fullscreen & tab detection — all state vars in dep array to avoid stale closures
   useEffect(() => {
+    const isActiveTest = isFullscreen && !testCompleted && !showModuleSummary && !showStartScreen && !showModuleIntro && !showBreakScreen
+
     const onVisibility = () => {
-      if (document.hidden && isFullscreen && !testCompleted && !showModuleSummary && !showStartScreen && !showModuleIntro && !showBreakScreen)
-        autoSubmit('You switched tabs during the test.')
+      if (document.hidden && isActiveTest) autoSubmit('You switched tabs during the test.')
     }
     const onFSChange = () => {
-      if (!document.fullscreenElement && isFullscreen && !testCompleted && !showModuleSummary && !showStartScreen && !showModuleIntro && !showBreakScreen)
-        autoSubmit('You exited fullscreen mode.')
+      if (!document.fullscreenElement && isActiveTest) autoSubmit('You exited fullscreen mode.')
     }
     const onKey = (e) => {
-      if (!isFullscreen || testCompleted || showModuleSummary || showStartScreen || showModuleIntro) return
+      if (!isActiveTest) return
       if (e.key === 'Escape' || e.key === 'F11') { e.preventDefault(); autoSubmit(`You pressed ${e.key} to exit fullscreen.`) }
       if (e.key === 'PrintScreen') { e.preventDefault(); autoSubmit('Screenshot attempt detected.') }
     }
     const onBlur = () => {
-      if (isFullscreen && !testCompleted && !showModuleSummary && !showStartScreen && !showModuleIntro)
-        setTimeout(() => { if (!document.hasFocus() && isFullscreen && !testCompleted) autoSubmit('You switched away from the test.') }, 500)
+      if (isActiveTest) setTimeout(() => { if (!document.hasFocus() && isFullscreen && !testCompleted) autoSubmit('You switched away from the test.') }, 500)
     }
     document.addEventListener('visibilitychange', onVisibility)
     document.addEventListener('fullscreenchange', onFSChange)
@@ -173,7 +175,7 @@ export default function ModuleTestPage() {
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('blur', onBlur)
     }
-  }, [isFullscreen, testCompleted, showModuleSummary])
+  }, [isFullscreen, testCompleted, showModuleSummary, showStartScreen, showModuleIntro, showBreakScreen])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -198,12 +200,24 @@ export default function ModuleTestPage() {
   }, [currentQIdx, currentModuleIdx, moduleQsMap, loading, testCompleted, showModuleSummary, showShortcutsModal, showFlagModal])
 
   const enterFullscreen = async () => {
-    try { if (containerRef.current) { await containerRef.current.requestFullscreen(); setIsFullscreen(true) } } catch {}
+    try {
+      if (containerRef.current && !document.fullscreenElement) {
+        await containerRef.current.requestFullscreen()
+        setIsFullscreen(true)
+      }
+    } catch {}
   }
+
+  // Keep isFullscreen state in sync with actual fullscreen status
+  useEffect(() => {
+    const onFS = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', onFS)
+    return () => document.removeEventListener('fullscreenchange', onFS)
+  }, [])
 
   const autoSubmit = async (reason) => {
     setAutoSubmitReason(reason)
-    await handleSubmitTest(true)
+    await handleSubmitTest(true, reason)
   }
 
   const fetchTestData = async () => {
@@ -290,7 +304,7 @@ export default function ModuleTestPage() {
     }
   }
 
-  const handleSubmitTest = async (isAuto = false) => {
+  const handleSubmitTest = async (isAuto = false, autoReason = '') => {
     if (saving) return
     setSaving(true)
     try {
@@ -317,25 +331,39 @@ export default function ModuleTestPage() {
       const sessionData = {
         testId,
         status: 'Completed',
+        state: 'COMPLETED',
         totalScore: totalCorrect,
         totalQuestions: totalQs,
+        answeredQuestions: allResponses.filter(r => r.answer).length,
+        correctAnswers: totalCorrect,
         responses: allResponses,
         moduleScores,
         completedAt: new Date().toISOString(),
         startTime: startTime.current.toISOString(),
-        endTime: new Date().toISOString()
+        endTime: new Date().toISOString(),
+        ...(isAuto && { autoSubmitted: true, autoSubmitReason: autoReason || 'Auto-submitted' })
       }
 
-      const res = await fetch('/api/test-sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(sessionData)
-      })
+      let res
+      if (urlSessionId) {
+        // Update the existing Assigned session rather than creating a duplicate
+        res = await fetch(`/api/test-sessions/${urlSessionId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(sessionData)
+        })
+      } else {
+        res = await fetch('/api/test-sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(sessionData)
+        })
+      }
 
       if (res.ok) {
         const data = await res.json()
         setFinalScore(totalCorrect)
-        setCompletedSessionId(data.session?._id)
+        setCompletedSessionId(urlSessionId || data.session?._id)
         setTestCompleted(true)
       }
     } catch (err) { console.error(err) } finally { setSaving(false) }
@@ -498,9 +526,9 @@ export default function ModuleTestPage() {
           })}
         </div>
         <div className="flex gap-3 mt-6">
-          <button onClick={() => router.push('/dashboard/tests')} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium">Back to Tests</button>
+          <button onClick={() => router.push(returnUrl)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium">Back to Tests</button>
           {completedSessionId && (
-            <button onClick={() => router.push(`/dashboard/tests/${testId}/results?session_id=${completedSessionId}`)} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">View Analysis</button>
+            <button onClick={() => router.push(`/dashboard/tests/${testId}/results?session_id=${completedSessionId}&returnUrl=${returnUrl}`)} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">View Analysis</button>
           )}
         </div>
       </div>
@@ -537,6 +565,13 @@ export default function ModuleTestPage() {
               )
             })}
           </div>
+          {/* Break time notice */}
+          {!isLast && parseInt(currentMod?.breakAfter) > 0 && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3 text-sm text-green-800">
+              <FiClock className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <span>A <b>{currentMod.breakAfter}-minute break</b> will begin before Module {currentModuleIdx + 2}. Module starts automatically when break ends.</span>
+            </div>
+          )}
           <div className="flex gap-4 justify-center">
             <button onClick={() => setShowModuleSummary(false)} className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium">Review Answers</button>
             {isLast ? (
@@ -545,7 +580,7 @@ export default function ModuleTestPage() {
               </button>
             ) : (
               <button onClick={handleNextModule} className="px-8 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2">
-                Module {currentModuleIdx + 2} <FiArrowRight />
+                {parseInt(currentMod?.breakAfter) > 0 ? `Start ${currentMod.breakAfter}min Break` : `Module ${currentModuleIdx + 2}`} <FiArrowRight />
               </button>
             )}
           </div>
@@ -555,54 +590,76 @@ export default function ModuleTestPage() {
   }
 
   // Main Test Screen
-  const getOptions = (q) => {
-    if (!q) return null
+  const getOptText = (q, letter) => {
+    if (!q) return ''
+    if (q[`option${letter}`]) return q[`option${letter}`]
     try {
       const raw = typeof q.options === 'string' ? JSON.parse(q.options) : q.options
-      if (Array.isArray(raw)) return { A: raw[0]||'', B: raw[1]||'', C: raw[2]||'', D: raw[3]||'' }
-      if (raw && typeof raw === 'object') return raw
+      if (Array.isArray(raw)) return raw[['A','B','C','D'].indexOf(letter)] || ''
+      if (raw && typeof raw === 'object') return raw[letter] || ''
     } catch {}
-    if (q.optionA) return { A: q.optionA||'', B: q.optionB||'', C: q.optionC||'', D: q.optionD||'' }
-    return null
+    return ''
   }
 
-  const options = getOptions(currentQ)
   const currentQId = currentQ ? (currentQ._id||currentQ.id).toString() : null
   const isMathModule = currentMod?.subject === 'Math'
+  const fontCls = fontClasses[fontSize]
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-white flex flex-col select-none">
-      {/* Line Reader */}
+    <div ref={containerRef} className="h-screen flex flex-col bg-white select-none">
+
+      {/* Line Reader Overlay */}
       {lineReaderActive && (
-        <div className="fixed inset-0 pointer-events-none z-40">
-          <div className="absolute inset-0 bg-black opacity-30" style={{ clipPath: `polygon(0 0, 100% 0, 100% ${lineReaderPos - 2}%, 0 ${lineReaderPos - 2}%)` }} />
-          <div className="absolute left-0 right-0 h-10 border-2 border-yellow-400 bg-yellow-50 opacity-70" style={{ top: `${lineReaderPos - 2}%` }} />
-          <div className="absolute inset-0 bg-black opacity-30" style={{ clipPath: `polygon(0 ${lineReaderPos + 2}%, 100% ${lineReaderPos + 2}%, 100% 100%, 0 100%)` }} />
+        <div className="absolute inset-0 z-40 pointer-events-none">
+          <div className="w-full bg-black bg-opacity-50 absolute top-0" style={{ height: `${lineReaderPos - 5}%` }} />
+          <div className="w-full h-[10%] absolute bg-transparent border-y-2 border-yellow-400" style={{ top: `${lineReaderPos - 5}%` }} />
+          <div className="w-full bg-black bg-opacity-50 absolute bottom-0" style={{ height: `${100 - (lineReaderPos + 5)}%` }} />
         </div>
       )}
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between flex-shrink-0 z-30">
+      <div className="bg-white border-b px-6 py-3 flex items-center justify-between z-50 flex-shrink-0">
+        <div className="text-base font-bold text-gray-900">
+          Module {currentModuleIdx + 1}: {currentMod?.subject === 'Reading and Writing' ? 'Reading and Writing' : currentMod?.subject}
+        </div>
+
+        {/* Timer */}
+        {currentMod?.isTimed && timeRemaining > 0 ? (
+          <div className={`text-lg font-bold flex items-center gap-2 ${timeRemaining < 120 ? 'text-red-600' : 'text-gray-900'}`}>
+            <FiClock className="w-5 h-5" />{formatTime(timeRemaining)}
+          </div>
+        ) : (!currentMod?.isTimed && <span className="text-sm text-gray-400">Untimed</span>)}
+
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
+          {/* Module progress with details */}
+          <div className="flex items-center gap-1 flex-wrap">
             {modules.map((m, i) => (
-              <div key={i} className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${i === currentModuleIdx ? 'bg-blue-100 text-blue-700' : i < currentModuleIdx ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                {i < currentModuleIdx && <FiCheckCircle className="w-3 h-3" />}
-                M{i+1}: {m.subject === 'Reading and Writing' ? 'R&W' : m.subject}
+              <div key={i} className="flex items-center gap-1">
+                <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${i === currentModuleIdx ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : i < currentModuleIdx ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                  {i < currentModuleIdx ? <FiCheckCircle className="w-3 h-3" /> : null}
+                  M{i+1}: {m.subject === 'Reading and Writing' ? 'R&W' : m.subject} · {m.numberOfQuestions || m.questions?.length || 0}q{m.isTimed ? ` · ${m.duration}min` : ' · Untimed'}
+                </div>
+                {i < modules.length - 1 && (
+                  parseInt(m.breakAfter) > 0
+                    ? <span className="text-xs text-green-600 font-semibold px-1">[{m.breakAfter}min break] →</span>
+                    : <span className="text-gray-400 text-xs px-0.5">→</span>
+                )}
               </div>
             ))}
           </div>
-          <span className="text-sm text-gray-500">Q{currentQIdx + 1}/{currentQs.length}</span>
-        </div>
 
-        <div className="flex items-center gap-2">
-          {/* Timer */}
-          {currentMod?.isTimed && timeRemaining > 0 && (
-            <div className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-mono font-semibold ${timeRemaining < 120 ? 'bg-red-100 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
-              <FiClock className="w-3.5 h-3.5" />{formatTime(timeRemaining)}
-            </div>
+          {/* Calculator (Math only) */}
+          {isMathModule && (
+            <button onClick={() => setShowCalculator(p => !p)} className={`p-2 hover:bg-gray-100 rounded transition-colors ${showCalculator ? 'text-blue-600 bg-blue-50' : 'text-gray-600'}`} title="Calculator">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+            </button>
           )}
-          {currentMod?.isTimed === false && <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">Untimed</span>}
+          {/* Reference (Math only) */}
+          {isMathModule && (
+            <button onClick={() => setShowReference(p => !p)} className={`p-2 hover:bg-gray-100 rounded transition-colors ${showReference ? 'text-blue-600 bg-blue-50' : 'text-gray-600'}`} title="Reference">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            </button>
+          )}
 
           {/* Font Size */}
           <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
@@ -612,74 +669,69 @@ export default function ModuleTestPage() {
           </div>
 
           {/* Flag */}
-          <button onClick={() => { setFlagNote(''); setShowFlagModal(true) }} className={`p-2 rounded-lg border transition-colors ${currentQId && markedQs.has(currentQId) ? 'bg-amber-100 border-amber-300 text-amber-700' : 'border-gray-200 text-gray-600 hover:bg-gray-100'}`} title="Mark for review (M)">
-            <FiEdit2 className="w-4 h-4" />
-          </button>
-
-          {/* Question Grid */}
-          <button onClick={() => setShowQuestionNav(p => !p)} className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100" title="Question Grid">
-            <FiGrid className="w-4 h-4" />
-          </button>
-
-          {/* Calculator (Math only) */}
-          {isMathModule && (
-            <button onClick={() => setShowCalculator(p => !p)} className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${showCalculator ? 'bg-blue-100 border-blue-300 text-blue-700' : 'border-gray-200 text-gray-600 hover:bg-gray-100'}`}>
-              Calc
-            </button>
-          )}
-
-          {/* Reference (Math only) */}
-          {isMathModule && (
-            <button onClick={() => setShowReference(p => !p)} className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${showReference ? 'bg-purple-100 border-purple-300 text-purple-700' : 'border-gray-200 text-gray-600 hover:bg-gray-100'}`}>
-              Ref
-            </button>
-          )}
-
-          {/* Show Answer (tutor mode) */}
-          <button onClick={() => setShowAnswer(p => !p)} className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${showAnswer ? 'bg-green-100 border-green-300 text-green-700' : 'border-gray-200 text-gray-600 hover:bg-gray-100'}`}>
-            {showAnswer ? 'Hide Ans' : 'Show Ans'}
+          <button onClick={() => { setFlagNote(''); setShowFlagModal(true) }} className="text-gray-600 hover:text-gray-800 p-2" title="Flag Question">
+            <svg className="w-6 h-6" fill={currentQId && markedQs.has(currentQId) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 20 20">
+              <path d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" />
+            </svg>
           </button>
 
           {/* More Menu */}
           <div className="relative">
-            <button onClick={() => setShowMoreMenu(p => !p)} className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100"><FiMoreVertical className="w-4 h-4" /></button>
+            <button onClick={() => setShowMoreMenu(p => !p)} className="flex flex-col items-center cursor-pointer hover:bg-gray-100 p-2 rounded">
+              <FiMoreVertical className="text-gray-600 mb-1" />
+              <span className="text-[10px] font-medium text-gray-600">More</span>
+            </button>
             {showMoreMenu && (
-              <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 w-48 z-50">
-                <button onClick={() => { setLineReaderActive(p => !p); setShowMoreMenu(false) }} className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 ${lineReaderActive ? 'text-blue-600' : 'text-gray-700'}`}><FiLayers className="w-4 h-4" /> Line Reader {lineReaderActive ? '(On)' : ''}</button>
-                <button onClick={() => { setShowShortcutsModal(true); setShowMoreMenu(false) }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><FiHelpCircle className="w-4 h-4" /> Keyboard Shortcuts</button>
+              <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                <button onClick={() => { setAssistiveTechMode(p => !p); setShowMoreMenu(false) }} className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50">
+                  <FiLayers className="text-gray-500" /><span className="text-sm font-medium">Assistive Technology {assistiveTechMode ? '(On)' : '(Off)'}</span>
+                </button>
+                <button onClick={() => { setLineReaderActive(p => !p); setShowMoreMenu(false) }} className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50">
+                  <FiBookOpen className="text-gray-500" /><span className="text-sm font-medium">Line Reader {lineReaderActive ? '(On)' : '(Off)'}</span>
+                </button>
+                <button onClick={() => { setShowAnswer(p => !p); setShowMoreMenu(false) }} className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50">
+                  <FiCheckCircle className="text-gray-500" /><span className="text-sm font-medium">Show Answer {showAnswer ? '(On)' : '(Off)'}</span>
+                </button>
+                <div className="border-t my-2" />
+                <button onClick={() => { setShowShortcutsModal(true); setShowMoreMenu(false) }} className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50">
+                  <FiGrid className="text-gray-500" /><span className="text-sm font-medium">Shortcuts</span>
+                </button>
+                <div className="border-t my-2" />
+                <button onClick={() => { setShowMoreMenu(false); router.push('/dashboard/tests') }} className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50">
+                  <FiAlertTriangle className="text-gray-500" /><span className="text-sm font-medium">Exit the Exam</span>
+                </button>
               </div>
             )}
           </div>
 
           {/* Finish Module / Submit */}
-          <button onClick={() => handleFinishModule(false)} className={`px-4 py-1.5 text-sm font-medium rounded-lg text-white ${currentModuleIdx === modules.length - 1 ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
+          <button onClick={() => handleFinishModule(false)} className={`px-4 py-1.5 text-sm font-semibold rounded-lg text-white ${currentModuleIdx === modules.length - 1 ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
             {currentModuleIdx === modules.length - 1 ? 'Submit' : `Finish M${currentModuleIdx + 1}`}
           </button>
         </div>
       </div>
 
-      {/* Question Navigation Panel */}
+      {/* Question Nav Panel */}
       {showQuestionNav && (
         <div className="fixed top-16 right-4 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-40 max-w-xs">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-gray-900 text-sm">Module {currentModuleIdx + 1} Questions</h3>
-            <button onClick={() => setShowQuestionNav(false)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
+            <button onClick={() => setShowQuestionNav(false)} className="text-gray-400 hover:text-gray-600 text-lg">×</button>
           </div>
           <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto">
             {currentQs.map((q, i) => {
               const qId = (q._id||q.id).toString()
-              const isAns = !!answers[qId]; const isMark = markedQs.has(qId)
               return (
-                <button key={i} onClick={() => { setCurrentQIdx(i); setShowQuestionNav(false) }} className={`w-8 h-8 rounded text-xs font-medium ${i === currentQIdx ? 'ring-2 ring-blue-500' : ''} ${isMark ? 'bg-amber-400 text-white' : isAns ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                <button key={i} onClick={() => { setCurrentQIdx(i); setShowQuestionNav(false) }} className={`w-8 h-8 rounded text-xs font-medium ${i === currentQIdx ? 'ring-2 ring-blue-500' : ''} ${markedQs.has(qId) ? 'bg-amber-400 text-white' : answers[qId] ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
                   {i+1}
                 </button>
               )
             })}
           </div>
           <div className="flex gap-3 mt-3 text-xs">
-            <span className="flex items-center gap-1"><span className="w-3 h-3 bg-blue-500 rounded"></span>Answered</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-3 bg-amber-400 rounded"></span>Marked</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-3 bg-gray-200 rounded border"></span>Empty</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 bg-blue-500 rounded" />Answered</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 bg-amber-400 rounded" />Marked</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 bg-gray-200 rounded border" />Empty</span>
           </div>
         </div>
       )}
@@ -690,7 +742,7 @@ export default function ModuleTestPage() {
           <div className="bg-gray-800 text-white px-3 py-2 flex items-center justify-between cursor-move text-sm font-medium"
             onMouseDown={e => { setIsDraggingCalc(true); dragStartPos.current = { x: e.clientX - calcPosition.x, y: e.clientY - calcPosition.y } }}>
             Desmos Calculator
-            <button onClick={() => setShowCalculator(false)} className="text-gray-300 hover:text-white text-lg leading-none">×</button>
+            <button onClick={() => setShowCalculator(false)} className="text-gray-300 hover:text-white text-lg">×</button>
           </div>
           <div ref={calcRef} style={{ width: '100%', height: 340 }} />
         </div>
@@ -702,7 +754,7 @@ export default function ModuleTestPage() {
           <div className="bg-gray-800 text-white px-3 py-2 flex items-center justify-between cursor-move text-sm font-medium"
             onMouseDown={e => { setIsDraggingRef(true); dragStartRefPos.current = { x: e.clientX - refPosition.x, y: e.clientY - refPosition.y } }}>
             Math Reference Sheet
-            <button onClick={() => setShowReference(false)} className="text-gray-300 hover:text-white text-lg leading-none">×</button>
+            <button onClick={() => setShowReference(false)} className="text-gray-300 hover:text-white text-lg">×</button>
           </div>
           <div className="p-4 text-xs text-gray-700 overflow-y-auto max-h-80 space-y-2">
             <p className="font-semibold">Area Formulas</p>
@@ -726,7 +778,7 @@ export default function ModuleTestPage() {
           <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full">
             <h3 className="font-bold text-gray-900 mb-4">Keyboard Shortcuts</h3>
             <div className="space-y-2 text-sm">
-              {[['A / B / C / D', 'Select answer'],['N or Alt+→', 'Next question'],['P or Alt+←', 'Previous question'],['M', 'Mark for review'],['H', 'Toggle line reader'],['Ctrl+/', 'Toggle this dialog']].map(([k, v]) => (
+              {[['A/B/C/D','Select answer'],['N or Alt+→','Next question'],['P or Alt+←','Previous question'],['M','Mark for review'],['H','Toggle line reader'],['Ctrl+/','Toggle this dialog']].map(([k,v]) => (
                 <div key={k} className="flex items-center justify-between"><kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">{k}</kbd><span className="text-gray-600">{v}</span></div>
               ))}
             </div>
@@ -751,75 +803,117 @@ export default function ModuleTestPage() {
         </div>
       )}
 
-      {/* Main Question Area */}
-      <div className="flex-1 overflow-y-auto">
-        {!currentQ ? (
-          <div className="flex items-center justify-center h-full text-gray-500">No questions in this module.</div>
-        ) : (
-          <div className="max-w-4xl mx-auto p-6">
-            {/* Module badge */}
-            <div className="flex items-center gap-2 mb-4">
-              <span className={`px-3 py-1 text-xs font-semibold rounded-full ${isMathModule ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
-                Module {currentModuleIdx + 1} — {currentMod?.subject}
-              </span>
-              <span className="text-sm text-gray-500">Question {currentQIdx + 1} of {currentQs.length}</span>
-            </div>
+      {/* Split Content Area */}
+      <div className={`flex-1 flex overflow-hidden ${assistiveTechMode ? 'assistive-mode' : ''}`}>
 
-            {/* Context Paragraph */}
-            {currentQ.questionParagraph && (
-              <div className="mb-5 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                <p className="text-xs font-semibold text-blue-700 uppercase mb-2">Reading Passage</p>
-                <div className={`text-gray-800 leading-relaxed ${fontClasses[fontSize]}`}>{renderWithImages(currentQ.questionParagraph)}</div>
-              </div>
-            )}
-
-            {/* Question */}
-            <div className="mb-6">
-              <p className={`text-gray-900 leading-relaxed font-medium ${fontClasses[fontSize]}`}>{renderWithImages(currentQ.content || currentQ.question)}</p>
-            </div>
-
-            {/* Show Answer (tutor mode) */}
-            {showAnswer && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm font-semibold text-green-800">Correct Answer: {currentQ.correctAnswer}</p>
-                {currentQ.shortExplanation && <p className="text-sm text-green-700 mt-1">{renderWithImages(currentQ.shortExplanation)}</p>}
-              </div>
-            )}
-
-            {/* Options */}
-            {options && ['A','B','C','D'].filter(k => options[k]).length > 0 ? (
-              <div className="space-y-3">
-                {['A','B','C','D'].map(letter => {
-                  const optText = options[letter] || ''; if (!optText) return null
-                  const isElim = isEliminated(currentQId, letter)
-                  const isSelected = answers[currentQId] === letter
-                  return (
-                    <div key={letter} className={`relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${isSelected ? 'border-blue-500 bg-blue-50' : isElim ? 'border-gray-200 bg-gray-50 opacity-50' : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/30'}`}
-                      onClick={() => { if (isElim) return; setAnswers(prev => ({ ...prev, [currentQId]: letter })) }}>
-                      <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-sm font-bold flex-shrink-0 ${isSelected ? 'border-blue-500 bg-blue-500 text-white' : 'border-gray-400 text-gray-600'}`}>{letter}</div>
-                      <div className={`flex-1 pt-0.5 leading-relaxed [&_img]:max-h-20 [&_img]:max-w-[240px] [&_img]:object-contain ${fontClasses[fontSize]} ${isElim ? 'line-through' : ''}`}>{renderWithImages(optText)}</div>
-                      {/* Eliminate button */}
-                      <button onClick={e => { e.stopPropagation(); toggleEliminate(currentQId, letter) }} title="Eliminate option" className="absolute top-2 right-2 p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                        <FiSlash className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
+        {/* LEFT: Passage + Question text */}
+        <div className="w-1/2 h-full overflow-y-auto p-8 bg-gray-50 relative border-r border-gray-300">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="text-gray-200 text-5xl font-bold -rotate-45 opacity-30 select-none">www.dsatguru.com</div>
+          </div>
+          <div className="relative z-10">
+            {!currentQ ? (
+              <div className="text-gray-400 text-center mt-20">No questions in this module.</div>
             ) : (
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Enter your answer:</p>
-                <input type="text" value={answers[currentQId] || ''} onChange={e => setAnswers(prev => ({ ...prev, [currentQId]: e.target.value }))} className={`w-full p-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 outline-none ${fontClasses[fontSize]}`} placeholder="Type your answer..." />
-              </div>
+              <>
+                {currentQ.questionParagraph && (
+                  <div className="prose max-w-none mb-8">
+                    <p className={`text-gray-800 leading-relaxed whitespace-pre-line ${fontCls}`}>{renderWithImages(currentQ.questionParagraph)}</p>
+                  </div>
+                )}
+                <div className="mt-6">
+                  <div className={`text-gray-900 leading-relaxed font-medium ${fontCls}`}>
+                    {renderWithImages(currentQ.content || currentQ.question)}
+                  </div>
+                </div>
+              </>
             )}
           </div>
-        )}
+        </div>
+
+        {/* RIGHT: Question number + options */}
+        <div className="w-1/2 h-full overflow-y-auto p-8 bg-gray-50 relative">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="text-gray-200 text-5xl font-bold -rotate-45 opacity-30 select-none">www.dsatguru.com</div>
+          </div>
+          {currentQ && currentQId && (
+            <div className="max-w-2xl mx-auto relative z-10">
+              {/* Question number + mark */}
+              <div className="flex items-center gap-4 mb-6">
+                <div className="bg-black text-white w-12 h-12 rounded flex items-center justify-center font-bold text-lg">
+                  {currentQIdx + 1}
+                </div>
+                <button onClick={() => { toggleMark(currentQId); }} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${markedQs.has(currentQId) ? 'text-yellow-600 bg-yellow-50 hover:bg-yellow-100' : 'text-gray-600 hover:bg-gray-100'}`}>
+                  <svg className="w-5 h-5" fill={markedQs.has(currentQId) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  </svg>
+                  <span className="font-medium text-sm">Mark for Review</span>
+                </button>
+              </div>
+
+              {/* Show Answer */}
+              {showAnswer && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm font-semibold text-green-800">Correct Answer: {currentQ.correctAnswer}</p>
+                  {currentQ.shortExplanation && <p className="text-sm text-green-700 mt-1">{renderWithImages(currentQ.shortExplanation)}</p>}
+                </div>
+              )}
+
+              {/* Options */}
+              {(['A','B','C','D'].some(l => getOptText(currentQ, l))) ? (
+                <div className="space-y-3">
+                  <div className="mb-2"><span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Choose an Answer</span></div>
+                  {['A','B','C','D'].map(letter => {
+                    const optText = getOptText(currentQ, letter)
+                    if (!optText) return null
+                    const isElim = isEliminated(currentQId, letter)
+                    const isSelected = answers[currentQId] === letter
+                    const containerStyle = isSelected ? 'border-gray-800 bg-gray-50' : isElim ? 'border-gray-200 bg-gray-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                    const circleStyle = isSelected ? 'border-gray-800 bg-gray-800 text-white' : isElim ? 'border-gray-300 text-gray-300 bg-transparent' : 'border-gray-400 text-gray-700 bg-white'
+                    return (
+                      <div key={letter} className="flex items-stretch gap-3">
+                        <div className={`group flex-1 flex items-stretch border-2 rounded-lg transition-all overflow-hidden ${containerStyle}`}>
+                          <button onClick={() => { if (isElim) { toggleEliminate(currentQId, letter); } setAnswers(prev => ({ ...prev, [currentQId]: letter })) }}
+                            className="flex-1 text-left p-3 sm:p-4 flex items-start gap-3 sm:gap-4">
+                            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold transition-colors ${circleStyle}`}>{letter}</div>
+                            <div className={`flex-1 pt-1 leading-relaxed [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain ${fontCls} ${isElim ? 'text-gray-400 line-through decoration-2' : 'text-gray-900'}`}>
+                              {renderWithImages(optText)}
+                            </div>
+                          </button>
+                        </div>
+                        <button onClick={e => { e.stopPropagation(); toggleEliminate(currentQId, letter) }}
+                          className={`group flex-shrink-0 w-10 sm:w-12 flex items-center justify-center rounded-lg border-2 transition-colors ${isElim ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' : 'bg-white text-gray-300 border-gray-200 hover:text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
+                          title={isElim ? 'Undo Elimination' : 'Eliminate Answer'}>
+                          {isElim ? <span className="text-xs font-bold">Undo</span> : (
+                            <div className="relative w-5 h-5 flex items-center justify-center font-bold text-[10px] border border-current rounded">
+                              ABC
+                              <div className="absolute inset-0 border-t border-current transform -rotate-12 top-1/2 opacity-0 group-hover:opacity-50" />
+                            </div>
+                          )}
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">Enter your answer:</p>
+                  <input type="text" value={answers[currentQId] || ''} onChange={e => setAnswers(prev => ({ ...prev, [currentQId]: e.target.value }))}
+                    className={`w-full p-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 outline-none ${fontCls}`} placeholder="Type your answer..." />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Bottom Navigation */}
       <div className="border-t border-gray-200 bg-white px-6 py-3 flex items-center justify-between flex-shrink-0">
         <button onClick={() => setCurrentQIdx(p => Math.max(0, p-1))} disabled={currentQIdx === 0} className="px-5 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">← Previous</button>
-        <div className="text-sm text-gray-500">{currentQIdx + 1} / {currentQs.length}</div>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-500">{currentQIdx + 1} / {currentQs.length}</span>
+          <button onClick={() => setShowQuestionNav(p => !p)} className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100" title="Question Grid"><FiGrid className="w-4 h-4" /></button>
+        </div>
         <button onClick={() => {
           if (currentQIdx < currentQs.length - 1) setCurrentQIdx(p => p + 1)
           else handleFinishModule(false)

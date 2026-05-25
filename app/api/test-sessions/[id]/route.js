@@ -170,8 +170,12 @@ export async function PUT(request, { params }) {
     if (sessionData.rwScore !== undefined) session.rwScore = sessionData.rwScore
     if (sessionData.mathScore !== undefined) session.mathScore = sessionData.mathScore
     if (sessionData.totalScore !== undefined) session.totalScore = sessionData.totalScore
+    if (sessionData.totalQuestions !== undefined) session.totalQuestions = sessionData.totalQuestions
+    if (sessionData.answeredQuestions !== undefined) session.answeredQuestions = sessionData.answeredQuestions
+    if (sessionData.correctAnswers !== undefined) session.correctAnswers = sessionData.correctAnswers
     if (sessionData.timeSpent !== undefined) session.timeSpent = sessionData.timeSpent
     if (sessionData.completedAt) session.completedAt = sessionData.completedAt
+    if (sessionData.startTime) session.startTime = sessionData.startTime
     if (sessionData.endTime) session.endTime = sessionData.endTime
     if (sessionData.autoSubmitted !== undefined) session.autoSubmitted = sessionData.autoSubmitted
     if (sessionData.autoSubmitReason) session.autoSubmitReason = sessionData.autoSubmitReason
