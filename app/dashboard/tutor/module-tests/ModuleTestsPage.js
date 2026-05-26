@@ -22,6 +22,9 @@ export default function ModuleTestsPage({ subject }) {
       const sessions = data.sessions || data || []
       const filtered = sessions.filter(s => {
         if (!s.testId?.isModuleTest) return false
+        // If no subject is provided, show all module tests
+        if (!subject) return true
+        
         const modules = s.testId?.modules || []
         // Reassigned module tests have no modules array — match by test subject directly
         if (modules.length === 0) return s.testId?.subject === subject
@@ -42,7 +45,9 @@ export default function ModuleTestsPage({ subject }) {
   ]
 
   const statusMap = { Assigned: 'Assigned', 'In Progress': 'InProgress', Completed: 'Completed' }
-  const returnUrl = subject === 'Math' ? '/dashboard/tutor/module-tests/math' : '/dashboard/tutor/module-tests/rw'
+  const returnUrl = subject 
+    ? (subject === 'Math' ? '/dashboard/tutor/module-tests/math' : '/dashboard/tutor/module-tests/rw')
+    : '/dashboard/tutor/module-tests'
 
   if (loading) return (
     <div className="p-8 flex justify-center">
@@ -54,8 +59,14 @@ export default function ModuleTestsPage({ subject }) {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Module {subject === 'Math' ? 'Math' : 'Reading & Writing'} Tests</h1>
-          <p className="text-gray-500 mt-1">Multi-module {subject} tests assigned by your instructor.</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {subject ? `Module ${subject === 'Math' ? 'Math' : 'Reading & Writing'} Tests` : 'Tutor Module Tests'}
+          </h1>
+          <p className="text-gray-500 mt-1">
+            {subject 
+              ? `Multi-module ${subject} tests assigned by your instructor.`
+              : 'All multi-module tests (Math & RW) assigned by your instructor.'}
+          </p>
           <div className="flex items-center gap-2 mt-6 border-b border-gray-200">
             {tabs.map(tab => (
               <button key={tab.name} onClick={() => setActiveTab(tab.name)}

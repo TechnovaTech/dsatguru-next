@@ -1,9 +1,6 @@
 'use client'
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import ModuleTestsPage from './ModuleTestsPage'
 
 export default function ModuleTestsIndex() {
-  const router = useRouter()
-  useEffect(() => { router.replace('/dashboard/tutor/module-tests/math') }, [router])
-  return null
+  return <ModuleTestsPage />
 }

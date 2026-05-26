@@ -33,11 +33,7 @@ const navItems = [
   {
     name: "Tutor Module Tests",
     icon: <FiLayers />,
-    path: "/dashboard/tutor/module-tests",
-    children: [
-      { name: "Module Math Test", icon: <FiActivity />, path: "/dashboard/tutor/module-tests/math" },
-      { name: "Module R&W Test", icon: <FiPieChart />, path: "/dashboard/tutor/module-tests/rw" },
-    ]
+    path: "/dashboard/tutor/module-tests"
   },
   {
     name: "Admin Tests",
