@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'dsatguru-next',
-      script: 'node_modules/.bin/next',
+      script: 'npm',
       args: 'start',
       cwd: '/root/dsatguru-next',
       instances: 1,
