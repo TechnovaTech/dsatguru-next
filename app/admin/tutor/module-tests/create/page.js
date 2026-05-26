@@ -12,7 +12,7 @@ const mathSubtopics = {
 }
 const rwTopics = { 'craft-structure': 'Craft and Structure', 'information-ideas': 'Information and Ideas', 'standard-english-conventions': 'Standard English Conventions', 'expression-ideas': 'Expression of Ideas' }
 
-const makeDefaultModule = (subject = 'Math') => ({ subject, numberOfQuestions: 10, isTimed: true, duration: 30, breakAfter: 0 })
+const makeDefaultModule = (subject = 'Reading and Writing') => ({ subject, numberOfQuestions: 10, isTimed: true, duration: 30, breakAfter: 0 })
 
 export default function CreateModuleTest() {
   const router = useRouter()
@@ -24,10 +24,10 @@ export default function CreateModuleTest() {
   const [numberOfModules, setNumberOfModules] = useState(4)
   const [activeModuleTab, setActiveModuleTab] = useState(0)
   const [moduleConfigs, setModuleConfigs] = useState([
-    { subject: 'Math', numberOfQuestions: 22, isTimed: true, duration: 35, breakAfter: 0 },
-    { subject: 'Math', numberOfQuestions: 22, isTimed: true, duration: 35, breakAfter: 10 },
     { subject: 'Reading and Writing', numberOfQuestions: 27, isTimed: true, duration: 32, breakAfter: 0 },
-    { subject: 'Reading and Writing', numberOfQuestions: 27, isTimed: true, duration: 32, breakAfter: 0 }
+    { subject: 'Reading and Writing', numberOfQuestions: 27, isTimed: true, duration: 32, breakAfter: 10 },
+    { subject: 'Math', numberOfQuestions: 22, isTimed: true, duration: 35, breakAfter: 0 },
+    { subject: 'Math', numberOfQuestions: 22, isTimed: true, duration: 35, breakAfter: 0 }
   ])
   const [selectedQuestions, setSelectedQuestions] = useState([[], [], [], []])
   const [availableQuestions, setAvailableQuestions] = useState([[], [], [], []])
@@ -38,7 +38,7 @@ export default function CreateModuleTest() {
   const [showSelector, setShowSelector] = useState(false)
   const [selectorModule, setSelectorModule] = useState(0)
   const [questionSearch, setQuestionSearch] = useState('')
-  const [filters, setFilters] = useState({ subject: 'Math', difficulty: '', mathTopic: '', mathSubtopic: '', rwTopic: '', remark: '' })
+  const [filters, setFilters] = useState({ subject: 'Reading and Writing', difficulty: '', mathTopic: '', mathSubtopic: '', rwTopic: '', remark: '' })
 
   // Preview
   const [showPreview, setShowPreview] = useState(false)
@@ -204,7 +204,7 @@ export default function CreateModuleTest() {
   }
 
   const filteredQs = getFilteredQuestions()
-  const cfg = moduleConfigs[activeModuleTab] || { subject: 'Math', numberOfQuestions: 22, isTimed: true, duration: 35 }
+  const cfg = moduleConfigs[activeModuleTab] || { subject: 'Reading and Writing', numberOfQuestions: 27, isTimed: true, duration: 32 }
   const selCount = (selectedQuestions[activeModuleTab] || []).length
 
   return (
@@ -214,7 +214,7 @@ export default function CreateModuleTest() {
           <>
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Create Full DSAT Module Test</h1>
-              <p className="text-sm text-gray-500 mt-1">4 Modules (2 Math, 2 R&W) with fixed question counts</p>
+              <p className="text-sm text-gray-500 mt-1">4 Modules (2 R&W, 2 Math) with fixed question counts</p>
             </div>
 
             {error && <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg flex items-center gap-2 border border-red-100"><FiAlertCircle /> {error}</div>}
@@ -233,15 +233,15 @@ export default function CreateModuleTest() {
               <div className="border-b border-gray-200">
                 <nav className="-mb-px flex flex-wrap">
                   {/* Section 1 Header */}
-                  <div className="px-4 py-3 bg-blue-50 border-r flex items-center gap-2">
-                    <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">Section 1: Math</span>
+                  <div className="px-4 py-3 bg-purple-50 border-r flex items-center gap-2">
+                    <span className="text-xs font-bold text-purple-700 uppercase tracking-wider">Section 1: R&W</span>
                   </div>
                   {Array.from({ length: 2 }, (_, i) => {
                     const mSel = (selectedQuestions[i] || []).length
                     const mCfg = moduleConfigs[i]
                     const isComplete = mSel === parseInt(mCfg.numberOfQuestions)
                     return (
-                      <button key={i} onClick={() => setActiveModuleTab(i)} className={`flex items-center gap-2 px-5 py-3 border-b-2 font-medium text-sm transition-colors ${activeModuleTab === i ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                      <button key={i} onClick={() => setActiveModuleTab(i)} className={`flex items-center gap-2 px-5 py-3 border-b-2 font-medium text-sm transition-colors ${activeModuleTab === i ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
                         M{i + 1}
                         {isComplete
                           ? <span className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"><FiCheck className="text-white w-3 h-3" /></span>
@@ -251,8 +251,8 @@ export default function CreateModuleTest() {
                     )
                   })}
                   {/* Section 2 Header */}
-                  <div className="px-4 py-3 bg-purple-50 border-x flex items-center gap-2">
-                    <span className="text-xs font-bold text-purple-700 uppercase tracking-wider">Section 2: R&W</span>
+                  <div className="px-4 py-3 bg-blue-50 border-x flex items-center gap-2">
+                    <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">Section 2: Math</span>
                   </div>
                   {Array.from({ length: 2 }, (_, i) => {
                     const idx = i + 2
@@ -260,7 +260,7 @@ export default function CreateModuleTest() {
                     const mCfg = moduleConfigs[idx]
                     const isComplete = mSel === parseInt(mCfg.numberOfQuestions)
                     return (
-                      <button key={idx} onClick={() => setActiveModuleTab(idx)} className={`flex items-center gap-2 px-5 py-3 border-b-2 font-medium text-sm transition-colors ${activeModuleTab === idx ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                      <button key={idx} onClick={() => setActiveModuleTab(idx)} className={`flex items-center gap-2 px-5 py-3 border-b-2 font-medium text-sm transition-colors ${activeModuleTab === idx ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
                         M{idx + 1}
                         {isComplete
                           ? <span className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"><FiCheck className="text-white w-3 h-3" /></span>
@@ -312,7 +312,7 @@ export default function CreateModuleTest() {
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                     <label className="block text-sm font-medium text-amber-800 mb-2">
                       <FiClock className="inline w-4 h-4 mr-1" />
-                      Break Time after Section 1 (Math) → Section 2 (R&W) (minutes)
+                      Break Time after Section 1 (R&W) → Section 2 (Math) (minutes)
                     </label>
                     <input
                       type="number" min="0" max="60"
@@ -321,7 +321,7 @@ export default function CreateModuleTest() {
                       onChange={e => updateModuleConfig(activeModuleTab, 'breakAfter', parseInt(e.target.value) || 0)}
                       placeholder="0 = no break"
                     />
-                    <p className="text-xs text-amber-700 mt-1">Scheduled break after the second Math module</p>
+                    <p className="text-xs text-amber-700 mt-1">Scheduled break after the second Reading & Writing module</p>
                   </div>
                 )}
 

@@ -475,9 +475,9 @@ export default function ModuleTestPage() {
             <span>{introMod?.isTimed ? `${introMod.duration} minutes` : 'Untimed'}</span>
           </div>
           {currentModuleIdx === 0 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-left">
-              <p className="text-sm font-semibold text-blue-800 mb-2">Instructions</p>
-              <ul className="text-sm text-blue-700 space-y-1">
+            <div className={`${isMath ? 'bg-blue-50 border-blue-200' : 'bg-purple-50 border-purple-200'} border rounded-xl p-4 mb-6 text-left`}>
+              <p className={`text-sm font-semibold ${isMath ? 'text-blue-800' : 'text-purple-800'} mb-2`}>Instructions</p>
+              <ul className={`text-sm ${isMath ? 'text-blue-700' : 'text-purple-700'} space-y-1`}>
                 <li>• Read each question carefully before selecting your answer</li>
                 <li>• Use elimination (⊘) to cross out wrong options</li>
                 <li>• Flag questions to review before finishing</li>

@@ -13,7 +13,7 @@ export default function TutorTests() {
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [filterMode, setFilterMode] = useState('all')
-  const [activeTab, setActiveTab] = useState('Math')
+  const [activeTab, setActiveTab] = useState('Reading and Writing')
   
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
