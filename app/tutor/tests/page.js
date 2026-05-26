@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { renderContent as renderWithImages } from '../../components/admin/LatexRenderer'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../components/AuthContext'
@@ -14,6 +14,12 @@ export default function TutorTests() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterMode, setFilterMode] = useState('all')
   const [activeTab, setActiveTab] = useState('Math')
+  
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const tab = params.get('tab')
+    if (tab) setActiveTab(tab)
+  }, [])
   
   // View test modal
   const [showViewModal, setShowViewModal] = useState(false)
@@ -51,24 +57,25 @@ export default function TutorTests() {
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
-      const [testsRes, studentsRes] = await Promise.all([
-        fetch('/api/admin/tutor/tests/list', {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch('/api/admin/users?role=Student', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+      const [testsRes, moduleTestsRes, studentsRes] = await Promise.all([
+        fetch('/api/admin/tutor/tests/list', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/admin/tutor/module-tests/list', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/admin/users?role=Student', { headers: { Authorization: `Bearer ${token}` } })
       ])
       
-      if (testsRes.ok && studentsRes.ok) {
+      if (testsRes.ok && moduleTestsRes.ok && studentsRes.ok) {
         const testsData = await testsRes.json()
+        const moduleTestsData = await moduleTestsRes.json()
         const studentsData = await studentsRes.json()
+        
+        // Combine all tests
+        const allTestsData = [...testsData, ...moduleTestsData]
         
         // Filter students assigned to this tutor
         const myStudents = studentsData.filter(s => s.assignedTutor === user?.id || s.assignedTutor?._id === user?.id)
         
         // Add student count to each test
-        const testsWithCount = testsData.map(test => ({
+        const testsWithCount = allTestsData.map(test => ({
           ...test,
           assignedStudentsCount: myStudents.filter(s => 
             s.assignedTests && s.assignedTests.includes(test._id)
@@ -95,23 +102,40 @@ export default function TutorTests() {
     
     try {
       const token = localStorage.getItem('token')
-      const questionIds = test.questions.join(',')
-      const res = await fetch(`/api/questions?ids=${questionIds}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
       
-      if (res.ok) {
-        const questions = await res.json()
-        
-        if (test.customQuestions) {
-          const customQuestionsMap = test.customQuestions
-          const mergedQuestions = questions.map(q => {
-            const qId = q.id || q._id
-            return customQuestionsMap[qId] ? { ...q, ...customQuestionsMap[qId] } : q
-          })
+      // Handle module tests differently
+      if (test.isModuleTest) {
+        const modules = test.modules && test.modules.length > 0 ? test.modules : [{ questions: test.questions || [], subject: test.subject }]
+        const allIds = modules.flatMap(m => m.questions || [])
+        const res = await fetch(`/api/questions?ids=${allIds.join(',')}`, { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const allQuestions = await res.json()
+          const qById = {}
+          allQuestions.forEach(q => { qById[(q.id || q._id).toString()] = q })
+          
+          const customMap = test.customQuestions || {}
+          const mergedQuestions = allIds.map(qId => {
+            const q = qById[qId.toString()] || {}
+            const qKey = (q.id || q._id || '').toString()
+            return customMap[qKey] ? { ...q, ...customMap[qKey] } : q
+          }).filter(q => q._id || q.id)
           setTestQuestions(mergedQuestions)
-        } else {
-          setTestQuestions(questions)
+        }
+      } else {
+        const questionIds = test.questions.join(',')
+        const res = await fetch(`/api/questions?ids=${questionIds}`, { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const questions = await res.json()
+          if (test.customQuestions) {
+            const customQuestionsMap = test.customQuestions
+            const mergedQuestions = questions.map(q => {
+              const qId = q.id || q._id
+              return customQuestionsMap[qId] ? { ...q, ...customQuestionsMap[qId] } : q
+            })
+            setTestQuestions(mergedQuestions)
+          } else {
+            setTestQuestions(questions)
+          }
         }
       }
     } catch (err) {
@@ -320,96 +344,116 @@ export default function TutorTests() {
                 Math Tests
               </button>
               <button
-                onClick={() => setActiveTab('Reading and Writing')}
-                className={`${
-                  activeTab === 'Reading and Writing'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-              >
-                Reading & Writing Tests
-              </button>
-            </nav>
-          </div>
-        </div>
+        onClick={() => setActiveTab('Reading and Writing')}
+        className={`${
+          activeTab === 'Reading and Writing'
+            ? 'border-blue-500 text-blue-600'
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+      >
+        Reading & Writing Tests
+      </button>
+      <button
+        onClick={() => setActiveTab('Module Tests')}
+        className={`${
+          activeTab === 'Module Tests'
+            ? 'border-blue-500 text-blue-600'
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+      >
+        Module Tests
+      </button>
+    </nav>
+  </div>
+</div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Search by Title</label>
-              <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search test titles..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Mode</label>
-              <select
-                value={filterMode}
-                onChange={(e) => setFilterMode(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Tests</option>
-                <option value="timed">Timed Only</option>
-                <option value="untimed">Untimed Only</option>
-              </select>
-            </div>
-          </div>
-        </div>
+{/* Filters */}
+<div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">Search by Title</label>
+      <div className="relative">
+        <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search test titles..."
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+      </div>
+    </div>
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Mode</label>
+      <select
+        value={filterMode}
+        onChange={(e) => setFilterMode(e.target.value)}
+        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="all">All Tests</option>
+        <option value="timed">Timed Only</option>
+        <option value="untimed">Untimed Only</option>
+      </select>
+    </div>
+  </div>
+</div>
 
-        {/* Tests List */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b">
-            <h2 className="text-lg font-semibold">
-              {activeTab} Tests ({filteredTests.length})
-            </h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Test Title</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mode</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Questions</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned Students</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {loading ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">Loading tests...</td>
-                  </tr>
-                ) : filteredTests.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">No tests found</td>
-                  </tr>
+{/* Tests List */}
+<div className="bg-white rounded-lg shadow-sm">
+  <div className="p-6 border-b">
+    <h2 className="text-lg font-semibold">
+      {activeTab} ({filteredTests.length})
+    </h2>
+  </div>
+  <div className="overflow-x-auto">
+    <table className="min-w-full divide-y divide-gray-200">
+      <thead className="bg-gray-50">
+        <tr>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Test Title</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mode</th>
+          {activeTab === 'Module Tests' ? (
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Modules</th>
+          ) : (
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Questions</th>
+          )}
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned Students</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created Date</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-gray-200">
+        {loading ? (
+          <tr>
+            <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">Loading tests...</td>
+          </tr>
+        ) : filteredTests.length === 0 ? (
+          <tr>
+            <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">No tests found</td>
+          </tr>
+        ) : (
+          filteredTests.map((test) => (
+            <tr key={test._id} className="hover:bg-gray-50">
+              <td className="px-6 py-4 text-sm font-medium text-gray-900">{test.title}</td>
+              <td className="px-6 py-4 text-sm">
+                {test.isTimed ? (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                    <FiClock /> {test.duration || (test.modules ? test.modules.reduce((acc, m) => acc + (m.duration || 0), 0) : 0)} min
+                  </span>
                 ) : (
-                  filteredTests.map((test) => (
-                    <tr key={test._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{test.title}</td>
-                      <td className="px-6 py-4 text-sm">
-                        {test.isTimed ? (
-                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                            <FiClock /> {test.duration} min
-                          </span>
-                        ) : (
-                          <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
-                            Untimed
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {test.questions?.length || 0} questions
-                      </td>
+                  <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
+                    Untimed
+                  </span>
+                )}
+              </td>
+              {activeTab === 'Module Tests' ? (
+                <td className="px-6 py-4 text-sm text-gray-900">
+                  {test.numberOfModules || test.modules?.length || 1} Modules
+                </td>
+              ) : (
+                <td className="px-6 py-4 text-sm text-gray-900">
+                  {test.questions?.length || 0} questions
+                </td>
+              )}
                       <td className="px-6 py-4 text-sm">
                         <button
                           onClick={() => handleViewAssignedStudents(test)}

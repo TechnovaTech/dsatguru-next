@@ -1,7 +1,7 @@
 'use client'
 import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
 import { useState, useEffect } from 'react'
-import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus } from 'react-icons/fi'
+import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiUsers } from 'react-icons/fi'
 
 export default function ModuleTestSheets() {
   const [tests, setTests] = useState([])
@@ -32,6 +32,14 @@ export default function ModuleTestSheets() {
   const [studentSearch, setStudentSearch] = useState('')
   const [assignShowExplanation, setAssignShowExplanation] = useState(false)
 
+  // Assign to tutor modal
+  const [showAssignToTutorModal, setShowAssignToTutorModal] = useState(false)
+  const [assignToTutorTest, setAssignToTutorTest] = useState(null)
+  const [allTutors, setAllTutors] = useState([])
+  const [loadingAllTutors, setLoadingAllTutors] = useState(false)
+  const [tutorSearch, setTutorSearch] = useState('')
+  const [assignedTutorsMap, setAssignedTutorsMap] = useState({}) // testId -> tutorIds[]
+
   useEffect(() => { fetchTests() }, [])
 
   const fetchTests = async () => {
@@ -39,9 +47,48 @@ export default function ModuleTestSheets() {
     try {
       const token = localStorage.getItem('token')
       const res = await fetch('/api/admin/tutor/module-tests/list', { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) setTests(await res.json())
+      if (res.ok) {
+        const data = await res.json()
+        setTests(data)
+        // Initialize assignedTutorsMap
+        const map = {}
+        data.forEach(t => { map[t._id] = (t.assignedTutors || []).map(id => id.toString()) })
+        setAssignedTutorsMap(map)
+      }
       else setError('Failed to load tests')
     } catch { setError('Failed to load tests') } finally { setLoading(false) }
+  }
+
+  const handleOpenAssignToTutorModal = async (test) => {
+    setAssignToTutorTest(test)
+    setShowAssignToTutorModal(true)
+    setLoadingAllTutors(true)
+    setTutorSearch('')
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/admin/users?role=Tutor', { headers: { Authorization: `Bearer ${token}` } })
+      if (res.ok) setAllTutors(await res.json())
+    } finally { setLoadingAllTutors(false) }
+  }
+
+  const handleToggleTutorAssignment = async (tutorId, testId) => {
+    const token = localStorage.getItem('token')
+    const currentAssigned = assignedTutorsMap[testId] || []
+    const isAssigned = currentAssigned.includes(tutorId.toString())
+    
+    try {
+      const res = await fetch('/api/admin/tutor/module-tests/assign-tutor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ tutorId, testId, action: isAssigned ? 'remove' : 'add' })
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setAssignedTutorsMap(prev => ({ ...prev, [testId]: data.assignedTutors.map(id => id.toString()) }))
+        setSuccess(isAssigned ? 'Tutor access removed' : 'Tutor access granted')
+        setTimeout(() => setSuccess(''), 3000)
+      }
+    } catch { setError('Failed to update tutor assignment'); setTimeout(() => setError(''), 3000) }
   }
 
   const handleOpenAssignToStudentModal = async (test) => {
@@ -269,7 +316,8 @@ export default function ModuleTestSheets() {
                         <div className="flex items-center gap-2">
                           <button onClick={() => loadTestQuestions(test, false)} className="inline-flex items-center px-3 py-1 text-blue-600 hover:bg-blue-100 rounded text-xs"><FiEye className="mr-1" /> View</button>
                           <button onClick={() => loadTestQuestions(test, true)} className="inline-flex items-center px-3 py-1 text-green-600 hover:bg-green-100 rounded text-xs"><FiEdit className="mr-1" /> Edit</button>
-                          <button onClick={() => handleOpenAssignToStudentModal(test)} className="inline-flex items-center px-3 py-1 text-purple-600 hover:bg-purple-100 rounded text-xs"><FiUserPlus className="mr-1" /> Assign</button>
+                          <button onClick={() => handleOpenAssignToTutorModal(test)} className="inline-flex items-center px-3 py-1 text-amber-600 hover:bg-amber-100 rounded text-xs" title="Assign to Tutor"><FiUsers className="mr-1" /> Tutor</button>
+                          <button onClick={() => handleOpenAssignToStudentModal(test)} className="inline-flex items-center px-3 py-1 text-purple-600 hover:bg-purple-100 rounded text-xs"><FiUserPlus className="mr-1" /> Student</button>
                           <button onClick={() => handleDeleteTest(test._id)} className="inline-flex items-center px-3 py-1 text-red-600 hover:bg-red-100 rounded text-xs"><FiTrash className="mr-1" /> Delete</button>
                         </div>
                       </td>
@@ -489,6 +537,50 @@ export default function ModuleTestSheets() {
                   <span className="text-sm text-gray-700">Show explanation on analysis page</span>
                 </label>
                 <button onClick={() => setShowAssignToStudentModal(false)} className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Close</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Assign to Tutor Modal */}
+        {showAssignToTutorModal && assignToTutorTest && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+              <div className="p-6 border-b flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Assign Test Access to Tutor</h2>
+                  <p className="text-sm text-gray-600 mt-1">{assignToTutorTest.title}</p>
+                </div>
+                <button onClick={() => setShowAssignToTutorModal(false)} className="text-gray-400 hover:text-gray-600"><FiX className="w-6 h-6" /></button>
+              </div>
+              <div className="p-4 border-b">
+                <div className="relative"><FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input type="text" value={tutorSearch} onChange={e => setTutorSearch(e.target.value)} placeholder="Search tutors..." className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500" />
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4">
+                {loadingAllTutors ? (
+                  <div className="text-center py-8 text-gray-500">Loading tutors...</div>
+                ) : (
+                  <div className="space-y-2">
+                    {allTutors
+                      .filter(t => !tutorSearch || t.name?.toLowerCase().includes(tutorSearch.toLowerCase()) || t.email?.toLowerCase().includes(tutorSearch.toLowerCase()))
+                      .map(tutor => {
+                        const assigned = (assignedTutorsMap[assignToTutorTest._id] || []).includes(tutor._id.toString())
+                        return (
+                          <div key={tutor._id} className={`p-4 border rounded-lg flex items-center justify-between ${assigned ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-200'}`}>
+                            <div><div className="font-medium text-gray-900 text-sm">{tutor.name}</div><div className="text-xs text-gray-500">{tutor.email}</div></div>
+                            <button onClick={() => handleToggleTutorAssignment(tutor._id, assignToTutorTest._id)} className={`px-4 py-1.5 rounded-lg text-sm font-medium ${assigned ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-amber-600 text-white hover:bg-amber-700'}`}>
+                              {assigned ? 'Remove Access' : 'Grant Access'}
+                            </button>
+                          </div>
+                        )
+                      })}
+                  </div>
+                )}
+              </div>
+              <div className="p-4 border-t bg-gray-50 flex justify-end">
+                <button onClick={() => setShowAssignToTutorModal(false)} className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Close</button>
               </div>
             </div>
           </div>

@@ -9,11 +9,18 @@ export async function GET(request) {
     const token = getTokenFromRequest(request)
     const decoded = verifyToken(token)
 
-    if (!decoded || !['Admin', 'TutorAdmin'].includes(decoded.role)) {
+    if (!decoded || !['Admin', 'TutorAdmin', 'Tutor'].includes(decoded.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const tests = await Test.find({ isModuleTest: true, isActive: true })
+    const query = { isModuleTest: true, isActive: true }
+    
+    // If user is a Tutor, only show tests assigned to them
+    if (decoded.role === 'Tutor') {
+      query.assignedTutors = decoded.userId
+    }
+
+    const tests = await Test.find(query)
       .sort({ createdAt: -1 })
       .lean()
 

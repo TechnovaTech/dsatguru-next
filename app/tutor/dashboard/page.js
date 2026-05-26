@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../components/AuthContext'
 import { useRouter } from 'next/navigation'
-import { FiUsers, FiFileText, FiAward, FiTrendingUp } from 'react-icons/fi'
+import { FiUsers, FiFileText, FiAward, FiTrendingUp, FiLayers } from 'react-icons/fi'
 
 export default function TutorDashboard() {
   const { user } = useAuth()
@@ -86,6 +86,33 @@ export default function TutorDashboard() {
                 <FiAward className="text-purple-600 text-xl" />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Tutor Module Tests Section */}
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <FiLayers className="text-indigo-600" />
+            Tutor Module Tests
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button
+              onClick={() => router.push('/tutor/tests?tab=Module Tests')}
+              className="p-4 border-2 border-gray-100 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all text-left"
+            >
+              <FiFileText className="text-2xl text-indigo-600 mb-2" />
+              <h3 className="font-semibold text-gray-900">Module Test Sheets</h3>
+              <p className="text-sm text-gray-600">Assigned by Admin or Tutor Admin</p>
+            </button>
+
+            <button
+              onClick={() => router.push('/tutor/results')}
+              className="p-4 border-2 border-gray-100 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all text-left"
+            >
+              <FiAward className="text-2xl text-indigo-600 mb-2" />
+              <h3 className="font-semibold text-gray-900">Module Results</h3>
+              <p className="text-sm text-gray-600">Results for your assigned students</p>
+            </button>
           </div>
         </div>
 

@@ -33,7 +33,7 @@ export async function GET(request) {
         return false
       }
       
-      const isTutorTest = s.testId.isTutorTest === true || s.testId.practiceMode === 'tutor'
+      const isTutorTest = s.testId.isTutorTest === true || s.testId.practiceMode === 'tutor' || s.testId.isModuleTest === true
       
       if (!isTutorTest) {
         console.log(`[Tutor Results API] Session ${s._id} test ${s.testId._id} is not a tutor test (isTutorTest: ${s.testId.isTutorTest}, practiceMode: ${s.testId.practiceMode})`)
