@@ -128,13 +128,16 @@ export default function TutorRWPage() {
                   const questionCount = test?.questions?.length || test?.totalQuestions || 0
                   const difficulty = test?.difficulty || 'Mixed'
                   const duration = test?.duration || 0
-                                    const isReassigned = test?.isReassigned === true
-                  
+                  const isReassigned = test?.isReassigned === true
+                  const completedSession = history.find(h => String(h.testId?._id) === String(test?._id) && h.status === 'Completed')
+
                   return (
                     <div key={session._id} className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-all">
                       <div className="flex-1">
                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                           <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded border border-blue-100">Assigned</span>
+                           <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${completedSession ? 'bg-green-50 border-green-200 text-green-700' : 'bg-blue-50 border-blue-100 text-blue-700'}`}>
+                             {completedSession ? 'Completed' : 'Assigned'}
+                           </span>
                            <span className="text-xs text-gray-500">{new Date(session.createdAt).toLocaleDateString()}</span>
                            {isReassigned && (
                              <span className="px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded border border-amber-100">
@@ -145,7 +148,7 @@ export default function TutorRWPage() {
                          <h3 className="text-lg font-bold text-gray-900 mb-2">{test?.title || 'Assigned Test'}</h3>
                          <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
                            <span className="flex items-center gap-1">
-                             <FiFileText className="w-4 h-4" /> 
+                             <FiFileText className="w-4 h-4" />
                              <span className="font-medium">{questionCount}</span> Question{questionCount !== 1 ? 's' : ''}
                            </span>
                            <span className="flex items-center gap-1">
@@ -165,13 +168,22 @@ export default function TutorRWPage() {
                            </span>
                          </div>
                       </div>
-                      
-                      <button
-                         onClick={() => handleStartSession(session)}
-                         className="px-6 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
-                       >
-                         <FiPlay className="w-4 h-4" /> Start Test
-                       </button>
+
+                      {completedSession ? (
+                        <button
+                          onClick={() => router.push(`/dashboard/tests/${test?._id}/results?session_id=${completedSession._id}&returnUrl=/dashboard/tutor/rw`)}
+                          className="px-6 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2"
+                        >
+                          <FiCheckCircle className="w-4 h-4" /> View Results
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleStartSession(session)}
+                          className="px-6 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
+                        >
+                          <FiPlay className="w-4 h-4" /> Start Test
+                        </button>
+                      )}
                     </div>
                   )
                 })
