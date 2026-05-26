@@ -21,12 +21,16 @@ export default function CreateModuleTest() {
   const [success, setSuccess] = useState('')
 
   const [title, setTitle] = useState('')
-  const [testSubject, setTestSubject] = useState('Math')
-  const [numberOfModules, setNumberOfModules] = useState(2)
+  const [numberOfModules, setNumberOfModules] = useState(4)
   const [activeModuleTab, setActiveModuleTab] = useState(0)
-  const [moduleConfigs, setModuleConfigs] = useState([makeDefaultModule(), makeDefaultModule()])
-  const [selectedQuestions, setSelectedQuestions] = useState([[], []])
-  const [availableQuestions, setAvailableQuestions] = useState([[], []])
+  const [moduleConfigs, setModuleConfigs] = useState([
+    { subject: 'Math', numberOfQuestions: 22, isTimed: true, duration: 35, breakAfter: 0 },
+    { subject: 'Math', numberOfQuestions: 22, isTimed: true, duration: 35, breakAfter: 10 },
+    { subject: 'Reading and Writing', numberOfQuestions: 27, isTimed: true, duration: 32, breakAfter: 0 },
+    { subject: 'Reading and Writing', numberOfQuestions: 27, isTimed: true, duration: 32, breakAfter: 0 }
+  ])
+  const [selectedQuestions, setSelectedQuestions] = useState([[], [], [], []])
+  const [availableQuestions, setAvailableQuestions] = useState([[], [], [], []])
   const [loadingQMap, setLoadingQMap] = useState({})
   const [editedQuestionsData, setEditedQuestionsData] = useState({})
 
@@ -42,58 +46,22 @@ export default function CreateModuleTest() {
   const [previewIdx, setPreviewIdx] = useState(0)
   const [editingQId, setEditingQId] = useState(null)
 
-  const handleTestSubjectChange = (subj) => {
-    setTestSubject(subj)
-    setModuleConfigs(prev => prev.map(m => ({ ...m, subject: subj })))
-    setSelectedQuestions(prev => prev.map(() => []))
-    setAvailableQuestions(prev => prev.map(() => []))
-    setFilters(prev => ({ ...prev, subject: subj, mathTopic: '', mathSubtopic: '', rwTopic: '' }))
-  }
-
-  const handleNumberOfModulesChange = (n) => {
-    const num = Math.max(1, Math.min(5, parseInt(n) || 1))
-    setNumberOfModules(num)
-    setModuleConfigs(prev => {
-      const next = [...prev]
-      while (next.length < num) next.push(makeDefaultModule(testSubject))
-      return next.slice(0, num)
-    })
-    setSelectedQuestions(prev => {
-      const next = [...prev]
-      while (next.length < num) next.push([])
-      return next.slice(0, num)
-    })
-    setAvailableQuestions(prev => {
-      const next = [...prev]
-      while (next.length < num) next.push([])
-      return next.slice(0, num)
-    })
-    if (activeModuleTab >= num) setActiveModuleTab(num - 1)
-  }
-
   const updateModuleConfig = (idx, key, value) => {
     setModuleConfigs(prev => { const n = [...prev]; n[idx] = { ...n[idx], [key]: value }; return n })
-    // Reset questions if subject changes
-    if (key === 'subject') {
-      setSelectedQuestions(prev => { const n = [...prev]; n[idx] = []; return n })
-      setAvailableQuestions(prev => { const n = [...prev]; n[idx] = []; return n })
-    }
-    if (key === 'numberOfQuestions') {
-      setSelectedQuestions(prev => { const n = [...prev]; n[idx] = []; return n })
-    }
   }
 
   const handleSelectQuestions = async (moduleIdx) => {
+    const targetSubject = moduleConfigs[moduleIdx].subject
     setSelectorModule(moduleIdx)
     setShowSelector(true)
     setQuestionSearch('')
-    setFilters({ subject: testSubject, difficulty: '', mathTopic: '', mathSubtopic: '', rwTopic: '', remark: '' })
+    setFilters({ subject: targetSubject, difficulty: '', mathTopic: '', mathSubtopic: '', rwTopic: '', remark: '' })
 
     if (availableQuestions[moduleIdx].length === 0) {
       setLoadingQMap(prev => ({ ...prev, [moduleIdx]: true }))
       try {
         const token = localStorage.getItem('token')
-        const res = await fetch(`/api/questions?isTutor=true&subject=${encodeURIComponent(testSubject)}&isActive=true`, { headers: { Authorization: `Bearer ${token}` } })
+        const res = await fetch(`/api/questions?isTutor=true&subject=${encodeURIComponent(targetSubject)}&isActive=true`, { headers: { Authorization: `Bearer ${token}` } })
         if (res.ok) {
           const data = await res.json()
           setAvailableQuestions(prev => { const n = [...prev]; n[moduleIdx] = data; return n })
@@ -106,9 +74,7 @@ export default function CreateModuleTest() {
 
   const handleFilterSubjectChange = async (subj) => {
     setFilters(prev => ({ ...prev, subject: subj, mathTopic: '', mathSubtopic: '', rwTopic: '' }))
-    // Load questions for new subject in this module slot if not loaded
     const idx = selectorModule
-    // We temporarily show from a different subject - just fetch and update available
     setLoadingQMap(prev => ({ ...prev, [idx]: true }))
     try {
       const token = localStorage.getItem('token')
@@ -132,7 +98,7 @@ export default function CreateModuleTest() {
         if (filters.mathTopic && !tags.includes(filters.mathTopic)) return false
         if (filters.mathSubtopic && !tags.includes(filters.mathSubtopic)) return false
       }
-      if (filters.subject === 'Reading and Writing' && filters.rwTopic && !tags.includes(filters.rwTopic)) return false
+      if ((filters.subject === 'Reading and Writing' || filters.subject === 'Reading & Writing') && filters.rwTopic && !tags.includes(filters.rwTopic)) return false
       if (questionSearch.trim()) {
         const s = questionSearch.toLowerCase().trim()
         return (q.questionId || '').toLowerCase().includes(s) || (q.content || '').toLowerCase().includes(s) || (q.remark || '').toLowerCase().includes(s)
@@ -238,7 +204,7 @@ export default function CreateModuleTest() {
   }
 
   const filteredQs = getFilteredQuestions()
-  const cfg = moduleConfigs[activeModuleTab] || makeDefaultModule()
+  const cfg = moduleConfigs[activeModuleTab] || { subject: 'Math', numberOfQuestions: 22, isTimed: true, duration: 35 }
   const selCount = (selectedQuestions[activeModuleTab] || []).length
 
   return (
@@ -247,51 +213,55 @@ export default function CreateModuleTest() {
         {!showSelector ? (
           <>
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">Create Module Test</h1>
-              <p className="text-sm text-gray-500 mt-1">Create a multi-module test using tutor question bank</p>
+              <h1 className="text-2xl font-bold text-gray-900">Create Full DSAT Module Test</h1>
+              <p className="text-sm text-gray-500 mt-1">4 Modules (2 Math, 2 R&W) with fixed question counts</p>
             </div>
 
             {error && <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg flex items-center gap-2 border border-red-100"><FiAlertCircle /> {error}</div>}
             {success && <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg flex items-center gap-2 border border-green-100"><FiCheck /> {success}</div>}
 
-            {/* Title + Subject + Number of Modules */}
+            {/* Title */}
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Test Title <span className="text-red-500">*</span></label>
-                  <input type="text" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g., Module Math Test" value={title} onChange={e => setTitle(e.target.value)} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Subject <span className="text-red-500">*</span></label>
-                  <div className="flex gap-2 h-[46px]">
-                    {['Math', 'Reading and Writing'].map(subj => (
-                      <label key={subj} className={`flex-1 flex items-center justify-center border-2 rounded-lg cursor-pointer text-sm font-medium transition-all ${testSubject === subj ? (subj === 'Math' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-purple-50 border-purple-500 text-purple-700') : 'border-gray-300 hover:bg-gray-50'}`}>
-                        <input type="radio" checked={testSubject === subj} onChange={() => handleTestSubjectChange(subj)} className="hidden" />
-                        {subj === 'Reading and Writing' ? 'R&W' : subj}
-                      </label>
-                    ))}
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">All modules use same subject</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Number of Modules <span className="text-red-500">*</span></label>
-                  <input type="number" min="1" max="5" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value={numberOfModules} onChange={e => handleNumberOfModulesChange(e.target.value)} />
-                  <p className="text-xs text-gray-500 mt-1">Max 5 modules</p>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Test Title <span className="text-red-500">*</span></label>
+                <input type="text" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g., Full SAT Practice Test 1" value={title} onChange={e => setTitle(e.target.value)} />
               </div>
             </div>
 
             {/* Module Tabs */}
             <div className="bg-white rounded-lg shadow-sm border">
               <div className="border-b border-gray-200">
-                <nav className="-mb-px flex">
-                  {Array.from({ length: numberOfModules }, (_, i) => {
+                <nav className="-mb-px flex flex-wrap">
+                  {/* Section 1 Header */}
+                  <div className="px-4 py-3 bg-blue-50 border-r flex items-center gap-2">
+                    <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">Section 1: Math</span>
+                  </div>
+                  {Array.from({ length: 2 }, (_, i) => {
                     const mSel = (selectedQuestions[i] || []).length
-                    const mCfg = moduleConfigs[i] || makeDefaultModule()
+                    const mCfg = moduleConfigs[i]
                     const isComplete = mSel === parseInt(mCfg.numberOfQuestions)
                     return (
                       <button key={i} onClick={() => setActiveModuleTab(i)} className={`flex items-center gap-2 px-5 py-3 border-b-2 font-medium text-sm transition-colors ${activeModuleTab === i ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-                        Module {i + 1}
+                        M{i + 1}
+                        {isComplete
+                          ? <span className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"><FiCheck className="text-white w-3 h-3" /></span>
+                          : <span className="text-xs text-gray-400 font-normal">{mSel}/{mCfg.numberOfQuestions}</span>
+                        }
+                      </button>
+                    )
+                  })}
+                  {/* Section 2 Header */}
+                  <div className="px-4 py-3 bg-purple-50 border-x flex items-center gap-2">
+                    <span className="text-xs font-bold text-purple-700 uppercase tracking-wider">Section 2: R&W</span>
+                  </div>
+                  {Array.from({ length: 2 }, (_, i) => {
+                    const idx = i + 2
+                    const mSel = (selectedQuestions[idx] || []).length
+                    const mCfg = moduleConfigs[idx]
+                    const isComplete = mSel === parseInt(mCfg.numberOfQuestions)
+                    return (
+                      <button key={idx} onClick={() => setActiveModuleTab(idx)} className={`flex items-center gap-2 px-5 py-3 border-b-2 font-medium text-sm transition-colors ${activeModuleTab === idx ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                        M{idx + 1}
                         {isComplete
                           ? <span className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"><FiCheck className="text-white w-3 h-3" /></span>
                           : <span className="text-xs text-gray-400 font-normal">{mSel}/{mCfg.numberOfQuestions}</span>
@@ -303,13 +273,20 @@ export default function CreateModuleTest() {
               </div>
 
               <div className="p-6 space-y-5">
-                <h3 className="text-base font-semibold text-gray-800">Module {activeModuleTab + 1} Configuration</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-semibold text-gray-800">Module {activeModuleTab + 1} Configuration</h3>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${cfg.subject === 'Math' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                    {cfg.subject}
+                  </span>
+                </div>
 
                 {/* Number of Questions + Time */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Number of Questions</label>
-                    <input type="number" min="1" max="50" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value={cfg.numberOfQuestions} onChange={e => updateModuleConfig(activeModuleTab, 'numberOfQuestions', e.target.value)} />
+                    <div className="w-full p-3 border border-gray-100 bg-gray-50 rounded-lg text-gray-500 font-medium">
+                      {cfg.numberOfQuestions} Questions (Fixed)
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Time Mode</label>
@@ -331,11 +308,11 @@ export default function CreateModuleTest() {
                   </div>
                 )}
 
-                {activeModuleTab < numberOfModules - 1 && (
+                {activeModuleTab === 1 && (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                     <label className="block text-sm font-medium text-amber-800 mb-2">
                       <FiClock className="inline w-4 h-4 mr-1" />
-                      Break Time after Module {activeModuleTab + 1} → Module {activeModuleTab + 2} (minutes)
+                      Break Time after Section 1 (Math) → Section 2 (R&W) (minutes)
                     </label>
                     <input
                       type="number" min="0" max="60"
@@ -344,14 +321,14 @@ export default function CreateModuleTest() {
                       onChange={e => updateModuleConfig(activeModuleTab, 'breakAfter', parseInt(e.target.value) || 0)}
                       placeholder="0 = no break"
                     />
-                    <p className="text-xs text-amber-700 mt-1">Set 0 for no break between modules</p>
+                    <p className="text-xs text-amber-700 mt-1">Scheduled break after the second Math module</p>
                   </div>
                 )}
 
                 {/* Select Questions */}
                 <div>
-                  <button type="button" onClick={() => handleSelectQuestions(activeModuleTab)} className="w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 font-medium">
-                    Select Questions from {testSubject === 'Reading and Writing' ? 'R&W' : testSubject} Question Bank
+                  <button type="button" onClick={() => handleSelectQuestions(activeModuleTab)} className={`w-full p-3 text-white rounded-lg flex items-center justify-center gap-2 font-medium ${cfg.subject === 'Math' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-purple-600 hover:bg-purple-700'}`}>
+                    Select Questions from {cfg.subject === 'Reading and Writing' ? 'R&W' : cfg.subject} Question Bank
                   </button>
                   {selCount > 0 && (
                     <div className="mt-2 flex items-center justify-between">
@@ -367,10 +344,10 @@ export default function CreateModuleTest() {
 
             {/* Module Summary */}
             <div className="mt-4 bg-white rounded-lg shadow-sm border p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">All Modules Summary</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Test Structure Summary</h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 {Array.from({ length: numberOfModules }, (_, i) => {
-                  const mCfg = moduleConfigs[i] || makeDefaultModule()
+                  const mCfg = moduleConfigs[i]
                   const mSel = (selectedQuestions[i] || []).length
                   const isComplete = mSel === parseInt(mCfg.numberOfQuestions)
                   return (
@@ -379,8 +356,11 @@ export default function CreateModuleTest() {
                         <span className="text-sm font-semibold">Module {i + 1}</span>
                         {isComplete && <FiCheck className="text-green-600 w-4 h-4" />}
                       </div>
-                      <div className="text-xs text-gray-600">{mCfg.subject === 'Reading and Writing' ? 'R&W' : mCfg.subject}</div>
+                      <div className={`text-xs font-bold ${mCfg.subject === 'Math' ? 'text-blue-600' : 'text-purple-600'}`}>
+                        {mCfg.subject === 'Reading and Writing' ? 'R&W' : mCfg.subject}
+                      </div>
                       <div className="text-xs text-gray-600">{mSel}/{mCfg.numberOfQuestions} questions • {mCfg.isTimed ? `${mCfg.duration} min` : 'Untimed'}</div>
+                      {mCfg.breakAfter > 0 && <div className="text-[10px] text-amber-600 font-bold mt-1">+{mCfg.breakAfter}min Break</div>}
                     </div>
                   )
                 })}
@@ -397,12 +377,12 @@ export default function CreateModuleTest() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Select Questions — Module {selectorModule + 1}</h1>
-                <p className={`text-sm font-medium mt-1 ${(selectedQuestions[selectorModule] || []).length === parseInt(moduleConfigs[selectorModule]?.numberOfQuestions || 10) ? 'text-green-600' : 'text-gray-600'}`}>
-                  {(selectedQuestions[selectorModule] || []).length} / {moduleConfigs[selectorModule]?.numberOfQuestions || 10} selected
+                <p className={`text-sm font-medium mt-1 ${(selectedQuestions[selectorModule] || []).length === parseInt(moduleConfigs[selectorModule]?.numberOfQuestions || 22) ? 'text-green-600' : 'text-gray-600'}`}>
+                  {(selectedQuestions[selectorModule] || []).length} / {moduleConfigs[selectorModule]?.numberOfQuestions} selected
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                {(selectedQuestions[selectorModule] || []).length === parseInt(moduleConfigs[selectorModule]?.numberOfQuestions || 10) && (
+                {(selectedQuestions[selectorModule] || []).length === parseInt(moduleConfigs[selectorModule]?.numberOfQuestions) && (
                   <button type="button" onClick={() => setShowSelector(false)} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium">
                     <FiCheck /> Done
                   </button>
@@ -415,8 +395,8 @@ export default function CreateModuleTest() {
 
             {/* Subject locked label */}
             <div className="mb-4 border-b border-gray-200 pb-2">
-              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${testSubject === 'Math' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-                {testSubject === 'Reading and Writing' ? 'Reading & Writing' : testSubject} Questions
+              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${moduleConfigs[selectorModule]?.subject === 'Math' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                {moduleConfigs[selectorModule]?.subject === 'Reading and Writing' ? 'Reading & Writing' : moduleConfigs[selectorModule]?.subject} Questions Only
               </span>
             </div>
 
