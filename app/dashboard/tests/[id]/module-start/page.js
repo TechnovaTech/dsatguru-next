@@ -713,25 +713,25 @@ export default function ModuleTestPage() {
 
       {/* Question Nav Panel */}
       {showQuestionNav && (
-        <div className="fixed top-16 right-4 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-40 max-w-xs">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 z-40 w-[320px]">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-gray-900 text-sm">Module {currentModuleIdx + 1} Questions</h3>
             <button onClick={() => setShowQuestionNav(false)} className="text-gray-400 hover:text-gray-600 text-lg">×</button>
           </div>
-          <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto">
+          <div className="grid grid-cols-8 gap-1.5 max-h-48 overflow-y-auto pr-1">
             {currentQs.map((q, i) => {
               const qId = (q._id||q.id).toString()
               return (
-                <button key={i} onClick={() => { setCurrentQIdx(i); setShowQuestionNav(false) }} className={`w-8 h-8 rounded text-xs font-medium ${i === currentQIdx ? 'ring-2 ring-blue-500' : ''} ${markedQs.has(qId) ? 'bg-amber-400 text-white' : answers[qId] ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                <button key={i} onClick={() => { setCurrentQIdx(i); setShowQuestionNav(false) }} className={`w-8 h-8 rounded text-xs font-medium transition-all ${i === currentQIdx ? 'ring-2 ring-blue-500 ring-offset-1' : ''} ${markedQs.has(qId) ? 'bg-amber-400 text-white' : answers[qId] ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
                   {i+1}
                 </button>
               )
             })}
           </div>
-          <div className="flex gap-3 mt-3 text-xs">
-            <span className="flex items-center gap-1"><span className="w-3 h-3 bg-blue-500 rounded" />Answered</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-3 bg-amber-400 rounded" />Marked</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-3 bg-gray-200 rounded border" />Empty</span>
+          <div className="flex gap-3 mt-4 pt-3 border-t text-[10px] uppercase tracking-wider font-bold">
+            <span className="flex items-center gap-1.5 text-blue-600"><span className="w-2.5 h-2.5 bg-blue-500 rounded-sm" />Answered</span>
+            <span className="flex items-center gap-1.5 text-amber-600"><span className="w-2.5 h-2.5 bg-amber-400 rounded-sm" />Marked</span>
+            <span className="flex items-center gap-1.5 text-gray-400"><span className="w-2.5 h-2.5 bg-gray-200 rounded-sm border" />Empty</span>
           </div>
         </div>
       )}
