@@ -1,9 +1,11 @@
 'use client'
 import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
 import { useState, useEffect } from 'react'
-import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiUsers } from 'react-icons/fi'
+import { useRouter } from 'next/navigation'
+import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiUsers, FiPlus } from 'react-icons/fi'
 
 export default function ModuleTestSheets() {
+  const router = useRouter()
   const [tests, setTests] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -244,9 +246,17 @@ export default function ModuleTestSheets() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Module Test Sheets</h1>
-          <p className="text-gray-600">View and manage all module tests</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Module Test Sheets</h1>
+            <p className="text-gray-600">View and manage all module tests</p>
+          </div>
+          <button
+            onClick={() => router.push('/admin/tutor/module-tests/create')}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-sm shadow-sm"
+          >
+            <FiPlus className="w-4 h-4" /> Create Module Test
+          </button>
         </div>
 
         {error && <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg flex items-center gap-2 border border-red-100"><FiX /> {error}</div>}

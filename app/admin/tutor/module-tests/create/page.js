@@ -367,6 +367,34 @@ export default function CreateModuleTest() {
               </div>
             </div>
 
+            {!isAllComplete() && (
+              <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <p className="text-sm font-semibold text-amber-800 mb-2">Complete these steps to enable Create:</p>
+                <ul className="space-y-1">
+                  <li className={`text-sm flex items-center gap-2 ${title.trim() ? 'text-green-700' : 'text-red-600'}`}>
+                    {title.trim() ? <FiCheck className="w-4 h-4" /> : <FiAlertCircle className="w-4 h-4" />}
+                    Test title {title.trim() ? 'entered' : 'required'}
+                  </li>
+                  {Array.from({ length: numberOfModules }, (_, i) => {
+                    const mCfg = moduleConfigs[i]
+                    const mSel = (selectedQuestions[i] || []).length
+                    const qOk = mSel === parseInt(mCfg.numberOfQuestions)
+                    const tOk = !mCfg.isTimed || (mCfg.duration && mCfg.duration >= 5)
+                    return [
+                      <li key={`q${i}`} className={`text-sm flex items-center gap-2 ${qOk ? 'text-green-700' : 'text-red-600'}`}>
+                        {qOk ? <FiCheck className="w-4 h-4" /> : <FiAlertCircle className="w-4 h-4" />}
+                        Module {i + 1} ({mCfg.subject === 'Reading and Writing' ? 'R&W' : mCfg.subject}): {mSel}/{mCfg.numberOfQuestions} questions selected
+                      </li>,
+                      !tOk && <li key={`t${i}`} className="text-sm flex items-center gap-2 text-red-600">
+                        <FiAlertCircle className="w-4 h-4" />
+                        Module {i + 1}: Time limit must be at least 5 minutes
+                      </li>
+                    ]
+                  })}
+                </ul>
+              </div>
+            )}
+
             <button type="button" onClick={handleSubmit} disabled={loading || !isAllComplete()} className="mt-4 w-full p-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-base">
               <FiSave /> {loading ? 'Creating...' : 'Create Module Test'}
             </button>

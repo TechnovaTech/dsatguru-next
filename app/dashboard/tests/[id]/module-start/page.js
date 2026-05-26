@@ -34,6 +34,7 @@ export default function ModuleTestPage() {
   const [showModuleIntro, setShowModuleIntro] = useState(false)
   const [showBreakScreen, setShowBreakScreen] = useState(false)
   const [breakCountdown, setBreakCountdown] = useState(0)
+  const [showTimerBlockAlert, setShowTimerBlockAlert] = useState(false)
   const startTime = useRef(new Date())
 
   // Tools
@@ -283,6 +284,10 @@ export default function ModuleTestPage() {
   const toggleMark = (qId) => setMarkedQs(prev => { const n = new Set(prev); n.has(qId) ? n.delete(qId) : n.add(qId); return n })
 
   const handleFinishModule = (autoTimed = false) => {
+    if (!autoTimed && currentMod?.isTimed && timeRemaining > 0) {
+      setShowTimerBlockAlert(true)
+      return
+    }
     const isLast = currentModuleIdx === modules.length - 1
     if (isLast) { handleSubmitTest(false) } else { setShowModuleSummary(true) }
   }
@@ -442,15 +447,9 @@ export default function ModuleTestPage() {
             {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
           </div>
           <p className="text-sm text-gray-400 mb-6">Module starts automatically when timer ends</p>
-          <div className="w-full bg-gray-100 rounded-full h-2 mb-6">
+          <div className="w-full bg-gray-100 rounded-full h-2">
             <div className="bg-green-500 h-2 rounded-full transition-all duration-1000" style={{ width: `${Math.max(0, Math.min(100, (1 - breakCountdown / (parseInt(modules[currentModuleIdx - 1]?.breakAfter) * 60 || breakCountdown)) * 100))}%` }} />
           </div>
-          <button
-            onClick={() => { setShowBreakScreen(false); setShowModuleIntro(true) }}
-            className="w-full py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors"
-          >
-            Start Module {currentModuleIdx + 1} Early
-          </button>
         </div>
       </div>
     )
@@ -705,9 +704,19 @@ export default function ModuleTestPage() {
           </div>
 
           {/* Finish Module / Submit */}
-          <button onClick={() => handleFinishModule(false)} className={`px-4 py-1.5 text-sm font-semibold rounded-lg text-white ${currentModuleIdx === modules.length - 1 ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
-            {currentModuleIdx === modules.length - 1 ? 'Submit' : `Finish M${currentModuleIdx + 1}`}
-          </button>
+          {(() => {
+            const timerLocked = currentMod?.isTimed && timeRemaining > 0
+            return (
+              <button
+                onClick={() => handleFinishModule(false)}
+                className={`px-4 py-1.5 text-sm font-semibold rounded-lg text-white flex items-center gap-1.5 ${timerLocked ? 'bg-gray-400 cursor-not-allowed' : currentModuleIdx === modules.length - 1 ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+                title={timerLocked ? `${formatTime(timeRemaining)} remaining — cannot proceed yet` : ''}
+              >
+                {timerLocked && <FiClock className="w-3.5 h-3.5" />}
+                {currentModuleIdx === modules.length - 1 ? 'Submit' : `Finish M${currentModuleIdx + 1}`}
+              </button>
+            )
+          })()}
         </div>
       </div>
 
@@ -783,6 +792,28 @@ export default function ModuleTestPage() {
               ))}
             </div>
             <button onClick={() => setShowShortcutsModal(false)} className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* Timer Block Alert */}
+      {showTimerBlockAlert && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center">
+            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+              <FiClock className="text-red-600 w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Time Not Finished</h3>
+            <p className="text-gray-600 mb-2">
+              You cannot move to the next module until the current module timer runs out.
+            </p>
+            <p className="text-2xl font-mono font-bold text-red-600 mb-6">{formatTime(timeRemaining)} remaining</p>
+            <button
+              onClick={() => setShowTimerBlockAlert(false)}
+              className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Continue Working
+            </button>
           </div>
         </div>
       )}
@@ -914,12 +945,20 @@ export default function ModuleTestPage() {
           <span className="text-sm text-gray-500">{currentQIdx + 1} / {currentQs.length}</span>
           <button onClick={() => setShowQuestionNav(p => !p)} className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100" title="Question Grid"><FiGrid className="w-4 h-4" /></button>
         </div>
-        <button onClick={() => {
-          if (currentQIdx < currentQs.length - 1) setCurrentQIdx(p => p + 1)
-          else handleFinishModule(false)
-        }} className={`px-5 py-2 rounded-lg text-sm font-medium text-white ${currentQIdx < currentQs.length - 1 ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}>
-          {currentQIdx < currentQs.length - 1 ? 'Next →' : currentModuleIdx === modules.length - 1 ? 'Submit Test' : `Finish Module ${currentModuleIdx + 1}`}
-        </button>
+        {(() => {
+          const isLastQ = currentQIdx === currentQs.length - 1
+          const timerLocked = isLastQ && currentMod?.isTimed && timeRemaining > 0
+          return (
+            <button onClick={() => {
+              if (!isLastQ) setCurrentQIdx(p => p + 1)
+              else handleFinishModule(false)
+            }} className={`px-5 py-2 rounded-lg text-sm font-medium text-white flex items-center gap-1.5 ${!isLastQ ? 'bg-blue-600 hover:bg-blue-700' : timerLocked ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+              title={timerLocked ? `${formatTime(timeRemaining)} remaining — cannot proceed yet` : ''}>
+              {timerLocked && <FiClock className="w-3.5 h-3.5" />}
+              {!isLastQ ? 'Next →' : currentModuleIdx === modules.length - 1 ? 'Submit Test' : `Finish Module ${currentModuleIdx + 1}`}
+            </button>
+          )
+        })()}
       </div>
     </div>
   )
