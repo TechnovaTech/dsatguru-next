@@ -21,10 +21,11 @@ export async function GET(request) {
         return NextResponse.json([])
       }
 
-      const tests = await Test.find({ 
+      const tests = await Test.find({
         _id: { $in: tutor.assignedTests },
-        isTutorTest: true, 
-        isActive: true 
+        isTutorTest: true,
+        isActive: true,
+        isModuleTest: { $ne: true }
       })
         .sort({ createdAt: -1 })
         .lean()
@@ -33,7 +34,7 @@ export async function GET(request) {
     }
 
     // Admin and TutorAdmin can see all tests
-    const tests = await Test.find({ isTutorTest: true, isActive: true })
+    const tests = await Test.find({ isTutorTest: true, isActive: true, isModuleTest: { $ne: true } })
       .sort({ createdAt: -1 })
       .lean()
 

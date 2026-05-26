@@ -14,7 +14,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { originalSessionId, originalTestId, questionIds, userId, option } = await request.json()
+    const { originalSessionId, originalTestId, questionIds, userId, option, modulesData } = await request.json()
 
     if (!originalSessionId || !originalTestId || !questionIds || !userId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -26,16 +26,19 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Original test not found' }, { status: 404 })
     }
 
+    const isModuleReassign = originalTest.isModuleTest && Array.isArray(modulesData) && modulesData.length > 0
+    const flatQuestions = isModuleReassign ? modulesData.flatMap(m => m.questions) : questionIds
+
     // Create a new test with the selected questions
     const newTest = await Test.create({
       title: `${originalTest.title} (Reassigned)`,
       subject: originalTest.subject,
-      questions: questionIds,
+      questions: flatQuestions,
       assignedTo: [userId],
       isTutorTest: true,
       testType: 'Practice',
       practiceMode: 'tutor',
-      totalQuestions: questionIds.length,
+      totalQuestions: flatQuestions.length,
       duration: originalTest.duration,
       isTimed: originalTest.isTimed,
       showExplanation: originalTest.showExplanation,
@@ -46,8 +49,12 @@ export async function POST(request) {
       filters: originalTest.filters,
       isReassigned: true,
       originalTestId: originalTestId,
-      // Keep isModuleTest flag so reassigned module tests don't appear in regular tutor pages
-      ...(originalTest.isModuleTest && { isModuleTest: true })
+      ...(isModuleReassign && {
+        isModuleTest: true,
+        modules: modulesData,
+        numberOfModules: modulesData.length,
+      }),
+      ...(!isModuleReassign && originalTest.isModuleTest && { isModuleTest: true })
     })
 
     // Create a new test session for the user
@@ -57,7 +64,7 @@ export async function POST(request) {
       status: 'Assigned',
       state: 'CREATED',
       sessionType: 'Practice',
-      totalQuestions: questionIds.length,
+      totalQuestions: flatQuestions.length,
       answeredQuestions: 0,
       correctAnswers: 0,
       originalSessionId: originalSessionId
@@ -80,7 +87,7 @@ export async function POST(request) {
       success: true,
       newTestId: newTest._id,
       newSessionId: newSession._id,
-      questionCount: questionIds.length
+      questionCount: flatQuestions.length
     })
 
   } catch (error) {

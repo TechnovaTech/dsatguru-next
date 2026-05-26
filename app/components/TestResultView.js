@@ -440,34 +440,37 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
   const handleReassignTest = async (option) => {
     try {
       const token = localStorage.getItem('token')
-      
-      // Get question IDs based on option
+
       let questionIds
       if (option === 'all') {
         questionIds = questions.map(q => q._id)
       } else {
-        // Only wrong questions
         questionIds = questions.filter(q => !q.isCorrect && q.userAnswer).map(q => q._id)
       }
 
-      // Determine which reassign API to use
-      const apiEndpoint = test?.isTutorTest 
-        ? '/api/admin/tutor/tests/reassign' 
+      // For module tests, preserve per-module structure
+      let modulesData = null
+      if (test?.isModuleTest) {
+        const rawMods = test?.modules
+        const mods = Array.isArray(rawMods) ? rawMods : rawMods && typeof rawMods === 'object' ? Object.values(rawMods) : []
+        if (mods.length > 0) {
+          const toId = (id) => id && typeof id === 'object' ? String(id._id || id) : String(id || '')
+          const selSet = new Set(questionIds.map(id => String(id)))
+          modulesData = mods.map((mod, i) => {
+            const modQIds = (mod.questions || []).map(toId).filter(id => selSet.has(id))
+            return { moduleNumber: mod.moduleNumber || i + 1, subject: mod.subject, questions: modQIds, duration: mod.duration, isTimed: mod.isTimed, numberOfQuestions: modQIds.length, breakAfter: i < mods.length - 1 ? (parseInt(mod.breakAfter) || 0) : 0 }
+          }).filter(m => m.questions.length > 0)
+        }
+      }
+
+      const apiEndpoint = (test?.isTutorTest || test?.isModuleTest)
+        ? '/api/admin/tutor/tests/reassign'
         : '/api/admin/admin-tests/reassign'
 
       const res = await fetch(apiEndpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          originalSessionId: sessionId,
-          originalTestId: testId,
-          questionIds,
-          userId: session.userId,
-          option
-        })
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ originalSessionId: sessionId, originalTestId: testId, questionIds, userId: session.userId, option, modulesData })
       })
 
       if (res.ok) {
@@ -638,7 +641,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
       })
       if (res.ok) {
-        router.push(`/dashboard/tests/${testId}/start?sessionId=${sessionId}&returnUrl=${encodeURIComponent(returnUrl)}`)
+        const startPage = test?.isModuleTest ? 'module-start' : 'start'
+        router.push(`/dashboard/tests/${testId}/${startPage}?sessionId=${sessionId}&returnUrl=${encodeURIComponent(returnUrl)}`)
       } else {
         alert('Failed to reset test. Please try again.')
       }
@@ -770,7 +774,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                             </button>
                         </>
                     )}
-                    {viewMode === 'admin' && (test?.isTutorTest || test?.practiceMode === 'admin') && session?.analysisSubmitted && !session?.isReassigned && (
+                    {viewMode === 'admin' && (test?.isTutorTest || test?.practiceMode === 'admin' || test?.isModuleTest) && session?.analysisSubmitted && !session?.isReassigned && (
                         <button
                             onClick={() => setShowReassignModal(true)}
                             className="px-6 py-2 bg-purple-600 text-white text-sm font-bold rounded-lg hover:bg-purple-700 flex items-center gap-2 shadow-md hover:shadow-lg"
@@ -799,8 +803,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                     </button>
                                 )
                             )}
-                            {/* Submit Analysis Button - For tutor and admin tests */}
-                            {(test?.isTutorTest || test?.practiceMode === 'admin') && !session?.analysisSubmitted && !session?.isReassigned && (
+                            {/* Submit Analysis Button - For tutor, admin and module tests */}
+                            {(test?.isTutorTest || test?.practiceMode === 'admin' || test?.isModuleTest) && !session?.analysisSubmitted && !session?.isReassigned && (
                                 <button 
                                     onClick={handleSubmitAnalysis}
                                     disabled={!canSubmitAnalysis() || submittingAnalysis}
