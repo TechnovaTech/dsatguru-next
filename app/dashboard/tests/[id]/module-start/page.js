@@ -76,8 +76,13 @@ export default function ModuleTestPage() {
   }, [])
 
   useEffect(() => {
-    if (desmosLoaded && showCalculator && calcRef.current && !calcInstance && window.Desmos) {
-      setCalcInstance(window.Desmos.GraphingCalculator(calcRef.current, { keypad: true, graphpaper: true, expressions: true, settingsMenu: true, zoomButtons: true }))
+    if (!showCalculator) {
+      if (calcInstance) { try { calcInstance.destroy() } catch {} setCalcInstance(null) }
+      return
+    }
+    if (desmosLoaded && calcRef.current && window.Desmos) {
+      const inst = window.Desmos.GraphingCalculator(calcRef.current, { keypad: true, graphpaper: true, expressions: true, settingsMenu: true, zoomButtons: true })
+      setCalcInstance(inst)
     }
   }, [desmosLoaded, showCalculator])
 
