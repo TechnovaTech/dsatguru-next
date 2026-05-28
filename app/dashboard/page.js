@@ -212,92 +212,21 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* SAT Progress Overview */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">SAT Progress Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {/* Math Progress */}
-            <div className="border rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-gray-900">Math Section</h3>
-                <span className="text-sm text-gray-600">Last Score: {stats.latestScores?.math ?? 400}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${(((stats.latestScores?.math ?? 400) - 200) / 600) * 100}%` }}></div>
-              </div>
-              <div className="flex justify-between text-xs text-gray-600">
-                <span>200</span>
-                <span>Current: {stats.latestScores?.math ?? 400}</span>
-                <span>800</span>
-              </div>
-              <div className="mt-2 text-xs text-gray-500">
-                Target: 800 • {800 - (stats.latestScores?.math ?? 400)} points to go
-              </div>
-            </div>
-            
-            {/* Reading & Writing Progress */}
-            <div className="border rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-gray-900">Reading & Writing</h3>
-                <span className="text-sm text-gray-600">Last Score: {stats.latestScores?.rw ?? 400}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                <div className="bg-green-600 h-2 rounded-full" style={{ width: `${(((stats.latestScores?.rw ?? 400) - 200) / 600) * 100}%` }}></div>
-              </div>
-              <div className="flex justify-between text-xs text-gray-600">
-                <span>200</span>
-                <span>Current: {stats.latestScores?.rw ?? 400}</span>
-                <span>800</span>
-              </div>
-              <div className="mt-2 text-xs text-gray-500">
-                Target: 800 • {800 - (stats.latestScores?.rw ?? 400)} points to go
-              </div>
-            </div>
+        {/* Module Test CTA */}
+        <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-8 flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FiBook className="w-8 h-8 text-indigo-600" />
           </div>
-          
-          <div className="p-3 bg-blue-50 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm font-medium text-blue-900">Total SAT Score</div>
-                <div className="text-2xl font-bold text-blue-600">{(stats.latestScores?.math ?? 400) + (stats.latestScores?.rw ?? 400)}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm text-blue-700">Target: 1600</div>
-                <div className="text-xs text-blue-600">{1600 - ((stats.latestScores?.math ?? 400) + (stats.latestScores?.rw ?? 400))} points to go</div>
-              </div>
-            </div>
-          </div>
-          
-          <h3 className="text-lg font-semibold mt-6 mb-4">Recent Practice</h3>
-          <div className="space-y-4">
-            {recentActivity.map((activity, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <h3 className="font-medium text-gray-900 flex items-center gap-2">
-                    {activity.topic}
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      activity.type === 'Admin Test' ? 'bg-purple-100 text-purple-700' :
-                      activity.type === 'Tutor Mode' ? 'bg-green-100 text-green-700' :
-                      activity.type === 'Timed Practice' ? 'bg-orange-100 text-orange-700' :
-                      'bg-blue-100 text-blue-700'
-                    }`}>
-                      {activity.type}
-                    </span>
-                  </h3>
-                  <p className="text-sm text-gray-600">{activity.attempted} questions • {activity.date}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-semibold text-green-600">{activity.score}%</p>
-                  <button 
-                    onClick={() => activity.testId && router.push(`/dashboard/tests/${activity.testId}/start`)}
-                    className="text-blue-600 text-sm hover:underline"
-                  >
-                    Resume Practice
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Practice Tests & Drill Questions</h2>
+          <p className="text-gray-500 mb-6 max-w-md">
+            For practice tests and drill questions please use <span className="font-semibold text-indigo-600">Tutor Module Tests</span> to take the test.
+          </p>
+          <button
+            onClick={() => router.push('/dashboard/tutor/module-tests')}
+            className="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
+          >
+            Go to Tutor Module Tests
+          </button>
         </div>
 
         {/* Bookmarks */}
