@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../components/AuthContext'
 import { useRouter } from 'next/navigation'
-import { FiBook, FiClock, FiTarget, FiTrendingUp, FiBookmark, FiVideo, FiMessageSquare, FiPlay, FiUsers, FiExternalLink, FiEdit, FiDatabase, FiCalendar, FiActivity, FiBarChart } from 'react-icons/fi'
+import { FiBook, FiClock, FiTarget, FiTrendingUp, FiBookmark, FiVideo, FiMessageSquare, FiPlay, FiUsers, FiExternalLink, FiEdit, FiDatabase, FiCalendar, FiActivity, FiBarChart, FiBell } from 'react-icons/fi'
 import { FaCalculator } from 'react-icons/fa'
 import axios from 'axios'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
@@ -24,6 +24,25 @@ export default function Dashboard() {
   const [bookmarks, setBookmarks] = useState([])
   const [testCounts, setTestCounts] = useState({ rw: 0, math: 0, module: 0, admin: 0, adaptive: 0 })
   const [performanceData, setPerformanceData] = useState([])
+  const [unreadMessages, setUnreadMessages] = useState(0)
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) return
+        const res = await fetch('/api/messages', { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const data = await res.json()
+          const total = (data.conversations || []).reduce((sum, c) => sum + (c.unread || 0), 0)
+          setUnreadMessages(total)
+        }
+      } catch {}
+    }
+    fetchUnread()
+    const interval = setInterval(fetchUnread, 15000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     if (!user) {
@@ -150,21 +169,25 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 p-6 space-y-8">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
-        <h1 className="text-3xl font-bold mb-2">Welcome, {user?.name || 'Student'}!</h1>
-        <p className="text-blue-100 mb-4">&quot;Success is the sum of small efforts repeated day in and day out.&quot;</p>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button 
-            onClick={() => router.push('/dashboard/tests')}
-            className="bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors"
-          >
-            Take a Test
-          </button>
-          <button 
-            onClick={() => router.push('/dashboard/study-plan')}
-            className="border border-white text-white px-6 py-2 rounded-lg font-medium hover:bg-white/10 transition-colors"
-          >
-            View Study Plan
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl px-6 py-4 text-white flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold flex-shrink-0">
+            {user?.name?.[0]?.toUpperCase() || 'S'}
+          </div>
+          <div>
+            <h1 className="text-lg font-bold leading-tight">Welcome back, {user?.name || 'Student'}!</h1>
+            <p className="text-blue-100 text-xs mt-0.5">&quot;Success is the sum of small efforts repeated day in and day out.&quot;</p>
+          </div>
+        </div>
+        <div className="flex items-center flex-shrink-0">
+          <button onClick={() => router.push('/dashboard/messages')}
+            className="relative bg-white text-blue-600 p-2.5 rounded-xl shadow-md hover:shadow-lg transition-all">
+            <FiBell size={20} />
+            {unreadMessages > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 shadow-lg border-2 border-white">
+                {unreadMessages > 99 ? '99+' : unreadMessages}
+              </span>
+            )}
           </button>
         </div>
       </div>
