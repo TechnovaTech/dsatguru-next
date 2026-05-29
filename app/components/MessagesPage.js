@@ -50,6 +50,13 @@ export default function MessagesPage() {
   const [showNewChat, setShowNewChat] = useState(false)
   const [availableUsers, setAvailableUsers] = useState([])
   const [userSearch, setUserSearch] = useState('')
+  const [showBulkModal, setShowBulkModal] = useState(false)
+  const [bulkUsers, setBulkUsers] = useState([])
+  const [bulkSelected, setBulkSelected] = useState(new Set())
+  const [bulkMessage, setBulkMessage] = useState('')
+  const [bulkSearch, setBulkSearch] = useState('')
+  const [bulkSending, setBulkSending] = useState(false)
+  const [bulkDone, setBulkDone] = useState('')
   const [typingUsers, setTypingUsers] = useState([])
   const [reactionMenu, setReactionMenu] = useState(null) // messageId
   const [contextMenu, setContextMenu] = useState(null) // { messageId, x, y }
@@ -217,8 +224,8 @@ export default function MessagesPage() {
         headers: { ...authHeaders, 'Content-Type': 'application/json' },
         body: JSON.stringify({ conversationId: convoId })
       })
-      setConversations(prev => prev.filter(c => c._id !== convoId))
-      if (activeConvo?._id === convoId) { setActiveConvo(null); setMessages([]) }
+      setConversations(prev => prev.filter(c => String(c._id) !== String(convoId)))
+      if (String(activeConvo?._id) === String(convoId)) { setActiveConvo(null); setMessages([]) }
     } catch {}
   }
 
@@ -260,6 +267,42 @@ export default function MessagesPage() {
     } catch {}
   }
 
+  const openBulkModal = async () => {
+    setShowBulkModal(true)
+    setBulkMessage('')
+    setBulkSearch('')
+    setBulkDone('')
+    try {
+      const res = await fetch('/api/admin/users', { headers: authHeaders })
+      if (res.ok) {
+        const data = await res.json()
+        const users = Array.isArray(data) ? data : (data.users || [])
+        setBulkUsers(users)
+        setBulkSelected(new Set(users.map(u => u._id)))
+      }
+    } catch {}
+  }
+
+  const handleSendBulk = async () => {
+    if (!bulkMessage.trim() || bulkSelected.size === 0) return
+    setBulkSending(true)
+    try {
+      const res = await fetch('/api/messages/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({ userIds: Array.from(bulkSelected), message: bulkMessage.trim() })
+      })
+      const data = await res.json()
+      setBulkDone(`Sent to ${data.sent} users successfully!`)
+      setBulkMessage('')
+      fetchConversations()
+    } catch {
+      setBulkDone('Failed to send.')
+    } finally {
+      setBulkSending(false)
+    }
+  }
+
   const filteredConvos = conversations.filter(c =>
     c.otherUser?.name?.toLowerCase().includes(search.toLowerCase())
   )
@@ -285,12 +328,22 @@ export default function MessagesPage() {
         <div className="p-4 border-b bg-gray-50">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-bold text-gray-800">Messages</h2>
-            <button
-              onClick={openNewChat}
-              className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
-            >
-              <FiPlus size={14} /> New Chat
-            </button>
+            <div className="flex items-center gap-2">
+              {['Admin', 'TutorAdmin'].includes(user?.role) && (
+                <button
+                  onClick={openBulkModal}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                >
+                  <FiSend size={13} /> Bulk Message
+                </button>
+              )}
+              <button
+                onClick={openNewChat}
+                className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
+              >
+                <FiPlus size={14} /> New Chat
+              </button>
+            </div>
           </div>
           <div className="relative">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
@@ -338,7 +391,8 @@ export default function MessagesPage() {
                 </div>
                 <button
                   onClick={e => { e.stopPropagation(); deleteConversation(convo._id) }}
-                  className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all p-1 rounded"
+                  className="flex-shrink-0 text-gray-300 hover:text-red-500 transition-colors p-1 rounded"
+                  title="Delete conversation"
                 >
                   <FiTrash2 size={14} />
                 </button>
@@ -581,6 +635,102 @@ export default function MessagesPage() {
                   </button>
                 ))
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Message Modal */}
+      {showBulkModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowBulkModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b">
+              <div>
+                <h3 className="font-bold text-gray-800 text-lg">Bulk Message</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{bulkSelected.size} of {bulkUsers.length} users selected</p>
+              </div>
+              <button onClick={() => setShowBulkModal(false)} className="text-gray-400 hover:text-gray-600"><FiX size={20} /></button>
+            </div>
+
+            {/* User list */}
+            <div className="border-b">
+              <div className="p-3 border-b">
+                <div className="relative">
+                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={13} />
+                  <input
+                    value={bulkSearch}
+                    onChange={e => setBulkSearch(e.target.value)}
+                    placeholder="Search users..."
+                    className="w-full pl-8 pr-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-300"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between px-4 py-2 bg-gray-50">
+                <span className="text-xs font-medium text-gray-600">Select / Deselect All</span>
+                <button
+                  onClick={() => {
+                    if (bulkSelected.size === bulkUsers.length) setBulkSelected(new Set())
+                    else setBulkSelected(new Set(bulkUsers.map(u => u._id)))
+                  }}
+                  className="text-xs text-purple-600 hover:underline font-medium"
+                >
+                  {bulkSelected.size === bulkUsers.length ? 'Deselect All' : 'Select All'}
+                </button>
+              </div>
+              <div className="overflow-y-auto max-h-52">
+                {bulkUsers
+                  .filter(u => !bulkSearch || u.name?.toLowerCase().includes(bulkSearch.toLowerCase()) || u.email?.toLowerCase().includes(bulkSearch.toLowerCase()))
+                  .map(u => {
+                    const checked = bulkSelected.has(u._id)
+                    return (
+                      <label key={u._id} className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 border-b last:border-0 ${checked ? 'bg-purple-50' : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            setBulkSelected(prev => {
+                              const n = new Set(prev)
+                              n.has(u._id) ? n.delete(u._id) : n.add(u._id)
+                              return n
+                            })
+                          }}
+                          className="w-4 h-4 text-purple-600 rounded"
+                        />
+                        <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                          {u.name?.[0]?.toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800">{u.name}</p>
+                          <p className="text-xs text-gray-500 truncate">{u.email}</p>
+                        </div>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${roleColor(u.role)}`}>{u.role}</span>
+                      </label>
+                    )
+                  })}
+              </div>
+            </div>
+
+            {/* Message input */}
+            <div className="p-4 flex flex-col gap-3">
+              {bulkDone && (
+                <div className={`text-sm px-3 py-2 rounded-lg ${bulkDone.includes('success') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                  {bulkDone}
+                </div>
+              )}
+              <textarea
+                value={bulkMessage}
+                onChange={e => setBulkMessage(e.target.value)}
+                placeholder="Write your message to all selected users..."
+                className="w-full p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 resize-none"
+                rows={3}
+              />
+              <button
+                onClick={handleSendBulk}
+                disabled={bulkSending || !bulkMessage.trim() || bulkSelected.size === 0}
+                className="w-full py-2.5 bg-purple-600 text-white rounded-xl font-semibold text-sm hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <FiSend size={14} /> {bulkSending ? `Sending to ${bulkSelected.size} users...` : `Send to ${bulkSelected.size} Users`}
+              </button>
             </div>
           </div>
         </div>

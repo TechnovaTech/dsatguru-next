@@ -35,7 +35,9 @@ export default function ModuleTestPage() {
   const [showBreakScreen, setShowBreakScreen] = useState(false)
   const [breakCountdown, setBreakCountdown] = useState(0)
   const [showTimerBlockAlert, setShowTimerBlockAlert] = useState(false)
+  const [showAutoSubmitModal, setShowAutoSubmitModal] = useState(false)
   const startTime = useRef(new Date())
+  const autoSubmitRef = useRef(null)
 
   // Tools
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -158,18 +160,18 @@ export default function ModuleTestPage() {
     const isActiveTest = isFullscreen && !testCompleted && !showModuleSummary && !showStartScreen && !showModuleIntro && !showBreakScreen
 
     const onVisibility = () => {
-      if (document.hidden && isActiveTest) autoSubmit('You switched tabs during the test.')
+      if (document.hidden && isActiveTest) autoSubmitRef.current?.('You switched tabs during the test.')
     }
     const onFSChange = () => {
-      if (!document.fullscreenElement && isActiveTest) autoSubmit('You exited fullscreen mode.')
+      if (!document.fullscreenElement && isActiveTest) autoSubmitRef.current?.('You exited fullscreen mode.')
     }
     const onKey = (e) => {
       if (!isActiveTest) return
-      if (e.key === 'Escape' || e.key === 'F11') { e.preventDefault(); autoSubmit(`You pressed ${e.key} to exit fullscreen.`) }
-      if (e.key === 'PrintScreen') { e.preventDefault(); autoSubmit('Screenshot attempt detected.') }
+      if (e.key === 'Escape' || e.key === 'F11') { e.preventDefault(); autoSubmitRef.current?.(`You pressed ${e.key} to exit fullscreen.`) }
+      if (e.key === 'PrintScreen') { e.preventDefault(); autoSubmitRef.current?.('Screenshot attempt detected.') }
     }
     const onBlur = () => {
-      if (isActiveTest) setTimeout(() => { if (!document.hasFocus() && isFullscreen && !testCompleted) autoSubmit('You switched away from the test.') }, 500)
+      if (isActiveTest) setTimeout(() => { if (!document.hasFocus() && isFullscreen && !testCompleted) autoSubmitRef.current?.('You switched away from the test.') }, 500)
     }
     document.addEventListener('visibilitychange', onVisibility)
     document.addEventListener('fullscreenchange', onFSChange)
@@ -223,8 +225,11 @@ export default function ModuleTestPage() {
 
   const autoSubmit = async (reason) => {
     setAutoSubmitReason(reason)
+    setShowAutoSubmitModal(true)
+    await new Promise(resolve => setTimeout(resolve, 3000))
     await handleSubmitTest(true, reason)
   }
+  autoSubmitRef.current = autoSubmit
 
   const fetchTestData = async () => {
     try {
@@ -797,6 +802,22 @@ export default function ModuleTestPage() {
               ))}
             </div>
             <button onClick={() => setShowShortcutsModal(false)} className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* Auto-Submit Warning Modal */}
+      {showAutoSubmitModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[999]">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-4 border-red-500">
+            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+              <FiAlertTriangle className="text-red-600 w-8 h-8" />
+            </div>
+            <h2 className="text-2xl font-bold text-red-700 mb-3">Test Auto-Submitted</h2>
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 text-left rounded-r-lg">
+              <p className="text-gray-800 font-medium">{autoSubmitReason}</p>
+            </div>
+            <p className="text-gray-500 text-sm">Submitting your test now...</p>
           </div>
         </div>
       )}
