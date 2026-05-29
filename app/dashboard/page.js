@@ -21,6 +21,7 @@ export default function Dashboard() {
   })
   const [recentActivity, setRecentActivity] = useState([])
   const [bookmarks, setBookmarks] = useState([])
+  const [testCounts, setTestCounts] = useState({ rw: 0, math: 0, module: 0, admin: 0, adaptive: 0 })
 
   useEffect(() => {
     if (!user) {
@@ -97,10 +98,17 @@ export default function Dashboard() {
       })
       setRecentActivity(recent)
       
-      // Bookmarks (Placeholder for now as backend doesn't support it yet)
+      // Count assigned-but-not-completed tests per category
+      const allSessions = sessions
+      const assignedRW = allSessions.filter(s => s.status === 'Assigned' && s.testId?.isTutorTest && s.testId?.subject === 'Reading and Writing' && !s.testId?.isModuleTest).length
+      const assignedMath = allSessions.filter(s => s.status === 'Assigned' && s.testId?.isTutorTest && s.testId?.subject === 'Math' && !s.testId?.isModuleTest).length
+      const assignedModule = allSessions.filter(s => s.status === 'Assigned' && s.testId?.isModuleTest).length
+      const assignedAdmin = allSessions.filter(s => s.status === 'Assigned' && (s.testId?.practiceMode === 'admin' || s.testId?.testType === 'Mock')).length
+      const assignedAdaptive = allSessions.filter(s => s.status === 'Assigned' && s.testId && s.testId.practiceMode !== 'admin' && s.testId.practiceMode !== 'tutor' && s.testId.isTutorTest !== true && (s.testId.sections?.math === true || s.testId.sections?.rw === true)).length
+      setTestCounts({ rw: assignedRW, math: assignedMath, module: assignedModule, admin: assignedAdmin, adaptive: assignedAdaptive })
+
       setBookmarks([])
 
-      
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
     } finally {
@@ -180,112 +188,36 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* SAT Quick Start */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 border border-blue-100">
-        <div className="flex items-center mb-4">
-          <div className="bg-blue-600 text-white p-2 rounded-lg mr-3">
-            <FiTarget size={24} />
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">SAT Preparation</h2>
-            <p className="text-sm text-gray-600">Start your SAT journey with our adaptive testing system</p>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button className="flex items-center justify-center p-4 bg-white hover:bg-blue-50 rounded-lg transition-colors group border border-blue-200">
-            <FaCalculator className="text-blue-600 mr-3 group-hover:scale-110 transition-transform" size={20} />
-            <div className="text-left">
-              <div className="text-blue-700 font-medium">Math Practice</div>
-              <div className="text-xs text-gray-600">Create custom practice</div>
+      {/* Test Quick Access */}
+      <div className="grid grid-cols-5 gap-4">
+        {[
+          { label: 'Tutor R&W', path: '/dashboard/tutor/rw', count: testCounts.rw, icon: <FiBookmark size={20} />, iconBg: 'bg-violet-50 text-violet-600' },
+          { label: 'Tutor Math', path: '/dashboard/tutor/math', count: testCounts.math, icon: <FiTarget size={20} />, iconBg: 'bg-blue-50 text-blue-600' },
+          { label: 'Tutor Module Tests', path: '/dashboard/tutor/module-tests', count: testCounts.module, icon: <FiTrendingUp size={20} />, iconBg: 'bg-indigo-50 text-indigo-600' },
+          { label: 'Admin Test', path: '/dashboard/admin-tests', count: testCounts.admin, icon: <FiBarChart size={20} />, iconBg: 'bg-slate-50 text-slate-600' },
+          { label: 'Adaptive Test', path: '/dashboard/adaptive-tests', count: testCounts.adaptive, icon: <FiActivity size={20} />, iconBg: 'bg-teal-50 text-teal-600' },
+        ].map(({ label, path, count, icon, iconBg }) => (
+          <button key={path} onClick={() => router.push(path)}
+            className="relative bg-white rounded-xl border border-gray-200 p-5 flex flex-col items-center gap-3 hover:shadow-md transition-all group">
+            {count > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow">
+                {count}
+              </span>
+            )}
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform ${iconBg}`}>
+              {icon}
             </div>
+            <span className="text-sm font-semibold text-gray-700 text-center leading-tight">{label}</span>
+            {count > 0 ? (
+              <span className="text-xs text-red-500 font-semibold">{count} pending</span>
+            ) : (
+              <span className="text-xs text-gray-400">No pending</span>
+            )}
           </button>
-          
-          <button className="flex items-center justify-center p-4 bg-white hover:bg-green-50 rounded-lg transition-colors group border border-green-200">
-            <FiEdit className="text-green-600 mr-3 group-hover:scale-110 transition-transform" size={20} />
-            <div className="text-left">
-              <div className="text-green-700 font-medium">Reading & Writing Practice</div>
-              <div className="text-xs text-gray-600">Create custom practice</div>
-            </div>
-          </button>
-        </div>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Module Test CTA */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-8 flex flex-col items-center justify-center text-center">
-          <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FiBook className="w-8 h-8 text-indigo-600" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Practice Tests & Drill Questions</h2>
-          <p className="text-gray-500 mb-6 max-w-md">
-            For practice tests and drill questions please use <span className="font-semibold text-indigo-600">Tutor Module Tests</span> to take the test.
-          </p>
-          <button
-            onClick={() => router.push('/dashboard/tutor/module-tests')}
-            className="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
-          >
-            Go to Tutor Module Tests
-          </button>
-        </div>
 
-        {/* Bookmarks */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Bookmarks</h2>
-            <FiBookmark className="text-gray-400" size={20} />
-          </div>
-          <div className="space-y-3">
-            {bookmarks.map((bookmark) => (
-              <div key={bookmark.id} className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-900 mb-1">{bookmark.question}</p>
-                <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">{bookmark.subject}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Practice by Subject */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Practice by Subject</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <button className="p-4 border-2 border-blue-200 rounded-lg hover:border-blue-400 transition-colors">
-              <FaCalculator className="text-blue-600 mx-auto mb-2" size={24} />
-              <p className="font-medium">Math</p>
-              <p className="text-sm text-gray-600">Custom Practice</p>
-            </button>
-            <button className="p-4 border-2 border-green-200 rounded-lg hover:border-green-400 transition-colors">
-              <FiBook className="text-green-600 mx-auto mb-2" size={24} />
-              <p className="font-medium">Reading & Writing</p>
-              <p className="text-sm text-gray-600">Custom Practice</p>
-            </button>
-          </div>
-        </div>
-
-        {/* Enrolled Courses */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Your Courses</h2>
-          {enrolledCourses.length > 0 ? (
-            <div className="space-y-3">
-              {enrolledCourses.slice(0, 3).map((course, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <h3 className="font-medium text-gray-900">{course.title || 'Course'}</h3>
-                    <p className="text-sm text-gray-600">Progress: 65%</p>
-                  </div>
-                  <button className="text-blue-600 text-sm hover:underline">
-                    Continue
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-600">No courses enrolled yet</p>
-          )}
-        </div>
-      </div>
     </div>
   )
 }

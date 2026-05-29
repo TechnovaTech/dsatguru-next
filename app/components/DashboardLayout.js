@@ -17,9 +17,19 @@ const navItems = [
       { name: "Practice History", icon: <FiClock />, path: "/dashboard/tests/history" },
     ]
   },
-  { 
-    name: "Admin Test", 
-    icon: <FiClipboard />, 
+  {
+    name: "Tutor Tests",
+    icon: <FiBook />,
+    path: "/dashboard/tutor/rw",
+    children: [
+      { name: "Tutor R&W", icon: <FiPieChart />, path: "/dashboard/tutor/rw" },
+      { name: "Tutor Math", icon: <FiActivity />, path: "/dashboard/tutor/math" },
+      { name: "Tutor Module Tests", icon: <FiClipboard />, path: "/dashboard/tutor/module-tests" },
+    ]
+  },
+  {
+    name: "Admin Test",
+    icon: <FiClipboard />,
     path: "/dashboard/admin-tests",
     children: [
       { name: "Admin Math", icon: <FiActivity />, path: "/dashboard/admin-tests/math" },
