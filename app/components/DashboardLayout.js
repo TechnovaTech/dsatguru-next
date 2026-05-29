@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from './AuthContext'
@@ -53,6 +53,25 @@ export default function DashboardLayout({ children }) {
   const { user, logout } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [expandedItems, setExpandedItems] = useState(['Practice Tests', 'Performance'])
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) return
+        const res = await fetch('/api/messages', { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const data = await res.json()
+          const total = (data.conversations || []).reduce((sum, c) => sum + (c.unread || 0), 0)
+          setUnreadCount(total)
+        }
+      } catch {}
+    }
+    fetchUnread()
+    const interval = setInterval(fetchUnread, 15000)
+    return () => clearInterval(interval)
+  }, [])
 
   const toggleExpand = (name, e) => {
     e.preventDefault()
@@ -129,6 +148,11 @@ export default function DashboardLayout({ children }) {
                     className="flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-blue-100"
                   >
                     {item.icon} {item.name}
+                    {item.name === 'Messages' && unreadCount > 0 && (
+                      <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
                   </a>
                 )}
 
