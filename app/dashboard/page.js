@@ -40,8 +40,6 @@ export default function Dashboard() {
       } catch {}
     }
     fetchUnread()
-    const interval = setInterval(fetchUnread, 15000)
-    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
