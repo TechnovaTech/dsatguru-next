@@ -325,23 +325,23 @@ export default function MessagesPage() {
       {/* Sidebar */}
       <div className="w-80 bg-white border-r flex flex-col flex-shrink-0">
         {/* Header */}
-        <div className="p-4 border-b bg-gray-50">
+        <div className="p-4 border-b bg-white">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-gray-800">Messages</h2>
-            <div className="flex items-center gap-2">
+            <h2 className="text-base font-bold text-gray-900">Messages</h2>
+            <div className="flex items-center gap-1.5">
               {['Admin', 'TutorAdmin'].includes(user?.role) && (
                 <button
                   onClick={openBulkModal}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-colors border border-gray-200"
                 >
-                  <FiSend size={13} /> Bulk Message
+                  <FiSend size={12} /> Bulk
                 </button>
               )}
               <button
                 onClick={openNewChat}
-                className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors"
               >
-                <FiPlus size={14} /> New Chat
+                <FiPlus size={12} /> New Chat
               </button>
             </div>
           </div>
