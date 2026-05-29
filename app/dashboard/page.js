@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { FiBook, FiClock, FiTarget, FiTrendingUp, FiBookmark, FiVideo, FiMessageSquare, FiPlay, FiUsers, FiExternalLink, FiEdit, FiDatabase, FiCalendar, FiActivity, FiBarChart } from 'react-icons/fi'
 import { FaCalculator } from 'react-icons/fa'
 import axios from 'axios'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
 
 export default function Dashboard() {
   const { user, logout } = useAuth()
@@ -22,6 +23,7 @@ export default function Dashboard() {
   const [recentActivity, setRecentActivity] = useState([])
   const [bookmarks, setBookmarks] = useState([])
   const [testCounts, setTestCounts] = useState({ rw: 0, math: 0, module: 0, admin: 0, adaptive: 0 })
+  const [performanceData, setPerformanceData] = useState([])
 
   useEffect(() => {
     if (!user) {
@@ -106,6 +108,25 @@ export default function Dashboard() {
       const assignedAdmin = allSessions.filter(s => s.status === 'Assigned' && (s.testId?.practiceMode === 'admin' || s.testId?.testType === 'Mock')).length
       const assignedAdaptive = allSessions.filter(s => s.status === 'Assigned' && s.testId && s.testId.practiceMode !== 'admin' && s.testId.practiceMode !== 'tutor' && s.testId.isTutorTest !== true && (s.testId.sections?.math === true || s.testId.sections?.rw === true)).length
       setTestCounts({ rw: assignedRW, math: assignedMath, module: assignedModule, admin: assignedAdmin, adaptive: assignedAdaptive })
+
+      // Build performance data per category (completed sessions only)
+      const calcAvg = (arr) => {
+        if (!arr.length) return 0
+        const scores = arr.map(s => s.totalQuestions > 0 ? Math.round((s.correctAnswers / s.totalQuestions) * 100) : 0)
+        return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+      }
+      const completedRW = allSessions.filter(s => s.status === 'Completed' && s.testId?.isTutorTest && s.testId?.subject === 'Reading and Writing' && !s.testId?.isModuleTest)
+      const completedMath = allSessions.filter(s => s.status === 'Completed' && s.testId?.isTutorTest && s.testId?.subject === 'Math' && !s.testId?.isModuleTest)
+      const completedModule = allSessions.filter(s => s.status === 'Completed' && s.testId?.isModuleTest)
+      const completedAdmin = allSessions.filter(s => s.status === 'Completed' && (s.testId?.practiceMode === 'admin' || s.testId?.testType === 'Mock'))
+      const completedAdaptive = allSessions.filter(s => s.status === 'Completed' && s.testId && s.testId.practiceMode !== 'admin' && s.testId.practiceMode !== 'tutor' && s.testId.isTutorTest !== true && (s.testId.sections?.math === true || s.testId.sections?.rw === true))
+      setPerformanceData([
+        { name: 'Tutor R&W', score: calcAvg(completedRW), tests: completedRW.length, fill: '#8b5cf6' },
+        { name: 'Tutor Math', score: calcAvg(completedMath), tests: completedMath.length, fill: '#3b82f6' },
+        { name: 'Module Tests', score: calcAvg(completedModule), tests: completedModule.length, fill: '#6366f1' },
+        { name: 'Admin Test', score: calcAvg(completedAdmin), tests: completedAdmin.length, fill: '#64748b' },
+        { name: 'Adaptive', score: calcAvg(completedAdaptive), tests: completedAdaptive.length, fill: '#14b8a6' },
+      ])
 
       setBookmarks([])
 
@@ -217,6 +238,58 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Performance Graph */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-base font-semibold text-gray-800">Performance Overview</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Average score % across completed tests per category</p>
+          </div>
+          <span className="text-xs text-gray-400 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">Avg. Score %</span>
+        </div>
+        {performanceData.every(d => d.tests === 0) ? (
+          <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+            <FiBarChart size={36} className="mb-3 text-gray-300" />
+            <p className="text-sm font-medium">No completed tests yet</p>
+            <p className="text-xs mt-1">Complete tests to see your performance graph</p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={performanceData} barSize={48} margin={{ top: 20, right: 10, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} axisLine={false} tickLine={false} />
+              <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `${v}%`} />
+              <Tooltip
+                cursor={{ fill: '#f8fafc' }}
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null
+                  const d = payload[0].payload
+                  return (
+                    <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3 text-sm">
+                      <p className="font-semibold text-gray-800 mb-1">{d.name}</p>
+                      <p className="text-gray-600">Avg Score: <span className="font-bold text-gray-900">{d.score}%</span></p>
+                      <p className="text-gray-400 text-xs">{d.tests} test{d.tests !== 1 ? 's' : ''} completed</p>
+                    </div>
+                  )
+                }}
+              />
+              <Bar dataKey="score" radius={[6, 6, 0, 0]}>
+                {performanceData.map((entry, i) => <Cell key={i} fill={entry.fill} fillOpacity={entry.tests === 0 ? 0.2 : 1} />)}
+                <LabelList dataKey="score" position="top" formatter={v => v > 0 ? `${v}%` : ''} style={{ fontSize: 12, fontWeight: 600, fill: '#374151' }} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+        <div className="flex items-center gap-6 mt-4 pt-4 border-t border-gray-100">
+          {performanceData.map((d, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: d.fill }} />
+              <span className="text-xs text-gray-500">{d.name}</span>
+              <span className="text-xs font-semibold text-gray-700">{d.tests} done</span>
+            </div>
+          ))}
+        </div>
+      </div>
 
     </div>
   )
