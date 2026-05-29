@@ -738,9 +738,24 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                         <FiArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
-                        <h1 className="text-lg font-bold text-gray-900">
-                            {session.subject?.toUpperCase() || 'TEST'} - {session.testId?.title || 'Practice Session'} ({formattedTime} Mins)
-                        </h1>
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                            <h1 className="text-lg font-bold text-gray-900">
+                                {test?.title || session.testId?.title || 'Practice Session'}
+                            </h1>
+                            <span className={`px-2 py-0.5 text-xs font-bold rounded-full whitespace-nowrap ${
+                                test?.isModuleTest ? 'bg-purple-100 text-purple-700' :
+                                test?.isTutorTest ? 'bg-blue-100 text-blue-700' :
+                                test?.practiceMode === 'admin' ? 'bg-orange-100 text-orange-700' :
+                                session.sessionType === 'Adaptive' ? 'bg-teal-100 text-teal-700' :
+                                'bg-gray-100 text-gray-600'
+                            }`}>
+                                {test?.isModuleTest ? 'Module Test' :
+                                 test?.isTutorTest ? 'Tutor Test' :
+                                 test?.practiceMode === 'admin' ? 'Admin Test' :
+                                 session.sessionType === 'Adaptive' ? 'Adaptive Test' :
+                                 'Practice Test'}
+                            </span>
+                        </div>
                         <p className="text-xs text-gray-500">
                             Completed on {new Date(session.completedAt || session.updatedAt || session.createdAt).toLocaleString()}
                         </p>
