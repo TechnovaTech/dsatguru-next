@@ -38,6 +38,8 @@ export default function ModuleTestPage() {
   const [showAutoSubmitModal, setShowAutoSubmitModal] = useState(false)
   const startTime = useRef(new Date())
   const autoSubmitRef = useRef(null)
+  const handleSubmitTestRef = useRef(null)
+  const testStateRef = useRef({})
 
   // Tools
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -155,23 +157,27 @@ export default function ModuleTestPage() {
     if (modules.length > 0 && !isFullscreen) enterFullscreen()
   }, [loading, testCompleted, showModuleSummary, showStartScreen, showModuleIntro, showBreakScreen, modules.length])
 
-  // Fullscreen & tab detection — all state vars in dep array to avoid stale closures
+  // Fullscreen & tab detection — uses testStateRef so handlers always read live state
   useEffect(() => {
-    const isActiveTest = isFullscreen && !testCompleted && !showModuleSummary && !showStartScreen && !showModuleIntro && !showBreakScreen
+    const isActive = () => {
+      const s = testStateRef.current
+      return s.isFullscreen && !s.testCompleted && !s.showModuleSummary && !s.showStartScreen && !s.showModuleIntro && !s.showBreakScreen
+    }
 
     const onVisibility = () => {
-      if (document.hidden && isActiveTest) autoSubmitRef.current?.('You switched tabs during the test.')
+      if (document.hidden && isActive()) autoSubmitRef.current?.('You switched tabs during the test.')
     }
     const onFSChange = () => {
-      if (!document.fullscreenElement && isActiveTest) autoSubmitRef.current?.('You exited fullscreen mode.')
+      if (!document.fullscreenElement && isActive()) autoSubmitRef.current?.('You exited fullscreen mode.')
     }
     const onKey = (e) => {
-      if (!isActiveTest) return
+      if (!isActive()) return
       if (e.key === 'Escape' || e.key === 'F11') { e.preventDefault(); autoSubmitRef.current?.(`You pressed ${e.key} to exit fullscreen.`) }
       if (e.key === 'PrintScreen') { e.preventDefault(); autoSubmitRef.current?.('Screenshot attempt detected.') }
     }
     const onBlur = () => {
-      if (isActiveTest) setTimeout(() => { if (!document.hasFocus() && isFullscreen && !testCompleted) autoSubmitRef.current?.('You switched away from the test.') }, 500)
+      if (!isActive()) return
+      setTimeout(() => { if (!document.hasFocus() && isActive()) autoSubmitRef.current?.('You switched away from the test.') }, 500)
     }
     document.addEventListener('visibilitychange', onVisibility)
     document.addEventListener('fullscreenchange', onFSChange)
@@ -183,7 +189,7 @@ export default function ModuleTestPage() {
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('blur', onBlur)
     }
-  }, [isFullscreen, testCompleted, showModuleSummary, showStartScreen, showModuleIntro, showBreakScreen])
+  }, [])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -223,11 +229,13 @@ export default function ModuleTestPage() {
     return () => document.removeEventListener('fullscreenchange', onFS)
   }, [])
 
+  testStateRef.current = { isFullscreen, testCompleted, showModuleSummary, showStartScreen, showModuleIntro, showBreakScreen }
+
   const autoSubmit = async (reason) => {
     setAutoSubmitReason(reason)
     setShowAutoSubmitModal(true)
     await new Promise(resolve => setTimeout(resolve, 3000))
-    await handleSubmitTest(true, reason)
+    await handleSubmitTestRef.current?.(true, reason)
   }
   autoSubmitRef.current = autoSubmit
 
@@ -383,6 +391,7 @@ export default function ModuleTestPage() {
       }
     } catch (err) { console.error(err) } finally { setSaving(false) }
   }
+  handleSubmitTestRef.current = handleSubmitTest
 
   const formatTime = (secs) => `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`
 
