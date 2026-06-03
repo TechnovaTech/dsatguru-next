@@ -195,6 +195,8 @@ export default function ModuleTestPage() {
   useEffect(() => {
     const handler = (e) => {
       if (loading || testCompleted || showModuleSummary || showShortcutsModal || showFlagModal) return
+      // Disable shortcuts while calculator or reference sheet is open
+      if (showCalculator || showReference) return
       const qs = moduleQsMap[currentModuleIdx] || []
       const q = qs[currentQIdx]
       const key = e.key.toUpperCase()
@@ -211,7 +213,7 @@ export default function ModuleTestPage() {
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [currentQIdx, currentModuleIdx, moduleQsMap, loading, testCompleted, showModuleSummary, showShortcutsModal, showFlagModal])
+  }, [currentQIdx, currentModuleIdx, moduleQsMap, loading, testCompleted, showModuleSummary, showShortcutsModal, showFlagModal, showCalculator, showReference])
 
   const enterFullscreen = async () => {
     try {
