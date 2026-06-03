@@ -1064,6 +1064,95 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
               </div>
             )}
 
+            {/* DSAT Score Predictor — only for tutor module tests */}
+            {test?.isModuleTest && session?.status === 'Completed' && (() => {
+              const scores = session?.moduleScores
+              if (!scores) return null
+              const keys = Object.keys(scores).map(Number).sort((a,b)=>a-b)
+              if (keys.length < 2) return null
+              const mods = keys.map(k => scores[k] || scores[String(k)])
+              // Support both 4-key (correct structure) and 2-key (old sessions: key0=RW, key1=Math)
+              let rwCorrect, mathCorrect, rw1Correct, math1Correct, rw2Correct, math2Correct
+              if (keys.length >= 4) {
+                rwCorrect = (mods[0]?.correct||0) + (mods[1]?.correct||0)
+                mathCorrect = (mods[2]?.correct||0) + (mods[3]?.correct||0)
+                rw1Correct = mods[0]?.correct||0
+                rw2Correct = mods[1]?.correct||0
+                math1Correct = mods[2]?.correct||0
+                math2Correct = mods[3]?.correct||0
+              } else {
+                // 2-key: key0=all RW (54q), key1=all Math (44q)
+                rwCorrect = mods[0]?.correct||0
+                mathCorrect = mods[1]?.correct||0
+                rw1Correct = Math.round(rwCorrect * 27/54)
+                rw2Correct = rwCorrect - rw1Correct
+                math1Correct = Math.round(mathCorrect * 22/44)
+                math2Correct = mathCorrect - math1Correct
+              }
+              const baseRW = Math.round((200 + 600 * Math.pow(rwCorrect/54, 0.93)) / 10) * 10
+              const baseMath = Math.round((200 + 600 * Math.pow(mathCorrect/44, 0.93)) / 10) * 10
+              // Route adjustment RW
+              const rwRoute = rw1Correct <= 13 ? -30 : rw1Correct <= 16 ? -15 : rw1Correct <= 18 ? 0 : rw1Correct <= 22 ? 15 : 30
+              // Route adjustment Math
+              const mathRoute = math1Correct <= 10 ? -30 : math1Correct <= 13 ? -15 : math1Correct <= 15 ? 0 : math1Correct <= 18 ? 15 : 30
+              // Difficulty adjustment from questions
+              const rwQs = questions.filter(q => (q.subject||'').includes('Reading')||(q.subject||'').includes('Writing'))
+              const mathQs = questions.filter(q => q.subject==='Math')
+              const diffAdj = (qs) => {
+                const hard = qs.filter(q=>q.difficulty==='Hard'&&q.isCorrect).length
+                const total = qs.filter(q=>q.difficulty==='Hard').length
+                if (!total) return 0
+                const pct = hard/total
+                return pct>=0.8?20:pct>=0.6?10:pct>=0.4?0:pct>=0.2?-10:-20
+              }
+              const rwAdj = diffAdj(rwQs)
+              const mathAdj = diffAdj(mathQs)
+              const rwFinal = Math.min(800, Math.max(200, Math.round((baseRW+rwRoute+rwAdj)/10)*10))
+              const mathFinal = Math.min(800, Math.max(200, Math.round((baseMath+mathRoute+mathAdj)/10)*10))
+              const total = rwFinal + mathFinal
+              const rwRouteLabel = rw1Correct<=13?'Easy Route':rw1Correct<=16?'Lower-Middle':rw1Correct<=18?'Borderline':rw1Correct<=22?'Hard Route':'Very Hard Route'
+              const mathRouteLabel = math1Correct<=10?'Easy Route':math1Correct<=13?'Lower-Middle':math1Correct<=15?'Borderline':math1Correct<=18?'Hard Route':'Very Hard Route'
+              const rw2Pct = rw2Correct/27*100
+              const math2Pct = math2Correct/22*100
+              const perfLabel = pct => pct>=80?'Excellent':pct>=60?'Strong':pct>=40?'Average':'Weak'
+              return (
+                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-200 p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">SAT</span>
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-gray-900">DSAT Score Predictor</h2>
+                      <p className="text-xs text-gray-500">Estimate only — accuracy ±30–50 pts from official score</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="bg-white rounded-xl p-4 text-center border border-purple-100">
+                      <div className="text-xs font-bold text-purple-600 uppercase mb-1">Reading & Writing</div>
+                      <div className="text-3xl font-black text-gray-900">{rwFinal}</div>
+                      <div className="text-xs text-gray-500 mt-1">{rwCorrect}/54 correct</div>
+                      <div className="text-xs text-indigo-600 font-medium mt-1">{rwRouteLabel}</div>
+                      <div className="text-xs text-gray-400">M2: {perfLabel(rw2Pct)}</div>
+                    </div>
+                    <div className="bg-white rounded-xl p-4 text-center border border-blue-100">
+                      <div className="text-xs font-bold text-blue-600 uppercase mb-1">Math</div>
+                      <div className="text-3xl font-black text-gray-900">{mathFinal}</div>
+                      <div className="text-xs text-gray-500 mt-1">{mathCorrect}/44 correct</div>
+                      <div className="text-xs text-indigo-600 font-medium mt-1">{mathRouteLabel}</div>
+                      <div className="text-xs text-gray-400">M2: {perfLabel(math2Pct)}</div>
+                    </div>
+                    <div className="bg-indigo-600 rounded-xl p-4 text-center">
+                      <div className="text-xs font-bold text-indigo-200 uppercase mb-1">Total Score</div>
+                      <div className="text-3xl font-black text-white">{total}</div>
+                      <div className="text-xs text-indigo-200 mt-1">out of 1600</div>
+                      <div className="text-xs text-indigo-300 mt-1">Range: {total-40}–{Math.min(1600,total+40)}</div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 text-center">Based on raw correct answers, module route, and difficulty pattern</p>
+                </div>
+              )
+            })()}
+
             {/* Section Overview */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 className="text-sm font-bold text-gray-900 mb-4 border-b pb-2">Section Overview</h2>
