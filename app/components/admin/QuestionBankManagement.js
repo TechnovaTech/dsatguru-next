@@ -618,7 +618,17 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
 
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{isTutor ? 'Tutor Questions' : selectedBank.title}</h1>
+              {isTutor && (
+                <button className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-3" onClick={() => router.back()}>
+                  <FiArrowLeft className="mr-2" />
+                  <span>Back</span>
+                </button>
+              )}
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {isTutor
+                  ? (filters.subject === 'Math' ? 'Tutor Math Question Bank' : filters.subject === 'Reading and Writing' ? 'Tutor Reading & Writing Question Bank' : 'Tutor Question Bank')
+                  : selectedBank.title}
+              </h1>
               <p className="text-gray-600">Manage questions for {isTutor ? 'tutors' : 'this question bank'}</p>
             </div>
             {isTutor && (
@@ -632,33 +642,6 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
             )}
           </div>
 
-          {/* Subject tab switcher — shown for all question bank modes */}
-          <div className="mb-6">
-            <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                <button
-                  onClick={() => handleFilterChange('subject', 'Math')}
-                  className={`${
-                    filters.subject === 'Math'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-                >
-                  Math Database
-                </button>
-                <button
-                  onClick={() => handleFilterChange('subject', 'Reading and Writing')}
-                  className={`${
-                    filters.subject === 'Reading and Writing'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-                >
-                  Reading & Writing Database
-                </button>
-              </nav>
-            </div>
-          </div>
 
           <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
             <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
