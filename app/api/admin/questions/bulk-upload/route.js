@@ -352,10 +352,21 @@ export async function POST(request) {
       return serialCounters[key]++
     }
 
+    // Strict: only accept exactly "Math" or "Reading and Writing" (case-insensitive)
+    const normalizeSubject = (s) => {
+      if (!s) return ''
+      const v = String(s).trim().toLowerCase()
+      if (v === 'math') return 'Math'
+      if (v === 'reading and writing') return 'Reading and Writing'
+      return ''
+    }
+
+    const subjectMismatches = []
+
     for (let r = 1; r < rows.length; r++) {
       const cols = rows[r]
       if (!cols || cols.length === 0) continue
-      
+
       const content = idxContent >= 0 ? (cols[idxContent] || '').trim() : ''
       
       // Append images found in this row (regardless of column)
@@ -380,9 +391,21 @@ export async function POST(request) {
         continue
       }
       
-      let subject = idxSubject >= 0 ? (cols[idxSubject] || '').trim() : ''
-      if (!subject && defaultSubject) subject = defaultSubject
-      if (!subject) subject = 'Math'
+      let rawSubject = idxSubject >= 0 ? (cols[idxSubject] || '').trim() : ''
+      let subject = normalizeSubject(rawSubject) || normalizeSubject(defaultSubject) || 'Math'
+
+      // Strong validation: when a target bank is selected, the row's subject must match it
+      if (defaultSubject) {
+        const expected = normalizeSubject(defaultSubject)
+        const rowSubject = normalizeSubject(rawSubject)
+        // Only validate rows that actually declare a subject; blank rows inherit the bank
+        if (rawSubject && rowSubject !== expected) {
+          subjectMismatches.push({ row: r + 1, found: rawSubject || '(blank)', expected })
+          continue
+        }
+        // Force the row into the selected bank's subject
+        subject = expected
+      }
 
       let difficulty = idxDifficulty >= 0 ? (cols[idxDifficulty] || '').trim() : 'Medium'
       if (!difficulty || !['Easy', 'Medium', 'Hard'].includes(difficulty)) {
@@ -451,10 +474,20 @@ export async function POST(request) {
       })
     }
 
+    // Strong validation: reject the whole upload if any row's subject doesn't match the selected bank
+    if (subjectMismatches.length > 0) {
+      const expected = normalizeSubject(defaultSubject) || defaultSubject
+      const sample = subjectMismatches.slice(0, 5).map(m => `Row ${m.row}: found "${m.found}"`).join('; ')
+      return NextResponse.json({
+        error: `Subject mismatch — this is the ${expected} bank`,
+        details: `${subjectMismatches.length} question(s) have a subject that does not match the ${expected} bank. Upload cancelled — no questions were saved. ${sample}${subjectMismatches.length > 5 ? '…' : ''}`
+      }, { status: 400 })
+    }
+
     if (toCreate.length === 0) {
-      return NextResponse.json({ 
-        error: 'No valid questions found in file', 
-        details: `Parsed ${rows.length - 1} rows but all were empty or missing required content. Please check your file format.` 
+      return NextResponse.json({
+        error: 'No valid questions found in file',
+        details: `Parsed ${rows.length - 1} rows but all were empty or missing required content. Please check your file format.`
       }, { status: 400 })
     }
 

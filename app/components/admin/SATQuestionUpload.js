@@ -174,7 +174,17 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
       } else {
         const error = await response.json()
         console.error('Preview error response:', JSON.stringify(error, null, 2))
-        alert(`Preview failed: ${error.error || error.message || 'Unknown error'}\n${error.details || ''}`)
+        const isSubjectErr = (error.error || '').toLowerCase().includes('subject mismatch')
+        if (isSubjectErr) {
+          alert(
+            `❌ UPLOAD BLOCKED — WRONG SUBJECT\n\n` +
+            `${error.error}\n\n` +
+            `${error.details || ''}\n\n` +
+            `✔ Fix: Open your file and make sure every row's "subject" column is exactly "${singleQuestion.subject}" (this bank), then upload again.`
+          )
+        } else {
+          alert(`Preview failed: ${error.error || error.message || 'Unknown error'}\n${error.details || ''}`)
+        }
       }
     } catch (error) {
       console.error('Preview error:', error.message || error)

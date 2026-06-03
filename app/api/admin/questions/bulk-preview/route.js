@@ -210,11 +210,21 @@ export async function POST(request) {
       }, { status: 400 })
     }
     
+    // Strict: only accept exactly "Math" or "Reading and Writing" (case-insensitive)
+    const normalizeSubject = (s) => {
+      if (!s) return ''
+      const v = String(s).trim().toLowerCase()
+      if (v === 'math') return 'Math'
+      if (v === 'reading and writing') return 'Reading and Writing'
+      return ''
+    }
+    const subjectMismatches = []
+
     const questions = []
     for (let r = 1; r < rows.length; r++) {
       const cols = rows[r]
       if (!cols || cols.length === 0) continue
-      
+
       const content = idxContent >= 0 ? (cols[idxContent] || '').trim() : ''
       const rowNum = r + 1
       const rowImages = imagesByRow[rowNum] || []
@@ -228,9 +238,19 @@ export async function POST(request) {
       
       if (!finalContent || finalContent.trim().length === 0) continue
       
-      let subject = idxSubject >= 0 ? (cols[idxSubject] || '').trim() : ''
-      if (!subject && defaultSubject) subject = defaultSubject
-      if (!subject) subject = 'Math'
+      const rawSubject = idxSubject >= 0 ? (cols[idxSubject] || '').trim() : ''
+      let subject = normalizeSubject(rawSubject) || normalizeSubject(defaultSubject) || 'Math'
+
+      // Strict validation: row subject must match the selected bank
+      if (defaultSubject) {
+        const expected = normalizeSubject(defaultSubject)
+        const rowSubject = normalizeSubject(rawSubject)
+        if (rawSubject && rowSubject !== expected) {
+          subjectMismatches.push({ row: rowNum, found: rawSubject })
+          continue
+        }
+        subject = expected
+      }
 
       let difficulty = idxDifficulty >= 0 ? (cols[idxDifficulty] || '').trim() : 'Medium'
       if (!difficulty || !['Easy', 'Medium', 'Hard'].includes(difficulty)) {
@@ -289,8 +309,18 @@ export async function POST(request) {
       })
     }
 
+    // Strict validation: reject the whole upload if any row's subject doesn't match the selected bank
+    if (subjectMismatches.length > 0) {
+      const expected = normalizeSubject(defaultSubject) || defaultSubject
+      const sample = subjectMismatches.slice(0, 5).map(m => `Row ${m.row}: "${m.found}"`).join(', ')
+      return NextResponse.json({
+        error: `Subject mismatch — this is the "${expected}" bank`,
+        details: `${subjectMismatches.length} question(s) have a subject that is not "${expected}". Allowed subjects are only "Math" or "Reading and Writing", and must match the selected bank. Upload cancelled. ${sample}${subjectMismatches.length > 5 ? ' …' : ''}`
+      }, { status: 400 })
+    }
+
     if (questions.length === 0) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'No valid questions found in file'
       }, { status: 400 })
     }
