@@ -123,7 +123,7 @@ export async function POST(request) {
     }
 
     // Check for duplicate name within tutor tests only
-    const existingTest = await Test.findOne({ title: title.trim(), isTutorTest: true })
+    const existingTest = await Test.findOne({ title: title.trim(), isTutorTest: true, isActive: { $ne: false } })
     if (existingTest) {
       return NextResponse.json({ error: `A tutor test named "${title.trim()}" already exists. Please use a different name.` }, { status: 409 })
     }

@@ -26,7 +26,7 @@ export async function POST(request) {
       }
     }
 
-    const existing = await Test.findOne({ title: title.trim(), isModuleTest: true })
+    const existing = await Test.findOne({ title: title.trim(), isModuleTest: true, isActive: { $ne: false } })
     if (existing) {
       return NextResponse.json({ error: `A module test named "${title.trim()}" already exists.` }, { status: 409 })
     }
