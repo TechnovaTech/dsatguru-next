@@ -42,37 +42,41 @@ export async function GET(request, { params }) {
     // Aggregate statistics for each question
     const questionStats = {}
 
-    // Initialize stats for all questions in the test
-    test.questions.forEach(q => {
+    // Initialize stats — support both flat questions and module-based structure
+    const initQuestion = (q) => {
       const qId = String(q._id)
-      questionStats[qId] = {
-        questionId: qId,
-        questionContent: q.content,
-        correctAnswer: q.correctAnswer,
-        totalAttempts: 0,
-        correctCount: 0,
-        incorrectCount: 0,
-        omittedCount: 0,
-        correctPercentage: 0,
-        incorrectPercentage: 0,
-        omittedPercentage: 0
+      if (!questionStats[qId]) {
+        questionStats[qId] = {
+          questionId: qId,
+          questionContent: q.content || '',
+          correctAnswer: q.correctAnswer || '',
+          totalAttempts: 0, correctCount: 0, incorrectCount: 0, omittedCount: 0,
+          correctPercentage: 0, incorrectPercentage: 0, omittedPercentage: 0
+        }
       }
-    })
+    }
+
+    if (test.isModuleTest && test.modules) {
+      const rawM = test.modules
+      const mods = Array.isArray(rawM) ? rawM : Object.values(rawM)
+      const allIds = mods.flatMap(m => { const q = m.questions; return Array.isArray(q) ? q : Object.values(q || {}) })
+      const populated = await Question.find({ _id: { $in: allIds } }).select('_id content correctAnswer')
+      populated.forEach(initQuestion)
+    } else {
+      test.questions.forEach(initQuestion)
+    }
 
     // Process each session's responses
     sessions.forEach(session => {
       if (session.responses && session.responses.length > 0) {
         session.responses.forEach(response => {
           const qId = String(response.questionId)
-          
           if (questionStats[qId]) {
-            if (response.selectedAnswer) {
+            const answered = response.selectedAnswer || response.answer
+            if (answered) {
               questionStats[qId].totalAttempts++
-              if (response.isCorrect) {
-                questionStats[qId].correctCount++
-              } else {
-                questionStats[qId].incorrectCount++
-              }
+              if (response.isCorrect) questionStats[qId].correctCount++
+              else questionStats[qId].incorrectCount++
             } else {
               questionStats[qId].omittedCount++
             }
