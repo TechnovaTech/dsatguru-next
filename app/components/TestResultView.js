@@ -1129,6 +1129,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                   <div className="grid grid-cols-3 gap-4 mb-4">
                     <div className="bg-white rounded-xl p-4 text-center border border-purple-100">
                       <div className="text-xs font-bold text-purple-600 uppercase mb-1">Reading & Writing</div>
+                      <div className="text-[10px] text-gray-400 uppercase tracking-wide">Approximately</div>
                       <div className="text-3xl font-black text-gray-900">{rwFinal}</div>
                       <div className="text-xs text-gray-500 mt-1">{rwCorrect}/54 correct</div>
                       <div className="text-xs text-indigo-600 font-medium mt-1">{rwRouteLabel}</div>
@@ -1136,6 +1137,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                     </div>
                     <div className="bg-white rounded-xl p-4 text-center border border-blue-100">
                       <div className="text-xs font-bold text-blue-600 uppercase mb-1">Math</div>
+                      <div className="text-[10px] text-gray-400 uppercase tracking-wide">Approximately</div>
                       <div className="text-3xl font-black text-gray-900">{mathFinal}</div>
                       <div className="text-xs text-gray-500 mt-1">{mathCorrect}/44 correct</div>
                       <div className="text-xs text-indigo-600 font-medium mt-1">{mathRouteLabel}</div>
@@ -1143,6 +1145,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                     </div>
                     <div className="bg-indigo-600 rounded-xl p-4 text-center">
                       <div className="text-xs font-bold text-indigo-200 uppercase mb-1">Total Score</div>
+                      <div className="text-[10px] text-indigo-300 uppercase tracking-wide">Approximately</div>
                       <div className="text-3xl font-black text-white">{total}</div>
                       <div className="text-xs text-indigo-200 mt-1">out of 1600</div>
                       <div className="text-xs text-indigo-300 mt-1">Range: {total-40}–{Math.min(1600,total+40)}</div>
