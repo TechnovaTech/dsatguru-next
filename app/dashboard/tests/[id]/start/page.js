@@ -384,7 +384,16 @@ export default function TakeTestPage() {
 
       if (testRes.ok) {
         const testData = await testRes.json()
-        
+
+        // Block deleted/inactive tests — they must not load (prevents full-bank fallback)
+        if (testData.isActive === false) {
+          alert('This test is no longer available. It may have been removed by your tutor.')
+          setLoading(false)
+          setCheckingHistory(false)
+          router.push(returnUrl || '/dashboard/tests')
+          return
+        }
+
         // Check if user already took this test (do this first)
         if (historyRes.ok) {
           const historyData = await historyRes.json()
@@ -476,8 +485,14 @@ export default function TakeTestPage() {
                  const { subtopics, domains } = testData.filters || {}
                  const normalize = (str) => str?.toLowerCase().trim().replace(/[^a-z0-9]/g, '') || ''
 
-                 // If no subtopics defined, skip filtering (tutor tests with explicit questions don't need it)
-                 if (!subtopics || subtopics.length === 0) {
+                 // SAFETY: A tutor/admin-assigned test must always have its own explicit questions.
+                 // If it has none AND no subtopic filter, the test is broken or was deleted —
+                 // do NOT fall back to the entire question bank (this caused 1600+ questions to load).
+                 if ((!subtopics || subtopics.length === 0) && (testData.isTutorTest === true)) {
+                     console.error('Tutor test has no assigned questions — refusing to load full bank.')
+                     finalQuestions = []
+                     alert('This test is no longer available (its questions could not be loaded). Please contact your tutor.')
+                 } else if (!subtopics || subtopics.length === 0) {
                      console.log("Tutor mode: No subtopics defined, using all questions from test")
                  } else {
                      const normalizedSubtopics = subtopics.map(normalize)
