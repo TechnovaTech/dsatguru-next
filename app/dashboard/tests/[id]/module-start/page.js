@@ -35,6 +35,7 @@ export default function ModuleTestPage() {
   const [showBreakScreen, setShowBreakScreen] = useState(false)
   const [breakCountdown, setBreakCountdown] = useState(0)
   const [showTimerBlockAlert, setShowTimerBlockAlert] = useState(false)
+  const [showConfirmEarlySubmit, setShowConfirmEarlySubmit] = useState(false)
   const [showAutoSubmitModal, setShowAutoSubmitModal] = useState(false)
   const startTime = useRef(new Date())
   const autoSubmitRef = useRef(null)
@@ -303,8 +304,8 @@ export default function ModuleTestPage() {
   })
   const toggleMark = (qId) => setMarkedQs(prev => { const n = new Set(prev); n.has(qId) ? n.delete(qId) : n.add(qId); return n })
 
-  const handleFinishModule = (autoTimed = false) => {
-    if (!autoTimed && currentMod?.isTimed && timeRemaining > 0) {
+  const handleFinishModule = (autoTimed = false, forceEarly = false) => {
+    if (!autoTimed && !forceEarly && currentMod?.isTimed && timeRemaining > 0) {
       setShowTimerBlockAlert(true)
       return
     }
@@ -833,24 +834,62 @@ export default function ModuleTestPage() {
         </div>
       )}
 
-      {/* Timer Block Alert */}
+      {/* Timer Block Alert — step 1 */}
       {showTimerBlockAlert && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center">
-            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-              <FiClock className="text-red-600 w-8 h-8" />
+            <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+              <FiClock className="text-amber-600 w-8 h-8" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Time Not Finished</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Time Still Remaining</h3>
             <p className="text-gray-600 mb-2">
-              You cannot move to the next module until the current module timer runs out.
+              There is still time left in this module. We recommend using the full time to review your answers.
             </p>
-            <p className="text-2xl font-mono font-bold text-red-600 mb-6">{formatTime(timeRemaining)} remaining</p>
-            <button
-              onClick={() => setShowTimerBlockAlert(false)}
-              className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
-            >
-              Continue Working
-            </button>
+            <p className="text-2xl font-mono font-bold text-amber-600 mb-6">{formatTime(timeRemaining)} remaining</p>
+            <div className="space-y-2">
+              <button
+                onClick={() => setShowTimerBlockAlert(false)}
+                className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Continue Working
+              </button>
+              <button
+                onClick={() => { setShowTimerBlockAlert(false); setShowConfirmEarlySubmit(true) }}
+                className="w-full py-2.5 border border-gray-300 text-gray-600 rounded-xl font-medium hover:bg-gray-50 transition-colors text-sm"
+              >
+                Submit Module Early
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Early Submit — step 2 */}
+      {showConfirmEarlySubmit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center">
+            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+              <FiAlertTriangle className="text-red-600 w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Are you sure?</h3>
+            <p className="text-gray-600 mb-2">
+              You still have <span className="font-bold text-red-600">{formatTime(timeRemaining)}</span> left. Once you submit this module, you <b>cannot come back</b> to change your answers.
+            </p>
+            <p className="text-sm text-gray-500 mb-6">Do you really want to submit Module {currentModuleIdx + 1} now?</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirmEarlySubmit(false)}
+                className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+              >
+                No, Go Back
+              </button>
+              <button
+                onClick={() => { setShowConfirmEarlySubmit(false); handleFinishModule(false, true) }}
+                className="flex-1 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors"
+              >
+                Yes, Submit
+              </button>
+            </div>
           </div>
         </div>
       )}
