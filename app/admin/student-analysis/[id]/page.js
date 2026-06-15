@@ -314,18 +314,18 @@ export default function StudentAnalysisDetail() {
                             />
                             <path
                                 className="text-purple-500"
-                                strokeDasharray={`${subjectStats['Reading & Writing'].score}, 100`}
+                                strokeDasharray={`${subjectStats['Reading and Writing'].score}, 100`}
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                                 fill="none"
                                 stroke="currentColor"
                                 strokeWidth="3"
                             />
                         </svg>
-                        <span className="absolute text-xl font-bold text-purple-600">{subjectStats['Reading & Writing'].score}%</span>
+                        <span className="absolute text-xl font-bold text-purple-600">{subjectStats['Reading and Writing'].score}%</span>
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500">Questions Attempted: <span className="font-semibold text-gray-800">{subjectStats['Reading & Writing'].total}</span></p>
-                        <p className="text-sm text-gray-500">Correct: <span className="font-semibold text-green-600">{subjectStats['Reading & Writing'].correct}</span></p>
+                        <p className="text-sm text-gray-500">Questions Attempted: <span className="font-semibold text-gray-800">{subjectStats['Reading and Writing'].total}</span></p>
+                        <p className="text-sm text-gray-500">Correct: <span className="font-semibold text-green-600">{subjectStats['Reading and Writing'].correct}</span></p>
                     </div>
                 </div>
             </div>

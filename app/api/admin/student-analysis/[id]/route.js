@@ -64,8 +64,10 @@ export async function GET(request, { params }) {
           testType: '$test.testType',
           sectionsMath: '$test.sections.math',
           sectionsRw: '$test.sections.rw',
-          questionTopic: '$question.topic',
-          questionSubtopic: '$question.subtopic',
+          questionSubject: '$question.subject',
+          questionTopic: '$question.skill',
+          questionDomain: '$question.domain',
+          questionTags: '$question.tags',
           questionDifficulty: '$question.difficulty',
           isCorrect: '$responses.isCorrect',
           createdAt: 1
@@ -95,7 +97,7 @@ export async function GET(request, { params }) {
     // Performance by Subject
     const subjectStats = {
       Math: { total: 0, correct: 0, score: 0 },
-      'Reading & Writing': { total: 0, correct: 0, score: 0 }
+      'Reading and Writing': { total: 0, correct: 0, score: 0 }
     }
     
     // Performance by Topic (Math & RW)
@@ -148,17 +150,27 @@ export async function GET(request, { params }) {
       sessionsMap[record.testId].total++
       if (record.isCorrect) sessionsMap[record.testId].correct++
       
-      // Subject Stats
-      const subj = record.testSubject || 'Math' // Default?
+      // Subject Stats — use the QUESTION's subject (so Math & Reading and Writing both show)
+      let subj = record.questionSubject || record.questionDomain || record.testSubject || 'Math'
+      if (subj === 'Reading & Writing') subj = 'Reading and Writing' // normalize
       if (!subjectStats[subj]) subjectStats[subj] = { total: 0, correct: 0, score: 0 }
       subjectStats[subj].total++
       if (record.isCorrect) subjectStats[subj].correct++
-      
-      // Topic Stats
-      if (record.questionTopic) {
-        if (!topicStats[record.questionTopic]) topicStats[record.questionTopic] = { total: 0, correct: 0 }
-        topicStats[record.questionTopic].total++
-        if (record.isCorrect) topicStats[record.questionTopic].correct++
+
+      // Topic Stats — use skill; fall back to first tag
+      let topic = record.questionTopic
+      if (!topic && record.questionTags) {
+        try {
+          const t = typeof record.questionTags === 'string'
+            ? (record.questionTags.trim().startsWith('[') ? JSON.parse(record.questionTags) : record.questionTags.split(','))
+            : record.questionTags
+          if (Array.isArray(t) && t.length > 0) topic = String(t[0]).trim()
+        } catch { topic = String(record.questionTags).split(',')[0].trim() }
+      }
+      if (topic) {
+        if (!topicStats[topic]) topicStats[topic] = { total: 0, correct: 0 }
+        topicStats[topic].total++
+        if (record.isCorrect) topicStats[topic].correct++
       }
       
       // Difficulty Stats
