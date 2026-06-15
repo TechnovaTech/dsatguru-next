@@ -348,7 +348,7 @@ export default function ModuleTestPage() {
           const ans = answers[qId]
           const correct = q.correctAnswer && ans && q.correctAnswer.toString().trim().toUpperCase() === ans.toUpperCase()
           if (correct) { modCorrect++; totalCorrect++ }
-          allResponses.push({ questionId: qId, answer: ans || '', isCorrect: correct, timeSpent: questionTimes[qId] || 0, subject: m.subject })
+          allResponses.push({ questionId: qId, selectedAnswer: ans || '', isCorrect: correct, timeSpent: questionTimes[qId] || 0, subject: m.subject })
         })
         moduleScores[idx] = { subject: m.subject, correct: modCorrect, total: qs.length, score: qs.length > 0 ? Math.round((modCorrect / qs.length) * 100) : 0 }
       })
@@ -360,7 +360,7 @@ export default function ModuleTestPage() {
         state: 'COMPLETED',
         totalScore: totalCorrect,
         totalQuestions: totalQs,
-        answeredQuestions: allResponses.filter(r => r.answer).length,
+        answeredQuestions: allResponses.filter(r => r.selectedAnswer).length,
         correctAnswers: totalCorrect,
         responses: allResponses,
         moduleScores,

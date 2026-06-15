@@ -66,12 +66,14 @@ export async function GET(request, { params }) {
       test.questions.forEach(initQuestion)
     }
 
-    // Process each session's responses
+    // Process each session's responses — dedupe per question (keep last response) to avoid double counting
     sessions.forEach(session => {
       if (session.responses && session.responses.length > 0) {
-        session.responses.forEach(response => {
-          const qId = String(response.questionId)
+        const lastByQ = {}
+        session.responses.forEach(r => { lastByQ[String(r.questionId)] = r })
+        Object.keys(lastByQ).forEach(qId => {
           if (questionStats[qId]) {
+            const response = lastByQ[qId]
             const answered = response.selectedAnswer || response.answer
             if (answered) {
               questionStats[qId].totalAttempts++
