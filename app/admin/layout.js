@@ -80,12 +80,10 @@ export default function AdminLayout({ children }) {
     { id: 'demo-test', label: 'Demo Test', icon: <FiZap />, path: '/admin/demo-test' },
     { id: 'test-sessions', label: 'Test Session Monitoring', icon: <FiBarChart />, path: '/admin/test-sessions' },
     { id: 'user-results', label: 'User Result Management', icon: <FiUsers />, path: '/admin/user-results' },
-    { id: 'student-progress', label: 'Student Progress', icon: <FiTrendingUp />, path: '/admin/student-progress' },
     { id: 'student-analysis', label: 'Student Analysis', icon: <FiActivity />, path: '/admin/student-analysis' },
     { id: 'users', label: 'User Management', icon: <FiUsers />, path: '/admin/users' },
     { id: 'communication', label: 'Communication', icon: <FiMessageSquare />, path: '/admin/communication' },
     { id: 'messages', label: 'Messages', icon: <FiMessageSquare />, path: '/admin/messages' },
-    { id: 'analytics', label: 'Analytics', icon: <FiBarChart />, path: '/admin/analytics' },
     { id: 'comparison', label: 'Comparison Table', icon: <FiFileText />, path: '/admin/comparison' },
     { id: 'payments', label: 'Payments', icon: <FiDollarSign />, path: '/admin/payments' },
     { id: 'settings', label: 'Settings', icon: <FiSettings />, path: '/admin/settings' }
