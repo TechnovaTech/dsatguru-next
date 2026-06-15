@@ -448,7 +448,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
         questionIds = questions.filter(q => !q.isCorrect && q.userAnswer).map(q => q._id)
       }
 
-      // For module tests, preserve per-module structure
+      // For module tests, preserve per-module structure — keep ONLY the selected (wrong) questions per module
       let modulesData = null
       if (test?.isModuleTest) {
         const rawMods = test?.modules
@@ -456,9 +456,30 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
         if (mods.length > 0) {
           const toId = (id) => id && typeof id === 'object' ? String(id._id || id) : String(id || '')
           const selSet = new Set(questionIds.map(id => String(id)))
+          // Prefer the reliable per-question module index stamped during fetchResult
+          const moduleHasStamp = questions.some(q => q._moduleIdx !== undefined && q._moduleIdx !== null)
           modulesData = mods.map((mod, i) => {
-            const modQIds = (mod.questions || []).map(toId).filter(id => selSet.has(id))
-            return { moduleNumber: mod.moduleNumber || i + 1, subject: mod.subject, questions: modQIds, duration: mod.duration, isTimed: mod.isTimed, numberOfQuestions: modQIds.length, breakAfter: i < mods.length - 1 ? (parseInt(mod.breakAfter) || 0) : 0 }
+            let modQIds
+            if (moduleHasStamp) {
+              // Use _moduleIdx: take selected questions that belong to THIS module
+              modQIds = questions
+                .filter(q => q._moduleIdx === i && selSet.has(String(q._id)))
+                .map(q => String(q._id))
+            } else {
+              // Fallback: normalize mod.questions (Mixed type may be an object)
+              const rawQs = mod.questions
+              const qArr = Array.isArray(rawQs) ? rawQs : rawQs && typeof rawQs === 'object' ? Object.values(rawQs) : []
+              modQIds = qArr.map(toId).filter(id => selSet.has(id))
+            }
+            return {
+              moduleNumber: mod.moduleNumber || i + 1,
+              subject: mod.subject,
+              questions: modQIds,
+              duration: mod.duration,
+              isTimed: mod.isTimed,
+              numberOfQuestions: modQIds.length,
+              breakAfter: i < mods.length - 1 ? (parseInt(mod.breakAfter) || 0) : 0
+            }
           }).filter(m => m.questions.length > 0)
         }
       }
