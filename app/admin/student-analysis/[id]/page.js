@@ -227,20 +227,29 @@ export default function StudentAnalysisDetail() {
         </div>
 
         {/* Practice Type Counters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 mb-1">Self Practice</p>
-              <h3 className="text-2xl font-bold text-purple-600">{practiceCounts.selfPractice}</h3>
+              <p className="text-sm text-gray-500 mb-1">Admin Test</p>
+              <h3 className="text-2xl font-bold text-green-600">{practiceCounts.adminTest || 0}</h3>
             </div>
-            <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
+            <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+              <FiCheckCircle className="w-6 h-6" />
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Adaptive Test</p>
+              <h3 className="text-2xl font-bold text-teal-600">{practiceCounts.adaptiveTest || 0}</h3>
+            </div>
+            <div className="h-12 w-12 bg-teal-100 rounded-full flex items-center justify-center text-teal-600">
               <FiCpu className="w-6 h-6" />
             </div>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 mb-1">Tutor Assigned</p>
-              <h3 className="text-2xl font-bold text-blue-600">{practiceCounts.tutorAssigned}</h3>
+              <p className="text-sm text-gray-500 mb-1">Tutor Test</p>
+              <h3 className="text-2xl font-bold text-blue-600">{practiceCounts.tutorTest || 0}</h3>
             </div>
             <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
               <FiBook className="w-6 h-6" />
@@ -248,11 +257,11 @@ export default function StudentAnalysisDetail() {
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 mb-1">Admin Assigned</p>
-              <h3 className="text-2xl font-bold text-green-600">{practiceCounts.adminAssigned}</h3>
+              <p className="text-sm text-gray-500 mb-1">Tutor Module Test</p>
+              <h3 className="text-2xl font-bold text-purple-600">{practiceCounts.tutorModuleTest || 0}</h3>
             </div>
-            <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-              <FiCheckCircle className="w-6 h-6" />
+            <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
+              <FiBook className="w-6 h-6" />
             </div>
           </div>
         </div>

@@ -58,8 +58,12 @@ export async function GET(request, { params }) {
           testId: '$test._id',
           testTitle: '$test.title',
           testSubject: '$test.subject',
-          practiceMode: '$test.practiceMode', // 'admin', 'tutor', 'self' etc. logic needed
+          practiceMode: '$test.practiceMode',
           isTutorTest: '$test.isTutorTest',
+          isModuleTest: '$test.isModuleTest',
+          testType: '$test.testType',
+          sectionsMath: '$test.sections.math',
+          sectionsRw: '$test.sections.rw',
           questionTopic: '$question.topic',
           questionSubtopic: '$question.subtopic',
           questionDifficulty: '$question.difficulty',
@@ -73,9 +77,19 @@ export async function GET(request, { params }) {
     
     // Counters
     const practiceCounts = {
-      adminAssigned: 0,
-      tutorAssigned: 0,
-      selfPractice: 0
+      adminTest: 0,
+      adaptiveTest: 0,
+      tutorTest: 0,
+      tutorModuleTest: 0
+    }
+
+    // Classify a session record into one of the 4 test types
+    const classifyType = (r) => {
+      if (r.isModuleTest === true) return 'Tutor Module'
+      if (r.practiceMode === 'admin' || r.testType === 'Mock') return 'Admin'
+      if (r.isTutorTest === true || r.practiceMode === 'tutor') return 'Tutor'
+      if (r.sectionsMath === true || r.sectionsRw === true) return 'Adaptive'
+      return 'Adaptive'
     }
     
     // Performance by Subject
@@ -113,18 +127,21 @@ export async function GET(request, { params }) {
       // We need to count TESTS/SESSIONS separately.
       
       if (!sessionsMap[record.testId]) {
+        const tType = classifyType(record)
         sessionsMap[record.testId] = {
           date: record.createdAt,
           title: record.testTitle,
           subject: record.testSubject,
           total: 0,
           correct: 0,
-          type: record.isTutorTest ? 'Tutor' : 'Self' // Defaulting to Self if not Tutor
+          type: tType
         }
-        
+
         // Update Practice Counts (only once per session)
-        if (record.isTutorTest) practiceCounts.tutorAssigned++
-        else practiceCounts.selfPractice++ // Need to refine "Admin" logic if applicable
+        if (tType === 'Admin') practiceCounts.adminTest++
+        else if (tType === 'Adaptive') practiceCounts.adaptiveTest++
+        else if (tType === 'Tutor Module') practiceCounts.tutorModuleTest++
+        else if (tType === 'Tutor') practiceCounts.tutorTest++
       }
       
       // Increment Session Stats
