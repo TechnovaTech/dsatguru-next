@@ -187,7 +187,10 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
       if (currentFilters.type) params.set('type', currentFilters.type)
       if (currentFilters.tag) params.set('tag', currentFilters.tag)
       if (currentFilters.isActive !== '') params.set('isActive', String(currentFilters.isActive === 'true'))
-      const res = await fetch(`/api/questions?${params.toString()}`)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const res = await fetch(`/api/questions?${params.toString()}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
       const json = await res.json()
       // Handle both response formats: direct array or {data: array}
       const questionsArray = Array.isArray(json) ? json : (json.data || [])
