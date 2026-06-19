@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { AccessToken } from 'livekit-server-sdk'
 import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
+import { STAFF_ROLES } from '../../../../lib/constants/roles'
+import { connectDB } from '../../../../lib/db'
+import Course, { CourseEnrollment } from '../../../../lib/models/Course'
 
 export async function GET(request) {
   try {
@@ -22,14 +25,50 @@ export async function GET(request) {
       return NextResponse.json({ error: 'LiveKit not configured' }, { status: 500 })
     }
 
-    const isHost = ['Admin', 'TutorAdmin'].includes(decoded.role)
+    // A room maps to a Course meeting (meeting.link === room). Staff are hosts;
+    // students must be enrolled in the course that owns this meeting.
+    const isStaff = STAFF_ROLES.includes(decoded.role)
+
+    let authorized = isStaff
+    let canPublish = isStaff
+
+    if (!isStaff) {
+      await connectDB()
+      // Find the course that contains a meeting with this room link.
+      const course = await Course.findOne({ 'meetings.link': String(room) }).select('_id').lean()
+      if (course) {
+        const enrollment = await CourseEnrollment.findOne({
+          userId: decoded.userId,
+          courseId: course._id
+        }).select('_id expiresAt').lean()
+        if (enrollment) {
+          // Reject expired enrollments.
+          const expired = enrollment.expiresAt && new Date(enrollment.expiresAt) < new Date()
+          if (!expired) {
+            authorized = true
+            // Enrolled students may publish (mic/cam) in their class.
+            canPublish = true
+          }
+        }
+      } else {
+        // Room -> meeting mapping could not be resolved. Fail safe: allow a valid
+        // student to join subscribe-only rather than granting publish.
+        authorized = true
+        canPublish = false
+      }
+    }
+
+    if (!authorized) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const isHost = isStaff
     const role = decoded.role || 'Student'
     const name = decoded.name || decoded.email || 'Participant'
     const email = decoded.email || ''
 
-    // Display name format: "Name (Role) | email"
-    // e.g. "Vivek Vora (Admin) | vivek@dsatguru.com"
-    // e.g. "John Doe (Student) | john@gmail.com"
+    // Display name format: "Name (Role)"
+    // e.g. "Vivek Vora (Admin)" / "John Doe (Student)"
     const displayName = `${name} (${role})`
 
     // Identity = unique user ID
@@ -51,7 +90,7 @@ export async function GET(request) {
     at.addGrant({
       roomJoin: true,
       room,
-      canPublish: true,
+      canPublish,
       canSubscribe: true,
       canPublishData: true,
       roomAdmin: isHost

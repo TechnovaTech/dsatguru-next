@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import connectDB from '@/lib/db'
 import ErrorLog from '@/lib/models/ErrorLog'
+// Register the Question model so populate('sourceQuestionId') resolves its schema.
+import Question from '@/lib/models/Question'
 
 async function getUser(req) {
   const auth = req.headers.get('authorization') || ''

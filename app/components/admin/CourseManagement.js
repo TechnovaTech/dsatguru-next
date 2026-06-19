@@ -1,8 +1,20 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiPlus, FiEdit, FiTrash2, FiEye, FiDollarSign, FiUsers, FiBarChart, FiCalendar, FiVideo, FiDownload, FiFileText, FiSave, FiArrowLeft } from 'react-icons/fi'
+import { FiPlus, FiEdit, FiTrash2, FiEye, FiDollarSign, FiUsers, FiBarChart, FiCalendar, FiVideo, FiDownload, FiFileText, FiSave, FiArrowLeft, FiSearch, FiX, FiBookOpen, FiCheck, FiHelpCircle, FiFolder } from 'react-icons/fi'
+import { useToast, useConfirm } from '../ui/UIProvider'
+
+// Accent palette — matches the public website course cards
+const ACCENTS = [
+  { grad: 'from-indigo-600 to-indigo-800', soft: 'bg-indigo-50', text: 'text-indigo-600' },
+  { grad: 'from-blue-600 to-blue-800', soft: 'bg-blue-50', text: 'text-blue-600' },
+  { grad: 'from-teal-600 to-teal-800', soft: 'bg-teal-50', text: 'text-teal-600' },
+  { grad: 'from-violet-600 to-violet-800', soft: 'bg-violet-50', text: 'text-violet-600' },
+  { grad: 'from-sky-600 to-sky-800', soft: 'bg-sky-50', text: 'text-sky-600' },
+]
 
 export default function CourseManagement() {
+  const toast = useToast()
+  const confirm = useConfirm()
   const [courses, setCourses] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -71,8 +83,8 @@ export default function CourseManagement() {
   }
 
   const handleDelete = async (courseId) => {
-    if (!window.confirm('Are you sure you want to delete this course?')) return
-    
+    if (!(await confirm({ message: 'Are you sure you want to delete this course?', tone: 'danger', confirmText: 'Delete' }))) return
+
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(`/api/admin/courses/${courseId}`, {
@@ -92,7 +104,7 @@ export default function CourseManagement() {
       fetchCourses()
     } catch (error) {
       console.error('Error deleting course:', error)
-      alert(error.message)
+      toast.error(error.message)
     }
   }
 
@@ -123,7 +135,7 @@ export default function CourseManagement() {
       setEditingCourse(null)
     } catch (error) {
       console.error('Error saving course:', error)
-      alert(error.message)
+      toast.error(error.message)
     }
   }
 
@@ -148,6 +160,14 @@ export default function CourseManagement() {
     return () => clearTimeout(timeoutId)
   }, [filters.search, filters.type, filters.minPrice, filters.maxPrice])
 
+  // Close the quick-view modal on Escape
+  useEffect(() => {
+    if (!selectedCourse || showContentManagement) return
+    const onKey = (e) => { if (e.key === 'Escape') setSelectedCourse(null) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selectedCourse, showContentManagement])
+
   const totalCount = pagination.totalCount || 0
   const totalPages = pagination.totalPages || 1
   const startIndex = (pagination.page - 1) * pagination.pageSize
@@ -167,279 +187,245 @@ export default function CourseManagement() {
 
   if (loading && courses.length === 0) {
     return (
-      <div className="p-6 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading courses...</p>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-500"></div>
+          <p className="text-slate-500">Loading courses...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Course & Question Bank Management</h1>
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+      {/* Header */}
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-extrabold text-slate-900 lg:text-3xl">
+            Courses <span className="dg-gradient-text">& Question Banks</span>
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">Create, edit and manage your catalog.</p>
+        </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-600"
           disabled={loading}
+          className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition-transform hover:-translate-y-0.5 disabled:opacity-50"
         >
           <FiPlus /> Add Course
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {error}
         </div>
       )}
 
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Search</label>
-            <input
-              type="text"
-              value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-              placeholder="Search courses..."
-              className="w-full border rounded px-3 py-2"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Type</label>
-            <select
-              value={filters.type}
-              onChange={(e) => handleFilterChange('type', e.target.value)}
-              className="w-full border rounded px-3 py-2"
-            >
-              <option value="">All Types</option>
-              <option value="course">Courses</option>
-              <option value="question_bank">Question Banks</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Min Price</label>
-            <input
-              type="number"
-              value={filters.minPrice}
-              onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-              placeholder="0"
-              className="w-full border rounded px-3 py-2"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Max Price</label>
-            <input
-              type="number"
-              value={filters.maxPrice}
-              onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-              placeholder="1000"
-              className="w-full border rounded px-3 py-2"
-            />
-          </div>
-          <div className="flex items-end">
-            <button
-              onClick={() => setFilters({ search: '', minPrice: '', maxPrice: '', type: '' })}
-              className="w-full bg-gray-500 text-white px-4 py-2 rounded"
-            >
-              Clear Filters
-            </button>
-          </div>
+      {/* Toolbar */}
+      <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input
+            type="text"
+            value={filters.search}
+            onChange={(e) => handleFilterChange('search', e.target.value)}
+            placeholder="Search courses..."
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-3 text-sm outline-none transition-colors focus:border-indigo-400 focus:bg-white"
+          />
         </div>
+        <select
+          value={filters.type}
+          onChange={(e) => handleFilterChange('type', e.target.value)}
+          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition-colors focus:border-indigo-400 focus:bg-white"
+        >
+          <option value="">All Types</option>
+          <option value="course">Courses</option>
+          <option value="question_bank">Question Banks</option>
+        </select>
+        {(filters.search || filters.type) && (
+          <button
+            onClick={() => setFilters({ search: '', minPrice: '', maxPrice: '', type: '' })}
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+          >
+            <FiX size={15} /> Clear
+          </button>
+        )}
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Course</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Enrollments</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Revenue</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Content</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Updated</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {loading ? (
-              <tr>
-                <td colSpan="7" className="px-6 py-8 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-                  <p className="text-gray-500">Loading...</p>
-                </td>
-              </tr>
-            ) : courses.length > 0 ? courses.map((course) => (
-              <tr key={course.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <div>
-                    <div className="font-medium text-gray-900">{course.title}</div>
-                    <div className="text-sm text-gray-500 truncate max-w-xs">
-                      {course.description}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm">
-                  <div className="font-semibold text-green-600">
-                    ${course.price || 0}
-                  </div>
-                  {course.discountedPrice && (
-                    <div className="text-xs text-red-600">
-                      ${course.discountedPrice}
-                    </div>
+      {/* Cards — same look as the public website */}
+      {loading ? (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-[26rem] animate-pulse rounded-[1.75rem] bg-white shadow-sm" />
+          ))}
+        </div>
+      ) : courses.length > 0 ? (
+        <div className="grid items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {courses.map((course, i) => {
+            const a = ACCENTS[i % ACCENTS.length]
+            const discount = course.discountedPrice && course.price
+              ? Math.round(((course.price - course.discountedPrice) / course.price) * 100)
+              : (course.discountPercentage || null)
+            const features = (course.highlights || []).map((h) => h.text || h).filter(Boolean).slice(0, 4)
+            return (
+              <div
+                key={course.id}
+                className="group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-lg transition-transform duration-300 hover:-translate-y-1.5"
+              >
+                {/* gradient header */}
+                <div className={`relative bg-gradient-to-br ${a.grad} px-6 pb-12 pt-7 text-center text-white`}>
+                  <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/15 blur-2xl" />
+                  {discount ? (
+                    <span className="absolute -right-9 top-5 rotate-45 bg-amber-400 px-9 py-1 text-[10px] font-extrabold text-slate-900 shadow">
+                      {discount}% OFF
+                    </span>
+                  ) : null}
+                  <span className="relative inline-flex rounded-full bg-white/15 px-3 py-1 text-[10px] font-bold uppercase tracking-widest ring-1 ring-white/25">
+                    {course.type === 'question_bank' ? 'Question Bank' : 'Course'}
+                  </span>
+                  <h3 className="relative mt-3 text-lg font-extrabold uppercase leading-tight">{course.title}</h3>
+                  {course.description && (
+                    <p className="relative mt-1 line-clamp-2 text-xs font-medium text-white/85">{course.description}</p>
                   )}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-900">
-                  <div className="flex items-center gap-1">
-                    <FiUsers className="text-gray-400" />
-                    {course.enrollmentsCount || 0}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm font-semibold text-green-600">
-                  ${(course.revenue || 0).toLocaleString()}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  <div className="space-y-1">
-                    <div>{course.highlightsCount || 0} highlights</div>
-                    <div>{course.schedulesCount || 0} schedules</div>
-                    <div>{course.faqsCount || 0} FAQs</div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  {new Date(course.updatedAt || course.createdAt).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 text-sm font-medium">
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setSelectedCourse(course)}
-                      className="text-blue-600 hover:text-blue-900"
-                      title="View Details"
-                    >
-                      <FiEye />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingCourse(course)
-                        setShowModal(true)
-                      }}
-                      className="text-green-600 hover:text-green-900"
-                      title="Edit Course"
-                    >
-                      <FiEdit />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedCourse(course)
-                        setShowContentManagement(true)
-                      }}
-                      className="text-orange-600 hover:text-orange-900"
-                      title="Manage Content"
-                    >
-                      <FiVideo />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(course.id)}
-                      className="text-red-600 hover:text-red-900"
-                      title="Delete Course"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            )) : (
-              <tr>
-                <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
-                  No courses found. Click &quot;Add Course&quot; to create your first course.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                </div>
 
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-gray-700">
-          Showing {totalCount === 0 ? 0 : startIndex + 1} to {endIndex} of {totalCount} courses
+                {/* body */}
+                <div className="relative flex flex-1 flex-col px-6 pb-6">
+                  {/* floating icon overlapping the seam */}
+                  <div className="mx-auto -mt-8 mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-xl ring-4 ring-white">
+                    <span className={`flex h-full w-full items-center justify-center rounded-2xl bg-gradient-to-br ${a.grad} text-white transition-transform duration-300 group-hover:scale-110`}>
+                      {course.type === 'question_bank' ? <FiHelpCircle size={26} /> : <FiBookOpen size={26} />}
+                    </span>
+                  </div>
+
+                  {/* price */}
+                  <div className="mb-4 text-center">
+                    {course.discountedPrice ? (
+                      <div className="flex items-end justify-center gap-2">
+                        <span className="pb-1.5 text-sm text-slate-400 line-through">${course.price}</span>
+                        <span className="text-3xl font-extrabold tracking-tight text-slate-900">${course.discountedPrice}</span>
+                      </div>
+                    ) : (
+                      <span className="text-3xl font-extrabold tracking-tight text-slate-900">${course.price || 0}</span>
+                    )}
+                  </div>
+
+                  <div className="mb-4 h-px bg-slate-100" />
+
+                  {/* features (highlights) */}
+                  {features.length > 0 ? (
+                    <ul className="flex-1 space-y-2.5 text-left text-sm text-slate-700">
+                      {features.map((f, idx) => (
+                        <li key={idx} className="flex items-start gap-2.5">
+                          <span className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${a.soft} ${a.text}`}>
+                            <FiCheck size={12} />
+                          </span>
+                          <span className="leading-snug">{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="flex-1 text-center text-xs italic text-slate-300">No highlights added yet.</p>
+                  )}
+
+                  {/* admin stats */}
+                  <div className="mt-5 grid grid-cols-2 gap-2">
+                    <div className="rounded-xl bg-slate-50 py-2 text-center">
+                      <div className="text-base font-extrabold text-indigo-600">{course.enrollmentsCount || 0}</div>
+                      <div className="text-[10px] font-medium text-slate-500">Enrolled</div>
+                    </div>
+                    <div className="rounded-xl bg-slate-50 py-2 text-center">
+                      <div className="text-base font-extrabold text-emerald-600">${(course.revenue || 0).toLocaleString()}</div>
+                      <div className="text-[10px] font-medium text-slate-500">Revenue</div>
+                    </div>
+                  </div>
+
+                  {/* admin actions */}
+                  <div className="mt-4 flex items-center gap-2">
+                    <button
+                      onClick={() => { setEditingCourse(course); setShowModal(true) }}
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+                    >
+                      <FiEdit size={14} /> Edit
+                    </button>
+                    <button onClick={() => setSelectedCourse(course)} title="View details" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 hover:text-indigo-600"><FiEye size={15} /></button>
+                    <button onClick={() => { setSelectedCourse(course); setShowContentManagement(true) }} title="Manage content" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition-colors hover:bg-amber-50 hover:text-amber-600"><FiFolder size={15} /></button>
+                    <button onClick={() => handleDelete(course.id)} title="Delete" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600"><FiTrash2 size={15} /></button>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
-        <div className="flex gap-2 items-center">
+      ) : (
+        <div className="rounded-2xl border border-slate-100 bg-white py-16 text-center shadow-sm">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400"><FiBookOpen size={22} /></div>
+          <p className="text-sm font-medium text-slate-500">No courses found.</p>
+          <p className="mt-1 text-xs text-slate-400">Click &quot;Add Course&quot; to create your first one.</p>
+        </div>
+      )}
+
+      {/* Pagination */}
+      <div className="mt-5 flex flex-col items-center justify-between gap-3 sm:flex-row">
+        <div className="text-sm text-slate-500">
+          Showing {totalCount === 0 ? 0 : startIndex + 1}–{endIndex} of {totalCount}
+        </div>
+        <div className="flex items-center gap-2">
           <button
             disabled={pagination.page === 1 || loading}
             onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
-            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-40"
           >
             Previous
           </button>
-          <span className="px-3 py-1 text-sm text-gray-600">
-            Page {pagination.page} of {totalPages}
-          </span>
+          <span className="text-sm font-medium text-slate-500">Page {pagination.page} of {totalPages}</span>
           <button
             disabled={pagination.page >= totalPages || loading}
             onClick={() => setPagination(prev => ({ ...prev, page: Math.min(totalPages, prev.page + 1) }))}
-            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-40"
           >
             Next
           </button>
         </div>
       </div>
 
-      {selectedCourse && !showAnalytics && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">{selectedCourse.title}</h2>
-              <button onClick={() => setSelectedCourse(null)} className="text-gray-500 hover:text-gray-700">✕</button>
-            </div>
-            <div className="space-y-6">
+      {/* Quick view modal */}
+      {selectedCourse && !showContentManagement && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" onClick={() => setSelectedCourse(null)}>
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-5 flex items-start justify-between gap-4">
               <div>
-                <h3 className="font-semibold mb-2">Description</h3>
-                <p className="text-gray-700">{selectedCourse.description}</p>
+                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${selectedCourse.type === 'question_bank' ? 'bg-violet-50 text-violet-700' : 'bg-indigo-50 text-indigo-700'}`}>
+                  {selectedCourse.type === 'question_bank' ? 'Question Bank' : 'Course'}
+                </span>
+                <h2 className="mt-2 text-xl font-bold text-slate-900">{selectedCourse.title}</h2>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-semibold mb-2">Price</h3>
-                  <p className="text-2xl font-bold text-green-600">${selectedCourse.price || 0}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Enrollments</h3>
-                  <p className="text-2xl font-bold text-blue-600">{selectedCourse.enrollmentsCount || 0}</p>
-                </div>
+              <button onClick={() => setSelectedCourse(null)} className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100"><FiX size={18} /></button>
+            </div>
+            {selectedCourse.description && <p className="mb-5 text-sm leading-relaxed text-slate-600">{selectedCourse.description}</p>}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl bg-slate-50 p-3 text-center">
+                <div className="text-lg font-extrabold text-slate-900">${selectedCourse.price || 0}</div>
+                <div className="text-[11px] font-medium text-slate-500">Price</div>
               </div>
+              <div className="rounded-xl bg-slate-50 p-3 text-center">
+                <div className="text-lg font-extrabold text-indigo-600">{selectedCourse.enrollmentsCount || 0}</div>
+                <div className="text-[11px] font-medium text-slate-500">Enrolled</div>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3 text-center">
+                <div className="text-lg font-extrabold text-emerald-600">${(selectedCourse.revenue || 0).toLocaleString()}</div>
+                <div className="text-[11px] font-medium text-slate-500">Revenue</div>
+              </div>
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <button onClick={() => { setEditingCourse(selectedCourse); setSelectedCourse(null); setShowModal(true) }} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700">
+                <FiEdit size={14} /> Edit
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {showAnalytics && selectedCourse && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">Analytics - {selectedCourse.title}</h2>
-              <button onClick={() => { setShowAnalytics(false); setSelectedCourse(null) }} className="text-gray-500 hover:text-gray-700">✕</button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">{selectedCourse.enrollmentsCount}</div>
-                <div className="text-sm text-gray-600">Total Enrollments</div>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">${selectedCourse.revenue.toLocaleString()}</div>
-                <div className="text-sm text-gray-600">Total Revenue</div>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">87%</div>
-                <div className="text-sm text-gray-600">Completion Rate</div>
-              </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-orange-600">4.6</div>
-                <div className="text-sm text-gray-600">Rating</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       {showModal && (
         <CourseModal
           course={editingCourse}
@@ -455,6 +441,7 @@ export default function CourseManagement() {
 }
 
 function CourseContentManager({ course, onBack }) {
+  const toast = useToast()
   const [activeTab, setActiveTab] = useState('meetings')
   const [courseData, setCourseData] = useState({
     meetings: [],
@@ -509,10 +496,10 @@ function CourseContentManager({ course, onBack }) {
         throw new Error('Failed to save course content')
       }
 
-      alert('Course content saved successfully!')
+      toast.success('Course content saved successfully!')
     } catch (error) {
       console.error('Error saving content:', error)
-      alert('Failed to save course content')
+      toast.error('Failed to save course content')
     } finally {
       setSaving(false)
     }
@@ -524,26 +511,26 @@ function CourseContentManager({ course, onBack }) {
   }, [course.id])
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="min-h-screen space-y-6 bg-slate-50 p-6 lg:p-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <button onClick={onBack} className="text-blue-600 hover:text-blue-800 mb-2 flex items-center gap-2">
+          <button onClick={onBack} className="mb-2 flex items-center gap-2 text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700">
             <FiArrowLeft /> Back to Courses
           </button>
-          <h1 className="text-2xl font-bold">{course.title}</h1>
-          <p className="text-gray-600">Manage course content and materials</p>
+          <h1 className="text-2xl font-extrabold text-slate-900 lg:text-3xl">{course.title}</h1>
+          <p className="mt-1 text-sm text-slate-500">Manage course content and materials</p>
         </div>
         <button
           onClick={handleSave}
           disabled={saving || loading}
-          className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-green-700 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
         >
           <FiSave /> {saving ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md">
-        <div className="flex border-b">
+      <div className="rounded-2xl border border-slate-100 bg-white shadow-sm">
+        <div className="flex overflow-x-auto whitespace-nowrap border-b border-slate-100">
           {[
             { id: 'meetings', label: 'Live Meetings', icon: <FiVideo size={16} /> },
             { id: 'materials', label: 'Study Materials', icon: <FiDownload size={16} /> },
@@ -553,8 +540,8 @@ function CourseContentManager({ course, onBack }) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium ${
-                activeTab === tab.id ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
+                activeTab === tab.id ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               {tab.icon}
@@ -565,117 +552,149 @@ function CourseContentManager({ course, onBack }) {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
         {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mr-3"></div>
-            <span>Loading content...</span>
+          <div className="flex items-center justify-center py-12">
+            <div className="mr-3 h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500"></div>
+            <span className="text-slate-500">Loading content...</span>
           </div>
         ) : (
           <>
             {activeTab === 'meetings' && (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Live Meetings</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">Live Meetings</h2>
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
                   meetings: [...prev.meetings, { title: 'New Meeting', date: 'Fri 6 PM', link: '#' }]
                 }))}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
               >
-                Add Meeting
+                <FiPlus size={15} /> Add Meeting
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {courseData.meetings.map((m, index) => (
-                <div key={m._id || index} className="border rounded-lg p-4">
-                  <div className="font-medium">{m.title}</div>
-                  <div className="text-sm text-gray-600">{m.date}</div>
-                  <a href={m.link} className="text-blue-600 text-sm">Join</a>
-                </div>
-              ))}
-            </div>
+            {courseData.meetings.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {courseData.meetings.map((m, index) => (
+                  <div key={m._id || index} className="rounded-xl border border-slate-200 p-4">
+                    <div className="font-semibold text-slate-900">{m.title}</div>
+                    <div className="text-sm text-slate-500">{m.date}</div>
+                    <a href={m.link} className="text-sm font-medium text-emerald-600 hover:text-emerald-700">Join</a>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400"><FiVideo size={22} /></div>
+                <p className="text-sm font-medium text-slate-500">No live meetings yet.</p>
+                <p className="mt-1 text-xs text-slate-400">Click &quot;Add Meeting&quot; to schedule one.</p>
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === 'materials' && (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Study Materials</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">Study Materials</h2>
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
                   materials: [...prev.materials, { title: 'New Material', link: '#' }]
                 }))}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
               >
-                Add Material
+                <FiPlus size={15} /> Add Material
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {courseData.materials.map((mat, index) => (
-                <div key={mat._id || index} className="border rounded-lg p-4">
-                  <div className="font-medium">{mat.title}</div>
-                  <a href={mat.link} className="text-blue-600 text-sm">Download</a>
-                </div>
-              ))}
-            </div>
+            {courseData.materials.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {courseData.materials.map((mat, index) => (
+                  <div key={mat._id || index} className="rounded-xl border border-slate-200 p-4">
+                    <div className="font-semibold text-slate-900">{mat.title}</div>
+                    <a href={mat.link} className="text-sm font-medium text-emerald-600 hover:text-emerald-700">Download</a>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400"><FiDownload size={22} /></div>
+                <p className="text-sm font-medium text-slate-500">No study materials yet.</p>
+                <p className="mt-1 text-xs text-slate-400">Click &quot;Add Material&quot; to upload one.</p>
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === 'syllabus' && (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Course Timeline</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">Course Timeline</h2>
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
                   syllabus: [...prev.syllabus, { week: prev.syllabus.length + 1, title: 'New Topic' }]
                 }))}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
               >
-                Add Topic
+                <FiPlus size={15} /> Add Topic
               </button>
             </div>
-            <div className="space-y-3">
-              {courseData.syllabus.map((t, index) => (
-                <div key={t._id || index} className="border rounded-lg p-4">
-                  <div className="font-medium">Week {t.week}: {t.title}</div>
-                </div>
-              ))}
-            </div>
+            {courseData.syllabus.length > 0 ? (
+              <div className="space-y-3">
+                {courseData.syllabus.map((t, index) => (
+                  <div key={t._id || index} className="rounded-xl border border-slate-200 p-4">
+                    <div className="font-semibold text-slate-900">Week {t.week}: {t.title}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400"><FiCalendar size={22} /></div>
+                <p className="text-sm font-medium text-slate-500">No timeline topics yet.</p>
+                <p className="mt-1 text-xs text-slate-400">Click &quot;Add Topic&quot; to build the timeline.</p>
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === 'assignments' && (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Assignments</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">Assignments</h2>
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
                   assignments: [...prev.assignments, { title: 'New Assignment', dueDate: 'TBD', status: 'Pending' }]
                 }))}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
               >
-                Add Assignment
+                <FiPlus size={15} /> Add Assignment
               </button>
             </div>
-            <div className="space-y-3">
-              {courseData.assignments.map((a, index) => (
-                <div key={a._id || index} className="border rounded-lg p-4">
-                  <div className="font-medium">{a.title}</div>
-                  <div className="text-sm text-gray-600">Due: {a.dueDate}</div>
-                  <span className={`inline-block px-2 py-1 rounded text-xs ${a.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>{a.status}</span>
-                </div>
-              ))}
-            </div>
+            {courseData.assignments.length > 0 ? (
+              <div className="space-y-3">
+                {courseData.assignments.map((a, index) => (
+                  <div key={a._id || index} className="rounded-xl border border-slate-200 p-4">
+                    <div className="font-semibold text-slate-900">{a.title}</div>
+                    <div className="text-sm text-slate-500">Due: {a.dueDate || 'TBD'}</div>
+                    <span className={`mt-1 inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${a.status === 'Pending' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}>{a.status}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400"><FiFileText size={22} /></div>
+                <p className="text-sm font-medium text-slate-500">No assignments yet.</p>
+                <p className="mt-1 text-xs text-slate-400">Click &quot;Add Assignment&quot; to create one.</p>
+              </div>
+            )}
           </div>
             )}
           </>
@@ -710,6 +729,13 @@ function CourseModal({ course, onSave, onClose }) {
     }
   }, [formData.price, formData.discountedPrice])
   const [loading, setLoading] = useState(false)
+
+  // Close the modal on Escape
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
 
   const updateSchedule = (index, value) => {
     setFormData(prev => ({
@@ -774,30 +800,32 @@ function CourseModal({ course, onSave, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">{formData.id ? 'Edit Course' : 'Add Course'}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" onClick={onClose}>
+      <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-slate-900">{formData.id ? 'Edit Course' : 'Add Course'}</h2>
+          <button onClick={onClose} aria-label="Close" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"><FiX size={18} /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
+              <label htmlFor="course-title" className="mb-1 block text-sm font-medium text-slate-600">Title</label>
               <input
+                id="course-title"
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                className="w-full border rounded px-3 py-2"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Type</label>
+              <label htmlFor="course-type" className="mb-1 block text-sm font-medium text-slate-600">Type</label>
               <select
+                id="course-type"
                 value={formData.type}
                 onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
-                className="w-full border rounded px-3 py-2"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="course">Course</option>
                 <option value="question_bank">Question Bank</option>
@@ -807,10 +835,10 @@ function CourseModal({ course, onSave, onClose }) {
 
           {/* Question Bank Type - ONLY show when question_bank is selected */}
           {formData.type === 'question_bank' && (
-            <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Question Bank Type *</label>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <label className="mb-3 block text-sm font-medium text-slate-600">Question Bank Type *</label>
               <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center bg-white p-3 rounded-lg border-2 border-gray-200 hover:border-blue-400 transition-colors cursor-pointer">
+                <div className="flex cursor-pointer items-center rounded-lg border-2 border-slate-200 bg-white p-3 transition-colors hover:border-indigo-400">
                   <input
                     type="radio"
                     id="rw-type"
@@ -818,11 +846,11 @@ function CourseModal({ course, onSave, onClose }) {
                     value="Reading and Writing"
                     checked={formData.questionBankType === 'Reading and Writing'}
                     onChange={(e) => setFormData(prev => ({ ...prev, questionBankType: e.target.value }))}
-                    className="mr-3 w-4 h-4 text-blue-600"
+                    className="mr-3 h-4 w-4 text-indigo-600 focus:ring-indigo-500"
                   />
-                  <label htmlFor="rw-type" className="text-sm font-medium text-gray-700 cursor-pointer">Reading and Writing</label>
+                  <label htmlFor="rw-type" className="cursor-pointer text-sm font-medium text-slate-600">Reading and Writing</label>
                 </div>
-                <div className="flex items-center bg-white p-3 rounded-lg border-2 border-gray-200 hover:border-blue-400 transition-colors cursor-pointer">
+                <div className="flex cursor-pointer items-center rounded-lg border-2 border-slate-200 bg-white p-3 transition-colors hover:border-indigo-400">
                   <input
                     type="radio"
                     id="math-type"
@@ -830,204 +858,102 @@ function CourseModal({ course, onSave, onClose }) {
                     value="Mathematics"
                     checked={formData.questionBankType === 'Mathematics'}
                     onChange={(e) => setFormData(prev => ({ ...prev, questionBankType: e.target.value }))}
-                    className="mr-3 w-4 h-4 text-blue-600"
+                    className="mr-3 h-4 w-4 text-indigo-600 focus:ring-indigo-500"
                   />
-                  <label htmlFor="math-type" className="text-sm font-medium text-gray-700 cursor-pointer">Mathematics</label>
+                  <label htmlFor="math-type" className="cursor-pointer text-sm font-medium text-slate-600">Mathematics</label>
                 </div>
               </div>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-1">Description</label>
+              <label htmlFor="course-description" className="mb-1 block text-sm font-medium text-slate-600">Description</label>
               <textarea
+                id="course-description"
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="w-full border rounded px-3 py-2"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                 rows="3"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
-              <label className="block text-sm font-medium mb-1">Price</label>
+              <label htmlFor="course-price" className="mb-1 block text-sm font-medium text-slate-600">Price</label>
               <input
+                id="course-price"
                 type="number"
                 value={formData.price}
                 onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value || 0) }))}
-                className="w-full border rounded px-3 py-2"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Discount % (Auto)</label>
+              <label htmlFor="course-discount-pct" className="mb-1 block text-sm font-medium text-slate-600">Discount % (Auto)</label>
               <input
+                id="course-discount-pct"
                 type="number"
                 value={formData.discountPercentage}
                 readOnly
-                className="w-full border rounded px-3 py-2 bg-gray-100"
+                className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Discounted Price</label>
+              <label htmlFor="course-discounted-price" className="mb-1 block text-sm font-medium text-slate-600">Discounted Price</label>
               <input
+                id="course-discounted-price"
                 type="number"
                 value={formData.discountedPrice}
                 onChange={(e) => setFormData(prev => ({ ...prev, discountedPrice: e.target.value }))}
-                className="w-full border rounded px-3 py-2"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium">Course Highlights</label>
-              <button type="button" onClick={addHighlight} className="text-blue-500 hover:text-blue-700 text-sm">+ Add Highlight</button>
+            <div className="mb-2 flex items-center justify-between">
+              <label className="block text-sm font-medium text-slate-600">Course Highlights</label>
+              <button type="button" onClick={addHighlight} className="text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700">+ Add Highlight</button>
             </div>
             {formData.highlights.map((h, idx) => (
-              <div key={idx} className="flex gap-2 mb-2">
+              <div key={idx} className="mb-2 flex gap-2">
                 <input
                   type="text"
                   value={h}
                   onChange={(e) => updateHighlight(idx, e.target.value)}
-                  className="flex-1 border rounded px-3 py-2"
+                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                   placeholder={`Highlight #${idx + 1}`}
                 />
-                <button type="button" onClick={() => removeHighlight(idx)} className="text-red-500 hover:text-red-700 px-2">✕</button>
+                <button type="button" onClick={() => removeHighlight(idx)} aria-label="Remove highlight" className="px-2 text-rose-500 transition-colors hover:text-rose-700"><FiX size={16} /></button>
               </div>
             ))}
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium">Class Schedules</label>
-              <button type="button" onClick={addSchedule} className="text-blue-500 hover:text-blue-700 text-sm">+ Add Schedule</button>
+            <div className="mb-2 flex items-center justify-between">
+              <label className="block text-sm font-medium text-slate-600">Class Schedules</label>
+              <button type="button" onClick={addSchedule} className="text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700">+ Add Schedule</button>
             </div>
             {formData.schedules.map((schedule, index) => (
-              <div key={index} className="flex gap-2 mb-2">
+              <div key={index} className="mb-2 flex gap-2">
                 <input
                   type="text"
                   value={schedule}
                   onChange={(e) => updateSchedule(index, e.target.value)}
-                  className="flex-1 border rounded px-3 py-2"
+                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                   placeholder="e.g., Monday 8 PM"
                 />
-                <button type="button" onClick={() => removeSchedule(index)} className="text-red-500 hover:text-red-700 px-2">✕</button>
+                <button type="button" onClick={() => removeSchedule(index)} aria-label="Remove schedule" className="px-2 text-rose-500 transition-colors hover:text-rose-700"><FiX size={16} /></button>
               </div>
             ))}
 
-            <div className="mt-6 border-t pt-4">
-              <h4 className="text-sm font-medium mb-3">Course Card Preview</h4>
-              <div className="w-64 rounded-lg overflow-hidden shadow-lg" style={{ backgroundColor: formData.backgroundColor || '#e0ffff', height: '450px' }}>
-                <div className="p-4">
-                  <h3 className="text-lg font-bold uppercase text-center">{formData.title || 'MATHS REASONING'}</h3>
-                  <div className="flex justify-center my-2">
-                    {formData.schedules.length > 0 && formData.schedules[0].trim() ? (
-                      <span className="bg-white rounded-full px-4 py-1 text-sm">
-                        {formData.schedules[0]}
-                      </span>
-                    ) : (
-                      <span className="bg-white rounded-full px-4 py-1 text-sm">monday 8 pm</span>
-                    )}
-                  </div>
-                  <div className="flex justify-center mt-8 mb-2">
-                    {formData.discountPercentage ? (
-                      <span className="bg-white bg-opacity-70 rounded-full px-4 py-1 text-sm font-medium text-green-600">
-                        {formData.discountPercentage}% OFF
-                      </span>
-                    ) : (
-                      <span className="bg-white bg-opacity-70 rounded-full px-4 py-1 text-sm font-medium text-green-600">20% OFF</span>
-                    )}
-                  </div>
-                  <div className="mt-2 text-center">
-                    {formData.price > 0 ? (
-                      <div>
-                        {formData.discountedPrice ? (
-                          <div>
-                            <div className="text-gray-500 line-through">${formData.price}</div>
-                            <div className="text-blue-600 text-xl font-bold">${formData.discountedPrice}</div>
-                          </div>
-                        ) : (
-                          <div>
-                            <div className="text-gray-500 line-through">$100</div>
-                            <div className="text-blue-600 text-xl font-bold">$80</div>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="text-gray-500 line-through">$100</div>
-                        <div className="text-blue-600 text-xl font-bold">$80</div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-8">
-                    {formData.highlights.filter(h => h.trim() !== '').length > 0 ? (
-                      formData.highlights.filter(h => h.trim() !== '').map((highlight, idx) => (
-                        <div key={idx} className="flex items-center gap-3 mb-3">
-                          <span className="inline-flex items-center justify-center w-5 h-5 bg-green-500 text-white rounded-full text-xs font-bold">{idx + 1}</span>
-                          <span className="text-sm text-gray-700">{highlight}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <>
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="inline-flex items-center justify-center w-5 h-5 bg-green-500 text-white rounded-full text-xs font-bold">1</span>
-                          <span className="text-sm text-gray-700">maths question</span>
-                        </div>
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="inline-flex items-center justify-center w-5 h-5 bg-green-500 text-white rounded-full text-xs font-bold">2</span>
-                          <span className="text-sm text-gray-700">maths videos</span>
-                        </div>
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="inline-flex items-center justify-center w-5 h-5 bg-green-500 text-white rounded-full text-xs font-bold">3</span>
-                          <span className="text-sm text-gray-700">maths mcq</span>
-                        </div>
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="inline-flex items-center justify-center w-5 h-5 bg-green-500 text-white rounded-full text-xs font-bold">4</span>
-                          <span className="text-sm text-gray-700">matrhs</span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium">Frequently Asked Questions</label>
-              <button type="button" onClick={addFAQ} className="text-blue-500 hover:text-blue-700 text-sm">+ Add FAQ</button>
-            </div>
-            {formData.faqs.map((faq, index) => (
-              <div key={index} className="border rounded p-3 mb-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">FAQ #{index + 1}</span>
-                  <button type="button" onClick={() => removeFAQ(index)} className="text-red-500 hover:text-red-700">✕</button>
-                </div>
-                <input
-                  type="text"
-                  value={faq.question}
-                  onChange={(e) => updateFAQ(index, 'question', e.target.value)}
-                  className="w-full border rounded px-3 py-2 mb-2"
-                  placeholder="Question"
-                />
-                <textarea
-                  value={faq.answer}
-                  onChange={(e) => updateFAQ(index, 'answer', e.target.value)}
-                  className="w-full border rounded px-3 py-2"
-                  rows="2"
-                  placeholder="Answer"
-                />
-              </div>
-            ))}
-          </div>
-
-          <div className="flex gap-4 justify-end pt-4 border-t">
-            <button type="button" onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-50" disabled={loading}>Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50" disabled={loading}>
+          <div className="flex justify-end gap-4 border-t border-slate-100 pt-4">
+            <button type="button" onClick={onClose} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50" disabled={loading}>Cancel</button>
+            <button type="submit" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50" disabled={loading}>
               {loading ? 'Saving...' : (formData.id ? 'Update' : 'Create')} Course
             </button>
           </div>

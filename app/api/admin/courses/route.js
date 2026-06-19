@@ -2,20 +2,21 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import Course, { CourseEnrollment } from '../../../../lib/models/Course'
 import Payment from '../../../../lib/models/Payment'
-import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
+import { requireRole } from '../../../../lib/auth'
+import { ADMIN_ROLES } from '../../../../lib/constants/roles'
 
 export async function GET(request) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page')) || 1
-    const pageSize = parseInt(searchParams.get('pageSize')) || 10
+    // Cap client-supplied pageSize to avoid unbounded result sets.
+    const MAX_PAGE_SIZE = 200
+    const pageSize = Math.min(parseInt(searchParams.get('pageSize')) || 10, MAX_PAGE_SIZE)
     const search = searchParams.get('search') || ''
     const type = searchParams.get('type') || ''
     const minPrice = searchParams.get('minPrice')
@@ -88,12 +89,10 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
+
     const body = await request.json()
     
     // Validate required fields

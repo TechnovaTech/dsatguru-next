@@ -639,7 +639,7 @@ export default function ModuleTestPage() {
       )}
 
       {/* Header */}
-      <div className="bg-white border-b px-6 py-3 flex items-center justify-between z-50 flex-shrink-0">
+      <div className="bg-white border-b px-6 py-3 flex flex-wrap gap-2 items-center justify-between z-50 flex-shrink-0">
         <div className="text-base font-bold text-gray-900">
           Module {currentModuleIdx + 1}: {currentMod?.subject === 'Reading and Writing' ? 'Reading and Writing' : currentMod?.subject}
         </div>
@@ -911,10 +911,10 @@ export default function ModuleTestPage() {
       )}
 
       {/* Split Content Area */}
-      <div className={`flex-1 flex overflow-hidden ${assistiveTechMode ? 'assistive-mode' : ''}`}>
+      <div className={`flex-1 flex flex-col md:flex-row md:overflow-hidden ${assistiveTechMode ? 'assistive-mode' : ''}`}>
 
         {/* LEFT: Passage + Question text */}
-        <div className="w-1/2 h-full overflow-y-auto p-8 bg-gray-50 relative border-r border-gray-300">
+        <div className="w-full md:w-1/2 h-auto md:h-full overflow-y-auto p-4 md:p-8 bg-gray-50 relative border-b md:border-r md:border-b-0 border-gray-300">
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-gray-200 text-5xl font-bold -rotate-45 opacity-30 select-none">www.dsatguru.com</div>
           </div>
@@ -939,7 +939,7 @@ export default function ModuleTestPage() {
         </div>
 
         {/* RIGHT: Question number + options */}
-        <div className="w-1/2 h-full overflow-y-auto p-8 bg-gray-50 relative">
+        <div className="w-full md:w-1/2 h-auto md:h-full overflow-y-auto p-4 md:p-8 bg-gray-50 relative">
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-gray-200 text-5xl font-bold -rotate-45 opacity-30 select-none">www.dsatguru.com</div>
           </div>

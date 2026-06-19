@@ -23,10 +23,53 @@ export async function GET(req) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const dashboardData = await Promise.all(students.map(async (student) => {
+    const studentIds = students.map(s => s._id)
+
+    // Batch all per-student data into a few queries instead of N+1 loops.
+
+    // 1. Sessions for all students (used for totals, today's count, last active).
+    const allSessions = await TestSession.find({ userId: { $in: studentIds } })
+      .select('userId answeredQuestions updatedAt createdAt')
+      .lean()
+
+    const sessionsByUser = {}
+    for (const session of allSessions) {
+      const uid = session.userId.toString()
+      if (!sessionsByUser[uid]) sessionsByUser[uid] = []
+      sessionsByUser[uid].push(session)
+    }
+
+    // 2. Error logs for all students (errors logged + redo pending).
+    const allErrors = await ErrorLog.find({ userId: { $in: studentIds } })
+      .select('userId redoResult')
+      .lean()
+
+    const errorsByUser = {}
+    for (const err of allErrors) {
+      const uid = err.userId.toString()
+      if (!errorsByUser[uid]) errorsByUser[uid] = { total: 0, redoPending: 0 }
+      errorsByUser[uid].total += 1
+      if (err.redoResult !== '✓') errorsByUser[uid].redoPending += 1
+    }
+
+    // 3. Latest study plan per student (daily target + exam date fallback).
+    const allStudyPlans = await StudyPlan.find({ userId: { $in: studentIds } })
+      .sort({ createdAt: -1 })
+      .lean()
+
+    const studyPlanByUser = {}
+    for (const plan of allStudyPlans) {
+      const uid = plan.userId.toString()
+      // First seen is the most recent because of the createdAt: -1 sort.
+      if (!studyPlanByUser[uid]) studyPlanByUser[uid] = plan
+    }
+
+    const dashboardData = students.map((student) => {
+      const uid = student._id.toString()
+
       // 1. Questions Done Today & Total Q's Completed
-      const sessions = await TestSession.find({ userId: student._id }).lean()
-      
+      const sessions = sessionsByUser[uid] || []
+
       let totalQuestionsCompleted = 0
       let questionsDoneToday = 0
       let lastActive = student.updatedAt || student.createdAt
@@ -34,25 +77,25 @@ export async function GET(req) {
       sessions.forEach(session => {
         const answered = session.answeredQuestions || 0
         totalQuestionsCompleted += answered
-        
+
         const sessionDate = new Date(session.updatedAt || session.createdAt)
         if (sessionDate >= today) {
           questionsDoneToday += answered
         }
-        
+
         if (sessionDate > lastActive) {
           lastActive = sessionDate
         }
       })
 
       // 2. Errors Logged & Redo Q's Pending
-      const errors = await ErrorLog.find({ userId: student._id }).lean()
-      const errorsLogged = errors.length
-      const redoPending = errors.filter(e => e.redoResult !== '✓').length
+      const errorStats = errorsByUser[uid] || { total: 0, redoPending: 0 }
+      const errorsLogged = errorStats.total
+      const redoPending = errorStats.redoPending
 
       // 3. Daily Target & Study Plan info
-      const studyPlan = await StudyPlan.findOne({ userId: student._id }).sort({ createdAt: -1 }).lean()
-      
+      const studyPlan = studyPlanByUser[uid] || null
+
       let dailyTarget = 20 // Default target if none found
       if (studyPlan && studyPlan.dailyPlan) {
         const todayPlan = studyPlan.dailyPlan.find(p => {
@@ -103,7 +146,7 @@ export async function GET(req) {
         tutorNotes: student.tutorNotes || '—',
         alertStatus
       }
-    }))
+    })
 
     return NextResponse.json(dashboardData)
   } catch (error) {

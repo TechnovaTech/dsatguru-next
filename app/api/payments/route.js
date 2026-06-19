@@ -106,25 +106,43 @@ export async function POST(request) {
     }
 
     const body = await request.json()
-    const { enrollmentId, courseId, amount, currency, paymentIntentId, status, receiptUrl } = body
+    const { enrollmentId, courseId, paymentIntentId } = body
 
-    if (!amount || !paymentIntentId) {
-      return NextResponse.json({ error: 'Amount and paymentIntentId are required' }, { status: 400 })
+    if (!paymentIntentId) {
+      return NextResponse.json({ error: 'paymentIntentId is required' }, { status: 400 })
     }
+
+    // Verify the payment with Stripe — never trust a client-supplied amount/status.
+    let intent
+    try {
+      intent = await stripe.paymentIntents.retrieve(paymentIntentId)
+    } catch (err) {
+      return NextResponse.json({ error: 'Invalid paymentIntentId' }, { status: 400 })
+    }
+    if (!intent || intent.status !== 'succeeded') {
+      return NextResponse.json({ error: 'Payment not completed' }, { status: 400 })
+    }
+    if (String(intent.metadata?.userId) !== String(decoded.userId)) {
+      return NextResponse.json({ error: 'Payment does not belong to this user' }, { status: 403 })
+    }
+
+    const verifiedAmount = Number((intent.amount / 100).toFixed(2))
+    const verifiedCurrency = (intent.currency || 'usd').toUpperCase()
+    const resolvedCourseId = courseId || intent.metadata?.courseId
 
     let enrollmentDoc = null
     if (enrollmentId) {
       enrollmentDoc = await CourseEnrollment.findById(enrollmentId)
-    } else if (courseId) {
-      enrollmentDoc = await CourseEnrollment.findOne({ userId: decoded.userId, courseId })
+    } else if (resolvedCourseId) {
+      enrollmentDoc = await CourseEnrollment.findOne({ userId: decoded.userId, courseId: resolvedCourseId })
       if (!enrollmentDoc) {
-        const courseExists = await Course.findById(courseId)
+        const courseExists = await Course.findById(resolvedCourseId)
         if (!courseExists) {
           return NextResponse.json({ error: 'Invalid courseId' }, { status: 400 })
         }
         enrollmentDoc = await CourseEnrollment.create({
           userId: decoded.userId,
-          courseId,
+          courseId: resolvedCourseId,
           enrolledAt: new Date()
         })
       }
@@ -135,12 +153,12 @@ export async function POST(request) {
     const payment = await Payment.create({
       userId: decoded.userId,
       enrollmentId: enrollmentDoc._id,
-      amount,
-      currency: currency || 'USD',
+      amount: verifiedAmount,
+      currency: verifiedCurrency,
       paymentGateway: 'stripe',
       paymentIntentId,
-      status: status || 'Succeeded',
-      receiptUrl: receiptUrl || null
+      status: 'Succeeded',
+      receiptUrl: intent.charges?.data?.[0]?.receipt_url || null
     })
 
     const populated = await Payment.findById(payment._id).populate({

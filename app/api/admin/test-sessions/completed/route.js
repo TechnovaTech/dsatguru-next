@@ -3,17 +3,21 @@ import { connectDB } from '../../../../../lib/db'
 import TestSession from '../../../../../lib/models/TestSession'
 import User from '../../../../../lib/models/User'
 import Test from '../../../../../lib/models/Test'
+import { requireRole } from '../../../../../lib/auth'
+import { STAFF_ROLES } from '../../../../../lib/constants/roles'
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
     await connectDB()
-    
+
     const completedSessions = await TestSession.find({
       state: { $in: ['COMPLETED', 'TERMINATED'] }
     })
     .populate('userId', 'name email')
     .populate('testId', 'title')
-    .sort({ completedAt: -1 })
+    .sort({ endTime: -1 })
     .limit(50)
     .lean()
 

@@ -58,7 +58,7 @@ export async function GET(request, { params }) {
       data: {
         id: attempt._id.toString(),
         name: attempt.name,
-        email: attempt.email,
+        testTitle: demoTest?.title || 'DSAT Demo Test',
         mathScore: attempt.mathScore,
         rwScore: attempt.rwScore,
         totalScore: attempt.totalScore,

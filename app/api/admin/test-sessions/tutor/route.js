@@ -1,17 +1,19 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import TestSession from '../../../../../lib/models/TestSession'
-import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
+// Side-effect imports: register User and Test schemas so .populate('userId') /
+// .populate('testId') resolve on cold start.
+import '../../../../../lib/models/User'
+import '../../../../../lib/models/Test'
+import { requireRole } from '../../../../../lib/auth'
+import { STAFF_ROLES } from '../../../../../lib/constants/roles'
 
 export async function GET(request) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    
-    if (!decoded || (decoded.role !== 'Admin' && decoded.role !== 'Tutor')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
 
     // Fetch only sessions from tutor-created tests (isTutorTest: true)
     // Exclude student self-practice tests
@@ -34,8 +36,8 @@ export async function GET(request) {
     const formattedSessions = filteredSessions.map(session => ({
       _id: session._id,
       testId: session.testId._id,
-      testTitle: session.testId.title,
-      topic: session.testId.subject,
+      testTitle: session.testId.title || 'Unknown Test',
+      topic: session.testId.subject || 'N/A',
       studentName: session.userId?.name || 'Unknown',
       studentEmail: session.userId?.email || 'N/A',
       completedAt: session.completedAt || session.updatedAt,

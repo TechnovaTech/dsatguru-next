@@ -6,7 +6,7 @@ const program = {
   examLabel: 'Digital SAT',
   title: 'Free Digital SAT Practice Test',
   highlightTag: 'Sharpen Skills',
-  heroImage: '/hero-3.png',
+  heroArt: '/art/prog-practice.png',
   seoTitle: 'Free SAT Practice Test Online | Digital SAT Tests',
   seoDescription: 'Start your free SAT practice test online with realistic exams, full-length tests, targeted practice questions, and detailed answer explanations.',
   overview: 'Full-length practice tests that replicate the timing, interface, and difficulty of the real exam to build endurance and accuracy.',

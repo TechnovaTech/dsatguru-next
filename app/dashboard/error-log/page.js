@@ -1,7 +1,10 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { renderContent } from '../../components/admin/LatexRenderer'
-import { FiX, FiHelpCircle } from 'react-icons/fi'
+import {
+  FiX, FiHelpCircle, FiAlertCircle, FiCheckCircle, FiXCircle, FiClock,
+  FiPlus, FiDownloadCloud, FiTrash2, FiSave, FiTag, FiRefreshCw
+} from 'react-icons/fi'
 
 const SECTIONS = ['Math', 'Reading & Writing']
 const DIFFICULTIES = ['E', 'M', 'H']
@@ -14,7 +17,7 @@ const EMPTY_ROW = {
 }
 
 function Cell({ children, className = '' }) {
-  return <td className={`border border-gray-200 px-2 py-1 text-sm ${className}`}>{children}</td>
+  return <td className={`px-3 py-2 text-sm align-top ${className}`}>{children}</td>
 }
 
 function EditableCell({ value, onChange, type = 'text', options, placeholder = '', className = '', onClick, onKeyDown }) {
@@ -24,7 +27,7 @@ function EditableCell({ value, onChange, type = 'text', options, placeholder = '
         <select
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="w-full bg-transparent focus:outline-none text-sm"
+          className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
         >
           {options.map(o => <option key={o} value={o}>{o || '—'}</option>)}
         </select>
@@ -34,13 +37,14 @@ function EditableCell({ value, onChange, type = 'text', options, placeholder = '
   if (onClick) {
     return (
       <Cell className={className}>
-        <div
+        <button
+          type="button"
           onClick={onClick}
-          className="w-full text-sm min-w-[60px] cursor-pointer hover:text-blue-600 underline decoration-dotted truncate max-w-[200px]"
+          className="w-full max-w-[220px] cursor-pointer truncate text-left text-sm font-medium text-indigo-600 underline decoration-dotted underline-offset-2 hover:text-indigo-800"
           title="Click to preview question"
         >
           {value || placeholder}
-        </div>
+        </button>
       </Cell>
     )
   }
@@ -52,9 +56,25 @@ function EditableCell({ value, onChange, type = 'text', options, placeholder = '
         onChange={e => onChange(e.target.value)}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
-        className="w-full bg-transparent focus:outline-none text-sm min-w-[60px]"
+        className="w-full min-w-[60px] rounded-md border border-transparent bg-transparent px-2 py-1 text-sm text-slate-700 placeholder:text-slate-300 focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100"
       />
     </Cell>
+  )
+}
+
+function StatCard({ icon, value, label, chipClass }) {
+  return (
+    <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+      <div className="flex items-center gap-3">
+        <span className={`flex h-10 w-10 items-center justify-center rounded-lg text-white ${chipClass}`}>
+          {icon}
+        </span>
+        <div>
+          <p className="text-2xl font-extrabold text-slate-900">{value}</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -63,6 +83,8 @@ export default function ErrorLogPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveFailed, setSaveFailed] = useState(false)
+  const [error, setError] = useState('')
   const [filter, setFilter] = useState({ section: '', difficulty: '' })
   const [importing, setImporting] = useState(false)
   const [importMsg, setImportMsg] = useState('')
@@ -74,6 +96,8 @@ export default function ErrorLogPage() {
   const [currentUserAnswer, setCurrentUserAnswer] = useState('')
 
   const token = () => typeof window !== 'undefined' ? localStorage.getItem('token') : ''
+
+  const closeModal = useCallback(() => { setIsModalOpen(false); setSelectedQuestion(null) }, [])
 
   const fetchQuestion = async (questionId, userAnswer) => {
     if (!questionId) return
@@ -97,32 +121,63 @@ export default function ErrorLogPage() {
     }
   }
 
-  useEffect(() => {
+  const loadLogs = useCallback(() => {
+    setLoading(true)
+    setError('')
     fetch('/api/error-log', { headers: { Authorization: `Bearer ${token()}` } })
-      .then(r => r.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load error log')
+        return res.json()
+      })
       .then(data => setRows(data.logs || []))
+      .catch(err => {
+        console.error('Error loading error log:', err)
+        setError("Couldn't load your error log.")
+      })
       .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    loadLogs()
+  }, [loadLogs])
+
+  // Close modal on Escape
+  useEffect(() => {
+    if (!isModalOpen) return
+    const onKey = (e) => { if (e.key === 'Escape') closeModal() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isModalOpen, closeModal])
+
   const saveRow = useCallback(async (row) => {
     setSaving(true)
-    const res = await fetch('/api/error-log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-      body: JSON.stringify(row)
-    })
-    const data = await res.json()
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-    return data.log
+    setSaveFailed(false)
+    try {
+      const res = await fetch('/api/error-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify(row)
+      })
+      if (!res.ok) throw new Error('Save failed')
+      const data = await res.json()
+      setSaving(false)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+      return data.log
+    } catch (err) {
+      console.error('Error saving error-log row:', err)
+      setSaving(false)
+      setSaveFailed(true)
+      setTimeout(() => setSaveFailed(false), 3000)
+      return null
+    }
   }, [])
 
   const update = useCallback((idx, field, value, immediate = false) => {
     setRows(prev => {
       const next = [...prev]
       next[idx] = { ...next[idx], [field]: value }
-      
+
       const performSave = async () => {
         const saved = await saveRow(next[idx])
         if (saved && !next[idx]._id) {
@@ -210,201 +265,286 @@ export default function ErrorLogPage() {
     return acc
   }, {})
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading error log...</div>
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500" />
+      </div>
+    )
+  }
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">❌ Error Log &amp; Redo Tracker</h1>
-        <p className="text-gray-500 text-sm mt-1">Log EVERY wrong answer. Complete the Redo column when you retry it!</p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <p className="text-xs text-gray-500 uppercase tracking-wide">Total Errors</p>
-          <p className="text-2xl font-bold text-red-500 mt-1">{stats.total}</p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <p className="text-xs text-gray-500 uppercase tracking-wide">Redone ✓</p>
-          <p className="text-2xl font-bold text-green-600 mt-1">{stats.redone}</p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <p className="text-xs text-gray-500 uppercase tracking-wide">Still Wrong ✗</p>
-          <p className="text-2xl font-bold text-orange-500 mt-1">{stats.stillWrong}</p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <p className="text-xs text-gray-500 uppercase tracking-wide">Pending Redo</p>
-          <p className="text-2xl font-bold text-blue-500 mt-1">{stats.pending}</p>
-        </div>
-      </div>
-
-      {/* Topic Breakdown */}
-      {Object.keys(topicCounts).length > 0 && (
-        <div className="bg-white rounded-xl p-4 shadow-sm border mb-6">
-          <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-3">Errors by Topic</p>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(topicCounts).sort((a, b) => b[1] - a[1]).map(([topic, count]) => (
-              <span key={topic} className="inline-flex items-center gap-1.5 bg-red-50 text-red-700 border border-red-200 rounded-full px-3 py-1 text-xs font-medium">
-                {topic} <span className="bg-red-200 text-red-800 rounded-full px-1.5 py-0.5 text-xs font-bold">{count}</span>
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        {/* Header */}
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900 lg:text-3xl">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                <FiAlertCircle className="h-5 w-5" />
               </span>
-            ))}
+              Error Log &amp; Redo Tracker
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Log EVERY wrong answer. Complete the Redo column when you retry it.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={importFromLastTest}
+              disabled={importing}
+              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {importing
+                ? <FiRefreshCw className="h-4 w-4 animate-spin" />
+                : <FiDownloadCloud className="h-4 w-4" />}
+              {importing ? 'Importing…' : 'Import from last test'}
+            </button>
+            <button
+              onClick={addRow}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+            >
+              <FiPlus className="h-4 w-4" /> Add row
+            </button>
           </div>
         </div>
-      )}
 
-      {/* Filters + actions */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <select
-          value={filter.section}
-          onChange={e => setFilter(f => ({ ...f, section: e.target.value }))}
-          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-        >
-          <option value="">All Sections</option>
-          {SECTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select
-          value={filter.difficulty}
-          onChange={e => setFilter(f => ({ ...f, difficulty: e.target.value }))}
-          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-        >
-          <option value="">All Difficulties</option>
-          <option value="E">Easy</option>
-          <option value="M">Medium</option>
-          <option value="H">Hard</option>
-        </select>
-        <span className="ml-auto text-xs text-gray-400">
-          {saving ? '💾 Saving...' : saved ? '✅ Saved' : ''}
-        </span>
-      </div>
+        {importMsg && (
+          <div className="mb-4 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-medium text-indigo-700">
+            {importMsg}
+          </div>
+        )}
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="bg-gray-800 text-white text-xs">
-              <th className="border border-gray-600 px-2 py-3 text-center w-10">Day</th>
-              <th className="border border-gray-600 px-2 py-3 text-center w-24">Date</th>
-              <th className="border border-gray-600 px-2 py-3 text-center w-28">Section</th>
-              <th className="border border-gray-600 px-2 py-3 text-center w-28">Topic</th>
-              <th className="border border-gray-600 px-2 py-3 text-center min-w-[140px]">Question ID / Description</th>
-              <th className="border border-gray-600 px-2 py-3 text-center min-w-[140px]">Why I Got It Wrong</th>
-              <th className="border border-gray-600 px-2 py-3 text-center min-w-[140px]">Correct Rule or Concept</th>
-              <th className="border border-gray-600 px-2 py-3 text-center w-20">Difficulty</th>
-              <th className="border border-gray-600 px-2 py-3 text-center w-24">Redo Due Date</th>
-              <th className="border border-gray-600 px-2 py-3 text-center w-24">Redo Answer</th>
-              <th className="border border-gray-600 px-2 py-3 text-center w-20">Redo Result ✓/✗</th>
-              <th className="border border-gray-600 px-2 py-3 text-center min-w-[120px] bg-blue-900">Tutor Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={13} className="text-center py-10 text-gray-400 font-medium">
-                  No errors logged yet. Mistakes from your completed Admin Tests will appear here automatically.
-                </td>
+        {error && (
+          <div role="alert" className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700">
+            <span className="text-sm font-medium">{error} Please try again.</span>
+            <button
+              onClick={loadLogs}
+              className="flex-shrink-0 rounded-lg bg-rose-600 px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-rose-700"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Stats */}
+        <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+          <StatCard icon={<FiAlertCircle className="h-5 w-5" />} value={stats.total} label="Total Errors" chipClass="bg-rose-500" />
+          <StatCard icon={<FiCheckCircle className="h-5 w-5" />} value={stats.redone} label="Redone ✓" chipClass="bg-emerald-500" />
+          <StatCard icon={<FiXCircle className="h-5 w-5" />} value={stats.stillWrong} label="Still Wrong ✗" chipClass="bg-amber-500" />
+          <StatCard icon={<FiClock className="h-5 w-5" />} value={stats.pending} label="Pending Redo" chipClass="bg-indigo-500" />
+        </div>
+
+        {/* Topic Breakdown */}
+        {Object.keys(topicCounts).length > 0 && (
+          <div className="mb-6 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+            <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <FiTag className="h-3.5 w-3.5" /> Errors by Topic
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(topicCounts).sort((a, b) => b[1] - a[1]).map(([topic, count]) => (
+                <span key={topic} className="inline-flex items-center gap-1.5 rounded-full border border-rose-100 bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700">
+                  {topic} <span className="rounded-full bg-rose-200 px-1.5 py-0.5 text-xs font-bold text-rose-800">{count}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Filters + save status */}
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <select
+            value={filter.section}
+            onChange={e => setFilter(f => ({ ...f, section: e.target.value }))}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          >
+            <option value="">All Sections</option>
+            {SECTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <select
+            value={filter.difficulty}
+            onChange={e => setFilter(f => ({ ...f, difficulty: e.target.value }))}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          >
+            <option value="">All Difficulties</option>
+            <option value="E">Easy</option>
+            <option value="M">Medium</option>
+            <option value="H">Hard</option>
+          </select>
+          {(saving || saveFailed || saved) && (
+            <span className={`ml-auto inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+              saveFailed ? 'bg-rose-50 text-rose-600' : saving ? 'bg-slate-100 text-slate-500' : 'bg-emerald-50 text-emerald-600'
+            }`}>
+              <FiSave className="h-3.5 w-3.5" />
+              {saving ? 'Saving…' : saveFailed ? 'Save failed' : 'Saved'}
+            </span>
+          )}
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-100 bg-slate-50 text-left">
+                <th className="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Day</th>
+                <th className="px-3 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Date</th>
+                <th className="px-3 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Section</th>
+                <th className="px-3 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Topic</th>
+                <th className="min-w-[160px] px-3 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Question ID / Description</th>
+                <th className="min-w-[150px] px-3 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Why I Got It Wrong</th>
+                <th className="min-w-[150px] px-3 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Correct Rule or Concept</th>
+                <th className="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Difficulty</th>
+                <th className="px-3 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Redo Due Date</th>
+                <th className="px-3 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Redo Answer</th>
+                <th className="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Redo ✓/✗</th>
+                <th className="min-w-[120px] px-3 py-3.5 text-xs font-semibold uppercase tracking-wider text-indigo-600">Tutor Action</th>
+                <th className="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Remove</th>
               </tr>
-            )}
-            {filtered.map((row, idx) => {
-              const realIdx = rows.indexOf(row)
-              const isEven = idx % 2 === 0
-              const redoBg = row.redoResult === '✓' ? 'bg-green-50' : row.redoResult === '✗' ? 'bg-red-50' : ''
-              return (
-                <tr key={row._id || idx} className={`border-b hover:bg-blue-50 transition-colors ${isEven ? 'bg-white' : 'bg-gray-50'} ${redoBg}`}>
-                  <EditableCell value={row.day} onChange={v => update(realIdx, 'day', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'day', e.target.value, true)} placeholder="1" className="text-center text-gray-500 font-medium" />
-                  <EditableCell value={row.date} onChange={v => update(realIdx, 'date', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'date', e.target.value, true)} placeholder="DD Mon YYYY" className="text-center" />
-                  <EditableCell value={row.section} onChange={v => update(realIdx, 'section', v)} options={SECTIONS} />
-                  <EditableCell value={row.topic} onChange={v => update(realIdx, 'topic', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'topic', e.target.value, true)} placeholder="e.g. Algebra" />
-                  <EditableCell 
-                    value={row.questionDesc} 
-                    onChange={v => update(realIdx, 'questionDesc', v)} 
-                    onClick={() => fetchQuestion(row.sourceQuestionId, row.selectedAnswer)}
-                    placeholder="Q ID or short description" 
-                  />
-                  <EditableCell value={row.whyWrong} onChange={v => update(realIdx, 'whyWrong', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'whyWrong', e.target.value, true)} placeholder="e.g. misread the question" />
-                  <EditableCell value={row.correctRule} onChange={v => update(realIdx, 'correctRule', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'correctRule', e.target.value, true)} placeholder="e.g. subject-verb agreement" />
-                  <EditableCell value={row.difficulty} onChange={v => update(realIdx, 'difficulty', v)} options={DIFFICULTIES} className="text-center" />
-                  <EditableCell value={row.redoDueDate} onChange={v => update(realIdx, 'redoDueDate', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'redoDueDate', e.target.value, true)} placeholder="DD Mon YYYY" className="text-center" />
-                  <EditableCell value={row.redoAnswer} onChange={v => update(realIdx, 'redoAnswer', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'redoAnswer', e.target.value, true)} placeholder="Your answer" className="text-center" />
-                  <EditableCell value={row.redoResult} onChange={v => update(realIdx, 'redoResult', v)} options={REDO_RESULTS} className="text-center font-bold" />
-                  <Cell className="bg-blue-50/50 font-medium text-blue-800">{row.tutorAction || '—'}</Cell>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={13} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                        <FiAlertCircle className="h-6 w-6" />
+                      </span>
+                      <p className="text-sm font-semibold text-slate-700">No errors logged yet</p>
+                      <p className="max-w-md text-sm text-slate-400">
+                        Mistakes from your completed Admin Tests appear here automatically. You can also import from your last test or add a row manually.
+                      </p>
+                    </div>
+                  </td>
                 </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+              )}
+              {filtered.map((row, idx) => {
+                const realIdx = rows.indexOf(row)
+                const redoBg = row.redoResult === '✓' ? 'bg-emerald-50/60' : row.redoResult === '✗' ? 'bg-rose-50/60' : ''
+                return (
+                  <tr key={row._id || idx} className={`transition-colors hover:bg-indigo-50/40 ${redoBg}`}>
+                    <EditableCell value={row.day} onChange={v => update(realIdx, 'day', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'day', e.target.value, true)} placeholder="1" className="text-center font-medium text-slate-500" />
+                    <EditableCell value={row.date} onChange={v => update(realIdx, 'date', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'date', e.target.value, true)} placeholder="DD Mon YYYY" />
+                    <EditableCell value={row.section} onChange={v => update(realIdx, 'section', v)} options={SECTIONS} />
+                    <EditableCell value={row.topic} onChange={v => update(realIdx, 'topic', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'topic', e.target.value, true)} placeholder="e.g. Algebra" />
+                    <EditableCell
+                      value={row.questionDesc}
+                      onChange={v => update(realIdx, 'questionDesc', v)}
+                      onClick={() => fetchQuestion(row.sourceQuestionId, row.selectedAnswer)}
+                      placeholder="Q ID or short description"
+                    />
+                    <EditableCell value={row.whyWrong} onChange={v => update(realIdx, 'whyWrong', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'whyWrong', e.target.value, true)} placeholder="e.g. misread the question" />
+                    <EditableCell value={row.correctRule} onChange={v => update(realIdx, 'correctRule', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'correctRule', e.target.value, true)} placeholder="e.g. subject-verb agreement" />
+                    <EditableCell value={row.difficulty} onChange={v => update(realIdx, 'difficulty', v)} options={DIFFICULTIES} className="text-center" />
+                    <EditableCell value={row.redoDueDate} onChange={v => update(realIdx, 'redoDueDate', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'redoDueDate', e.target.value, true)} placeholder="DD Mon YYYY" />
+                    <EditableCell value={row.redoAnswer} onChange={v => update(realIdx, 'redoAnswer', v)} onKeyDown={e => e.key === 'Enter' && update(realIdx, 'redoAnswer', e.target.value, true)} placeholder="Your answer" className="text-center" />
+                    <EditableCell value={row.redoResult} onChange={v => update(realIdx, 'redoResult', v)} options={REDO_RESULTS} className="text-center font-bold" />
+                    <Cell className="font-medium text-indigo-800">{row.tutorAction || '—'}</Cell>
+                    <Cell className="text-center">
+                      <button
+                        type="button"
+                        onClick={() => deleteRow(realIdx)}
+                        title="Delete row"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                      >
+                        <FiTrash2 className="h-4 w-4" />
+                      </button>
+                    </Cell>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
 
-      <p className="mt-4 text-xs text-gray-400">
-        💡 Tip: Don&apos;t just mark it wrong and move on — write <em>why</em> you got it wrong and schedule a redo. That&apos;s what makes it stick.
-      </p>
+        <p className="mt-4 text-xs text-slate-400">
+          Tip: Don&apos;t just mark it wrong and move on — write <em>why</em> you got it wrong and schedule a redo. That&apos;s what makes it stick.
+        </p>
+      </div>
 
       {/* Question Preview Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
+          onClick={closeModal}
+        >
+          <div
+            className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
-              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                <FiHelpCircle className="text-blue-500" /> {selectedQuestion?.questionId ? `Question ${selectedQuestion.questionId}` : 'Question Preview'}
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
+              <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                  <FiHelpCircle className="h-4 w-4" />
+                </span>
+                {selectedQuestion?.questionId ? `Question ${selectedQuestion.questionId}` : 'Question Preview'}
               </h3>
-              <button 
-                onClick={() => { setIsModalOpen(false); setSelectedQuestion(null); }}
-                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+              <button
+                onClick={closeModal}
+                className="rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-200"
               >
-                <FiX className="text-gray-500" />
+                <FiX className="h-4 w-4" />
               </button>
             </div>
 
             {/* Modal Content */}
-            <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
+            <div className="custom-scrollbar flex-1 overflow-y-auto p-8">
               {loadingQuestion ? (
-                <div className="flex flex-col items-center justify-center py-20 gap-4">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                  <p className="text-gray-500 animate-pulse">Loading question details...</p>
+                <div className="flex flex-col items-center justify-center gap-4 py-20">
+                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500" />
+                  <p className="animate-pulse text-sm text-slate-500">Loading question details…</p>
                 </div>
               ) : selectedQuestion?.error ? (
-                <div className="text-center py-20 text-red-500 font-medium">
-                  {selectedQuestion.error}
+                <div className="flex flex-col items-center gap-3 py-20 text-center">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-500">
+                    <FiAlertCircle className="h-6 w-6" />
+                  </span>
+                  <p className="text-sm font-medium text-rose-600">{selectedQuestion.error}</p>
                 </div>
               ) : (
                 <div className="space-y-8">
+                  {/* Title */}
+                  {selectedQuestion?.title && (
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                      {selectedQuestion.title}
+                    </p>
+                  )}
+
                   {/* Question Content */}
-                  <div className="prose prose-blue max-w-none text-gray-800 text-lg leading-relaxed">
+                  <div className="prose prose-indigo max-w-none text-lg leading-relaxed text-slate-800">
                     {renderContent(selectedQuestion?.content)}
                   </div>
 
                   {/* Options */}
                   {selectedQuestion?.options && Array.isArray(selectedQuestion.options) && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t">
+                    <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-6 md:grid-cols-2">
                       {selectedQuestion.options.map((opt, i) => {
                         const key = opt?.key || String.fromCharCode(65 + i)
                         const value = typeof opt === 'string' ? opt : opt?.value || ''
-                        
+
                         const isStudentAnswer = key === currentUserAnswer
 
                         return (
-                          <div 
-                            key={i} 
-                            className={`p-4 rounded-xl border-2 flex items-start gap-4 transition-all ${
+                          <div
+                            key={i}
+                            className={`flex items-start gap-4 rounded-xl border-2 p-4 transition-all ${
                               isStudentAnswer
-                                ? 'border-red-500 bg-red-50 shadow-sm'
-                                : 'border-gray-100 hover:border-gray-200 bg-white'
+                                ? 'border-rose-500 bg-rose-50 shadow-sm'
+                                : 'border-slate-100 bg-white hover:border-slate-200'
                             }`}
                           >
-                            <span className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold ${
+                            <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg font-bold ${
                               isStudentAnswer
-                                ? 'bg-red-500 text-white shadow-md'
-                                : 'bg-gray-100 text-gray-600'
+                                ? 'bg-rose-500 text-white shadow-md'
+                                : 'bg-slate-100 text-slate-600'
                             }`}>
                               {key}
                             </span>
-                            <div className="flex-1 text-gray-700 pt-0.5">
+                            <div className="flex-1 pt-0.5 text-slate-700">
                               {renderContent(value)}
                             </div>
                             {isStudentAnswer && (
-                              <span className="text-[10px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                              <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter text-rose-600">
                                 Your Choice
                               </span>
                             )}
@@ -415,28 +555,37 @@ export default function ErrorLogPage() {
                   )}
 
                   {/* Meta Data */}
-                  <div className="flex flex-wrap gap-3 pt-6">
-                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold uppercase tracking-wider border border-blue-100">
-                      {selectedQuestion?.subject}
-                    </span>
-                    <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-xs font-bold uppercase tracking-wider border border-purple-100">
-                      {selectedQuestion?.difficulty}
-                    </span>
-                    {selectedQuestion?.skill && (
-                      <span className="px-3 py-1 bg-gray-50 text-gray-600 rounded-full text-xs font-bold border border-gray-100">
-                        {selectedQuestion?.skill}
+                  <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-6">
+                    {selectedQuestion?.subject && (
+                      <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">
+                        {selectedQuestion.subject}
                       </span>
                     )}
+                    {selectedQuestion?.difficulty && (
+                      <span className="rounded-full bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700">
+                        {selectedQuestion.difficulty}
+                      </span>
+                    )}
+                    {selectedQuestion?.type && (
+                      <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                        {selectedQuestion.type}
+                      </span>
+                    )}
+                    {Array.isArray(selectedQuestion?.tags) && selectedQuestion.tags.map((tag, i) => (
+                      <span key={i} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                        {tag}
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t bg-gray-50 flex justify-end">
-              <button 
-                onClick={() => { setIsModalOpen(false); setSelectedQuestion(null); }}
-                className="px-6 py-2 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-all shadow-lg active:scale-95"
+            <div className="flex justify-end border-t border-slate-100 bg-slate-50 px-6 py-4">
+              <button
+                onClick={closeModal}
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
               >
                 Close
               </button>

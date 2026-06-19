@@ -489,7 +489,7 @@ export default function AdminDemoTestPage() {
                       <td className="px-4 py-3">
                         <span className={`px-2 py-0.5 rounded text-xs ${a.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{a.status}</span>
                       </td>
-                      <td className="px-4 py-3 text-gray-500">{new Date(a.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-gray-500">{a.createdAt ? new Date(a.createdAt).toLocaleDateString() : '—'}</td>
                       <td className="px-4 py-3">
                         <button onClick={() => viewAttempt(a.id)} className="text-blue-600 hover:text-blue-800"><FiEye /></button>
                       </td>

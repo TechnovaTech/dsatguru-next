@@ -1,12 +1,19 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import TestSession from '../../../../lib/models/TestSession'
+// Ensure referenced models are registered before .populate() runs
+import User from '../../../../lib/models/User'
+import Test from '../../../../lib/models/Test'
+import { requireRole } from '../../../../lib/auth'
+import { STAFF_ROLES } from '../../../../lib/constants/roles'
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
     await connectDB()
     const sessions = await TestSession.find({ state: { $in: ['COMPLETED', 'TERMINATED'] } })
-      .sort({ completedAt: -1 })
+      .sort({ endTime: -1 })
       .limit(100)
       .populate('userId', 'name email')
       .populate('testId', 'title')

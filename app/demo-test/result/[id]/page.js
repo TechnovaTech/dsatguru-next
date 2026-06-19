@@ -76,7 +76,7 @@ export default function DemoTestResult() {
             Great job, {data.name}!
           </motion.h1>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-gray-500">
-            Here's how you did on the DSATGuru demo test.
+            Here's how you did on {data.testTitle || 'the DSATGuru demo test'}.
           </motion.p>
 
           {/* Total score */}

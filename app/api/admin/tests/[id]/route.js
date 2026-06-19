@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import Test from '../../../../../lib/models/Test'
-import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
+import { requireRole } from '../../../../../lib/auth'
+import { STAFF_ROLES, ADMIN_ROLES } from '../../../../../lib/constants/roles'
 
 export async function GET(request, { params }) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
     await connectDB()
     // Populate questions if they exist in the test
     const test = await Test.findById(params.id)
@@ -74,16 +78,63 @@ export async function GET(request, { params }) {
   }
 }
 
+// Fields an editor is allowed to change via PUT. Anything else (notably
+// _id, createdBy/assignedTutors ownership, timestamps) is ignored to prevent
+// mass-assignment.
+const UPDATABLE_FIELDS = [
+  'title',
+  'description',
+  'isActive',
+  'questions',
+  'modules',
+  'duration',
+  'subject',
+  'sections',
+  'practiceMode',
+  'customConfig',
+  'instructions',
+  'testType',
+  'difficulty',
+  'totalQuestions',
+  'passingScore',
+  'configType',
+  'excludeUsedQuestions',
+  'filters',
+  'questionBankId',
+  'questionBankIds',
+  'assignedTo',
+  'isTutorTest',
+  'showExplanation',
+  'isTimed',
+  'isModuleTest',
+  'numberOfModules',
+  'customQuestions'
+]
+
 export async function PUT(request, { params }) {
   try {
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
     const body = await request.json()
-    const updated = await Test.findByIdAndUpdate(params.id, body, { new: true })
+
+    // Whitelist: build an explicit update object so callers cannot inject
+    // arbitrary/protected fields (_id, createdBy, etc.) via the request body.
+    const update = {}
+    for (const field of UPDATABLE_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(body, field)) {
+        update[field] = body[field]
+      }
+    }
+
+    const updated = await Test.findByIdAndUpdate(params.id, update, {
+      new: true,
+      runValidators: true
+    })
+    if (!updated) {
+      return NextResponse.json({ error: 'Test not found' }, { status: 404 })
+    }
     return NextResponse.json(updated)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update test' }, { status: 500 })
@@ -92,12 +143,10 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
     await Test.findByIdAndDelete(params.id)
     return NextResponse.json({ success: true })
   } catch (error) {

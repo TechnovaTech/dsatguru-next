@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import Test from '../../../../lib/models/Test'
-import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
+import { requireRole } from '../../../../lib/auth'
+import { STAFF_ROLES } from '../../../../lib/constants/roles'
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
     await connectDB()
     // Only return adaptive/standard tests — exclude tutor tests and admin-panel tests
     const tests = await Test.find({
@@ -20,12 +24,10 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
     const body = await request.json()
     const test = await Test.create(body)
     return NextResponse.json(test, { status: 201 })

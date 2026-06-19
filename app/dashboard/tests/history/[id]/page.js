@@ -1,7 +1,20 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { FiCheckCircle, FiXCircle, FiArrowLeft } from 'react-icons/fi'
+import {
+  FiCheckCircle,
+  FiXCircle,
+  FiArrowLeft,
+  FiChevronLeft,
+  FiChevronRight,
+  FiGrid,
+  FiX,
+  FiSlash,
+  FiAward,
+  FiTarget,
+  FiBookOpen,
+  FiInbox
+} from 'react-icons/fi'
 
 export default function TestReviewPage() {
   const router = useRouter()
@@ -33,16 +46,16 @@ export default function TestReviewPage() {
       if (sessionRes.ok && questionsRes.ok) {
         const sessionData = await sessionRes.json()
         const allQuestions = await questionsRes.json()
-        
+
         const reviewQuestions = []
         const moduleAnswers = sessionData.moduleAnswers || {}
-        
+
         Object.keys(moduleAnswers).forEach(moduleKey => {
           const moduleData = moduleAnswers[moduleKey]
-          
+
           let answers = {}
           let questionIds = []
-          
+
           if (moduleData && typeof moduleData === 'object') {
             if (moduleData.answers && moduleData.questionIds) {
               answers = moduleData.answers
@@ -52,14 +65,14 @@ export default function TestReviewPage() {
               questionIds = Object.keys(answers)
             }
           }
-          
+
           questionIds.forEach(questionId => {
             const question = allQuestions.find(q => String(q._id) === String(questionId))
             if (question) {
               const userAnswer = answers[questionId] || null
               const isCorrect = userAnswer === question.correctAnswer
               const wasAttempted = userAnswer !== null && userAnswer !== undefined
-              
+
               reviewQuestions.push({
                 ...question,
                 userAnswer,
@@ -70,6 +83,31 @@ export default function TestReviewPage() {
             }
           })
         })
+
+        // Fallback: module/tutor/admin tests store answers in `responses`, not `moduleAnswers`.
+        // When moduleAnswers produced nothing, build the review rows from `responses`.
+        if (reviewQuestions.length === 0 && Array.isArray(sessionData.responses)) {
+          sessionData.responses.forEach(r => {
+            const question = allQuestions.find(q => String(q._id) === String(r.questionId))
+            if (question) {
+              const userAnswer = (r.selectedAnswer !== undefined && r.selectedAnswer !== null && r.selectedAnswer !== '')
+                ? r.selectedAnswer
+                : null
+              const wasAttempted = userAnswer !== null
+              const isCorrect = typeof r.isCorrect === 'boolean'
+                ? r.isCorrect
+                : (userAnswer === question.correctAnswer)
+
+              reviewQuestions.push({
+                ...question,
+                userAnswer,
+                isCorrect,
+                wasAttempted,
+                module: r.subject || 'responses'
+              })
+            }
+          })
+        }
 
         setSession(sessionData)
         setQuestions(reviewQuestions)
@@ -83,20 +121,26 @@ export default function TestReviewPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500"></div>
       </div>
     )
   }
 
   if (!session || questions.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">No review data available</p>
+      <div className="min-h-screen bg-slate-50 p-6 lg:p-8 flex items-center justify-center">
+        <div className="flex max-w-md flex-col items-center rounded-2xl border border-slate-100 bg-white p-10 text-center shadow-sm">
+          <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+            <FiInbox size={24} />
+          </span>
+          <h2 className="text-lg font-bold text-slate-900">No review data available</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            We couldn&apos;t find any answered questions for this test session.
+          </p>
           <button
             onClick={() => router.push('/dashboard/tests/history')}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className="mt-6 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
           >
             Back to History
           </button>
@@ -112,256 +156,359 @@ export default function TestReviewPage() {
   const accuracy = attemptedCount > 0 ? Math.round((correctCount / attemptedCount) * 100) : 0
 
   const currentQ = questions[currentQuestion]
+  const reviewDate = session.completedAt || session.createdAt
 
   return (
-    <div className="h-screen flex flex-col bg-white">
-      {/* Top Header */}
-      <div className="bg-white border-b px-6 py-3 flex items-center justify-between">
+    <div className="min-h-screen bg-slate-50 p-4 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        {/* Back link */}
         <button
           onClick={() => router.push('/dashboard/tests/history')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-indigo-600"
         >
           <FiArrowLeft /> Back to History
         </button>
-        <div className="text-base font-bold text-gray-900">
-          Test Review - {new Date(session.completedAt || session.createdAt).toLocaleDateString()}
-        </div>
-        <div className="text-sm text-gray-600">
-          Score: {session.totalScore || 0} / 1600
-        </div>
-      </div>
 
-      {/* Main Split Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Side - Passage + Question */}
-        <div className="w-1/2 overflow-y-auto p-8 bg-gray-50 relative border-r border-gray-300">
-          {/* Watermark */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-gray-300 text-6xl font-bold transform -rotate-45 opacity-30 select-none">
-              www.dsatguru.com
-            </div>
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900 lg:text-3xl">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                <FiBookOpen size={20} />
+              </span>
+              Test Review
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {reviewDate ? new Date(reviewDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}
+              {session.sessionType ? ` · ${session.sessionType}` : ''}
+              {session.subject ? ` · ${session.subject}` : ''}
+              {session.attemptCount > 1 ? ` · Attempt ${session.attemptCount}` : ''}
+            </p>
           </div>
-          
-          {/* Content */}
-          <div className="relative z-10">
-            {/* Passage/Context */}
-            {currentQ?.questionParagraph && (
-              <div className="prose max-w-none mb-8">
-                <p className="text-gray-800 leading-relaxed whitespace-pre-line">
-                  {currentQ.questionParagraph}
-                </p>
+          {session.autoSubmitted && (
+            <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">
+              Auto-submitted{session.autoSubmitReason ? `: ${session.autoSubmitReason}` : ''}
+            </span>
+          )}
+        </div>
+
+        {/* Stat cards */}
+        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500 text-white">
+                <FiAward size={18} />
+              </span>
+              <div>
+                <p className="text-2xl font-extrabold text-slate-900">{session.totalScore ?? 0}<span className="text-sm font-medium text-slate-400">/1600</span></p>
+                <p className="text-xs font-medium text-slate-500">Total Score</p>
+              </div>
+            </div>
+            {(session.rwScore != null || session.mathScore != null) && (
+              <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                <span className="rounded-full bg-violet-100 px-2.5 py-1 font-medium text-violet-700">R&amp;W {session.rwScore ?? '—'}</span>
+                <span className="rounded-full bg-indigo-100 px-2.5 py-1 font-medium text-indigo-700">Math {session.mathScore ?? '—'}</span>
               </div>
             )}
-            
-            {/* Question Text */}
-            <div className="mt-6">
-              <p className="text-gray-900 text-base leading-relaxed font-medium">
-                {currentQ?.question || currentQ?.content}
-              </p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500 text-white">
+                <FiCheckCircle size={18} />
+              </span>
+              <div>
+                <p className="text-2xl font-extrabold text-slate-900">{correctCount}</p>
+                <p className="text-xs font-medium text-slate-500">Correct</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-500 text-white">
+                <FiXCircle size={18} />
+              </span>
+              <div>
+                <p className="text-2xl font-extrabold text-slate-900">{wrongCount}</p>
+                <p className="text-xs font-medium text-slate-500">Wrong</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-400 text-white">
+                <FiSlash size={18} />
+              </span>
+              <div>
+                <p className="text-2xl font-extrabold text-slate-900">{unattemptedCount}</p>
+                <p className="text-xs font-medium text-slate-500">Skipped</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500 text-white">
+                <FiTarget size={18} />
+              </span>
+              <div>
+                <p className="text-2xl font-extrabold text-slate-900">{accuracy}%</p>
+                <p className="text-xs font-medium text-slate-500">Accuracy</p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right Side - Question Number & Options */}
-        <div className="w-1/2 overflow-y-auto p-8 bg-gray-50 relative">
-          {/* Watermark */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-gray-300 text-6xl font-bold transform -rotate-45 opacity-30 select-none">
-              www.dsatguru.com
+        {/* Review card */}
+        <div className="mt-6 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+          {/* Question status bar */}
+          <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50 px-6 py-4">
+            <div className={`flex h-10 w-10 items-center justify-center rounded-lg text-base font-bold text-white ${
+              !currentQ.wasAttempted ? 'bg-slate-400' : currentQ.isCorrect ? 'bg-emerald-500' : 'bg-rose-500'
+            }`}>
+              {currentQuestion + 1}
+            </div>
+            <div className="flex items-center gap-2">
+              {!currentQ.wasAttempted ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                  <FiSlash size={13} /> Not Attempted
+                </span>
+              ) : currentQ.isCorrect ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                  <FiCheckCircle size={13} /> Correct
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-medium text-rose-700">
+                  <FiXCircle size={13} /> Wrong
+                </span>
+              )}
+            </div>
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              {currentQ.subject && (
+                <span className="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700">{currentQ.subject}</span>
+              )}
+              {currentQ.domain && currentQ.domain !== currentQ.subject && (
+                <span className="rounded-full bg-violet-100 px-2.5 py-1 text-xs font-medium text-violet-700">{currentQ.domain}</span>
+              )}
+              {currentQ.skill && (
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{currentQ.skill}</span>
+              )}
+              {currentQ.difficulty && (
+                <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">{currentQ.difficulty}</span>
+              )}
             </div>
           </div>
-          
-          {/* Content */}
-          <div className="max-w-2xl mx-auto relative z-10">
-            {/* Question Number & Status */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className={`w-12 h-12 rounded flex items-center justify-center font-bold text-lg text-white ${
-                !currentQ.wasAttempted ? 'bg-gray-500' : currentQ.isCorrect ? 'bg-green-600' : 'bg-red-600'
-              }`}>
-                {currentQuestion + 1}
-              </div>
-              <div className="flex items-center gap-2">
-                {!currentQ.wasAttempted ? (
-                  <span className="text-gray-600 text-sm font-medium">NOT ATTEMPTED</span>
-                ) : currentQ.isCorrect ? (
-                  <>
-                    <FiCheckCircle className="text-green-600" size={20} />
-                    <span className="text-green-600 text-sm font-medium">CORRECT</span>
-                  </>
-                ) : (
-                  <>
-                    <FiXCircle className="text-red-600" size={20} />
-                    <span className="text-red-600 text-sm font-medium">WRONG</span>
-                  </>
-                )}
-              </div>
-              <div className="ml-auto flex gap-2">
-                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                  {currentQ.subject}
-                </span>
-                <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                  {currentQ.difficulty}
-                </span>
-              </div>
-            </div>
 
-            {/* Answer Options */}
-            <div className="space-y-3 mb-6">
-              {['A', 'B', 'C', 'D'].map((option) => {
-                const isUserAnswer = currentQ.userAnswer === option
-                const isCorrectAnswer = currentQ.correctAnswer === option
-                
-                return (
-                  <div
-                    key={option}
-                    className={`w-full text-left border-2 rounded-lg p-4 ${
-                      isCorrectAnswer
-                        ? 'border-green-500 bg-green-50'
-                        : isUserAnswer && !isCorrectAnswer
-                        ? 'border-red-500 bg-red-50'
-                        : 'border-gray-300 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold ${
-                        isCorrectAnswer
-                          ? 'border-green-600 bg-green-600 text-white'
-                          : isUserAnswer && !isCorrectAnswer
-                          ? 'border-red-600 bg-red-600 text-white'
-                          : 'border-gray-400 text-gray-700'
-                      }`}>
-                        {option}
-                      </div>
-                      <div className="flex-1 pt-1">
-                        <span className="text-gray-900">{currentQ?.[`option${option}`]}</span>
-                        {isCorrectAnswer && (
-                          <span className="ml-2 text-green-600 text-sm font-semibold">✓ Correct</span>
-                        )}
-                        {isUserAnswer && !isCorrectAnswer && (
-                          <span className="ml-2 text-red-600 text-sm font-semibold">✗ Your Answer</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Explanation Section */}
-            {(!currentQ.wasAttempted || !currentQ.isCorrect) && (
-              <div className={`border-2 rounded-lg p-4 ${
-                !currentQ.wasAttempted 
-                  ? 'bg-gray-50 border-gray-300' 
-                  : 'bg-yellow-50 border-yellow-300'
-              }`}>
-                <p className={`font-semibold mb-3 flex items-center gap-2 ${
-                  !currentQ.wasAttempted ? 'text-gray-900' : 'text-yellow-900'
-                }`}>
-                  <span className="text-xl">💡</span>
-                  {!currentQ.wasAttempted ? 'Answer & Explanation' : 'Explanation'}
-                </p>
-                {currentQ.shortExplanation && (
-                  <div className="mb-3">
-                    <p className={`font-medium text-sm mb-1 ${
-                      !currentQ.wasAttempted ? 'text-gray-700' : 'text-yellow-800'
-                    }`}>
-                      Quick Explanation:
-                    </p>
-                    <p className={!currentQ.wasAttempted ? 'text-gray-800' : 'text-yellow-800'}>
-                      {currentQ.shortExplanation}
-                    </p>
-                  </div>
-                )}
-                <div>
-                  <p className={`font-medium text-sm mb-1 ${
-                    !currentQ.wasAttempted ? 'text-gray-700' : 'text-yellow-800'
-                  }`}>
-                    Detailed Explanation:
-                  </p>
-                  <p className={!currentQ.wasAttempted ? 'text-gray-800' : 'text-yellow-800'}>
-                    {currentQ.longExplanation || currentQ.explanation || 'No detailed explanation available'}
-                  </p>
+          {/* Split content */}
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            {/* Left - Passage + Question */}
+            <div className="relative border-b border-slate-100 p-6 lg:border-b-0 lg:border-r lg:p-8">
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div className="-rotate-45 select-none text-5xl font-bold text-slate-100">
+                  www.dsatguru.com
                 </div>
               </div>
-            )}
-
-            {/* Show success message for correct answers */}
-            {currentQ.wasAttempted && currentQ.isCorrect && (
-              <div className="border-2 rounded-lg p-4 bg-green-50 border-green-300">
-                <p className="font-semibold text-green-900 flex items-center gap-2">
-                  <FiCheckCircle className="text-green-600" size={20} />
-                  Great job! You got this one right!
+              <div className="relative z-10">
+                {currentQ?.questionParagraph && (
+                  <div className="mb-6">
+                    <p className="whitespace-pre-line leading-relaxed text-slate-700">
+                      {currentQ.questionParagraph}
+                    </p>
+                  </div>
+                )}
+                {currentQ?.imageUrl && (
+                  <img
+                    src={currentQ.imageUrl}
+                    alt="Question illustration"
+                    className="mb-6 max-w-full rounded-xl border border-slate-100"
+                  />
+                )}
+                <p className="text-base font-semibold leading-relaxed text-slate-900">
+                  {currentQ?.question || currentQ?.content}
                 </p>
               </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Navigation */}
-      <div className="bg-white border-t px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <button
-            onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
-            disabled={currentQuestion === 0}
-            className="px-8 py-2.5 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-          >
-            Back
-          </button>
-          
-          <div className="flex items-center gap-3 relative">
-            <div className="text-center">
-              <span className="text-sm text-gray-600">Question {currentQuestion + 1} of {questions.length}</span>
-              <div className="flex gap-2 mt-1 text-xs">
-                <span className="text-green-600">✓ {correctCount}</span>
-                <span className="text-red-600">✗ {wrongCount}</span>
-                <span className="text-gray-600">⊘ {unattemptedCount}</span>
-              </div>
             </div>
-            <button 
-              onClick={() => setShowQuestionNav(!showQuestionNav)}
-              className="px-4 py-2 border border-gray-300 rounded-full text-sm hover:bg-gray-50"
-            >
-              ▲
-            </button>
-            
-            {showQuestionNav && (
-              <div className="absolute bottom-full mb-2 right-0 bg-white border-2 border-gray-300 rounded-lg shadow-xl p-4 w-80 max-h-96 overflow-y-auto z-50">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">Questions</h3>
-                  <button onClick={() => setShowQuestionNav(false)} className="text-gray-500 hover:text-gray-700">✕</button>
+
+            {/* Right - Options + Explanation */}
+            <div className="relative p-6 lg:p-8">
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div className="-rotate-45 select-none text-5xl font-bold text-slate-100">
+                  www.dsatguru.com
                 </div>
-                <div className="grid grid-cols-6 gap-2">
-                  {questions.map((q, idx) => {
-                    const isCurrent = idx === currentQuestion
+              </div>
+              <div className="relative z-10">
+                {/* Answer Options */}
+                <div className="space-y-3">
+                  {['A', 'B', 'C', 'D'].map((option) => {
+                    const isUserAnswer = currentQ.userAnswer === option
+                    const isCorrectAnswer = currentQ.correctAnswer === option
+
                     return (
-                      <button
-                        key={idx}
-                        onClick={() => { setCurrentQuestion(idx); setShowQuestionNav(false) }}
-                        className={`w-10 h-10 rounded-full font-semibold text-sm ${
-                          isCurrent ? 'ring-2 ring-blue-600' : ''
-                        } ${
-                          !q.wasAttempted ? 'bg-gray-400 text-white' :
-                          q.isCorrect ? 'bg-green-500 text-white' :
-                          'bg-red-500 text-white'
+                      <div
+                        key={option}
+                        className={`w-full rounded-xl border-2 p-4 text-left transition-colors ${
+                          isCorrectAnswer
+                            ? 'border-emerald-400 bg-emerald-50'
+                            : isUserAnswer && !isCorrectAnswer
+                            ? 'border-rose-400 bg-rose-50'
+                            : 'border-slate-200 bg-white'
                         }`}
                       >
-                        {idx + 1}
-                      </button>
+                        <div className="flex items-start gap-3">
+                          <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold ${
+                            isCorrectAnswer
+                              ? 'border-emerald-500 bg-emerald-500 text-white'
+                              : isUserAnswer && !isCorrectAnswer
+                              ? 'border-rose-500 bg-rose-500 text-white'
+                              : 'border-slate-300 text-slate-600'
+                          }`}>
+                            {option}
+                          </div>
+                          <div className="flex-1 pt-1">
+                            <span className="text-slate-800">{currentQ?.[`option${option}`]}</span>
+                            {isCorrectAnswer && (
+                              <span className="ml-2 inline-flex items-center gap-1 text-sm font-semibold text-emerald-600">
+                                <FiCheckCircle size={14} /> Correct
+                              </span>
+                            )}
+                            {isUserAnswer && !isCorrectAnswer && (
+                              <span className="ml-2 inline-flex items-center gap-1 text-sm font-semibold text-rose-600">
+                                <FiXCircle size={14} /> Your Answer
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     )
                   })}
                 </div>
+
+                {/* Explanation Section */}
+                {(!currentQ.wasAttempted || !currentQ.isCorrect) && (
+                  <div className={`mt-5 rounded-xl border p-4 ${
+                    !currentQ.wasAttempted
+                      ? 'border-slate-200 bg-slate-50'
+                      : 'border-amber-200 bg-amber-50'
+                  }`}>
+                    <p className={`mb-3 flex items-center gap-2 font-semibold ${
+                      !currentQ.wasAttempted ? 'text-slate-900' : 'text-amber-900'
+                    }`}>
+                      <span className="text-lg">💡</span>
+                      {!currentQ.wasAttempted ? 'Answer & Explanation' : 'Explanation'}
+                    </p>
+                    {currentQ.shortExplanation && (
+                      <div className="mb-3">
+                        <p className={`mb-1 text-sm font-medium ${
+                          !currentQ.wasAttempted ? 'text-slate-600' : 'text-amber-800'
+                        }`}>
+                          Quick Explanation:
+                        </p>
+                        <p className={`text-sm leading-relaxed ${!currentQ.wasAttempted ? 'text-slate-700' : 'text-amber-800'}`}>
+                          {currentQ.shortExplanation}
+                        </p>
+                      </div>
+                    )}
+                    <div>
+                      <p className={`mb-1 text-sm font-medium ${
+                        !currentQ.wasAttempted ? 'text-slate-600' : 'text-amber-800'
+                      }`}>
+                        Detailed Explanation:
+                      </p>
+                      <p className={`text-sm leading-relaxed ${!currentQ.wasAttempted ? 'text-slate-700' : 'text-amber-800'}`}>
+                        {currentQ.longExplanation || currentQ.explanation || 'No detailed explanation available'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Success message for correct answers */}
+                {currentQ.wasAttempted && currentQ.isCorrect && (
+                  <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                    <p className="flex items-center gap-2 font-semibold text-emerald-800">
+                      <FiCheckCircle className="text-emerald-600" size={20} />
+                      Great job! You got this one right.
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
-          
-          <button
-            onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
-            disabled={currentQuestion === questions.length - 1}
-            className="px-8 py-2.5 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
+
+          {/* Navigation footer */}
+          <div className="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
+            <button
+              onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
+              disabled={currentQuestion === 0}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <FiChevronLeft size={16} /> Back
+            </button>
+
+            <div className="relative flex items-center gap-3">
+              <div className="text-center">
+                <span className="text-sm font-medium text-slate-600">
+                  Question {currentQuestion + 1} of {questions.length}
+                </span>
+                <div className="mt-1 flex justify-center gap-3 text-xs font-medium">
+                  <span className="inline-flex items-center gap-1 text-emerald-600"><FiCheckCircle size={12} /> {correctCount}</span>
+                  <span className="inline-flex items-center gap-1 text-rose-600"><FiXCircle size={12} /> {wrongCount}</span>
+                  <span className="inline-flex items-center gap-1 text-slate-500"><FiSlash size={12} /> {unattemptedCount}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowQuestionNav(!showQuestionNav)}
+                className="inline-flex items-center justify-center rounded-lg border border-slate-300 p-2 text-slate-600 transition-colors hover:bg-white"
+                aria-label="Toggle question navigator"
+              >
+                <FiGrid size={16} />
+              </button>
+
+              {showQuestionNav && (
+                <div className="absolute bottom-full right-0 z-50 mb-2 max-h-96 w-80 overflow-y-auto rounded-2xl border border-slate-100 bg-white p-4 shadow-lg">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="font-semibold text-slate-900">Questions</h3>
+                    <button
+                      onClick={() => setShowQuestionNav(false)}
+                      className="text-slate-400 transition-colors hover:text-slate-600"
+                      aria-label="Close navigator"
+                    >
+                      <FiX size={18} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-6 gap-2">
+                    {questions.map((q, idx) => {
+                      const isCurrent = idx === currentQuestion
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => { setCurrentQuestion(idx); setShowQuestionNav(false) }}
+                          className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white transition-transform hover:scale-105 ${
+                            isCurrent ? 'ring-2 ring-indigo-500 ring-offset-2' : ''
+                          } ${
+                            !q.wasAttempted ? 'bg-slate-400' :
+                            q.isCorrect ? 'bg-emerald-500' :
+                            'bg-rose-500'
+                          }`}
+                        >
+                          {idx + 1}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
+              disabled={currentQuestion === questions.length - 1}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Next <FiChevronRight size={16} />
+            </button>
+          </div>
         </div>
       </div>
     </div>

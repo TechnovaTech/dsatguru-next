@@ -2,22 +2,29 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../../lib/db'
 import Test from '../../../../../../lib/models/Test'
 import TestSession from '../../../../../../lib/models/TestSession'
-import { getTokenFromRequest, verifyToken } from '../../../../../../lib/auth'
+import User from '../../../../../../lib/models/User'
+import { requireRole } from '../../../../../../lib/auth'
+import { ROLES, STAFF_ROLES } from '../../../../../../lib/constants/roles'
 
 export async function POST(request) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    
-    if (!decoded || !['Admin', 'Tutor', 'TutorAdmin'].includes(decoded.role)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     const { originalSessionId, originalTestId, questionIds, userId, option, modulesData } = await request.json()
 
     if (!originalSessionId || !originalTestId || !questionIds || !userId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    // Tutors can only reassign to their own assigned students
+    if (decoded.role === ROLES.TUTOR) {
+      const ownsStudent = await User.findOne({ _id: userId, assignedTutors: decoded.userId }).select('_id')
+      if (!ownsStudent) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     // Get the original test
@@ -71,7 +78,6 @@ export async function POST(request) {
     })
     
     // Add the test to the student's assignedTests array
-    const User = require('../../../../../../lib/models/User').default
     await User.findByIdAndUpdate(userId, {
       $addToSet: { assignedTests: newTest._id }
     })

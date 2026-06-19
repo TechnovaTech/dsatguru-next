@@ -1,19 +1,14 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../../lib/db'
 import Course from '../../../../../../lib/models/Course'
-import jwt from 'jsonwebtoken'
+import { requireRole } from '../../../../../../lib/auth'
+import { STAFF_ROLES } from '../../../../../../lib/constants/roles'
 
 export async function GET(request, { params }) {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token) {
-      return NextResponse.json({ error: 'No token provided' }, { status: 401 })
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    if (decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-    }
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     await connectDB()
     const course = await Course.findById(params.id)
@@ -41,15 +36,9 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token) {
-      return NextResponse.json({ error: 'No token provided' }, { status: 401 })
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    if (decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-    }
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     const { content } = await request.json()
     

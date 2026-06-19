@@ -4,6 +4,18 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import axios from 'axios'
 
+// Per-module duration (in seconds) for the Digital SAT format, derived from the
+// section subject: ~32 min for Reading & Writing, ~35 min for Math. If the test
+// carries a configured `duration` (total minutes across its 2 modules), use half
+// of it per module as the override.
+function moduleDurationSeconds(session) {
+  const configured = Number(session?.test?.duration || session?.testDuration || 0)
+  if (configured > 0) return Math.round((configured * 60) / 2)
+  const subj = String(session?.subject || '').toLowerCase()
+  if (subj.includes('math')) return 2100 // 35 minutes
+  return 1920 // 32 minutes (Reading & Writing)
+}
+
 export default function SatTestRunner() {
   const router = useRouter()
   const params = useParams()
@@ -30,22 +42,25 @@ export default function SatTestRunner() {
           return
         }
         const sRes = await axios.get(`/api/test-sessions/${sessionId}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-        const s = sRes.data?.session
+        const s = sRes.data
         setSession(s)
+        // Derive the per-module timer from the section subject (R&W ~32m, Math ~35m),
+        // or the test's configured duration when present, instead of a hardcoded value.
+        setRemaining(moduleDurationSeconds(s))
         const answeredIds = new Set((s?.responses || []).map(r => String(r.questionId)))
         const amap = {}
         const smap = {}
-        (s?.responses || []).forEach(r => {
+        ;(s?.responses || []).forEach(r => {
           amap[String(r.questionId)] = true
           smap[String(r.questionId)] = r.selectedAnswer
         })
         setAnsweredMap(amap)
         setSelectedMap(smap)
         if (s?.state === 'IN_PROGRESS_BASE' || s?.state === 'CREATED') {
-          const easyRes = await axios.get(`/api/questions?bankId=${s.questionBankId}&testType=Base&difficulty=Easy&isActive=true${s?.subject ? `&subject=${encodeURIComponent(s.subject)}` : ''}`)
-          const medRes = await axios.get(`/api/questions?bankId=${s.questionBankId}&testType=Base&difficulty=Medium&isActive=true${s?.subject ? `&subject=${encodeURIComponent(s.subject)}` : ''}`)
-          const allEasy = easyRes.data?.data || easyRes.data?.questions || []
-          const allMed = medRes.data?.data || medRes.data?.questions || []
+          const easyRes = await axios.get(`/api/questions?bankId=${s.questionBankId}&testType=Base&difficulty=Easy&isActive=true${s?.subject ? `&subject=${encodeURIComponent(s.subject)}` : ''}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+          const medRes = await axios.get(`/api/questions?bankId=${s.questionBankId}&testType=Base&difficulty=Medium&isActive=true${s?.subject ? `&subject=${encodeURIComponent(s.subject)}` : ''}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+          const allEasy = Array.isArray(easyRes.data) ? easyRes.data : (easyRes.data?.data || easyRes.data?.questions || [])
+          const allMed = Array.isArray(medRes.data) ? medRes.data : (medRes.data?.data || medRes.data?.questions || [])
           const all = [...allEasy, ...allMed]
           const seen = new Set()
           const merged = []
@@ -114,7 +129,7 @@ export default function SatTestRunner() {
       const next = res.data?.next
       if (next === 'adaptive') {
         const sRes = await axios.get(`/api/test-sessions/${sessionId}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-        const s = sRes.data?.session
+        const s = sRes.data
         setSession(s)
         setBaseQuestions((s?.adaptiveQuestions || []).map(q => ({
           id: q.id,
@@ -122,7 +137,7 @@ export default function SatTestRunner() {
           options: q.options
         })))
         setCurrentIndex(0)
-        setRemaining(20 * 60)
+        setRemaining(moduleDurationSeconds(s))
       } else {
         router.push(`/dashboard/analytics`)
       }
@@ -152,7 +167,7 @@ export default function SatTestRunner() {
         setCurrentIndex(nextIndex)
       } else {
         const sRes = await axios.get(`/api/test-sessions/${sessionId}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-        const s = sRes.data?.session
+        const s = sRes.data
         setSession(s)
         if (s?.state === 'IN_PROGRESS_ADAPTIVE' && (s?.adaptiveQuestions || []).length > 0) {
           setBaseQuestions((s.adaptiveQuestions || []).map(q => ({
@@ -163,7 +178,7 @@ export default function SatTestRunner() {
             imageUrl: q.imageUrl
           })))
           setCurrentIndex(0)
-          setRemaining(20 * 60)
+          setRemaining(moduleDurationSeconds(s))
         } else {
           router.push(`/dashboard/analytics`)
         }
@@ -205,7 +220,7 @@ export default function SatTestRunner() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b px-6 py-3 flex items-center justify-between">
+      <div className="bg-white border-b px-6 py-3 flex flex-wrap gap-2 items-center justify-between">
         <div className="text-sm font-medium text-gray-700">
           Section 1, Module 1: {session?.subject || 'Reading and Writing'}
         </div>
@@ -218,9 +233,9 @@ export default function SatTestRunner() {
       </div>
 
       {/* Main Content - Split Screen */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row md:overflow-hidden">
         {/* Left Side - Passage/Context */}
-        <div className="w-1/2 border-r overflow-y-auto p-8 bg-gray-50">
+        <div className="w-full md:w-1/2 border-b md:border-r md:border-b-0 overflow-y-auto p-4 md:p-8 bg-gray-50">
           {currentQuestion.questionParagraph ? (
             <div className="prose max-w-none">
               <div className="whitespace-pre-line text-gray-800 leading-relaxed">
@@ -240,7 +255,7 @@ export default function SatTestRunner() {
         </div>
 
         {/* Right Side - Question and Options */}
-        <div className="w-1/2 overflow-y-auto p-8 bg-white">
+        <div className="w-full md:w-1/2 overflow-y-auto p-4 md:p-8 bg-white">
           <div className="max-w-2xl">
             {/* Question Number Badge */}
             <div className="flex items-center gap-4 mb-6">

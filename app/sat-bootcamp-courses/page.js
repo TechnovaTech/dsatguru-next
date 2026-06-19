@@ -6,7 +6,7 @@ const program = {
   examLabel: 'Digital SAT',
   title: 'Digital SAT Live Bootcamp Course',
   highlightTag: 'Intensive Bootcamp',
-  heroImage: '/hero-1.png',
+  heroArt: '/art/prog-bootcamp.png',
   seoTitle: 'SAT Boot Camp | Summer SAT Prep Course',
   seoDescription: 'Join our SAT bootcamp online with intensive summer SAT prep courses, expert-led classes, and focused strategies to build confidence and test-day readiness.',
   overview: 'A fast-paced, high-impact bootcamp designed to rapidly boost your score with focused, live instruction and targeted practice.',

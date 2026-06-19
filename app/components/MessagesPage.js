@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from './AuthContext'
+import { useConfirm, useToast } from './ui/UIProvider'
 import { FiSearch, FiPlus, FiTrash2, FiSend, FiPaperclip, FiX, FiCheck, FiMoreVertical, FiDownload, FiSmile } from 'react-icons/fi'
 import { BsCheckAll } from 'react-icons/bs'
 
@@ -40,6 +41,8 @@ function groupMessagesByDate(messages) {
 
 export default function MessagesPage() {
   const { user } = useAuth()
+  const confirm = useConfirm()
+  const toast = useToast()
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
 
   const [conversations, setConversations] = useState([])
@@ -217,7 +220,7 @@ export default function MessagesPage() {
 
   // Delete conversation
   const deleteConversation = async (convoId) => {
-    if (!confirm('Delete this conversation?')) return
+    if (!(await confirm({ message: 'Delete this conversation?', tone: 'danger', confirmText: 'Delete' }))) return
     try {
       await fetch('/api/messages', {
         method: 'DELETE',

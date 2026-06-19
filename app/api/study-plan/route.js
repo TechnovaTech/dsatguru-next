@@ -23,8 +23,25 @@ export async function POST(request) {
     const decoded = verifyToken(token)
     if (!decoded) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const body = await request.json()
-    const { studentName, startDate, examDate, currentScore, targetScore } = body
+    const { studentName, startDate, examDate, currentScore, targetScore, weakTopics, dailyPlan } = body
     if (!examDate) return NextResponse.json({ error: 'examDate is required' }, { status: 400 })
+
+    // Whitelist weakTopics: array of strings only
+    const safeWeakTopics = Array.isArray(weakTopics)
+      ? weakTopics.filter(t => typeof t === 'string').map(t => String(t))
+      : []
+
+    // Whitelist dailyPlan: only the known studyTask fields
+    const safeDailyPlan = Array.isArray(dailyPlan)
+      ? dailyPlan
+          .filter(d => d && typeof d === 'object')
+          .map(d => ({
+            date: d.date ? new Date(d.date) : undefined,
+            topic: typeof d.topic === 'string' ? d.topic : '',
+            questionCount: Number(d.questionCount) || 0,
+            difficultyMix: typeof d.difficultyMix === 'string' ? d.difficultyMix : 'Mixed'
+          }))
+      : []
 
     await StudyPlan.deleteMany({ userId: decoded.userId })
     const plan = await StudyPlan.create({
@@ -34,8 +51,8 @@ export async function POST(request) {
       examDate: new Date(examDate),
       currentScore: currentScore || 0,
       targetScore: targetScore || 1600,
-      weakTopics: [],
-      dailyPlan: []
+      weakTopics: safeWeakTopics,
+      dailyPlan: safeDailyPlan
     })
     return NextResponse.json(plan, { status: 201 })
   } catch {

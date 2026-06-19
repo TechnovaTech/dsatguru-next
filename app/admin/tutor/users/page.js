@@ -39,6 +39,21 @@ export default function TutorAndStudents() {
     fetchUsers()
   }, [activeTab])
 
+  // Close any open modal on Escape
+  useEffect(() => {
+    const anyOpen = showAssignModal || showAssignTestsModal || tutorPopup
+    if (!anyOpen) return
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setShowAssignModal(false)
+        setShowAssignTestsModal(false)
+        setTutorPopup(null)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [showAssignModal, showAssignTestsModal, tutorPopup])
+
   const fetchUsers = async () => {
     setLoading(true)
     try {
@@ -191,37 +206,37 @@ export default function TutorAndStudents() {
   })
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Tutor and Students</h1>
-          <p className="text-gray-600">View and manage tutors and students</p>
+          <h1 className="text-2xl font-extrabold text-slate-900 lg:text-3xl">Tutor and Students</h1>
+          <p className="mt-1 text-sm text-slate-500">View and manage tutors and students</p>
         </div>
 
         {success && (
-          <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg border border-green-100 flex items-center gap-2">
+          <div className="mb-4 flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
             <FiCheck /> {success}
           </div>
         )}
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg border border-red-100 flex items-center gap-2">
+          <div className="mb-4 flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
             <FiX /> {error}
           </div>
         )}
 
         {/* Tabs */}
         <div className="mb-6">
-          <div className="border-b border-gray-200">
+          <div className="overflow-x-auto whitespace-nowrap border-b border-slate-200">
             <nav className="-mb-px flex space-x-8">
               {user?.role !== 'Tutor' && (
                 <button
                   onClick={() => setActiveTab('tutors')}
                   className={`${
                     activeTab === 'tutors'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+                      ? 'border-indigo-600 text-indigo-600'
+                      : 'border-transparent text-slate-500 hover:text-slate-700'
+                  } flex items-center gap-2 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
                 >
                   <FiUser /> Tutors
                 </button>
@@ -230,9 +245,9 @@ export default function TutorAndStudents() {
                 onClick={() => setActiveTab('students')}
                 className={`${
                   activeTab === 'students'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                } flex items-center gap-2 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
               >
                 <FiUser /> Students
               </button>
@@ -241,73 +256,79 @@ export default function TutorAndStudents() {
         </div>
 
         {/* Search */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+        <div className="mb-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+          <label htmlFor="user-search" className="mb-1.5 block text-sm font-medium text-slate-700">Search</label>
           <div className="relative">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
+              id="user-search"
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by name or email..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-lg border border-slate-300 py-2 pl-10 pr-3 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500"
             />
           </div>
         </div>
 
         {/* Users List */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b">
-            <h2 className="text-lg font-semibold">
+        <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <div className="border-b border-slate-100 p-6">
+            <h2 className="text-lg font-bold text-slate-900">
               {activeTab === 'tutors' ? 'Tutors' : 'Students'} ({filteredUsers.length})
             </h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-slate-100">
+              <thead className="border-b border-slate-100 bg-slate-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Role</th>
                   {activeTab === 'students' && (
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned Tutor</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Assigned Tutor</th>
                   )}
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Joined Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>                </tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Joined Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>                </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-slate-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={activeTab === 'tutors' ? 6 : 6} className="px-6 py-4 text-center text-sm text-gray-500">Loading...</td>
+                    <td colSpan={activeTab === 'tutors' ? 6 : 7} className="px-6 py-16 text-center">
+                      <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500" />
+                    </td>
                   </tr>
                 ) : filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={activeTab === 'tutors' ? 6 : 6} className="px-6 py-4 text-center text-sm text-gray-500">
-                      No {activeTab === 'tutors' ? 'tutors' : 'students'} found
+                    <td colSpan={activeTab === 'tutors' ? 6 : 7} className="px-6 py-16 text-center">
+                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400"><FiUser size={22} /></div>
+                      <p className="text-sm font-medium text-slate-500">No {activeTab === 'tutors' ? 'tutors' : 'students'} found</p>
+                      <p className="mt-1 text-xs text-slate-400">Try adjusting your search.</p>
                     </td>
                   </tr>
                 ) : (
                   filteredUsers.map((user) => (
-                    <tr key={user._id} className="hover:bg-gray-50">
+                    <tr key={user._id} className="transition-colors hover:bg-indigo-50/40">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <FiUser className="text-blue-600" />
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100">
+                            <FiUser className="text-indigo-600" />
                           </div>
-                          <span className="text-sm font-medium text-gray-900">{user.name}</span>
+                          <span className="text-sm font-semibold text-slate-900">{user.name}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <FiMail className="text-gray-400" />
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                          <FiMail className="text-slate-400" />
                           {user.email}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                          user.role === 'Tutor' 
-                            ? 'bg-purple-100 text-purple-800' 
-                            : 'bg-blue-100 text-blue-800'
+                        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                          user.role === 'Tutor'
+                            ? 'bg-indigo-50 text-indigo-700'
+                            : 'bg-emerald-50 text-emerald-700'
                         }`}>
                           {user.role}
                         </span>
@@ -316,10 +337,10 @@ export default function TutorAndStudents() {
                         <td className="px-6 py-4">
                           <button
                             onClick={() => setTutorPopup(user)}
-                            className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                            className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
                               user.assignedTutorDetails?.length
-                                ? 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100'
-                                : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'
+                                ? 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                                : 'border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100'
                             }`}
                           >
                             <FiUser className="w-3.5 h-3.5" />
@@ -330,25 +351,25 @@ export default function TutorAndStudents() {
                         </td>
                       )}
                       <td className="px-6 py-4">
-                        <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                          user.isActive 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
+                        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                          user.isActive
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-rose-50 text-rose-700'
                         }`}>
                           {user.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <FiCalendar className="text-gray-400" />
-                          {new Date(user.createdAt).toLocaleDateString()}
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                          <FiCalendar className="text-slate-400" />
+                          {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
                         </div>
                       </td>
                       {activeTab === 'tutors' ? (
                         <td className="px-6 py-4">
                           <button
                             onClick={() => handleOpenAssignModal(user)}
-                            className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded text-sm"
+                            className="inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
                           >
                             <FiUserPlus className="mr-1" /> Assign Students
                           </button>
@@ -358,13 +379,13 @@ export default function TutorAndStudents() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleOpenAssignTestsModal(user)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+                              className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
                             >
                               <FiUserPlus className="w-3.5 h-3.5" /> Assign Tests
                             </button>
                             <button
                               onClick={() => router.push(`/admin/tutor/students/${user._id}/performance`)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+                              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
                             >
                               <FiBarChart2 className="w-3.5 h-3.5" /> View Performance
                             </button>
@@ -381,14 +402,14 @@ export default function TutorAndStudents() {
 
         {/* Tutor List Popup for Student */}
         {tutorPopup && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-              <div className="p-5 border-b flex items-center justify-between">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" onClick={() => setTutorPopup(null)}>
+            <div className="w-full max-w-md rounded-2xl bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between border-b border-slate-100 p-5">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Assigned Tutors</h2>
-                  <p className="text-sm text-gray-500 mt-0.5">{tutorPopup.name}</p>
+                  <h2 className="text-lg font-bold text-slate-900">Assigned Tutors</h2>
+                  <p className="mt-0.5 text-sm text-slate-500">{tutorPopup.name}</p>
                 </div>
-                <button onClick={() => setTutorPopup(null)} className="text-gray-400 hover:text-gray-600">
+                <button onClick={() => setTutorPopup(null)} aria-label="Close" className="text-slate-400 hover:text-slate-600">
                   <FiX className="w-5 h-5" />
                 </button>
               </div>
@@ -396,23 +417,26 @@ export default function TutorAndStudents() {
                 {tutorPopup.assignedTutorDetails?.length ? (
                   <div className="space-y-2">
                     {tutorPopup.assignedTutorDetails.map((t, i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 bg-purple-50 border border-purple-100 rounded-lg">
-                        <div className="w-9 h-9 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <FiUser className="text-purple-600" />
+                      <div key={i} className="flex items-center gap-3 rounded-lg border border-indigo-100 bg-indigo-50 p-3">
+                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100">
+                          <FiUser className="text-indigo-600" />
                         </div>
                         <div>
-                          <div className="text-sm font-semibold text-gray-900">{t.name}</div>
-                          <div className="text-xs text-gray-500">{t.email}</div>
+                          <div className="text-sm font-semibold text-slate-900">{t.name}</div>
+                          <div className="text-xs text-slate-500">{t.email}</div>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center text-gray-400 py-6 text-sm">No tutors assigned yet.</p>
+                  <div className="py-10 text-center">
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400"><FiUser size={22} /></div>
+                    <p className="text-sm text-slate-400">No tutors assigned yet.</p>
+                  </div>
                 )}
               </div>
-              <div className="p-4 border-t">
-                <button onClick={() => setTutorPopup(null)} className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm">
+              <div className="border-t border-slate-100 p-4">
+                <button onClick={() => setTutorPopup(null)} className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
                   Close
                 </button>
               </div>
@@ -422,58 +446,63 @@ export default function TutorAndStudents() {
 
         {/* Assign Students Modal */}
         {showAssignModal && selectedTutor && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
-              <div className="p-6 border-b flex items-center justify-between">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" onClick={() => setShowAssignModal(false)}>
+            <div className="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-2xl bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between border-b border-slate-100 p-6">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Assign Students to {selectedTutor.name}</h2>
-                  <p className="text-sm text-gray-600 mt-1">Select students to assign to this tutor</p>
+                  <h2 className="text-xl font-bold text-slate-900">Assign Students to {selectedTutor.name}</h2>
+                  <p className="mt-1 text-sm text-slate-500">Select students to assign to this tutor</p>
                 </div>
-                <button onClick={() => setShowAssignModal(false)} className="text-gray-400 hover:text-gray-600">
+                <button onClick={() => setShowAssignModal(false)} aria-label="Close" className="text-slate-400 hover:text-slate-600">
                   <FiX className="w-6 h-6" />
                 </button>
               </div>
 
-              <div className="p-4 border-b">
+              <div className="border-b border-slate-100 p-4">
+                <label htmlFor="assign-student-search" className="sr-only">Search students</label>
                 <div className="relative">
-                  <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
+                    id="assign-student-search"
                     type="text"
                     value={studentSearchTerm}
                     onChange={(e) => setStudentSearchTerm(e.target.value)}
                     placeholder="Search students..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-lg border border-slate-300 py-2 pl-10 pr-3 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
               <div className="flex-1 overflow-y-auto p-4">
                 {loadingStudents ? (
-                  <div className="text-center py-8 text-gray-500">Loading students...</div>
+                  <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500" /></div>
                 ) : filteredStudentsForAssign.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">No students found</div>
+                  <div className="py-12 text-center">
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400"><FiUser size={22} /></div>
+                    <p className="text-sm text-slate-400">No students found</p>
+                  </div>
                 ) : (
                   <div className="space-y-2">
                     {filteredStudentsForAssign.map((student) => {
                       const isAssigned = assignedStudents.includes(student._id?.toString())
                       const hasOtherTutor = false
-                      
+
                       return (
                         <div
                           key={student._id}
-                          className={`p-4 border rounded-lg flex items-center justify-between ${
-                            isAssigned ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'
+                          className={`flex items-center justify-between rounded-lg border p-4 ${
+                            isAssigned ? 'border-indigo-200 bg-indigo-50' : 'border-slate-200 bg-white'
                           }`}
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                              <FiUser className="text-blue-600" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100">
+                              <FiUser className="text-indigo-600" />
                             </div>
                             <div>
-                              <div className="font-medium text-gray-900">{student.name}</div>
-                              <div className="text-sm text-gray-600">{student.email}</div>
+                              <div className="font-semibold text-slate-900">{student.name}</div>
+                              <div className="text-sm text-slate-500">{student.email}</div>
                               {(student.assignedTutors || []).length > 0 && (
-                                <div className="text-xs text-blue-600 mt-1">
+                                <div className="mt-1 text-xs text-indigo-600">
                                   {(student.assignedTutors || []).length} tutor(s) assigned
                                 </div>
                               )}
@@ -481,10 +510,10 @@ export default function TutorAndStudents() {
                           </div>
                           <button
                             onClick={() => handleToggleStudentAssignment(student._id)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                               isAssigned
-                                ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                                ? 'bg-rose-50 text-rose-700 hover:bg-rose-100'
+                                : 'bg-indigo-600 text-white hover:bg-indigo-700'
                             }`}
                           >
                             {isAssigned ? 'Unassign' : 'Assign'}
@@ -496,10 +525,10 @@ export default function TutorAndStudents() {
                 )}
               </div>
 
-              <div className="p-4 border-t bg-gray-50">
+              <div className="border-t border-slate-100 bg-slate-50 p-4">
                 <button
                   onClick={() => setShowAssignModal(false)}
-                  className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
                 >
                   Close
                 </button>
@@ -509,34 +538,36 @@ export default function TutorAndStudents() {
         )}
         {/* Assign Tests to Student Modal */}
         {showAssignTestsModal && selectedStudent && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] flex flex-col">
-              <div className="p-6 border-b flex items-center justify-between">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" onClick={() => setShowAssignTestsModal(false)}>
+            <div className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between border-b border-slate-100 p-6">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Assign Tests to {selectedStudent.name}</h2>
-                  <p className="text-sm text-gray-600 mt-1">{studentAssignedTests.length} test(s) currently assigned</p>
+                  <h2 className="text-xl font-bold text-slate-900">Assign Tests to {selectedStudent.name}</h2>
+                  <p className="mt-1 text-sm text-slate-500">{studentAssignedTests.length} test(s) currently assigned</p>
                 </div>
-                <button onClick={() => setShowAssignTestsModal(false)} className="text-gray-400 hover:text-gray-600">
+                <button onClick={() => setShowAssignTestsModal(false)} aria-label="Close" className="text-slate-400 hover:text-slate-600">
                   <FiX className="w-6 h-6" />
                 </button>
               </div>
 
-              <div className="p-4 border-b flex gap-3 items-center flex-wrap">
-                <div className="relative flex-1 min-w-48">
-                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 p-4">
+                <div className="relative min-w-48 flex-1">
+                  <label htmlFor="assign-test-search" className="sr-only">Search tests</label>
+                  <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
+                    id="assign-test-search"
                     type="text"
                     value={testSearch}
                     onChange={e => setTestSearch(e.target.value)}
                     placeholder="Search tests..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-slate-300 py-2 pl-10 pr-3 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div className="flex gap-2">
                   {['All', 'Math', 'Reading and Writing'].map(s => (
                     <button key={s} onClick={() => setTestSubjectFilter(s)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
-                        testSubjectFilter === s ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:border-blue-400'
+                      className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                        testSubjectFilter === s ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 text-slate-600 hover:border-indigo-400'
                       }`}>
                       {s === 'Reading and Writing' ? 'R&W' : s}
                     </button>
@@ -546,7 +577,7 @@ export default function TutorAndStudents() {
 
               <div className="flex-1 overflow-y-auto p-4">
                 {loadingTests ? (
-                  <div className="text-center py-8 text-gray-500">Loading tests...</div>
+                  <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500" /></div>
                 ) : (() => {
                   const filtered = allTests.filter(t => {
                     if (t.isReassigned) return false
@@ -555,28 +586,31 @@ export default function TutorAndStudents() {
                     return true
                   })
                   return filtered.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">No tests found</div>
+                    <div className="py-12 text-center">
+                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400"><FiBarChart2 size={22} /></div>
+                      <p className="text-sm text-slate-400">No tests found</p>
+                    </div>
                   ) : (
                     <div className="space-y-2">
                       {filtered.map(test => {
                         const isAssigned = studentAssignedTests.includes(test._id.toString())
                         return (
-                          <div key={test._id} className={`p-4 border rounded-lg flex items-center justify-between ${isAssigned ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'}`}>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-gray-900 text-sm truncate">{test.title}</div>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${test.subject === 'Math' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                          <div key={test._id} className={`flex items-center justify-between rounded-lg border p-4 ${isAssigned ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm font-semibold text-slate-900">{test.title}</div>
+                              <div className="mt-1 flex items-center gap-2">
+                                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${test.subject === 'Math' ? 'bg-blue-50 text-blue-700' : 'bg-indigo-50 text-indigo-700'}`}>
                                   {test.subject === 'Reading and Writing' ? 'R&W' : test.subject}
                                 </span>
-                                <span className="text-xs text-gray-500">{test.questions?.length || 0} questions</span>
-                                {test.isTimed && <span className="text-xs text-gray-500">{test.duration} min</span>}
-                                {isAssigned && <span className="text-xs text-green-600 font-medium">✓ Assigned</span>}
+                                <span className="text-xs text-slate-500">{test.questions?.length || 0} questions</span>
+                                {test.isTimed && <span className="text-xs text-slate-500">{test.duration} min</span>}
+                                {isAssigned && <span className="text-xs font-medium text-emerald-600">✓ Assigned</span>}
                               </div>
                             </div>
                             <button
                               onClick={() => handleToggleTestAssignment(test._id)}
-                              className={`ml-4 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors flex-shrink-0 ${
-                                isAssigned ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-blue-600 text-white hover:bg-blue-700'
+                              className={`ml-4 flex-shrink-0 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
+                                isAssigned ? 'bg-rose-50 text-rose-700 hover:bg-rose-100' : 'bg-indigo-600 text-white hover:bg-indigo-700'
                               }`}
                             >
                               {isAssigned ? 'Unassign' : 'Assign'}
@@ -589,17 +623,17 @@ export default function TutorAndStudents() {
                 })()}
               </div>
 
-              <div className="p-4 border-t bg-gray-50 flex items-center gap-4">
-                <label className="flex items-center gap-2 cursor-pointer select-none flex-1">
+              <div className="flex items-center gap-4 border-t border-slate-100 bg-slate-50 p-4">
+                <label className="flex flex-1 cursor-pointer select-none items-center gap-2">
                   <input
                     type="checkbox"
                     checked={assignShowExplanation}
                     onChange={e => setAssignShowExplanation(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
                   />
-                  <span className="text-sm text-gray-700">Show explanation on analysis page</span>
+                  <span className="text-sm text-slate-700">Show explanation on analysis page</span>
                 </label>
-                <button onClick={() => setShowAssignTestsModal(false)} className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                <button onClick={() => setShowAssignTestsModal(false)} className="rounded-lg border border-slate-300 px-6 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
                   Close
                 </button>
               </div>

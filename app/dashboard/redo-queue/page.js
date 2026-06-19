@@ -1,9 +1,27 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { renderContent } from '../../components/admin/LatexRenderer'
-import { FiClock, FiCheckCircle, FiArrowRight, FiArrowLeft, FiX, FiMaximize2, FiMinimize2, FiGrid } from 'react-icons/fi'
+import { FiClock, FiCheckCircle, FiArrowRight, FiArrowLeft, FiX, FiRefreshCw, FiInbox, FiPlay, FiAlertCircle } from 'react-icons/fi'
 
 const token = () => typeof window !== 'undefined' ? localStorage.getItem('token') : ''
+
+const sectionBadge = (section) => {
+  const s = (section || '').toLowerCase()
+  if (s.includes('math')) return 'bg-indigo-100 text-indigo-700'
+  if (s.includes('read') || s.includes('writing') || s.includes('verbal') || s.includes('english')) return 'bg-violet-100 text-violet-700'
+  return 'bg-slate-100 text-slate-600'
+}
+
+const difficultyClass = (d) => {
+  if (d === 'H' || d === 'Hard') return 'text-rose-600'
+  if (d === 'M' || d === 'Medium') return 'text-amber-600'
+  if (d === 'E' || d === 'Easy' || d === 'L' || d === 'Low') return 'text-emerald-600'
+  return 'text-slate-600'
+}
+
+const statusBadge = (status) => status === 'Failed'
+  ? 'bg-rose-100 text-rose-700'
+  : 'bg-amber-100 text-amber-700'
 
 export default function RedoQueuePage() {
   const [dateGroups, setDateGroups] = useState([])
@@ -14,6 +32,7 @@ export default function RedoQueuePage() {
   const [answers, setAnswers] = useState({})
   const [mode, setMode] = useState('list') // list | test | result
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
   const [showStartPopup, setShowStartPopup] = useState(false)
@@ -21,30 +40,38 @@ export default function RedoQueuePage() {
   const [timeElapsed, setTimeElapsed] = useState(0)
   const testContainerRef = useRef(null)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      try {
-        const [datesRes, allRes] = await Promise.all([
-          fetch('/api/redo-queue?mode=dates', { headers: { Authorization: `Bearer ${token()}` } }),
-          fetch('/api/redo-queue?mode=all', { headers: { Authorization: `Bearer ${token()}` } })
-        ])
-        
-        const datesData = await datesRes.json()
-        const allData = await allRes.json()
-        
-        setDateGroups(datesData.dates || [])
-        setAllQuestions(allData.questions || [])
-        
-        if (allData.questions?.length > 0) {
-          setShowStartPopup(true)
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error)
-      } finally {
-        setLoading(false)
+  const fetchData = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const [datesRes, allRes] = await Promise.all([
+        fetch('/api/redo-queue?mode=dates', { headers: { Authorization: `Bearer ${token()}` } }),
+        fetch('/api/redo-queue?mode=all', { headers: { Authorization: `Bearer ${token()}` } })
+      ])
+
+      if (!datesRes.ok || !allRes.ok) {
+        setError("Couldn't load your redo queue.")
+        return
       }
+
+      const datesData = await datesRes.json()
+      const allData = await allRes.json()
+
+      setDateGroups(datesData.dates || [])
+      setAllQuestions(allData.questions || [])
+
+      if (allData.questions?.length > 0) {
+        setShowStartPopup(true)
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      setError("Couldn't load your redo queue.")
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     fetchData()
   }, [])
 
@@ -57,6 +84,14 @@ export default function RedoQueuePage() {
     }
     return () => clearInterval(timer)
   }, [mode, submitting])
+
+  // Close start popup on Escape
+  useEffect(() => {
+    if (!showStartPopup) return
+    const onKey = (e) => { if (e.key === 'Escape') setShowStartPopup(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [showStartPopup])
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60)
@@ -133,7 +168,7 @@ export default function RedoQueuePage() {
       const listRes = await fetch('/api/redo-queue?mode=dates', { headers: { Authorization: `Bearer ${token()}` } })
       const listData = await listRes.json()
       setDateGroups(listData.dates || [])
-      
+
       const allRes = await fetch('/api/redo-queue?mode=all', { headers: { Authorization: `Bearer ${token()}` } })
       const allData = await allRes.json()
       setAllQuestions(allData.questions || [])
@@ -144,111 +179,211 @@ export default function RedoQueuePage() {
     }
   }
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading redo queue...</div>
+  if (loading) return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-50">
+      <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500" />
+    </div>
+  )
+
+  if (error && mode === 'list') return (
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex items-center justify-between rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-rose-700">
+          <span className="flex items-center gap-2 text-sm font-medium">
+            <FiAlertCircle className="shrink-0" /> {error} Please try again.
+          </span>
+          <button
+            onClick={fetchData}
+            className="ml-4 flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-rose-700"
+          >
+            <FiRefreshCw /> Retry
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  const pendingCount = allQuestions.filter(q => q.status !== 'Failed').length
+  const failedCount = allQuestions.filter(q => q.status === 'Failed').length
 
   return (
-    <div className="p-0 min-h-screen bg-white" ref={testContainerRef}>
-      {/* Header for list mode */}
+    <div ref={testContainerRef} className="min-h-screen bg-slate-50">
+      {/* List mode */}
       {mode === 'list' && (
-        <div className="p-6">
-          <div className="mb-6 flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">🔁 My Redo Queue</h1>
-              <p className="text-gray-500 text-sm mt-1">Questions you still need to master.</p>
+        <div className="p-6 lg:p-8">
+          <div className="mx-auto max-w-7xl">
+            {/* Header */}
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900 lg:text-3xl">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                    <FiRefreshCw size={20} />
+                  </span>
+                  My Redo Queue
+                </h1>
+                <p className="mt-1 text-sm text-slate-500">Questions you still need to master.</p>
+              </div>
+              {allQuestions.length > 0 && (
+                <button
+                  onClick={() => setShowStartPopup(true)}
+                  className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
+                >
+                  <FiPlay /> Start Redo Session
+                </button>
+              )}
             </div>
-            {allQuestions.length > 0 && (
-              <button 
-                onClick={() => setShowStartPopup(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-all shadow-md"
-              >
-                Start Redo Session
-              </button>
-            )}
-          </div>
 
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[1000px]">
-              <thead>
-                <tr className="bg-gray-50 border-b">
-                  <th className="px-4 py-3 text-xs font-bold text-gray-600 uppercase">Date Logged</th>
-                  <th className="px-4 py-3 text-xs font-bold text-gray-600 uppercase">Section</th>
-                  <th className="px-4 py-3 text-xs font-bold text-gray-600 uppercase">Topic</th>
-                  <th className="px-4 py-3 text-xs font-bold text-gray-600 uppercase">Question Description</th>
-                  <th className="px-4 py-3 text-xs font-bold text-gray-600 uppercase">Why I Got It Wrong</th>
-                  <th className="px-4 py-3 text-xs font-bold text-gray-600 uppercase">Correct Concept</th>
-                  <th className="px-4 py-3 text-xs font-bold text-gray-600 uppercase">Difficulty</th>
-                  <th className="px-4 py-3 text-xs font-bold text-gray-600 uppercase">Redo Due</th>
-                  <th className="px-4 py-3 text-xs font-bold text-gray-600 uppercase">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {allQuestions.length === 0 ? (
-                  <tr>
-                    <td colSpan="9" className="px-4 py-10 text-center text-gray-500">No pending questions in your redo queue.</td>
-                  </tr>
-                ) : (
-                  allQuestions.map((q) => (
-                    <tr key={q.logId} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-sm text-gray-700">{q.dateLogged}</td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`px-2 py-1 rounded-full text-[11px] font-semibold ${q.section === 'Math' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-                          {q.section}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{q.topic || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate" title={q.questionDescription}>{q.questionDescription || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate" title={q.whyWrong}>{q.whyWrong || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate" title={q.correctConcept}>{q.correctConcept || '-'}</td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`font-semibold ${q.difficulty === 'H' || q.difficulty === 'Hard' ? 'text-red-600' : q.difficulty === 'M' || q.difficulty === 'Medium' ? 'text-orange-600' : 'text-green-600'}`}>
-                          {q.difficulty}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{q.redoDueDate || '-'}</td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`px-2 py-1 rounded-full text-[11px] font-semibold ${q.status === 'Failed' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
-                          {q.status}
-                        </span>
-                      </td>
+            {/* Stat cards */}
+            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-indigo-500 text-white">
+                  <FiInbox size={20} />
+                </span>
+                <div>
+                  <p className="text-2xl font-extrabold text-slate-900">{allQuestions.length}</p>
+                  <p className="text-xs font-medium text-slate-500">Total in Queue</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber-500 text-white">
+                  <FiClock size={20} />
+                </span>
+                <div>
+                  <p className="text-2xl font-extrabold text-slate-900">{pendingCount}</p>
+                  <p className="text-xs font-medium text-slate-500">Pending</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-rose-500 text-white">
+                  <FiAlertCircle size={20} />
+                </span>
+                <div>
+                  <p className="text-2xl font-extrabold text-slate-900">{failedCount}</p>
+                  <p className="text-xs font-medium text-slate-500">Previously Failed</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[1100px] text-left">
+                  <thead className="border-b border-slate-100 bg-slate-50">
+                    <tr>
+                      <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Date Logged</th>
+                      <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Section</th>
+                      <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Topic / Skill</th>
+                      <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Question</th>
+                      <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Why I Got It Wrong</th>
+                      <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Correct Concept</th>
+                      <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Difficulty</th>
+                      <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Redo Due</th>
+                      <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {allQuestions.length === 0 ? (
+                      <tr>
+                        <td colSpan="9" className="px-6 py-16">
+                          <div className="flex flex-col items-center justify-center text-center">
+                            <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                              <FiCheckCircle size={28} />
+                            </span>
+                            <h3 className="text-base font-semibold text-slate-800">Your redo queue is clear</h3>
+                            <p className="mt-1 text-sm text-slate-500">No pending questions to master right now. Great work!</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      allQuestions.map((q) => (
+                        <tr key={q.logId} className="transition-colors hover:bg-indigo-50/40">
+                          <td className="px-6 py-4 text-sm text-slate-700">{q.dateLogged || '—'}</td>
+                          <td className="px-6 py-4 text-sm">
+                            <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${sectionBadge(q.section)}`}>
+                              {q.section || '—'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-700">{q.topic || q.skill || '—'}</td>
+                          <td className="max-w-xs truncate px-6 py-4 text-sm text-slate-700" title={q.questionDescription || q.questionLabel}>
+                            {q.questionDescription || q.questionLabel || '—'}
+                          </td>
+                          <td className="max-w-xs truncate px-6 py-4 text-sm text-slate-700" title={q.whyWrong}>{q.whyWrong || '—'}</td>
+                          <td className="max-w-xs truncate px-6 py-4 text-sm text-slate-700" title={q.correctConcept}>{q.correctConcept || '—'}</td>
+                          <td className="px-6 py-4 text-sm">
+                            <span className={`font-semibold ${difficultyClass(q.difficulty)}`}>{q.difficulty || '—'}</span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-700">{q.redoDueDate || '—'}</td>
+                          <td className="px-6 py-4 text-sm">
+                            <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusBadge(q.status)}`}>
+                              {q.status || '—'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {/* Start Popup */}
       {showStartPopup && mode === 'list' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all scale-100">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
+          onClick={() => setShowStartPopup(false)}
+        >
+          <div
+            className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <FiClock size={40} />
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                <FiClock size={32} />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Ready to Master?</h2>
-              <p className="text-gray-600 mb-8">You have <span className="font-bold text-blue-600">{allQuestions.length}</span> questions waiting in your redo queue. Choose a batch to start your mastery session.</p>
-              
-              <div className="space-y-3 max-h-60 overflow-y-auto mb-8 pr-2 custom-scrollbar">
-                {dateGroups.map(group => (
-                  <button
-                    key={group.date}
-                    onClick={() => startRedoByDate(group.date)}
-                    className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 rounded-xl transition-all group"
-                  >
-                    <div className="text-left">
-                      <p className="font-bold text-gray-800 group-hover:text-blue-700">{group.date}</p>
-                      <p className="text-xs text-gray-500">{group.totalQuestions} Questions</p>
-                    </div>
-                    <FiArrowRight className="text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
-                  </button>
-                ))}
+              <h2 className="mb-2 text-2xl font-extrabold text-slate-900">Ready to Master?</h2>
+              <p className="mb-6 text-sm text-slate-500">
+                You have <span className="font-bold text-indigo-600">{allQuestions.length}</span> questions waiting in your redo queue. Choose a batch to start your mastery session.
+              </p>
+
+              <div className="custom-scrollbar mb-6 max-h-72 space-y-3 overflow-y-auto pr-1">
+                {dateGroups.length === 0 ? (
+                  <p className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-6 text-sm text-slate-500">No batches available.</p>
+                ) : (
+                  dateGroups.map(group => (
+                    <button
+                      key={group.date}
+                      onClick={() => startRedoByDate(group.date)}
+                      className="group flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 text-left transition-all hover:border-indigo-200 hover:bg-indigo-50"
+                    >
+                      <div>
+                        <p className="font-bold text-slate-800 group-hover:text-indigo-700">{group.date || '—'}</p>
+                        <p className="mt-0.5 text-xs text-slate-500">
+                          {group.totalQuestions} {group.totalQuestions === 1 ? 'Question' : 'Questions'}
+                          {group.pending > 0 && <span className="text-amber-600"> · {group.pending} pending</span>}
+                          {group.failed > 0 && <span className="text-rose-600"> · {group.failed} failed</span>}
+                        </p>
+                        {Array.isArray(group.sections) && group.sections.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {group.sections.map(sec => (
+                              <span key={sec.name} className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${sectionBadge(sec.name)}`}>
+                                {sec.name} {sec.count}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <FiArrowRight className="ml-3 shrink-0 text-slate-400 transition-all group-hover:translate-x-1 group-hover:text-indigo-500" />
+                    </button>
+                  ))
+                )}
               </div>
-              
-              <button 
+
+              <button
                 onClick={() => setShowStartPopup(false)}
-                className="text-gray-500 hover:text-gray-700 font-medium transition-colors"
+                className="text-sm font-medium text-slate-500 transition-colors hover:text-slate-700"
               >
                 Not now, let me browse the list
               </button>
@@ -259,31 +394,32 @@ export default function RedoQueuePage() {
 
       {/* Full Screen Exam UI */}
       {mode === 'test' && questions.length > 0 && (
-        <div className="h-screen flex flex-col bg-white overflow-hidden">
+        <div className="flex h-screen flex-col overflow-hidden bg-slate-50">
           {/* Top Bar */}
-          <div className="bg-[#1a1a1a] text-white px-6 py-3 flex items-center justify-between shadow-lg z-10">
+          <div className="z-10 flex items-center justify-between bg-slate-900 px-6 py-3 text-white shadow-lg">
             <div className="flex items-center gap-4">
-              <div className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">REDO MODE</div>
-              <h2 className="text-sm font-semibold truncate max-w-xs">{selectedDate} Mastery Session</h2>
+              <div className="rounded bg-indigo-600 px-2 py-1 text-xs font-bold text-white">REDO MODE</div>
+              <h2 className="max-w-xs truncate text-sm font-semibold">{selectedDate} Mastery Session</h2>
             </div>
-            
-            <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3">
-               <div className="bg-[#2a2a2a] px-4 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
-                 <FiClock className="text-blue-400" />
-                 <span className="font-mono font-bold text-lg tabular-nums">{formatTime(timeElapsed)}</span>
-               </div>
+
+            <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-3">
+              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5">
+                <FiClock className="text-indigo-400" />
+                <span className="font-mono text-lg font-bold tabular-nums">{formatTime(timeElapsed)}</span>
+              </div>
             </div>
 
             <div className="flex items-center gap-4">
-              <button 
+              <button
                 onClick={submitRedo}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-2 rounded transition-all shadow-lg"
+                disabled={submitting}
+                className="rounded-lg bg-indigo-600 px-6 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:opacity-60"
               >
-                Finish Session
+                {submitting ? 'Submitting…' : 'Finish Session'}
               </button>
-              <button 
+              <button
                 onClick={() => { exitFullscreen(); setMode('list'); }}
-                className="text-white/60 hover:text-white transition-colors"
+                className="text-white/60 transition-colors hover:text-white"
               >
                 <FiX size={24} />
               </button>
@@ -291,21 +427,48 @@ export default function RedoQueuePage() {
           </div>
 
           {/* Main Test Area */}
-          <div className="flex-1 flex overflow-hidden">
+          <div className="flex flex-1 overflow-hidden">
             {/* Left side - Content */}
-            <div className="flex-1 overflow-y-auto p-12 custom-scrollbar bg-gray-50/30">
-              <div className="max-w-3xl mx-auto">
+            <div className="custom-scrollbar flex-1 overflow-y-auto bg-slate-50 p-12">
+              <div className="mx-auto max-w-3xl">
                 <div className="mb-8 flex items-center justify-between">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Question {currentQuestionIndex + 1} of {questions.length}</span>
+                  <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    Question {currentQuestionIndex + 1} of {questions.length}
+                  </span>
                   <div className="flex gap-1">
                     {questions.map((_, idx) => (
-                      <div key={idx} className={`w-2 h-2 rounded-full ${idx === currentQuestionIndex ? 'bg-blue-600' : answers[questions[idx].logId] ? 'bg-blue-200' : 'bg-gray-200'}`} />
+                      <div
+                        key={idx}
+                        className={`h-2 w-2 rounded-full ${idx === currentQuestionIndex ? 'bg-indigo-600' : answers[questions[idx].logId] ? 'bg-indigo-200' : 'bg-slate-200'}`}
+                      />
                     ))}
                   </div>
                 </div>
-                
-                <div className="bg-white rounded-2xl shadow-sm border p-10 min-h-[400px]">
-                  <div className="prose prose-blue max-w-none text-lg leading-relaxed text-gray-800">
+
+                <div className="min-h-[400px] rounded-2xl border border-slate-100 bg-white p-10 shadow-sm">
+                  <div className="mb-4 flex flex-wrap items-center gap-2">
+                    {questions[currentQuestionIndex].questionLabel && (
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                        {questions[currentQuestionIndex].questionLabel}
+                      </span>
+                    )}
+                    {questions[currentQuestionIndex].section && (
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${sectionBadge(questions[currentQuestionIndex].section)}`}>
+                        {questions[currentQuestionIndex].section}
+                      </span>
+                    )}
+                    {(questions[currentQuestionIndex].topic || questions[currentQuestionIndex].skill) && (
+                      <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">
+                        {questions[currentQuestionIndex].topic || questions[currentQuestionIndex].skill}
+                      </span>
+                    )}
+                    {questions[currentQuestionIndex].difficulty && (
+                      <span className={`text-xs font-semibold ${difficultyClass(questions[currentQuestionIndex].difficulty)}`}>
+                        {questions[currentQuestionIndex].difficulty}
+                      </span>
+                    )}
+                  </div>
+                  <div className="prose prose-indigo max-w-none text-lg leading-relaxed text-slate-800">
                     {renderContent(questions[currentQuestionIndex].content)}
                   </div>
                 </div>
@@ -313,48 +476,51 @@ export default function RedoQueuePage() {
             </div>
 
             {/* Right side - Options */}
-            <div className="w-[450px] bg-white border-l border-gray-100 flex flex-col shadow-2xl z-10">
-              <div className="p-8 flex-1 overflow-y-auto custom-scrollbar">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-8">Select Answer</h3>
+            <div className="z-10 flex w-[450px] flex-col border-l border-slate-100 bg-white shadow-2xl">
+              <div className="custom-scrollbar flex-1 overflow-y-auto p-8">
+                <h3 className="mb-8 text-xs font-bold uppercase tracking-widest text-slate-400">Select Answer</h3>
                 <div className="space-y-4">
-                  {questions[currentQuestionIndex].options.map((opt) => (
-                    <button
-                      key={opt.key}
-                      onClick={() => setAnswers(prev => ({ ...prev, [questions[currentQuestionIndex].logId]: opt.key }))}
-                      className={`w-full flex items-center gap-5 p-5 rounded-xl border-2 transition-all text-left group ${
-                        answers[questions[currentQuestionIndex].logId] === opt.key
-                          ? 'border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-100'
-                          : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg transition-all ${
-                        answers[questions[currentQuestionIndex].logId] === opt.key
-                          ? 'bg-blue-600 text-white scale-110 rotate-3 shadow-lg'
-                          : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200'
-                      }`}>
-                        {opt.key}
-                      </div>
-                      <div className="flex-1 text-gray-700 font-medium">
-                        {renderContent(opt.value)}
-                      </div>
-                    </button>
-                  ))}
+                  {questions[currentQuestionIndex].options.map((opt) => {
+                    const selected = answers[questions[currentQuestionIndex].logId] === opt.key
+                    return (
+                      <button
+                        key={opt.key}
+                        onClick={() => setAnswers(prev => ({ ...prev, [questions[currentQuestionIndex].logId]: opt.key }))}
+                        className={`group flex w-full items-center gap-5 rounded-xl border-2 p-5 text-left transition-all ${
+                          selected
+                            ? 'border-indigo-600 bg-indigo-50 shadow-md ring-2 ring-indigo-100'
+                            : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg font-bold transition-all ${
+                          selected
+                            ? 'bg-indigo-600 text-white shadow-lg'
+                            : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200'
+                        }`}>
+                          {opt.key}
+                        </div>
+                        <div className="flex-1 font-medium text-slate-700">
+                          {renderContent(opt.value)}
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
               {/* Navigation Buttons */}
-              <div className="p-8 bg-gray-50/50 border-t border-gray-100 grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 border-t border-slate-100 bg-slate-50 p-8">
                 <button
                   disabled={currentQuestionIndex === 0}
                   onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
-                  className="flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-bold border-2 border-gray-200 text-gray-600 hover:bg-white hover:border-blue-200 hover:text-blue-600 transition-all disabled:opacity-30 disabled:pointer-events-none"
+                  className="flex items-center justify-center gap-2 rounded-xl border-2 border-slate-200 px-6 py-4 font-bold text-slate-600 transition-all hover:border-indigo-200 hover:bg-white hover:text-indigo-600 disabled:pointer-events-none disabled:opacity-30"
                 >
                   <FiArrowLeft /> Previous
                 </button>
                 {currentQuestionIndex < questions.length - 1 ? (
                   <button
                     onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
-                    className="flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-bold bg-[#1a1a1a] text-white hover:bg-black transition-all shadow-lg"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-slate-800"
                   >
                     Next Question <FiArrowRight />
                   </button>
@@ -362,9 +528,9 @@ export default function RedoQueuePage() {
                   <button
                     onClick={submitRedo}
                     disabled={submitting}
-                    className="flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-indigo-700 disabled:opacity-60"
                   >
-                    {submitting ? 'Submitting...' : 'Complete Test'} <FiCheckCircle />
+                    {submitting ? 'Submitting…' : 'Complete Test'} <FiCheckCircle />
                   </button>
                 )}
               </div>
@@ -375,41 +541,43 @@ export default function RedoQueuePage() {
 
       {/* Result Mode */}
       {mode === 'result' && (
-        <div className="fixed inset-0 bg-[#1a1a1a] flex items-center justify-center z-[100] p-6">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden">
-            <div className="bg-blue-600 p-12 text-center text-white">
-              <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-md">
-                <FiCheckCircle size={48} />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-6">
+          <div className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-xl">
+            <div className="bg-indigo-600 p-10 text-center text-white">
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-md">
+                <FiCheckCircle size={44} />
               </div>
-              <h2 className="text-4xl font-black mb-2 tracking-tight">Session Complete!</h2>
-              <p className="text-blue-100 text-lg">Great job on finishing your mastery batch.</p>
+              <h2 className="mb-2 text-3xl font-extrabold tracking-tight">Session Complete!</h2>
+              <p className="text-indigo-100">
+                Great job on finishing your {result?.date ? `${result.date} ` : ''}mastery batch.
+              </p>
             </div>
-            
-            <div className="p-12 grid grid-cols-3 gap-8 text-center">
-              <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Attempted</p>
-                <p className="text-3xl font-black text-gray-900">{result?.attempted || 0}</p>
+
+            <div className="grid grid-cols-3 gap-6 p-10 text-center">
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
+                <p className="mb-1 text-xs font-bold uppercase tracking-widest text-slate-400">Attempted</p>
+                <p className="text-3xl font-extrabold text-slate-900">{result?.attempted || 0}</p>
               </div>
-              <div className="p-6 bg-green-50 rounded-2xl border border-green-100">
-                <p className="text-xs font-bold text-green-400 uppercase tracking-widest mb-1">Correct</p>
-                <p className="text-3xl font-black text-green-600">{result?.correct || 0}</p>
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-6">
+                <p className="mb-1 text-xs font-bold uppercase tracking-widest text-emerald-500">Correct</p>
+                <p className="text-3xl font-extrabold text-emerald-600">{result?.correct || 0}</p>
               </div>
-              <div className="p-6 bg-red-50 rounded-2xl border border-red-100">
-                <p className="text-xs font-bold text-red-400 uppercase tracking-widest mb-1">Incorrect</p>
-                <p className="text-3xl font-black text-red-600">{result?.wrong || 0}</p>
+              <div className="rounded-2xl border border-rose-100 bg-rose-50 p-6">
+                <p className="mb-1 text-xs font-bold uppercase tracking-widest text-rose-500">Incorrect</p>
+                <p className="text-3xl font-extrabold text-rose-600">{result?.wrong || 0}</p>
               </div>
             </div>
 
-            <div className="px-12 pb-12 flex gap-4">
-              <button 
-                onClick={() => setMode('list')} 
-                className="flex-1 py-4 px-6 rounded-xl font-bold border-2 border-gray-200 text-gray-600 hover:bg-gray-50 transition-all"
+            <div className="flex gap-4 px-10 pb-10">
+              <button
+                onClick={() => setMode('list')}
+                className="flex-1 rounded-xl border-2 border-slate-200 px-6 py-4 font-bold text-slate-600 transition-all hover:bg-slate-50"
               >
                 Back to Queue
               </button>
-              <button 
-                onClick={() => startRedoByDate(selectedDate)} 
-                className="flex-1 py-4 px-6 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg"
+              <button
+                onClick={() => startRedoByDate(selectedDate)}
+                className="flex-1 rounded-xl bg-indigo-600 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-indigo-700"
               >
                 Retry Batch
               </button>
@@ -423,14 +591,14 @@ export default function RedoQueuePage() {
           width: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1;
+          background: #f1f5f9;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #d1d1d1;
+          background: #cbd5e1;
           border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #a1a1a1;
+          background: #94a3b8;
         }
       `}</style>
     </div>

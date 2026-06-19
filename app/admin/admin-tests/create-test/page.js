@@ -108,44 +108,45 @@ export default function CreateAdminTest() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Create Admin Test</h1>
-          <p className="text-sm text-gray-500 mt-1">Create an adaptive test using the Admin Test Bank with 2-module structure</p>
+          <h1 className="text-2xl font-extrabold text-slate-900 lg:text-3xl">Create Admin Test</h1>
+          <p className="mt-1 text-sm text-slate-500">Create an adaptive test using the Admin Test Bank with 2-module structure</p>
         </div>
 
-        {error && <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg flex items-center gap-2 border border-red-100"><FiAlertCircle />{error}</div>}
-        {success && <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg flex items-center gap-2 border border-green-100"><FiCheck />{success}</div>}
+        {error && <div className="mb-4 flex items-center gap-2 rounded-lg border border-rose-100 bg-rose-50 p-4 text-rose-700"><FiAlertCircle />{error}</div>}
+        {success && <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 p-4 text-emerald-700"><FiCheck />{success}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-6">
 
           {/* Title */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Test Name *</label>
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <label htmlFor="test-title" className="mb-2 block text-sm font-semibold text-slate-700">Test Name *</label>
             <input
+              id="test-title"
               type="text"
               value={formData.title}
               onChange={e => setFormData({ ...formData, title: e.target.value })}
               placeholder="e.g., Admin DSAT Practice Test 1"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
           {/* Sections */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <label className="block text-sm font-semibold text-gray-700 mb-3">Sections</label>
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <span className="mb-3 block text-sm font-semibold text-slate-700">Sections</span>
             <div className="grid grid-cols-2 gap-4">
               {[
                 { key: 'rw', label: 'Reading & Writing', desc: 'Module 1: 27 Qs · 32 min\nModule 2: 27 Qs · 32 min', icon: '📖' },
                 { key: 'math', label: 'Math', desc: 'Module 1: 22 Qs · 35 min\nModule 2: 22 Qs · 35 min', icon: '🔢' }
               ].map(s => (
-                <label key={s.key} className={`border-2 rounded-xl p-4 cursor-pointer transition ${formData.sections[s.key] ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                <label key={s.key} className={`cursor-pointer rounded-xl border-2 p-4 transition ${formData.sections[s.key] ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 hover:border-slate-300'}`}>
                   <div className="flex items-start gap-3">
-                    <input type="checkbox" checked={formData.sections[s.key]} onChange={e => setFormData({ ...formData, sections: { ...formData.sections, [s.key]: e.target.checked } })} className="mt-1" />
+                    <input type="checkbox" checked={formData.sections[s.key]} onChange={e => setFormData({ ...formData, sections: { ...formData.sections, [s.key]: e.target.checked } })} className="mt-1 accent-indigo-600" />
                     <div>
-                      <div className="font-semibold text-gray-900">{s.icon} {s.label}</div>
-                      <div className="text-xs text-gray-500 mt-1 whitespace-pre-line">{s.desc}</div>
+                      <div className="font-semibold text-slate-900">{s.icon} {s.label}</div>
+                      <div className="mt-1 whitespace-pre-line text-xs text-slate-500">{s.desc}</div>
                     </div>
                   </div>
                 </label>
@@ -154,24 +155,24 @@ export default function CreateAdminTest() {
           </div>
 
           {/* Config Type */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <label className="block text-sm font-semibold text-gray-700 mb-3">Test Configuration</label>
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <span className="mb-3 block text-sm font-semibold text-slate-700">Test Configuration</span>
             <div className="grid grid-cols-2 gap-4">
-              <label className={`border-2 rounded-xl p-4 cursor-pointer transition ${formData.configType === 'standard' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
+              <label className={`cursor-pointer rounded-xl border-2 p-4 transition ${formData.configType === 'standard' ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 hover:border-slate-300'}`}>
                 <div className="flex items-start gap-3">
-                  <input type="radio" name="configType" value="standard" checked={formData.configType === 'standard'} onChange={e => setFormData({ ...formData, configType: e.target.value })} className="mt-1" />
+                  <input type="radio" name="configType" value="standard" checked={formData.configType === 'standard'} onChange={e => setFormData({ ...formData, configType: e.target.value })} className="mt-1 accent-indigo-600" />
                   <div>
-                    <div className="font-semibold text-gray-900 flex items-center gap-2"><FiBookOpen className="text-blue-600" /> Standard SAT</div>
-                    <p className="text-xs text-gray-500 mt-1">Official College Board adaptive thresholds and difficulty distribution</p>
+                    <div className="flex items-center gap-2 font-semibold text-slate-900"><FiBookOpen className="text-indigo-600" /> Standard SAT</div>
+                    <p className="mt-1 text-xs text-slate-500">Official College Board adaptive thresholds and difficulty distribution</p>
                   </div>
                 </div>
               </label>
-              <label className={`border-2 rounded-xl p-4 cursor-pointer transition ${formData.configType === 'custom' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
+              <label className={`cursor-pointer rounded-xl border-2 p-4 transition ${formData.configType === 'custom' ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 hover:border-slate-300'}`}>
                 <div className="flex items-start gap-3">
-                  <input type="radio" name="configType" value="custom" checked={formData.configType === 'custom'} onChange={e => setFormData({ ...formData, configType: e.target.value })} className="mt-1" />
+                  <input type="radio" name="configType" value="custom" checked={formData.configType === 'custom'} onChange={e => setFormData({ ...formData, configType: e.target.value })} className="mt-1 accent-indigo-600" />
                   <div>
-                    <div className="font-semibold text-gray-900 flex items-center gap-2"><FiSettings className="text-purple-600" /> Custom Configuration</div>
-                    <p className="text-xs text-gray-500 mt-1">Customize routing score ranges and Module 2 difficulty distribution</p>
+                    <div className="flex items-center gap-2 font-semibold text-slate-900"><FiSettings className="text-indigo-600" /> Custom Configuration</div>
+                    <p className="mt-1 text-xs text-slate-500">Customize routing score ranges and Module 2 difficulty distribution</p>
                   </div>
                 </div>
               </label>
@@ -180,32 +181,33 @@ export default function CreateAdminTest() {
 
           {/* Custom Config */}
           {formData.configType === 'custom' && (
-            <div className="bg-white rounded-xl border border-blue-200 p-6 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-5 flex items-center gap-2"><FiSettings className="text-blue-600" /> Custom Configuration</h3>
+            <div className="rounded-2xl border border-indigo-200 bg-white p-6 shadow-sm">
+              <h3 className="mb-5 flex items-center gap-2 font-semibold text-slate-900"><FiSettings className="text-indigo-600" /> Custom Configuration</h3>
 
               {[
                 { key: 'rw', label: '📖 Reading & Writing', max: 27 },
                 { key: 'math', label: '🔢 Math', max: 22 }
               ].map(sec => (
                 <div key={sec.key} className="mb-8">
-                  <h4 className="font-medium text-blue-900 mb-4 text-base">{sec.label} ({sec.max} questions per module)</h4>
+                  <h4 className="mb-4 text-base font-medium text-indigo-900">{sec.label} ({sec.max} questions per module)</h4>
 
                   {/* Routing */}
-                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                    <p className="text-sm font-semibold text-gray-700 mb-3">Module 2 Routing — Score Ranges (out of {sec.max})</p>
+                  <div className="mb-4 rounded-lg bg-slate-50 p-4">
+                    <p className="mb-3 text-sm font-semibold text-slate-700">Module 2 Routing — Score Ranges (out of {sec.max})</p>
                     <div className="grid grid-cols-3 gap-4">
                       {['low', 'medium', 'high'].map(path => (
-                        <div key={path} className="bg-white rounded-lg p-3 border">
-                          <p className="text-xs font-semibold text-gray-600 capitalize mb-2">{path} path</p>
+                        <div key={path} className="rounded-lg border border-slate-200 bg-white p-3">
+                          <p className="mb-2 text-xs font-semibold capitalize text-slate-600">{path} path</p>
                           <div className="space-y-2">
                             {['min', 'max'].map(field => (
                               <div key={field}>
-                                <label className="text-xs text-gray-500 capitalize">{field} score</label>
+                                <label htmlFor={`routing-${sec.key}-${path}-${field}`} className="text-xs capitalize text-slate-500">{field} score</label>
                                 <input
+                                  id={`routing-${sec.key}-${path}-${field}`}
                                   type="number" min={0} max={sec.max}
                                   value={formData.customConfig[sec.key].routing[path][field]}
                                   onChange={e => updateCustomConfig(sec.key, 'routing', path, field, e.target.value)}
-                                  className="w-full border rounded px-2 py-1 text-sm mt-0.5"
+                                  className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                                 />
                               </div>
                             ))}
@@ -216,21 +218,22 @@ export default function CreateAdminTest() {
                   </div>
 
                   {/* Distribution */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-sm font-semibold text-gray-700 mb-3">Module 2 Difficulty Distribution (questions)</p>
+                  <div className="rounded-lg bg-slate-50 p-4">
+                    <p className="mb-3 text-sm font-semibold text-slate-700">Module 2 Difficulty Distribution (questions)</p>
                     <div className="grid grid-cols-3 gap-4">
                       {['low', 'medium', 'high'].map(path => (
-                        <div key={path} className="bg-white rounded-lg p-3 border">
-                          <p className="text-xs font-semibold text-gray-600 capitalize mb-2">{path} path</p>
+                        <div key={path} className="rounded-lg border border-slate-200 bg-white p-3">
+                          <p className="mb-2 text-xs font-semibold capitalize text-slate-600">{path} path</p>
                           <div className="space-y-2">
                             {['easy', 'medium', 'hard'].map(diff => (
                               <div key={diff}>
-                                <label className="text-xs text-gray-500 capitalize">{diff}</label>
+                                <label htmlFor={`dist-${sec.key}-${path}-${diff}`} className="text-xs capitalize text-slate-500">{diff}</label>
                                 <input
+                                  id={`dist-${sec.key}-${path}-${diff}`}
                                   type="number" min={0} max={sec.max}
                                   value={formData.customConfig[sec.key].distribution[path][diff]}
                                   onChange={e => updateCustomConfig(sec.key, 'distribution', path, diff, e.target.value)}
-                                  className="w-full border rounded px-2 py-1 text-sm mt-0.5"
+                                  className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                                 />
                               </div>
                             ))}
@@ -245,30 +248,30 @@ export default function CreateAdminTest() {
           )}
 
           {/* Timer */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <label className="block text-sm font-semibold text-gray-700 mb-3">Test Mode</label>
-            <div className="flex gap-4 mb-4">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <span className="mb-3 block text-sm font-semibold text-slate-700">Test Mode</span>
+            <div className="mb-4 flex gap-4">
               {[{ v: true, label: 'Timed' }, { v: false, label: 'Untimed' }].map(m => (
-                <label key={String(m.v)} className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 rounded-xl cursor-pointer transition ${formData.isTimed === m.v ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-gray-300'}`}>
+                <label key={String(m.v)} className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 p-3 transition ${formData.isTimed === m.v ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 hover:border-slate-300'}`}>
                   <input type="radio" checked={formData.isTimed === m.v} onChange={() => setFormData({ ...formData, isTimed: m.v })} className="hidden" />
                   {m.v && <FiClock />}
-                  <span className="font-medium text-sm">{m.label}</span>
+                  <span className="text-sm font-medium">{m.label}</span>
                 </label>
               ))}
             </div>
             {formData.isTimed && (
               <div className="flex items-center gap-3">
                 <div>
-                  <label className="text-sm text-gray-600 mb-1 block">Duration (minutes)</label>
-                  <input type="number" min={10} value={formData.duration} onChange={e => setFormData({ ...formData, duration: parseInt(e.target.value) || 134 })} className="w-32 border rounded-lg px-3 py-2 text-sm" />
+                  <label htmlFor="test-duration" className="mb-1 block text-sm text-slate-600">Duration (minutes)</label>
+                  <input id="test-duration" type="number" min={10} value={formData.duration} onChange={e => setFormData({ ...formData, duration: parseInt(e.target.value) || 134 })} className="w-32 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" />
                 </div>
-                <p className="text-xs text-gray-400 mt-5">Default: 134 min (64 R&W + 70 Math)</p>
+                <p className="mt-5 text-xs text-slate-400">Default: 134 min (64 R&W + 70 Math)</p>
               </div>
             )}
           </div>
 
           {/* Summary */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+          <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-800">
             <strong>Summary:</strong>{' '}
             {formData.sections.rw ? '54 R&W questions (27+27 adaptive)' : ''}
             {formData.sections.rw && formData.sections.math ? ' + ' : ''}
@@ -281,7 +284,7 @@ export default function CreateAdminTest() {
           <button
             type="submit"
             disabled={loading || (!formData.sections.math && !formData.sections.rw)}
-            className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-base"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-3 text-base font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             <FiSave /> {loading ? 'Creating Test...' : 'Create Admin Test'}
           </button>

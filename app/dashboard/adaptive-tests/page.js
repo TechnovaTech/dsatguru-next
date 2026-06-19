@@ -1,12 +1,17 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlay, FiFileText, FiClock } from 'react-icons/fi'
+import {
+  FiPlay, FiFileText, FiClock, FiLayers, FiTarget, FiList,
+  FiCalendar, FiCheckCircle, FiAlertCircle, FiInbox, FiActivity,
+  FiBarChart2, FiAward,
+} from 'react-icons/fi'
 
 export default function AdaptiveTestsPage() {
   const router = useRouter()
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState('Assigned')
 
   useEffect(() => {
@@ -14,12 +19,15 @@ export default function AdaptiveTestsPage() {
   }, [])
 
   const fetchHistory = async () => {
+    setLoading(true)
+    setError('')
     try {
       const token = localStorage.getItem('token')
       const res = await fetch('/api/test-sessions', {
         headers: { Authorization: `Bearer ${token}` },
         cache: 'no-store'
       })
+      if (!res.ok) throw new Error('Failed to load adaptive tests')
       const data = await res.json()
       const sessions = data.sessions || data || []
 
@@ -39,6 +47,7 @@ export default function AdaptiveTestsPage() {
       setHistory(adaptive)
     } catch (error) {
       console.error('Failed to fetch history', error)
+      setError("Couldn't load adaptive tests.")
     } finally {
       setLoading(false)
     }
@@ -50,162 +59,267 @@ export default function AdaptiveTestsPage() {
     { name: 'Completed', count: history.filter(h => h.status === 'Completed').length }
   ]
 
+  const statCards = [
+    { label: 'Assigned', value: history.filter(h => h.status === 'Assigned').length, icon: FiInbox, chip: 'bg-indigo-500' },
+    { label: 'In Progress', value: history.filter(h => h.status === 'InProgress' && !h.isReassigned).length, icon: FiActivity, chip: 'bg-amber-500' },
+    { label: 'Completed', value: history.filter(h => h.status === 'Completed' && !h.isReassigned).length, icon: FiCheckCircle, chip: 'bg-emerald-500' },
+    { label: 'Total Tests', value: history.length, icon: FiList, chip: 'bg-violet-500' },
+  ]
+
+  const returnUrl = '/dashboard/adaptive-tests'
+
+  const renderSession = (session) => {
+    const test = session.testId
+    const sections = []
+    if (test?.sections?.rw) sections.push('R&W')
+    if (test?.sections?.math) sections.push('Math')
+    const sectionLabel = sections.join(' + ') || '—'
+    const duration = test?.duration || 180
+    const questionCount = test?.totalQuestions || test?.questions?.length || 0
+    const difficulty = test?.difficulty
+    const createdAt = session.createdAt ? new Date(session.createdAt) : null
+    const completedAt = session.completedAt ? new Date(session.completedAt) : null
+
+    const isAssigned = session.status === 'Assigned'
+    const isInProgress = session.status === 'InProgress'
+    const isCompleted = session.status === 'Completed'
+
+    // Completed-only derived data
+    const responses = session.responses || []
+    const correct = session.correctAnswers ?? responses.filter(r => r.isCorrect).length
+    const totalQ = responses.length || session.totalQuestions || questionCount || 0
+    const answered = session.answeredQuestions ?? responses.length
+    const accuracy = totalQ > 0 ? Math.round((correct / totalQ) * 100) : null
+    const rwScore = session.rwScore
+    const mathScore = session.mathScore
+    const totalScore = session.totalScore
+    const analysisDone = session.analysisSubmitted
+
+    return (
+      <div key={session._id} className="rounded-2xl border border-slate-100 bg-white shadow-sm hover:shadow-md transition-shadow p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          {/* Left: status, title, meta */}
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                isAssigned ? 'bg-indigo-100 text-indigo-700'
+                : isCompleted ? 'bg-emerald-100 text-emerald-700'
+                : 'bg-amber-100 text-amber-700'
+              }`}>
+                {isAssigned ? <FiInbox className="h-3 w-3" /> : isCompleted ? <FiCheckCircle className="h-3 w-3" /> : <FiActivity className="h-3 w-3" />}
+                {isInProgress ? 'In Progress' : session.status}
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium bg-slate-100 text-slate-600">
+                <FiLayers className="h-3 w-3" /> {sectionLabel}
+              </span>
+              {difficulty && (
+                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium capitalize ${
+                  difficulty === 'hard' ? 'bg-rose-100 text-rose-700'
+                  : difficulty === 'easy' ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-amber-100 text-amber-700'
+                }`}>
+                  <FiBarChart2 className="h-3 w-3" /> {difficulty}
+                </span>
+              )}
+              {isCompleted && analysisDone && (
+                <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium bg-emerald-100 text-emerald-700">
+                  <FiCheckCircle className="h-3 w-3" /> Analysis submitted
+                </span>
+              )}
+            </div>
+
+            <h3 className="font-bold text-slate-900 text-base truncate">{test?.title || 'Adaptive Test'}</h3>
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-1.5 text-xs text-slate-500">
+              <span className="inline-flex items-center gap-1">
+                <FiFileText className="h-3 w-3" /> {sectionLabel} &middot; 2 Modules each
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <FiClock className="h-3 w-3" /> {duration} min
+              </span>
+              {questionCount > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <FiList className="h-3 w-3" /> {questionCount} Questions
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1">
+                <FiCalendar className="h-3 w-3" /> {createdAt ? createdAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+              </span>
+              {isCompleted && completedAt && (
+                <span className="inline-flex items-center gap-1">
+                  <FiCheckCircle className="h-3 w-3" /> Completed {completedAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </span>
+              )}
+              {isCompleted && accuracy !== null && (
+                <span className="inline-flex items-center gap-1">
+                  <FiTarget className="h-3 w-3" /> {accuracy}% accuracy ({correct}/{totalQ})
+                </span>
+              )}
+              {isCompleted && (session.totalQuestions || answered) ? (
+                <span className="inline-flex items-center gap-1">
+                  <FiList className="h-3 w-3" /> {answered}/{session.totalQuestions ?? totalQ} answered
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Right: scores (completed) */}
+          {isCompleted && (rwScore > 0 || mathScore > 0 || (totalScore !== undefined && totalScore !== null)) && (
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {rwScore > 0 && (
+                <div className="text-center rounded-xl bg-indigo-50 px-4 py-2">
+                  <p className="text-xs font-semibold text-indigo-500">R&amp;W</p>
+                  <p className="text-xl font-bold text-indigo-700">{rwScore}</p>
+                </div>
+              )}
+              {mathScore > 0 && (
+                <div className="text-center rounded-xl bg-emerald-50 px-4 py-2">
+                  <p className="text-xs font-semibold text-emerald-500">Math</p>
+                  <p className="text-xl font-bold text-emerald-700">{mathScore}</p>
+                </div>
+              )}
+              <div className="text-center rounded-xl bg-slate-900 px-4 py-2">
+                <p className="text-xs font-semibold text-slate-400">Score</p>
+                <p className="text-xl font-bold text-white">{totalScore ?? '—'}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-slate-100">
+          {isAssigned && (
+            <button
+              onClick={() => router.push(`/dashboard/tests/${test?._id}/start?sessionId=${session._id}&returnUrl=${returnUrl}`)}
+              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+            >
+              <FiPlay className="h-4 w-4" /> Start Test
+            </button>
+          )}
+          {isInProgress && (
+            <button
+              onClick={() => router.push(`/dashboard/tests/${test?._id}/start?sessionId=${session._id}&returnUrl=${returnUrl}`)}
+              className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 transition-colors"
+            >
+              <FiPlay className="h-4 w-4" /> Resume
+            </button>
+          )}
+          {isCompleted && (
+            <button
+              onClick={() => router.push(`/dashboard/tests/${test?._id}/results?session_id=${session._id}&returnUrl=${returnUrl}`)}
+              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors ${
+                analysisDone ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'
+              }`}
+            >
+              {analysisDone ? <><FiBarChart2 className="h-4 w-4" /> View Analysis</> : <><FiAward className="h-4 w-4" /> Submit Analysis</>}
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Filtered list matching original tab logic
+  const filtered = history.filter(h => {
+    if (activeTab === 'Assigned') return h.status === 'Assigned'
+    if (activeTab === 'In Progress') return h.status === 'InProgress' && !h.isReassigned
+    if (activeTab === 'Completed') return h.status === 'Completed' && !h.isReassigned
+    return false
+  })
+
   if (loading) {
     return (
-      <div className="p-8 flex justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-slate-50 p-6 lg:p-8 flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 font-[Poppins]">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Adaptive Tests</h1>
-          <p className="text-gray-500 mt-1">Access your assigned adaptive SAT practice tests and track your progress.</p>
-
-          <div className="flex items-center gap-2 mt-6 border-b border-gray-200">
-            {tabs.map(tab => (
-              <button
-                key={tab.name}
-                onClick={() => setActiveTab(tab.name)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-                  activeTab === tab.name
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {tab.name}
-                {tab.count > 0 && (
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${activeTab === tab.name ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900 lg:text-3xl">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+              <FiTarget className="h-5 w-5" />
+            </span>
+            Adaptive Tests
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">Access your assigned adaptive SAT practice tests and track your progress.</p>
         </div>
 
-        <div className="space-y-3">
-          {activeTab === 'Assigned' && (
-            history.filter(h => h.status === 'Assigned').length > 0 ? (
-              history.filter(h => h.status === 'Assigned').map(session => {
-                const test = session.testId
-                const sections = []
-                if (test?.sections?.rw) sections.push('R&W')
-                if (test?.sections?.math) sections.push('Math')
-                const duration = test?.duration || 180
-
-                return (
-                  <div key={session._id} className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-all">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded border border-blue-100">Assigned</span>
-                        <span className="text-xs text-gray-500">{new Date(session.createdAt).toLocaleDateString()}</span>
-                      </div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">{test?.title || 'Adaptive Test'}</h3>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
-                        <span className="flex items-center gap-1">
-                          <FiFileText className="w-4 h-4" />
-                          <span className="font-medium">{sections.join(' + ')}</span> • 2 Modules each
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <FiClock className="w-4 h-4" />
-                          <span className="font-medium">{duration} min</span>
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => router.push(`/dashboard/tests/${test?._id}/start?sessionId=${session._id}&returnUrl=/dashboard/adaptive-tests`)}
-                      className="px-6 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
-                    >
-                      <FiPlay className="w-4 h-4" /> Start Test
-                    </button>
-                  </div>
-                )
-              })
-            ) : (
-              <div className="text-center py-16 bg-white rounded-lg border border-dashed border-gray-300">
-                <div className="bg-gray-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <FiFileText className="w-6 h-6 text-gray-400" />
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {statCards.map(s => {
+            const Icon = s.icon
+            return (
+              <div key={s.label} className="rounded-2xl border border-slate-100 bg-white shadow-sm p-5">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg text-white ${s.chip}`}>
+                  <Icon className="h-5 w-5" />
                 </div>
-                <h3 className="text-gray-900 font-medium">No adaptive tests assigned</h3>
-                <p className="text-gray-500 text-sm mt-1">You don&apos;t have any pending adaptive tests.</p>
+                <p className="mt-3 text-3xl font-extrabold text-slate-900">{s.value}</p>
+                <p className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-slate-500">{s.label}</p>
               </div>
             )
-          )}
+          })}
+        </div>
 
-          {(activeTab === 'In Progress' || activeTab === 'Completed') && (
-            history.filter(h => {
-              const statusMatch = activeTab === 'Completed' ? h.status === 'Completed' : h.status === 'InProgress'
-              return statusMatch && !h.isReassigned
-            }).length > 0 ? (
-              history
-                .filter(h => {
-                  const statusMatch = activeTab === 'Completed' ? h.status === 'Completed' : h.status === 'InProgress'
-                  return statusMatch && !h.isReassigned
-                })
-                .map(session => {
-                  const test = session.testId
-                  const sections = []
-                  if (test?.sections?.rw) sections.push('R&W')
-                  if (test?.sections?.math) sections.push('Math')
-                  const duration = test?.duration || 180
+        {/* Tabs */}
+        <div className="flex items-center gap-2 mb-6 border-b border-slate-200">
+          {tabs.map(tab => (
+            <button
+              key={tab.name}
+              onClick={() => setActiveTab(tab.name)}
+              className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+                activeTab === tab.name
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {tab.name}
+              {tab.count > 0 && (
+                <span className={`text-xs px-2 py-0.5 rounded-full ${activeTab === tab.name ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
 
-                  return (
-                    <div key={session._id} className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-all">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${
-                            session.status === 'Completed'
-                              ? 'bg-green-50 border-green-200 text-green-600'
-                              : 'bg-yellow-50 border-yellow-200 text-yellow-600'
-                          }`}>
-                            {session.status === 'Completed' ? 'Completed' : 'In Progress'}
-                          </span>
-                          <span className="text-xs text-gray-500">{new Date(session.createdAt).toLocaleDateString()}</span>
-                        </div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">{test?.title || 'Adaptive Test'}</h3>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
-                          <span className="flex items-center gap-1">
-                            <FiFileText className="w-4 h-4" />
-                            <span className="font-medium">{sections.join(' + ')}</span> • 2 Modules each
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <FiClock className="w-4 h-4" />
-                            <span className="font-medium">{duration} min</span>
-                          </span>
-                        </div>
-                      </div>
+        {/* Error */}
+        {error && (
+          <div role="alert" className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 flex flex-wrap items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-2 text-sm font-medium text-rose-700">
+              <FiAlertCircle className="h-4 w-4 flex-shrink-0" /> {error} Please try again.
+            </span>
+            <button
+              onClick={fetchHistory}
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors flex-shrink-0"
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
-                      <div className="flex items-center gap-3">
-                        {session.status === 'Completed' ? (
-                          <button
-                            onClick={() => router.push(`/dashboard/tests/${test?._id}/results?session_id=${session._id}&returnUrl=/dashboard/adaptive-tests`)}
-                            className={`px-6 py-2 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm ${
-                              session.analysisSubmitted
-                                ? 'bg-green-600 hover:bg-green-700'
-                                : 'bg-blue-600 hover:bg-blue-700'
-                            }`}
-                          >
-                            {session.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => router.push(`/dashboard/tests/${test?._id}/start?sessionId=${session._id}&returnUrl=/dashboard/adaptive-tests`)}
-                            className="px-6 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-                          >
-                            Resume
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })
-            ) : (
-              <div className="text-center py-12 text-gray-500">No adaptive sessions found.</div>
-            )
+        {/* List */}
+        <div className="space-y-4">
+          {filtered.length > 0 ? (
+            filtered.map(renderSession)
+          ) : (
+            <div className="rounded-2xl border border-slate-100 bg-white shadow-sm p-12 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
+                <FiFileText className="h-6 w-6" />
+              </div>
+              <h3 className="mt-4 text-base font-semibold text-slate-900">
+                {activeTab === 'Assigned' ? 'No adaptive tests assigned' : `No ${activeTab.toLowerCase()} adaptive tests`}
+              </h3>
+              <p className="mt-1 text-sm text-slate-500">
+                {activeTab === 'Assigned'
+                  ? "You don't have any pending adaptive tests."
+                  : `No ${activeTab.toLowerCase()} adaptive sessions found.`}
+              </p>
+            </div>
           )}
         </div>
       </div>

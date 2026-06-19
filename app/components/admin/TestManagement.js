@@ -1,8 +1,10 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { FiPlus, FiEdit, FiTrash2, FiPlay, FiPause, FiUsers, FiFileText, FiUserPlus, FiSearch, FiX, FiCheck } from 'react-icons/fi'
+import { useConfirm } from '../ui/UIProvider'
 
 export default function TestManagement() {
+  const confirm = useConfirm()
   const [tests, setTests] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -159,7 +161,7 @@ export default function TestManagement() {
   }
 
   const handleDelete = async (testId) => {
-    if (confirm('Are you sure you want to delete this test?')) {
+    if (await confirm({ message: 'Are you sure you want to delete this test?', tone: 'danger', confirmText: 'Delete' })) {
       try {
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
         const response = await fetch(`/api/admin/tests/${testId}`, {
@@ -257,13 +259,13 @@ export default function TestManagement() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-slate-50 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-            <div className="space-y-4">
+            <div className="h-8 bg-slate-200 rounded w-1/4 mb-6"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-20 bg-gray-200 rounded"></div>
+                <div key={i} className="h-48 bg-slate-200 rounded-2xl"></div>
               ))}
             </div>
           </div>
@@ -273,45 +275,52 @@ export default function TestManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">📋 Adaptive Test Management</h1>
+        <h1 className="text-2xl lg:text-3xl font-extrabold text-slate-900">📋 Adaptive Test Management</h1>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors"
         >
           <FiPlus /> Create Test
         </button>
         </div>
 
       {/* Tests Grid */}
+      {tests.length === 0 ? (
+        <div className="rounded-2xl border border-slate-100 bg-white shadow-sm py-12 text-center">
+          <FiFileText className="mx-auto text-4xl text-slate-400 mb-4" />
+          <h3 className="text-lg font-semibold text-slate-600 mb-2">No Tests Yet</h3>
+          <p className="text-slate-400 text-sm">Create your first adaptive test to get started.</p>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {tests.map((test) => (
-          <div key={test._id} className="bg-white rounded-lg shadow-md p-6">
+          <div key={test._id} className="rounded-2xl border border-slate-100 bg-white shadow-sm p-6">
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-2">
-                <FiFileText className="text-blue-600" />
-                <h3 className="text-lg font-semibold">{test.title}</h3>
+                <FiFileText className="text-indigo-600" />
+                <h3 className="text-lg font-semibold text-slate-900">{test.title}</h3>
               </div>
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleOpenAssignModal(test)}
-                  className="text-purple-600 hover:text-purple-800"
+                  className="text-indigo-600 hover:text-indigo-800"
                   title="Assign to Student"
                 >
                   <FiUserPlus />
                 </button>
                 <button
                   onClick={() => toggleTestStatus(test._id, test.isActive)}
-                  className={`${test.isActive ? 'text-orange-600' : 'text-green-600'} hover:opacity-80`}
+                  className={`${test.isActive ? 'text-amber-600' : 'text-emerald-600'} hover:opacity-80`}
                   title={test.isActive ? 'Deactivate' : 'Activate'}
                 >
                   {test.isActive ? <FiPause /> : <FiPlay />}
                 </button>
                 <button
                   onClick={() => handleEdit(test)}
-                  className="text-blue-600 hover:text-blue-800"
+                  className="text-slate-500 hover:text-indigo-600"
                 >
                   <FiEdit />
                 </button>
@@ -323,43 +332,43 @@ export default function TestManagement() {
                 </button>
               </div>
             </div>
-            <p className="text-gray-600 text-sm mb-4">{test.description}</p>
-            
+            <p className="text-slate-500 text-sm mb-4">{test.description}</p>
+
             <div className="space-y-3 text-sm">
-              <div className="font-semibold">Sections</div>
+              <div className="font-semibold text-slate-700">Sections</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="border rounded p-3">
+                <div className="border border-slate-200 rounded-lg p-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">Reading & Writing</span>
-                    <span className={`px-2 py-1 text-xs rounded ${test.sections?.rw ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
+                    <span className="font-medium text-slate-700">Reading & Writing</span>
+                    <span className={`px-2 py-1 text-xs rounded-full ${test.sections?.rw ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
                       {test.sections?.rw ? 'Enabled' : 'Disabled'}
                     </span>
                   </div>
-                  <div className="text-gray-700">Base Module: 27 Q • 32 min</div>
-                  <div className="text-gray-700">Adaptive Module: 27 Q • 32 min</div>
+                  <div className="text-slate-600">Base Module: 27 Q • 32 min</div>
+                  <div className="text-slate-600">Adaptive Module: 27 Q • 32 min</div>
                 </div>
-                <div className="border rounded p-3">
+                <div className="border border-slate-200 rounded-lg p-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">Math</span>
-                    <span className={`px-2 py-1 text-xs rounded ${test.sections?.math ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
+                    <span className="font-medium text-slate-700">Math</span>
+                    <span className={`px-2 py-1 text-xs rounded-full ${test.sections?.math ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
                       {test.sections?.math ? 'Enabled' : 'Disabled'}
                     </span>
                   </div>
-                  <div className="text-gray-700">Base Module: 22 Q • 35 min</div>
-                  <div className="text-gray-700">Adaptive Module: 22 Q • 35 min</div>
+                  <div className="text-slate-600">Base Module: 22 Q • 35 min</div>
+                  <div className="text-slate-600">Adaptive Module: 22 Q • 35 min</div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t flex justify-between items-center">
+            <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
               <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                test.isActive 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-gray-100 text-gray-800'
+                test.isActive
+                  ? 'bg-emerald-50 text-emerald-700'
+                  : 'bg-slate-100 text-slate-600'
               }`}>
                 {test.isActive ? 'Active' : 'Inactive'}
               </span>
-              <div className="flex items-center gap-1 text-sm text-gray-500">
+              <div className="flex items-center gap-1 text-sm text-slate-500">
                 <FiUsers />
                 <span>{test.attemptCount || 0} attempts</span>
               </div>
@@ -367,48 +376,65 @@ export default function TestManagement() {
           </div>
         ))}
       </div>
+      )}
 
       {/* Assign to Student Modal */}
       {showAssignModal && assigningTest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full h-[80vh] flex flex-col overflow-hidden m-4">
-            <div className="p-4 border-b flex items-center justify-between bg-gray-50">
-              <h3 className="font-bold text-lg">Assign "{assigningTest.title}" to Students</h3>
-              <button onClick={() => setShowAssignModal(false)}><FiX size={24} /></button>
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50" onClick={() => setShowAssignModal(false)}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full h-[80vh] flex flex-col overflow-hidden m-4" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <h3 className="font-bold text-lg text-slate-900">Assign "{assigningTest.title}" to Students</h3>
+              <button onClick={() => setShowAssignModal(false)} aria-label="Close" className="text-slate-400 hover:text-slate-600 transition-colors"><FiX size={24} /></button>
             </div>
-            <div className="p-4 border-b">
+            <div className="p-4 border-b border-slate-100">
+              <label htmlFor="assign-student-search" className="sr-only">Search students</label>
               <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
+                  id="assign-student-search"
                   type="text"
                   value={studentSearch}
                   onChange={e => setStudentSearch(e.target.value)}
                   placeholder="Search students..."
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg"
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
-              {assignSuccess && <p className="text-green-600 text-sm mt-2 flex items-center gap-1"><FiCheck /> {assignSuccess}</p>}
+              {assignSuccess && <p className="text-emerald-600 text-sm mt-2 flex items-center gap-1"><FiCheck /> {assignSuccess}</p>}
               {assignError && <p className="text-red-600 text-sm mt-2">{assignError}</p>}
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               {loadingStudents ? (
-                <div className="text-center py-8 text-gray-500">Loading students...</div>
-              ) : (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+                  <p className="mt-3 text-sm text-slate-500">Loading students...</p>
+                </div>
+              ) : (() => {
+                const filtered = allStudents
+                  .filter(s => s.name.toLowerCase().includes(studentSearch.toLowerCase()) || s.email.toLowerCase().includes(studentSearch.toLowerCase()))
+                if (filtered.length === 0) {
+                  return (
+                    <div className="py-12 text-center">
+                      <FiUsers className="mx-auto text-4xl text-slate-400 mb-4" />
+                      <h4 className="text-base font-semibold text-slate-600 mb-1">No Students Found</h4>
+                      <p className="text-slate-400 text-sm">{studentSearch ? 'Try a different search term.' : 'There are no students to assign.'}</p>
+                    </div>
+                  )
+                }
+                return (
                 <div className="space-y-2">
-                  {allStudents
-                    .filter(s => s.name.toLowerCase().includes(studentSearch.toLowerCase()) || s.email.toLowerCase().includes(studentSearch.toLowerCase()))
+                  {filtered
                     .map(student => {
                       const isAssigned = (studentAssignedTests[student._id] || []).map(id => id.toString()).includes(assigningTest._id)
                       return (
-                        <div key={student._id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                        <div key={student._id} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:bg-indigo-50/40 transition-colors">
                           <div>
-                            <p className="font-medium text-sm">{student.name}</p>
-                            <p className="text-xs text-gray-500">{student.email}</p>
+                            <p className="font-medium text-sm text-slate-900">{student.name}</p>
+                            <p className="text-xs text-slate-500">{student.email}</p>
                           </div>
                           <button
                             onClick={() => handleToggleAssign(student._id, assigningTest._id)}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-medium ${
-                              isAssigned ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' : 'bg-purple-600 text-white hover:bg-purple-700'
+                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                              isAssigned ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' : 'bg-indigo-600 text-white hover:bg-indigo-700'
                             }`}
                           >
                             {isAssigned ? 'Unassign' : 'Assign'}
@@ -417,7 +443,8 @@ export default function TestManagement() {
                       )
                     })}
                 </div>
-              )}
+                )
+              })()}
             </div>
           </div>
         </div>
@@ -425,33 +452,47 @@ export default function TestManagement() {
 
       {/* Create/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto m-4">
-            <h2 className="text-xl font-bold mb-4">
-              {editingTest ? 'Edit Test' : 'Create New Test'}
-            </h2>
-            
+        <div
+          className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 overflow-y-auto"
+          onClick={() => { setShowModal(false); setEditingTest(null); resetForm() }}
+        >
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-4xl max-h-screen overflow-y-auto m-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-slate-900">
+                {editingTest ? 'Edit Test' : 'Create New Test'}
+              </h2>
+              <button
+                type="button"
+                onClick={() => { setShowModal(false); setEditingTest(null); resetForm() }}
+                aria-label="Close"
+                className="text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <FiX size={22} />
+              </button>
+            </div>
+
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Test Name</label>
+                  <label htmlFor="test-title" className="block text-sm font-medium text-slate-700 mb-1">Test Name</label>
                   <input
+                    id="test-title"
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="e.g., DSAT Mock Test 1"
                     required
                   />
                 </div>
                 {/* Configuration Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Test Configuration</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Test Configuration</label>
                   <div className="grid grid-cols-2 gap-4">
                     <label className={`border-2 rounded-lg p-4 cursor-pointer transition ${
-                      formData.configType === 'standard' 
-                        ? 'border-blue-500 bg-blue-50' 
-                        : 'border-gray-300 hover:border-gray-400'
+                      formData.configType === 'standard'
+                        ? 'border-indigo-500 bg-indigo-50'
+                        : 'border-slate-300 hover:border-slate-400'
                     }`}>
                       <input
                         type="radio"
@@ -461,13 +502,13 @@ export default function TestManagement() {
                         onChange={(e) => setFormData({ ...formData, configType: e.target.value })}
                         className="mr-2"
                       />
-                      <span className="font-semibold">Standard SAT</span>
-                      <p className="text-xs text-gray-600 mt-1">Official College Board thresholds</p>
+                      <span className="font-semibold text-slate-900">Standard SAT</span>
+                      <p className="text-xs text-slate-500 mt-1">Official College Board thresholds</p>
                     </label>
                     <label className={`border-2 rounded-lg p-4 cursor-pointer transition ${
-                      formData.configType === 'custom' 
-                        ? 'border-blue-500 bg-blue-50' 
-                        : 'border-gray-300 hover:border-gray-400'
+                      formData.configType === 'custom'
+                        ? 'border-indigo-500 bg-indigo-50'
+                        : 'border-slate-300 hover:border-slate-400'
                     }`}>
                       <input
                         type="radio"
@@ -477,30 +518,30 @@ export default function TestManagement() {
                         onChange={(e) => setFormData({ ...formData, configType: e.target.value })}
                         className="mr-2"
                       />
-                      <span className="font-semibold">Custom Configuration</span>
-                      <p className="text-xs text-gray-600 mt-1">Customize routing ranges & difficulty</p>
+                      <span className="font-semibold text-slate-900">Custom Configuration</span>
+                      <p className="text-xs text-slate-500 mt-1">Customize routing ranges & difficulty</p>
                     </label>
                   </div>
                 </div>
 
                 {/* Custom Configuration Settings */}
                 {formData.configType === 'custom' && (
-                  <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
-                    <h3 className="font-semibold text-lg mb-4">Custom Configuration Settings</h3>
-                    
+                  <div className="border-2 border-indigo-200 rounded-lg p-4 bg-indigo-50">
+                    <h3 className="font-semibold text-lg mb-4 text-slate-900">Custom Configuration Settings</h3>
+
                     {/* Reading & Writing Config */}
                     <div className="mb-6">
-                      <h4 className="font-medium text-md mb-3 text-blue-900">📖 Reading & Writing (27 questions)</h4>
-                      
+                      <h4 className="font-medium text-md mb-3 text-indigo-900">📖 Reading & Writing (27 questions)</h4>
+
                       {/* Routing Ranges */}
-                      <div className="bg-white rounded p-3 mb-3">
-                        <p className="text-sm font-medium mb-3">Module 2 Routing Ranges</p>
+                      <div className="bg-white rounded-lg p-3 mb-3 border border-slate-100">
+                        <p className="text-sm font-medium mb-3 text-slate-700">Module 2 Routing Ranges</p>
                         {['low', 'medium', 'high'].map((path) => (
                           <div key={path} className="mb-3">
-                            <label className="text-xs font-medium text-gray-700 capitalize block mb-1">{path} Difficulty Path</label>
+                            <label className="text-xs font-medium text-slate-700 capitalize block mb-1">{path} Difficulty Path</label>
                             <div className="grid grid-cols-2 gap-2">
                               <div>
-                                <label className="text-xs text-gray-600">Min Score</label>
+                                <label className="text-xs text-slate-500">Min Score</label>
                                 <input
                                   type="number"
                                   min="0"
@@ -519,11 +560,11 @@ export default function TestManagement() {
                                       }
                                     }
                                   })}
-                                  className="w-full border rounded px-2 py-1 text-sm"
+                                  className="w-full rounded-lg border border-slate-300 px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 />
                               </div>
                               <div>
-                                <label className="text-xs text-gray-600">Max Score</label>
+                                <label className="text-xs text-slate-500">Max Score</label>
                                 <input
                                   type="number"
                                   min="0"
@@ -542,7 +583,7 @@ export default function TestManagement() {
                                       }
                                     }
                                   })}
-                                  className="w-full border rounded px-2 py-1 text-sm"
+                                  className="w-full rounded-lg border border-slate-300 px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 />
                               </div>
                             </div>
@@ -551,15 +592,15 @@ export default function TestManagement() {
                       </div>
 
                       {/* Difficulty Distribution */}
-                      <div className="bg-white rounded p-3">
-                        <p className="text-sm font-medium mb-2">Module 2 Difficulty Distribution (%)</p>
+                      <div className="bg-white rounded-lg p-3 border border-slate-100">
+                        <p className="text-sm font-medium mb-2 text-slate-700">Module 2 Difficulty Distribution (%)</p>
                         {['low', 'medium', 'high'].map((path) => (
                           <div key={path} className="mb-2">
-                            <label className="text-xs font-medium text-gray-700 capitalize">{path} Path:</label>
+                            <label className="text-xs font-medium text-slate-700 capitalize">{path} Path:</label>
                             <div className="grid grid-cols-3 gap-2">
                               {['easy', 'medium', 'hard'].map((diff) => (
                                 <div key={diff}>
-                                  <label className="text-xs text-gray-600 capitalize">{diff}</label>
+                                  <label className="text-xs text-slate-500 capitalize">{diff}</label>
                                   <input
                                     type="number"
                                     min="0"
@@ -581,7 +622,7 @@ export default function TestManagement() {
                                         }
                                       }
                                     })}
-                                    className="w-full border rounded px-2 py-1 text-sm"
+                                    className="w-full rounded-lg border border-slate-300 px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                   />
                                 </div>
                               ))}
@@ -593,17 +634,17 @@ export default function TestManagement() {
 
                     {/* Math Config */}
                     <div>
-                      <h4 className="font-medium text-md mb-3 text-blue-900">🔢 Math (22 questions)</h4>
-                      
+                      <h4 className="font-medium text-md mb-3 text-indigo-900">🔢 Math (22 questions)</h4>
+
                       {/* Routing Ranges */}
-                      <div className="bg-white rounded p-3 mb-3">
-                        <p className="text-sm font-medium mb-3">Module 2 Routing Ranges</p>
+                      <div className="bg-white rounded-lg p-3 mb-3 border border-slate-100">
+                        <p className="text-sm font-medium mb-3 text-slate-700">Module 2 Routing Ranges</p>
                         {['low', 'medium', 'high'].map((path) => (
                           <div key={path} className="mb-3">
-                            <label className="text-xs font-medium text-gray-700 capitalize block mb-1">{path} Difficulty Path</label>
+                            <label className="text-xs font-medium text-slate-700 capitalize block mb-1">{path} Difficulty Path</label>
                             <div className="grid grid-cols-2 gap-2">
                               <div>
-                                <label className="text-xs text-gray-600">Min Score</label>
+                                <label className="text-xs text-slate-500">Min Score</label>
                                 <input
                                   type="number"
                                   min="0"
@@ -622,11 +663,11 @@ export default function TestManagement() {
                                       }
                                     }
                                   })}
-                                  className="w-full border rounded px-2 py-1 text-sm"
+                                  className="w-full rounded-lg border border-slate-300 px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 />
                               </div>
                               <div>
-                                <label className="text-xs text-gray-600">Max Score</label>
+                                <label className="text-xs text-slate-500">Max Score</label>
                                 <input
                                   type="number"
                                   min="0"
@@ -645,7 +686,7 @@ export default function TestManagement() {
                                       }
                                     }
                                   })}
-                                  className="w-full border rounded px-2 py-1 text-sm"
+                                  className="w-full rounded-lg border border-slate-300 px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 />
                               </div>
                             </div>
@@ -654,15 +695,15 @@ export default function TestManagement() {
                       </div>
 
                       {/* Difficulty Distribution */}
-                      <div className="bg-white rounded p-3">
-                        <p className="text-sm font-medium mb-2">Module 2 Difficulty Distribution (%)</p>
+                      <div className="bg-white rounded-lg p-3 border border-slate-100">
+                        <p className="text-sm font-medium mb-2 text-slate-700">Module 2 Difficulty Distribution (%)</p>
                         {['low', 'medium', 'high'].map((path) => (
                           <div key={path} className="mb-2">
-                            <label className="text-xs font-medium text-gray-700 capitalize">{path} Path:</label>
+                            <label className="text-xs font-medium text-slate-700 capitalize">{path} Path:</label>
                             <div className="grid grid-cols-3 gap-2">
                               {['easy', 'medium', 'hard'].map((diff) => (
                                 <div key={diff}>
-                                  <label className="text-xs text-gray-600 capitalize">{diff}</label>
+                                  <label className="text-xs text-slate-500 capitalize">{diff}</label>
                                   <input
                                     type="number"
                                     min="0"
@@ -684,7 +725,7 @@ export default function TestManagement() {
                                         }
                                       }
                                     })}
-                                    className="w-full border rounded px-2 py-1 text-sm"
+                                    className="w-full rounded-lg border border-slate-300 px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                   />
                                 </div>
                               ))}
@@ -697,7 +738,7 @@ export default function TestManagement() {
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <label className="flex items-center gap-2 border rounded-lg px-3 py-2">
+                  <label className="flex items-center gap-2 border border-slate-300 rounded-lg px-3 py-2 text-slate-700">
                     <input
                       type="checkbox"
                       checked={formData.sections.rw}
@@ -705,7 +746,7 @@ export default function TestManagement() {
                     />
                     <span>Enable Reading & Writing</span>
                   </label>
-                  <label className="flex items-center gap-2 border rounded-lg px-3 py-2">
+                  <label className="flex items-center gap-2 border border-slate-300 rounded-lg px-3 py-2 text-slate-700">
                     <input
                       type="checkbox"
                       checked={formData.sections.math}
@@ -721,7 +762,7 @@ export default function TestManagement() {
                     onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
                     className="mr-2"
                   />
-                  <span className="text-sm font-medium text-gray-700">Active Test</span>
+                  <span className="text-sm font-medium text-slate-700">Active Test</span>
                 </label>
               </div>
 
@@ -733,13 +774,13 @@ export default function TestManagement() {
                     setEditingTest(null)
                     resetForm()
                   }}
-                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                 >
                   {editingTest ? 'Update' : 'Create'}
                 </button>

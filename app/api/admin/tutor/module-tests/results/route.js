@@ -28,7 +28,7 @@ export async function GET(request) {
       testId: session.testId._id,
       studentName: session.userId?.name || 'Unknown',
       studentEmail: session.userId?.email || 'N/A',
-      testTitle: session.testId.title,
+      testTitle: session.testId.title || 'Unknown Test',
       subject: session.testId.subject || 'N/A',
       completedAt: session.completedAt || session.updatedAt,
       totalScore: session.totalScore || 0,

@@ -5,7 +5,8 @@ import Question from '../../../../../lib/models/Question'
 import User from '../../../../../lib/models/User'
 import Test from '../../../../../lib/models/Test'
 import TestSession from '../../../../../lib/models/TestSession'
-import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
+import { requireRole } from '../../../../../lib/auth'
+import { ROLES, STAFF_ROLES } from '../../../../../lib/constants/roles'
 
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -14,12 +15,9 @@ function escapeRegExp(string) {
 export async function GET(request) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    
-    if (!decoded || (decoded.role !== 'Admin' && decoded.role !== 'Tutor')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type')
@@ -97,12 +95,9 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    
-    if (!decoded || (decoded.role !== 'Admin' && decoded.role !== 'Tutor')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     const body = await request.json()
     const { 
@@ -275,12 +270,9 @@ export async function POST(request) {
 export async function DELETE(request) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    
-    if (!decoded || (decoded.role !== 'Admin' && decoded.role !== 'Tutor')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
@@ -290,7 +282,17 @@ export async function DELETE(request) {
         return NextResponse.json({ error: 'Test ID(s) required' }, { status: 400 })
     }
 
-    const idList = ids ? ids.split(',') : [id]
+    let idList = ids ? ids.split(',') : [id]
+
+    // Tutors can only delete tests they own; restrict the id list to owned tests
+    if (decoded.role === ROLES.TUTOR) {
+      const owned = await Test.find({ _id: { $in: idList }, assignedTutors: decoded.userId }).select('_id')
+      const ownedIds = owned.map(t => String(t._id))
+      idList = idList.filter(id => ownedIds.includes(String(id)))
+      if (idList.length === 0) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    }
 
     // Delete tests
     const deleteTests = await Test.deleteMany({ _id: { $in: idList } })

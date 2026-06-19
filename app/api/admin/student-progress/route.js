@@ -2,18 +2,22 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import User from '../../../../lib/models/User'
 import TestSession from '../../../../lib/models/TestSession'
+import { requireRole } from '../../../../lib/auth'
+import { ROLES, STAFF_ROLES } from '../../../../lib/constants/roles'
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
     await connectDB()
-    
-    const students = await User.find({ role: 'student' }).lean()
-    
+
+    const students = await User.find({ role: ROLES.STUDENT }).lean()
+
     const studentsWithProgress = await Promise.all(
       students.map(async (student) => {
-        const sessions = await TestSession.find({ 
+        const sessions = await TestSession.find({
           userId: student._id,
-          state: 'COMPLETED'
+          $or: [{ status: 'Completed' }, { state: 'COMPLETED' }]
         }).lean()
         
         const testsCompleted = sessions.length
@@ -31,9 +35,13 @@ export async function GET() {
           return sum + duration
         }, 0)
         const lastSession = sessions.length > 0 ? sessions[sessions.length - 1] : null
-        
+        const overallProgress = avgTotalScore > 0
+          ? Math.min(100, Math.round((avgTotalScore / 1600) * 100))
+          : 0
+
         return {
           _id: student._id.toString(),
+          id: student._id.toString(),
           name: student.name,
           email: student.email,
           enrolledAt: student.createdAt,
@@ -41,6 +49,8 @@ export async function GET() {
           avgTotalScore,
           avgRWScore,
           avgMathScore,
+          averageScore: avgTotalScore,
+          overallProgress,
           totalStudyTime,
           lastActive: lastSession?.completedAt || student.createdAt
         }

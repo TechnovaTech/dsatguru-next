@@ -4,10 +4,14 @@ import { useRouter } from 'next/navigation'
 import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevronDown, FiChevronUp, FiActivity, FiMonitor, FiMaximize, FiCheckSquare, FiUsers, FiRefreshCw, FiDownload, FiShare2, FiX } from 'react-icons/fi'
 import ReassignTestModal from './admin/ReassignTestModal'
 import { renderContent } from './admin/LatexRenderer'
+import { useConfirm, useToast } from './ui/UIProvider'
 
 export default function TestResultView({ testId, sessionId, returnUrl, viewMode, viewAnalysis }) {
   const router = useRouter()
+  const confirm = useConfirm()
+  const toast = useToast()
   const contentRef = useRef(null)
+  const scaledScoreRef = useRef(null)
   const [downloading, setDownloading] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
   const [shareTab, setShareTab] = useState('student')
@@ -22,6 +26,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
   const [test, setTest] = useState(null) // Store test data including showExplanation
   const [questions, setQuestions] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false) // true => network/server error (retryable), false => genuine not-found
   const [expandedQuestions, setExpandedQuestions] = useState({}) // { questionId: true/false }
   const [showExplanation, setShowExplanation] = useState({}) // { questionId: true/false }
   const [showQuestionInfo, setShowQuestionInfo] = useState({}) // { questionId: true/false }
@@ -63,9 +68,11 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
   }, [showFilterDropdown])
 
   const fetchResult = async () => {
+    setLoading(true)
+    setFetchError(false)
     try {
       const token = localStorage.getItem('token')
-      
+
       let targetSessionId = sessionId
       
       // If no session ID in query, try to find the latest session for this test
@@ -142,7 +149,15 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                  allQuestions = await questionsRes.json()
              }
         }
-        
+
+        // The per-test endpoint strips answer keys for students; the COMPLETED session
+        // reveals them. Build a lookup so we can merge the correct answer + explanations
+        // back in — otherwise the analysis can't mark the correct option green.
+        const revealedMap = {}
+        if (Array.isArray(sessionData.questions)) {
+          sessionData.questions.forEach((sq) => { revealedMap[String(sq._id)] = sq })
+        }
+
         // Create a map of responses for quick lookup
         const responsesMap = {}
         const visitedQuestions = new Set()
@@ -188,10 +203,11 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
         questionsToShow.forEach(q => {
             const qId = String(q._id)
             const resp = responsesMap[qId]
+            const revealed = revealedMap[qId] || {}
             const wasVisited = visitedQuestions.has(qId) || !!resp
-            
+
             // Normalize options
-            let options = q.options
+            let options = q.options || revealed.options
             
             // If options is an array, convert to object with A, B, C, D keys
             if (Array.isArray(q.options)) {
@@ -236,6 +252,11 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
             const questionData = {
                 ...q,
                 options,
+                // Merge revealed answer key + explanations from the completed session.
+                correctAnswer: q.correctAnswer || revealed.correctAnswer || '',
+                explanation: q.explanation || revealed.explanation || '',
+                shortExplanation: q.shortExplanation || revealed.shortExplanation || '',
+                longExplanation: q.longExplanation || revealed.longExplanation || '',
                 userAnswer: resp ? resp.selectedAnswer : null,
                 isCorrect: resp ? resp.isCorrect : false,
                 timeSpent: resp ? resp.timeSpent : 0,
@@ -311,9 +332,16 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
         setExpandedQuestions(initialExpanded)
         setShowExplanation(initialExplanations)
         setShowWhyWrong(initialWhyWrong)
+      } else if (sessionRes.status === 404) {
+        // Genuine not-found — leave session null, no retry
+        setFetchError(false)
+      } else {
+        // Network/server error — retryable
+        setFetchError(true)
       }
     } catch (error) {
       console.error('Error fetching result:', error)
+      setFetchError(true)
     } finally {
       setLoading(false)
     }
@@ -404,7 +432,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
 
   const handleSubmitAnalysis = async () => {
     if (!canSubmitAnalysis()) {
-      alert('Please provide reasons for all incorrect answers before submitting.')
+      toast.error('Please provide reasons for all incorrect answers before submitting.')
       return
     }
 
@@ -422,16 +450,16 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
       })
 
       if (res.ok) {
-        alert('Analysis submitted successfully!')
+        toast.success('Analysis submitted successfully!')
         setSession(prev => ({ ...prev, analysisSubmitted: true, analysisSubmittedAt: new Date() }))
         setAnalysisSubmitted(true)
       } else {
         const errorData = await res.json()
-        alert(`Failed to submit analysis: ${errorData.error || 'Unknown error'}`)
+        toast.error(`Failed to submit analysis: ${errorData.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Error submitting analysis:', error)
-      alert('Failed to submit analysis. Please try again.')
+      toast.error('Failed to submit analysis. Please try again.')
     } finally {
       setSubmittingAnalysis(false)
     }
@@ -501,11 +529,11 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
         setShowSuccessModal(true)
       } else {
         const errorData = await res.json()
-        alert(`Failed to reassign test: ${errorData.error || 'Unknown error'}`)
+        toast.error(`Failed to reassign test: ${errorData.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Error reassigning test:', error)
-      alert('Failed to reassign test. Please try again.')
+      toast.error('Failed to reassign test. Please try again.')
     }
   }
 
@@ -517,7 +545,82 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
     )
   }
 
-  if (!session) return <div className="p-8 text-center">Session not found</div>
+  if (!session) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-8 text-center">
+        {fetchError ? (
+          <>
+            <FiAlertCircle className="w-12 h-12 text-red-400 mb-3" />
+            <p className="text-gray-700 font-semibold mb-1">Couldn&apos;t load this result</p>
+            <p className="text-sm text-gray-500 mb-4">There was a problem fetching the test result. Please try again.</p>
+            <button
+              onClick={fetchResult}
+              className="px-5 py-2 bg-purple-900 text-white text-sm font-bold rounded-lg hover:bg-purple-800 flex items-center gap-2"
+            >
+              <FiRefreshCw className="w-4 h-4" /> Retry
+            </button>
+          </>
+        ) : (
+          <>
+            <FiAlertCircle className="w-12 h-12 text-gray-300 mb-3" />
+            <p className="text-gray-700 font-semibold mb-1">Session not found</p>
+            <p className="text-sm text-gray-500">This test result does not exist or is no longer available.</p>
+          </>
+        )}
+      </div>
+    )
+  }
+
+  // Build a paginated PDF from the captured report, breaking ONLY between content
+  // blocks (top-level sections + each question card) so a card is never split across
+  // pages. Each page is its own JPEG slice (keeps the file small).
+  const sliceCanvasToPdf = (canvas, element, jsPDF) => {
+    const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true })
+    const pageWidthMm = pdf.internal.pageSize.getWidth()
+    const pageHeightMm = pdf.internal.pageSize.getHeight()
+    const pxPerMm = canvas.width / pageWidthMm
+    const pageHeightPx = pageHeightMm * pxPerMm
+
+    // Candidate cut points (in canvas px) = bottom edge of each top-level section and
+    // each question card, read from the live DOM so cuts land in the gaps between them.
+    const contentTop = element.getBoundingClientRect().top
+    const ratio = canvas.height / element.scrollHeight
+    const blockEls = []
+    const bodyEl = element.querySelector('[data-pdf-body]')
+    if (bodyEl) blockEls.push(...Array.from(bodyEl.children))
+    blockEls.push(...element.querySelectorAll('[data-pdf-block]'))
+    const breaks = blockEls
+      .map(el => (el.getBoundingClientRect().bottom - contentTop) * ratio)
+      .filter(y => y > 0 && y < canvas.height)
+      .sort((a, b) => a - b)
+
+    let sy = 0
+    let firstPage = true
+    while (sy < canvas.height - 1) {
+      const targetCut = sy + pageHeightPx
+      let cut
+      if (targetCut >= canvas.height) {
+        cut = canvas.height
+      } else {
+        const fit = breaks.filter(b => b > sy + 20 && b <= targetCut)
+        cut = fit.length ? Math.max(...fit) : targetCut // single block taller than a page: hard cut
+      }
+      if (cut <= sy) cut = Math.min(targetCut, canvas.height)
+      const sliceH = Math.min(Math.ceil(cut - sy), canvas.height - sy)
+      const slice = document.createElement('canvas')
+      slice.width = canvas.width
+      slice.height = sliceH
+      const sctx = slice.getContext('2d')
+      sctx.fillStyle = '#f9fafb'
+      sctx.fillRect(0, 0, slice.width, slice.height)
+      sctx.drawImage(canvas, 0, sy, canvas.width, sliceH, 0, 0, canvas.width, sliceH)
+      if (!firstPage) pdf.addPage()
+      pdf.addImage(slice.toDataURL('image/jpeg', 0.82), 'JPEG', 0, 0, pageWidthMm, sliceH / pxPerMm)
+      firstPage = false
+      sy = cut
+    }
+    return pdf
+  }
 
   const downloadPDF = async () => {
     setDownloading(true)
@@ -527,31 +630,21 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
       
       const element = contentRef.current
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
         logging: false,
         backgroundColor: '#f9fafb'
       })
       
-      const imgData = canvas.toDataURL('image/png')
-      const pdf = new jsPDF('p', 'mm', 'a4')
-      const pdfWidth = pdf.internal.pageSize.getWidth()
-      const pdfHeight = pdf.internal.pageSize.getHeight()
-      const imgWidth = canvas.width
-      const imgHeight = canvas.height
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
-      const imgX = (pdfWidth - imgWidth * ratio) / 2
-      const imgY = 10
-      
-      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio)
-      
-      const studentName = session.userId?.name || 'Student'
+      const pdf = sliceCanvasToPdf(canvas, element, jsPDF)
+
+      const studentName = session.studentName || session.userId?.name || 'Student'
       const subject = session.subject || 'Test'
       const testDate = new Date(session.completedAt || session.updatedAt).toISOString().split('T')[0]
       pdf.save(`${studentName}_${subject}_${testDate}.pdf`)
     } catch (error) {
       console.error('Error generating PDF:', error)
-      alert('Failed to generate PDF')
+      toast.error('Failed to generate PDF')
     } finally {
       setDownloading(false)
     }
@@ -580,33 +673,23 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
     
     const element = contentRef.current
     const canvas = await html2canvas(element, {
-      scale: 2,
+      scale: 1.5,
       useCORS: true,
       logging: false,
       backgroundColor: '#f9fafb'
     })
     
-    const imgData = canvas.toDataURL('image/png')
-    const pdf = new jsPDF('p', 'mm', 'a4')
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = pdf.internal.pageSize.getHeight()
-    const imgWidth = canvas.width
-    const imgHeight = canvas.height
-    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
-    const imgX = (pdfWidth - imgWidth * ratio) / 2
-    const imgY = 10
-    
-    pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio)
+    const pdf = sliceCanvasToPdf(canvas, element, jsPDF)
     return pdf.output('blob')
   }
 
   const handleSharePDF = async () => {
     if (selectedUsers.length === 0) {
-      alert('Please select at least one user to share with')
+      toast.error('Please select at least one user to share with')
       return
     }
     if (!shareMessage.trim()) {
-      alert('Please enter a message')
+      toast.error('Please enter a message')
       return
     }
 
@@ -614,7 +697,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
     try {
       const pdfBlob = await generatePDFBlob()
       const formData = new FormData()
-      const studentName = session.userId?.name || 'Student'
+      const studentName = session.studentName || session.userId?.name || 'Student'
       const testName = session.testId?.title || 'Test'
       const subject = session.subject || 'General'
       const testDate = new Date(session.completedAt || session.updatedAt).toISOString().split('T')[0]
@@ -633,16 +716,16 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
       })
 
       if (res.ok) {
-        alert('PDF shared successfully!')
+        toast.success('PDF shared successfully!')
         setShowShareModal(false)
         setSelectedUsers([])
         setShareMessage('')
       } else {
-        alert('Failed to share PDF')
+        toast.error('Failed to share PDF')
       }
     } catch (error) {
       console.error('Error sharing PDF:', error)
-      alert('Failed to share PDF')
+      toast.error('Failed to share PDF')
     } finally {
       setSendingPDF(false)
     }
@@ -665,16 +748,16 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
         const startPage = test?.isModuleTest ? 'module-start' : 'start'
         router.push(`/dashboard/tests/${testId}/${startPage}?sessionId=${sessionId}&returnUrl=${encodeURIComponent(returnUrl)}`)
       } else {
-        alert('Failed to reset test. Please try again.')
+        toast.error('Failed to reset test. Please try again.')
       }
     } catch (e) {
-      alert('Failed to reset test. Please try again.')
+      toast.error('Failed to reset test. Please try again.')
     }
   }
 
   const handleSubmitUnlock = async () => {
     if (!unlockSubject.trim() || !unlockReason.trim()) {
-      alert('Please fill in both subject and reason.')
+      toast.error('Please fill in both subject and reason.')
       return
     }
     setSubmittingUnlock(true)
@@ -690,10 +773,10 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
         setShowUnlockModal(false)
         setSession(prev => ({ ...prev, unlockRequest: { subject: unlockSubject, reason: unlockReason, status: 'pending', requestedAt: new Date() } }))
       } else {
-        alert('Failed to submit request. Please try again.')
+        toast.error('Failed to submit request. Please try again.')
       }
     } catch (e) {
-      alert('Failed to submit request. Please try again.')
+      toast.error('Failed to submit request. Please try again.')
     } finally {
       setSubmittingUnlock(false)
     }
@@ -711,15 +794,19 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
       if (res.ok) {
         setSession(prev => ({ ...prev, unlockRequest: { ...prev.unlockRequest, status: action, reviewedAt: new Date() } }))
       } else {
-        alert('Failed to process request.')
+        toast.error('Failed to process request.')
       }
     } catch (e) {
-      alert('Failed to process request.')
+      toast.error('Failed to process request.')
     } finally {
       setProcessingUnlock(false)
     }
   }
 
+  const hasScaledScore = typeof session?.totalScore === 'number'
+  const scrollToScaledScore = () => {
+    scaledScoreRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
   const isSecondAutoSubmit = session?.attemptCount >= 2 && !!(session?.autoSubmitted || session?.autoSubmitReason)
   const unlockReq = session?.unlockRequest
   const totalQuestions = questions.length
@@ -778,6 +865,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                             </span>
                         </div>
                         <p className="text-xs text-gray-500">
+                            {(session.studentName || session.userId?.name) && <span className="font-semibold text-gray-700">{session.studentName || session.userId?.name} · </span>}
                             Completed on {new Date(session.completedAt || session.updatedAt || session.createdAt).toLocaleString()}
                         </p>
                     </div>
@@ -797,7 +885,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                 onClick={() => { 
                                   setShowShareModal(true); 
                                   fetchUsers();
-                                  const studentName = session.userId?.name || 'Student'
+                                  const studentName = session.studentName || session.userId?.name || 'Student'
                                   const testName = session.testId?.title || 'Test'
                                   const subject = session.subject || 'General'
                                   const testDate = new Date(session.completedAt || session.updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -871,9 +959,14 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                 </div>
                             )}
                             
-                            <button className="px-4 py-2 border border-purple-200 text-purple-900 text-sm font-bold rounded-lg hover:bg-purple-50">
-                                View Scaled Score
-                            </button>
+                            {hasScaledScore && (
+                                <button
+                                    onClick={scrollToScaledScore}
+                                    className="px-4 py-2 border border-purple-200 text-purple-900 text-sm font-bold rounded-lg hover:bg-purple-50"
+                                >
+                                    View Scaled Score
+                                </button>
+                            )}
                             <button 
                                 onClick={() => router.push(returnUrl)}
                                 className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700"
@@ -1039,11 +1132,34 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
             </div>
         )}
 
-        <div className="max-w-7xl mx-auto px-4 py-8 space-y-6" style={(viewMode !== 'admin' && isSecondAutoSubmit) ? { display: 'none' } : {}}>
+        <div data-pdf-body className="max-w-7xl mx-auto px-4 py-8 space-y-6" style={(viewMode !== 'admin' && isSecondAutoSubmit) ? { display: 'none' } : {}}>
             
             {/* Overall Score */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div ref={scaledScoreRef} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 scroll-mt-24">
                 <h2 className="text-sm font-bold text-gray-900 mb-4 border-b pb-2">Overall Score</h2>
+
+                {/* Scaled (server-computed) SAT score — the single canonical score */}
+                {hasScaledScore && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div className="bg-purple-900 rounded-xl p-4 text-center">
+                            <div className="text-xs font-bold text-purple-200 uppercase mb-1">Total Score</div>
+                            <div className="text-4xl font-black text-white">{session.totalScore}</div>
+                            <div className="text-xs text-purple-200 mt-1">out of 1600</div>
+                        </div>
+                        <div className="bg-purple-50 rounded-xl p-4 text-center border border-purple-100">
+                            <div className="text-xs font-bold text-purple-700 uppercase mb-1">Reading and Writing</div>
+                            <div className="text-4xl font-black text-purple-900">{session.rwScore ?? '—'}</div>
+                            <div className="text-xs text-gray-500 mt-1">out of 800</div>
+                        </div>
+                        <div className="bg-purple-50 rounded-xl p-4 text-center border border-purple-100">
+                            <div className="text-xs font-bold text-purple-700 uppercase mb-1">Math</div>
+                            <div className="text-4xl font-black text-purple-900">{session.mathScore ?? '—'}</div>
+                            <div className="text-xs text-gray-500 mt-1">out of 800</div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Raw correct/total counts — secondary */}
                 <div className="grid grid-cols-3 gap-8 text-center">
                     <div>
                         <div className="text-3xl font-bold text-gray-900">{correctCount}/{totalQuestions}</div>
@@ -1051,15 +1167,15 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                     </div>
                     <div>
                         <div className="text-3xl font-bold text-gray-900">
-                            {questions.filter(q => q.domain === 'Reading and Writing').filter(q => q.isCorrect).length} / 
-                            {questions.filter(q => q.domain === 'Reading and Writing').length}
+                            {questions.filter(q => /read|writ/i.test(q.subject || '')).filter(q => q.isCorrect).length} /
+                            {questions.filter(q => /read|writ/i.test(q.subject || '')).length}
                         </div>
                         <div className="text-xs text-gray-500 font-medium uppercase mt-1">Reading and Writing</div>
                     </div>
                     <div>
                         <div className="text-3xl font-bold text-gray-900">
-                            {questions.filter(q => q.domain === 'Math').filter(q => q.isCorrect).length} / 
-                            {questions.filter(q => q.domain === 'Math').length}
+                            {questions.filter(q => /math/i.test(q.subject || '')).filter(q => q.isCorrect).length} /
+                            {questions.filter(q => /math/i.test(q.subject || '')).length}
                         </div>
                         <div className="text-xs text-gray-500 font-medium uppercase mt-1">Math</div>
                     </div>
@@ -1084,98 +1200,6 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                 </div>
               </div>
             )}
-
-            {/* DSAT Score Predictor — only for tutor module tests */}
-            {test?.isModuleTest && session?.status === 'Completed' && (() => {
-              const scores = session?.moduleScores
-              if (!scores) return null
-              const keys = Object.keys(scores).map(Number).sort((a,b)=>a-b)
-              if (keys.length < 2) return null
-              const mods = keys.map(k => scores[k] || scores[String(k)])
-              // Support both 4-key (correct structure) and 2-key (old sessions: key0=RW, key1=Math)
-              let rwCorrect, mathCorrect, rw1Correct, math1Correct, rw2Correct, math2Correct
-              if (keys.length >= 4) {
-                rwCorrect = (mods[0]?.correct||0) + (mods[1]?.correct||0)
-                mathCorrect = (mods[2]?.correct||0) + (mods[3]?.correct||0)
-                rw1Correct = mods[0]?.correct||0
-                rw2Correct = mods[1]?.correct||0
-                math1Correct = mods[2]?.correct||0
-                math2Correct = mods[3]?.correct||0
-              } else {
-                // 2-key: key0=all RW (54q), key1=all Math (44q)
-                rwCorrect = mods[0]?.correct||0
-                mathCorrect = mods[1]?.correct||0
-                rw1Correct = Math.round(rwCorrect * 27/54)
-                rw2Correct = rwCorrect - rw1Correct
-                math1Correct = Math.round(mathCorrect * 22/44)
-                math2Correct = mathCorrect - math1Correct
-              }
-              const baseRW = Math.round((200 + 600 * Math.pow(rwCorrect/54, 0.93)) / 10) * 10
-              const baseMath = Math.round((200 + 600 * Math.pow(mathCorrect/44, 0.93)) / 10) * 10
-              // Route adjustment RW
-              const rwRoute = rw1Correct <= 13 ? -30 : rw1Correct <= 16 ? -15 : rw1Correct <= 18 ? 0 : rw1Correct <= 22 ? 15 : 30
-              // Route adjustment Math
-              const mathRoute = math1Correct <= 10 ? -30 : math1Correct <= 13 ? -15 : math1Correct <= 15 ? 0 : math1Correct <= 18 ? 15 : 30
-              // Difficulty adjustment from questions
-              const rwQs = questions.filter(q => (q.subject||'').includes('Reading')||(q.subject||'').includes('Writing'))
-              const mathQs = questions.filter(q => q.subject==='Math')
-              const diffAdj = (qs) => {
-                const hard = qs.filter(q=>q.difficulty==='Hard'&&q.isCorrect).length
-                const total = qs.filter(q=>q.difficulty==='Hard').length
-                if (!total) return 0
-                const pct = hard/total
-                return pct>=0.8?20:pct>=0.6?10:pct>=0.4?0:pct>=0.2?-10:-20
-              }
-              const rwAdj = diffAdj(rwQs)
-              const mathAdj = diffAdj(mathQs)
-              const rwFinal = Math.min(800, Math.max(200, Math.round((baseRW+rwRoute+rwAdj)/10)*10))
-              const mathFinal = Math.min(800, Math.max(200, Math.round((baseMath+mathRoute+mathAdj)/10)*10))
-              const total = rwFinal + mathFinal
-              const rwRouteLabel = rw1Correct<=13?'Easy Route':rw1Correct<=16?'Lower-Middle':rw1Correct<=18?'Borderline':rw1Correct<=22?'Hard Route':'Very Hard Route'
-              const mathRouteLabel = math1Correct<=10?'Easy Route':math1Correct<=13?'Lower-Middle':math1Correct<=15?'Borderline':math1Correct<=18?'Hard Route':'Very Hard Route'
-              const rw2Pct = rw2Correct/27*100
-              const math2Pct = math2Correct/22*100
-              const perfLabel = pct => pct>=80?'Excellent':pct>=60?'Strong':pct>=40?'Average':'Weak'
-              return (
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-200 p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">SAT</span>
-                    </div>
-                    <div>
-                      <h2 className="text-sm font-bold text-gray-900">DSAT Score Predictor</h2>
-                      <p className="text-xs text-gray-500">Estimate only — accuracy ±30–50 pts from official score</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="bg-white rounded-xl p-4 text-center border border-purple-100">
-                      <div className="text-xs font-bold text-purple-600 uppercase mb-1">Reading & Writing</div>
-                      <div className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-0.5">Approximately</div>
-                      <div className="text-3xl font-black text-gray-900">{rwFinal}</div>
-                      <div className="text-xs text-gray-500 mt-1">{rwCorrect}/54 correct</div>
-                      <div className="text-xs text-indigo-600 font-medium mt-1">{rwRouteLabel}</div>
-                      <div className="text-xs text-gray-400">M2: {perfLabel(rw2Pct)}</div>
-                    </div>
-                    <div className="bg-white rounded-xl p-4 text-center border border-blue-100">
-                      <div className="text-xs font-bold text-blue-600 uppercase mb-1">Math</div>
-                      <div className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-0.5">Approximately</div>
-                      <div className="text-3xl font-black text-gray-900">{mathFinal}</div>
-                      <div className="text-xs text-gray-500 mt-1">{mathCorrect}/44 correct</div>
-                      <div className="text-xs text-indigo-600 font-medium mt-1">{mathRouteLabel}</div>
-                      <div className="text-xs text-gray-400">M2: {perfLabel(math2Pct)}</div>
-                    </div>
-                    <div className="bg-indigo-600 rounded-xl p-4 text-center">
-                      <div className="text-xs font-bold text-indigo-200 uppercase mb-1">Total Score</div>
-                      <div className="text-xs font-bold text-white uppercase tracking-wide mb-0.5">Approximately</div>
-                      <div className="text-3xl font-black text-white">{total}</div>
-                      <div className="text-xs text-indigo-200 mt-1">out of 1600</div>
-                      <div className="text-xs text-indigo-300 mt-1">Range: {total-40}–{Math.min(1600,total+40)}</div>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-400 text-center">Based on raw correct answers, module route, and difficulty pattern</p>
-                </div>
-              )
-            })()}
 
             {/* Section Overview */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -1269,8 +1293,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                         <FiActivity className="w-5 h-5" />
                     </div>
                     <div>
-                        <div className="text-xs text-gray-500 font-bold">Relevant Detected</div>
-                        <div className="text-lg font-bold text-blue-600">0 Times</div>
+                        <div className="text-xs text-gray-500 font-bold">Violations Detected</div>
+                        <div className="text-lg font-bold text-blue-600">{session.violationCount ?? 0} Times</div>
                     </div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-orange-100 shadow-sm flex items-center gap-3">
@@ -1279,7 +1303,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 font-bold">Tab Activity</div>
-                        <div className="text-lg font-bold text-orange-600">3 Times</div>
+                        <div className="text-lg font-bold text-orange-600">{session.tabSwitchCount ?? 0} Times</div>
                     </div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-purple-100 shadow-sm flex items-center gap-3">
@@ -1288,7 +1312,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 font-bold">Test Resumes</div>
-                        <div className="text-lg font-bold text-purple-600">0 Resumed</div>
+                        <div className="text-lg font-bold text-purple-600">{session.resumeCount ?? 0} Resumed</div>
                     </div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-cyan-100 shadow-sm flex items-center gap-3">
@@ -1297,7 +1321,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                     </div>
                     <div>
                         <div className="text-xs text-gray-500 font-bold">Fullscreen</div>
-                        <div className="text-lg font-bold text-cyan-600">4 Times</div>
+                        <div className="text-lg font-bold text-cyan-600">{session.fullscreenExitCount ?? 0} Times</div>
                     </div>
                 </div>
             </div>
@@ -1405,13 +1429,13 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                             const items = []
                             if (showModuleHeader && mod) {
                               items.push(
-                                <div key={`module-header-${moduleIdx}`} className="px-6 py-3 bg-purple-50 border-b border-purple-200 flex items-center gap-3">
+                                <div key={`module-header-${moduleIdx}`} data-pdf-block className="px-6 py-3 bg-purple-50 border-b border-purple-200 flex items-center gap-3">
                                   <span className="text-sm font-bold text-purple-900">Module {moduleIdx + 1} — {mod.subject}</span>
                                   <span className="text-xs text-purple-600">{mod.numberOfQuestions || mod.questions?.length || 0} questions • {mod.isTimed ? `${mod.duration} min` : 'Untimed'}</span>
                                 </div>
                               )
                             }
-                            items.push(<div key={q._id} className="p-6">
+                            items.push(<div key={q._id} data-pdf-block className="p-6">
                             {/* Question Header */}
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
@@ -1515,12 +1539,13 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                     {q.options && (typeof q.options === 'object') && (q.options.A || q.options.B || q.options.C || q.options.D) ? (
                                         // MULTIPLE CHOICE QUESTIONS
                                         ['A', 'B', 'C', 'D'].map((opt) => {
-                                            const isCorrect = q.correctAnswer === opt
-                                            const isSelected = q.userAnswer === opt
-                                            const isWrongSelection = isSelected && !q.isCorrect
-
                                             // Get option text
                                             const optionText = q.options[opt] || q[`option${opt}`] || ''
+                                            // Tolerant match: correctAnswer stored as a letter (A–D) OR as the option text.
+                                            const correctAns = String(q.correctAnswer ?? '').trim()
+                                            const isCorrect = correctAns.toUpperCase() === opt || (correctAns !== '' && correctAns === String(optionText).trim())
+                                            const isSelected = q.userAnswer === opt
+                                            const isWrongSelection = isSelected && !q.isCorrect
 
                                             // Determine styles
                                             let containerStyle = 'bg-white border-gray-200'

@@ -14,35 +14,59 @@ async function getUserId(request) {
 }
 
 export async function GET(request) {
-  await dbConnect()
-  const userId = await getUserId(request)
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const rows = await FormulaSheet.find({ userId }).sort({ createdAt: 1 })
-  return NextResponse.json({ rows })
+  try {
+    await dbConnect()
+    const userId = await getUserId(request)
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const rows = await FormulaSheet.find({ userId }).sort({ createdAt: 1 })
+    return NextResponse.json({ rows })
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }
 
 export async function POST(request) {
-  await dbConnect()
-  const userId = await getUserId(request)
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const body = await request.json()
-  if (body._id) {
-    const updated = await FormulaSheet.findOneAndUpdate(
-      { _id: body._id, userId },
-      { $set: { ...body, userId } },
-      { new: true }
-    )
-    return NextResponse.json({ row: updated })
+  try {
+    await dbConnect()
+    const userId = await getUserId(request)
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    let body
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
+    body = body || {}
+    if (body._id) {
+      const updated = await FormulaSheet.findOneAndUpdate(
+        { _id: body._id, userId },
+        { $set: { ...body, userId } },
+        { new: true }
+      )
+      return NextResponse.json({ row: updated })
+    }
+    const row = await FormulaSheet.create({ ...body, userId })
+    return NextResponse.json({ row }, { status: 201 })
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-  const row = await FormulaSheet.create({ ...body, userId })
-  return NextResponse.json({ row }, { status: 201 })
 }
 
 export async function DELETE(request) {
-  await dbConnect()
-  const userId = await getUserId(request)
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { id } = await request.json()
-  await FormulaSheet.findOneAndDelete({ _id: id, userId })
-  return NextResponse.json({ success: true })
+  try {
+    await dbConnect()
+    const userId = await getUserId(request)
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    let body
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
+    const { id } = body || {}
+    await FormulaSheet.findOneAndDelete({ _id: id, userId })
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }

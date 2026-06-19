@@ -4,14 +4,29 @@ import User from '../../../../lib/models/User'
 import OTP from '../../../../lib/models/OTP'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import { rateLimit } from '../../../../lib/rateLimit'
 
 export async function POST(request) {
   try {
     await connectDB()
-    const { email, otp, type, newPassword } = await request.json()
+    const body = await request.json()
+    const { type, newPassword } = body
+
+    // Coerce/validate string inputs to stop NoSQL operator injection
+    if (typeof body?.email !== 'string' || typeof body?.otp !== 'string') {
+      return NextResponse.json({ error: 'Invalid OTP. Please check and try again.' }, { status: 400 })
+    }
+    const email = String(body.email)
+    const otp = String(body.otp)
 
     if (!email || !otp || !type) {
       return NextResponse.json({ error: 'Email, OTP and type are required' }, { status: 400 })
+    }
+
+    // Throttle OTP verification so the 6-digit code cannot be brute-forced.
+    const limit = rateLimit(`verify-otp:${email.toLowerCase()}`, { max: 6, windowMs: 600000 })
+    if (!limit.ok) {
+      return NextResponse.json({ error: 'Too many attempts' }, { status: 429 })
     }
 
     const record = await OTP.findOne({

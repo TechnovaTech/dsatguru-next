@@ -1,7 +1,12 @@
 'use client'
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { FaChalkboardTeacher, FaCertificate, FaBookOpen, FaPercent, FaClock } from 'react-icons/fa'
+import Image from 'next/image'
+import Link from 'next/link'
+import {
+  FaChalkboardTeacher, FaCertificate, FaBookOpen, FaClock, FaRegCalendarCheck, FaChartLine,
+} from 'react-icons/fa'
+import { FiCheck, FiArrowRight, FiStar } from 'react-icons/fi'
 
 export default function ProgramPageTemplate({ program }) {
   useEffect(() => {
@@ -15,209 +20,239 @@ export default function ProgramPageTemplate({ program }) {
     metaDescription.content = program.seoDescription || program.overview
   }, [program])
 
+  const features = [
+    {
+      icon: <FaChalkboardTeacher size={24} />,
+      title: 'Expert-Led Sessions',
+      desc: `Learn from instructors who specialise in ${program.examLabel} preparation and understand the demands of ${program.title}.`,
+      grad: 'from-indigo-600 to-indigo-700',
+    },
+    {
+      icon: <FaCertificate size={24} />,
+      title: 'Score-Focused Approach',
+      desc: `${program.title} focuses on the skills and strategies that move your score, not just theory.`,
+      grad: 'from-blue-600 to-blue-700',
+    },
+    {
+      icon: <FaBookOpen size={24} />,
+      title: 'Structured Resources',
+      desc: `Guided practice, strategy notes, and review material designed to support the full ${program.title} journey.`,
+      grad: 'from-teal-600 to-teal-700',
+    },
+  ]
+
+  const infoCards = [
+    {
+      icon: <FaClock size={22} />,
+      title: 'Flexible yet structured',
+      desc: `Smart pacing designed around busy student schedules and the exact demands of ${program.title}.`,
+      tint: 'bg-indigo-100 text-indigo-600',
+    },
+    {
+      icon: <FaRegCalendarCheck size={22} />,
+      title: 'Clear next steps',
+      desc: `Know exactly what to revise or practise after each class or test in ${program.title}.`,
+      tint: 'bg-emerald-100 text-emerald-600',
+    },
+  ]
+
   return (
-    <section className="w-full bg-gradient-to-b from-blue-50 to-white font-[Poppins]">
-      <div className="relative w-full min-h-[70vh] overflow-hidden bg-gray-900">
-        <div className="absolute inset-0 flex md:justify-end justify-center">
-          <img
-            src={program.heroImage}
-            alt={`${program.examLabel} background`}
-            className="w-full md:w-1/2 h-full object-cover opacity-30 object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/30 via-blue-700/20 to-blue-500/20" />
+    <section className="dg w-full bg-white text-slate-900">
+      {/* ===== HERO ===== */}
+      <div className="relative -mt-28 overflow-hidden">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-indigo-50/80 via-white to-white" />
+          <div className="absolute -right-24 -top-24 h-[32rem] w-[32rem] rounded-full bg-indigo-200/40 blur-3xl" />
+          <div className="absolute -left-20 top-1/3 h-80 w-80 rounded-full bg-blue-200/30 blur-3xl" />
+          <div className="absolute inset-0 dg-grid-bg opacity-[0.5] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto w-full h-full flex items-center justify-center md:justify-start px-6 min-h-[70vh]">
-          <div className="w-full space-y-6 text-white text-center md:text-left md:w-2/3">
-            <div className="relative inline-block uppercase tracking-wider text-xs px-4 py-3 border-2 border-white/80 rounded-full overflow-hidden bg-white/10">
-              <span className="relative z-10 text-white">{program.highlightTag}</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
-            </div>
-            <h1 className="text-3xl md:text-5xl font-bold whitespace-pre-line leading-tight">
+        <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-12 px-6 pb-16 pt-36 lg:grid-cols-2 lg:gap-10">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-wider text-indigo-600 shadow-sm backdrop-blur">
+              <FiStar /> {program.highlightTag}
+            </span>
+            <h1 className="mt-5 whitespace-pre-line text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-900 md:text-5xl">
               {program.title}
             </h1>
-            <p className="mt-4 text-gray-200 text-md md:text-lg">
-              {program.overview}
-            </p>
-            <ul className="mt-6 space-y-2 text-gray-300 text-sm">
+            <p className="mt-4 text-lg leading-relaxed text-slate-600">{program.overview}</p>
+
+            <ul className="mt-7 grid gap-2.5">
               {program.keyPoints?.map((item, index) => (
-                <li key={index} className="flex items-center gap-2 justify-center md:justify-start">
-                  <span className="text-blue-300">✔</span> {item}
+                <li key={index} className="flex items-center gap-3 text-sm font-medium text-slate-700">
+                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                    <FiCheck size={12} />
+                  </span>
+                  {item}
                 </li>
               ))}
             </ul>
+
+            <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row">
+              <Link
+                href="/contact"
+                className="dg-shine group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-indigo-600 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5 hover:bg-indigo-700"
+              >
+                Talk to an Advisor
+                <FiArrowRight className="transition-transform group-hover:translate-x-1" />
+              </Link>
+              <Link
+                href="/demo-test"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-7 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:text-indigo-700"
+              >
+                Try Free Demo Test
+              </Link>
+            </div>
           </div>
+
+          {/* Branded graphic (no stock photos) */}
+          <motion.div
+            initial={{ opacity: 1, scale: 0.97 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="relative mx-auto w-full max-w-md lg:max-w-none"
+          >
+            <div className="absolute -inset-3 rounded-[2.5rem] bg-gradient-to-tr from-indigo-400/25 to-blue-400/25 blur-2xl" />
+            <Image
+              src={program.heroArt || '/course-hero-art.png'}
+              alt={`${program.title} — DSATGURU`}
+              width={900}
+              height={980}
+              priority
+              className="relative w-full rounded-[2rem] shadow-2xl shadow-indigo-900/20"
+            />
+          </motion.div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-16 space-y-16">
+      <div className="mx-auto max-w-7xl space-y-12 px-6 py-16 lg:px-12">
+        {/* Overview */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.8 }}
-          className="bg-white rounded-2xl shadow-lg p-8"
+          transition={{ duration: 0.6 }}
+          className="rounded-3xl border border-slate-100 bg-white p-8 shadow-lg"
         >
-          <div className="relative z-10">
-            <h2 className="text-3xl font-bold text-blue-800 mb-8">
-              {program.title} Overview
-            </h2>
-            <p className="text-gray-700 mb-8">
-              {program.title} is designed to give you a clear, step-by-step path from where you are
-              today to your target score. You will know exactly what to study, how to practise, and how
-              to measure your improvement over time for this specific program.
-            </p>
-          </div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-indigo-600">
+            Overview
+          </span>
+          <h2 className="mt-4 text-2xl font-extrabold text-slate-900 md:text-3xl">
+            {program.title} <span className="dg-gradient-text">Overview</span>
+          </h2>
+          <p className="mt-4 max-w-3xl leading-relaxed text-slate-600">
+            {program.title} is designed to give you a clear, step-by-step path from where you are today to your target
+            score. You will know exactly what to study, how to practise, and how to measure your improvement over time
+            for this specific program.
+          </p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.8 }}
-          className="grid md:grid-cols-3 gap-6"
-        >
-          {[
-            {
-              icon: <FaChalkboardTeacher size={32} />,
-              title: 'Expert-Led Sessions',
-              desc: `Learn from instructors who specialise in ${program.examLabel} preparation and understand the demands of ${program.title}.`,
-            },
-            {
-              icon: <FaCertificate size={32} />,
-              title: 'Score-Focused Approach',
-              desc: `${program.title} focuses on the skills and strategies that move your score, not just theory.`,
-            },
-            {
-              icon: <FaBookOpen size={32} />,
-              title: 'Structured Resources',
-              desc: `Guided practice, strategy notes, and review material designed to support the full ${program.title} journey.`,
-            },
-          ].map((item, idx) => (
-            <div
+        {/* Feature cards */}
+        <div className="grid gap-6 md:grid-cols-3">
+          {features.map((item, idx) => (
+            <motion.div
               key={idx}
-              className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow"
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: idx * 0.12 }}
+              className="group rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1.5 hover:shadow-xl"
             >
-              <div className="flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-700 rounded-full mb-4 mx-auto md:mx-0">
+              <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${item.grad} text-white shadow-lg transition-transform group-hover:scale-110`}>
                 {item.icon}
               </div>
-              <div>
-                <h4 className="font-semibold text-lg text-blue-800">
-                  {item.title}
-                </h4>
-                <p className="text-gray-600 text-sm mt-1">
-                  {item.desc}
-                </p>
-              </div>
-            </div>
+              <h4 className="mt-5 font-bold text-slate-900">{item.title}</h4>
+              <p className="mt-1 text-sm leading-relaxed text-slate-600">{item.desc}</p>
+            </motion.div>
           ))}
-        </motion.div>
+        </div>
 
+        {/* Score improvement banner */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.8 }}
-          className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-lg p-8"
+          transition={{ duration: 0.6 }}
+          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-700 to-blue-700 p-8 text-white shadow-xl"
         >
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-full">
-              <FaPercent size={28} className="text-blue-700" />
-            </div>
-            <h5 className="text-2xl font-bold mb-2">Score Improvement for {program.title}</h5>
-          </div>
-          <p className="text-sm mt-2">
-            This plan is structured so you always know what you are working toward in {program.title},
-            from your first lesson to your final practice.
-          </p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.8 }}
-          className="grid md:grid-cols-2 gap-8"
-        >
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <div className="p-6 flex items-center gap-4">
-              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 text-blue-700 rounded-full flex-shrink-0">
-                <FaClock size={24} />
-              </div>
-              <div className="flex-1 flex flex-col justify-center gap-1">
-                <p className="text-gray-800 text-sm font-medium">
-                  Smart pacing designed around busy student schedules and the exact demands of {program.title}.
-                </p>
-                <p className="text-gray-500 text-xs mt-1">
-                  Flexible yet structured
-                </p>
-              </div>
-            </div>
-            <div className="w-full h-64 overflow-hidden">
-              <img
-                src={program.heroImage}
-                alt="Student focused on exam preparation"
-                className="w-full h-full object-cover object-center"
-              />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <div className="p-6 flex items-center gap-4">
-              <div className="flex items-center justify-center w-12 h-12 bg-green-100 text-green-700 rounded-full flex-shrink-0">
-                <FaBookOpen size={24} />
-              </div>
-              <div className="flex-1 flex flex-col justify-center gap-1">
-                <p className="text-gray-800 text-sm font-medium">
-                  Know exactly what to revise or practise after each class or test in {program.title}.
-                </p>
-                <p className="text-gray-500 text-xs mt-1">
-                  Clear next steps
-                </p>
-              </div>
-            </div>
-            <div className="w-full h-64 overflow-hidden">
-              <img
-                src={program.heroImage}
-                alt="Student Testimonial"
-                className="w-full h-full object-cover object-center"
-              />
+          <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/15 blur-2xl" />
+          <div className="relative flex items-center gap-4">
+            <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-white/20">
+              <FaChartLine size={24} />
+            </span>
+            <div>
+              <h5 className="text-xl font-extrabold md:text-2xl">Score Improvement for {program.title}</h5>
+              <p className="mt-1 text-sm text-white/90">
+                This plan is structured so you always know what you&apos;re working toward — from your first lesson to
+                your final practice test.
+              </p>
             </div>
           </div>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.8 }}
-          className="bg-white rounded-2xl shadow-lg overflow-hidden"
-        >
-          <div className="p-8 flex flex-col gap-4">
-            <h3 className="text-xl font-bold text-blue-700 text-center">
-              Designed for Ambitious {program.examLabel} Students in {program.title}
-            </h3>
-            <p className="text-gray-700 text-sm md:text-base leading-relaxed text-center">
-              Students who commit to {program.title} report feeling more confident, more prepared, and
-              more in control of their scores on test day.
-            </p>
-          </div>
-        </motion.div>
+        {/* Info cards (icon-based, no stock photos) */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {infoCards.map((c, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: idx * 0.12 }}
+              className="flex items-start gap-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+            >
+              <span className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl ${c.tint}`}>
+                {c.icon}
+              </span>
+              <div>
+                <h5 className="font-bold text-slate-900">{c.title}</h5>
+                <p className="mt-1 text-sm leading-relaxed text-slate-600">{c.desc}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
 
+        {/* Designed for */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.8 }}
-          className="text-center"
+          transition={{ duration: 0.6 }}
+          className="rounded-3xl border border-slate-100 bg-slate-50 p-8 text-center"
         >
-          <h3 className="text-2xl md:text-3xl font-bold text-blue-800">
-            Ready to Plan Your {program.title}?
+          <h3 className="text-xl font-bold text-slate-900">
+            Designed for Ambitious {program.examLabel} Students
           </h3>
-          <p className="text-gray-600 mt-4 max-w-2xl mx-auto">
-            Take the next step with {program.title}, or explore other DSAT and PSAT options from the header.
-            If you need guidance, our team is happy to help you build the right plan for your goals.
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 md:text-base">
+            Students who commit to {program.title} report feeling more confident, more prepared, and more in control of
+            their scores on test day.
           </p>
+        </motion.div>
+
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-700 to-blue-700 px-8 py-14 text-center text-white shadow-2xl"
+        >
+          <div className="pointer-events-none absolute -left-10 top-0 h-48 w-48 rounded-full bg-white/15 blur-2xl" />
+          <div className="pointer-events-none absolute -right-10 bottom-0 h-48 w-48 rounded-full bg-blue-300/20 blur-2xl" />
+          <h3 className="relative text-2xl font-extrabold md:text-3xl">Ready to Plan Your {program.title}?</h3>
+          <p className="relative mx-auto mt-3 max-w-2xl text-sm text-white/90 md:text-base">
+            Take the next step, or explore other DSAT and PSAT options from the menu. Our team is happy to help you build
+            the right plan for your goals.
+          </p>
+          <div className="relative mt-7 flex flex-wrap items-center justify-center gap-4">
+            <Link href="/contact" className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-indigo-600 shadow-lg transition-transform hover:-translate-y-0.5">
+              Get Started <FiArrowRight />
+            </Link>
+            <Link href="/demo-test" className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/20">
+              Free Demo Test
+            </Link>
+          </div>
         </motion.div>
       </div>
     </section>

@@ -14,6 +14,7 @@ import {
 import '@livekit/components-styles'
 import { Track, RoomEvent } from 'livekit-client'
 import dynamic from 'next/dynamic'
+import { useToast } from './ui/UIProvider'
 const MeetingWhiteboard = dynamic(() => import('./MeetingWhiteboard'), { ssr: false })
 import {
   FiMic, FiMicOff, FiVideo, FiVideoOff, FiMonitor,
@@ -24,6 +25,7 @@ import {
 
 // ─── Inner room UI (must be inside <LiveKitRoom>) ───────────────────────────
 function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
+  const toast = useToast()
   const participants = useParticipants()
   const { localParticipant } = useLocalParticipant()
   const room = useRoomContext()
@@ -113,10 +115,10 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   const startCaptions = useCallback(() => {
     if (typeof window === 'undefined') return
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) { 
+    if (!SR) {
       setCaptionStatus('error')
-      alert('Live captions need Chrome or Edge browser.')
-      return 
+      toast.error('Live captions need Chrome or Edge browser.')
+      return
     }
 
     if (recognitionRef.current) {
@@ -179,7 +181,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
         console.error('Speech Recognition Error:', e.error)
         if (e.error === 'not-allowed') {
           setCaptionStatus('error')
-          alert('Microphone access denied for captions.')
+          toast.error('Microphone access denied for captions.')
         } else if (e.error === 'network') {
           setCaptionStatus('error')
         }
@@ -293,7 +295,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   }
 
   const downloadTranscript = async () => {
-    if (!meetingTranscript) return alert('No transcript captured yet.')
+    if (!meetingTranscript) { toast.info('No transcript captured yet.'); return }
     try {
       const jsPDF = (await import('jspdf')).default
       const pdf = new jsPDF()
@@ -415,7 +417,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
       pdf.save(`Report-${roomName}-${new Date().toLocaleDateString()}.pdf`)
     } catch (error) {
       console.error('PDF generation failed:', error)
-      alert('Failed to generate PDF')
+      toast.error('Failed to generate PDF')
     }
   }
 
@@ -529,7 +531,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
     }
 
     if (!capturedSomething) {
-      alert('No active screen share or whiteboard found to capture.');
+      toast.info('No active screen share or whiteboard found to capture.');
     } else {
       // Optional: Add a brief visual feedback or sound
       console.log('Capture triggered for active components');

@@ -22,30 +22,62 @@ export async function GET(request) {
 
     const now = new Date()
 
-    const overview = await Promise.all(students.map(async (s) => {
+    const studentIds = students.map(s => s._id)
+
+    // Batch all per-student data into a few queries instead of N+1 loops.
+
+    // Completed sessions for all students (totals + last active).
+    const completedSessions = await TestSession.find({
+      userId: { $in: studentIds },
+      status: 'Completed'
+    }).select('userId correctAnswers answeredQuestions completedAt').lean()
+
+    const completedByUser = {}
+    for (const sess of completedSessions) {
+      const uid = sess.userId.toString()
+      if (!completedByUser[uid]) completedByUser[uid] = []
+      completedByUser[uid].push(sess)
+    }
+
+    // Redo pending counts (InProgress/Paused) per student via one aggregate.
+    const redoAgg = await TestSession.aggregate([
+      { $match: { userId: { $in: studentIds }, status: { $in: ['InProgress', 'Paused'] } } },
+      { $group: { _id: '$userId', count: { $sum: 1 } } }
+    ])
+    const redoByUser = {}
+    for (const r of redoAgg) redoByUser[r._id.toString()] = r.count
+
+    // Score tracker entries for all students (errors logged).
+    const trackerEntries = await ScoreTracker.find({ userId: { $in: studentIds } })
+      .select('userId rawMisses autoRawMisses timingIssues autoTimingIssues guessCount carelessMistakes')
+      .lean()
+    const errorsByUser = {}
+    for (const e of trackerEntries) {
+      const uid = e.userId.toString()
+      const raw = e.rawMisses ?? e.autoRawMisses ?? 0
+      const timing = e.timingIssues ?? e.autoTimingIssues ?? 0
+      errorsByUser[uid] = (errorsByUser[uid] || 0) + raw + timing + (e.guessCount || 0) + (e.carelessMistakes || 0)
+    }
+
+    const overview = students.map((s) => {
+      const uid = s._id.toString()
+
       // Total questions done & correct answers
-      const sessions = await TestSession.find({ userId: s._id, status: 'Completed' })
-        .select('responses correctAnswers answeredQuestions completedAt')
-        .lean()
+      const sessions = completedByUser[uid] || []
 
       const totalQsDone = sessions.reduce((sum, sess) => sum + (sess.answeredQuestions || 0), 0)
       const totalCorrect = sessions.reduce((sum, sess) => sum + (sess.correctAnswers || 0), 0)
       const totalErrors = totalQsDone - totalCorrect
 
       // Redo pending: sessions that are InProgress or Paused
-      const redoPending = await TestSession.countDocuments({ userId: s._id, status: { $in: ['InProgress', 'Paused'] } })
+      const redoPending = redoByUser[uid] || 0
 
       // Last session date
-      const lastSession = sessions.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))[0]
+      const lastSession = sessions.slice().sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))[0]
       const lastActive = lastSession?.completedAt || null
 
       // Errors logged from score tracker
-      const trackerEntries = await ScoreTracker.find({ userId: s._id }).lean()
-      const errorsLogged = trackerEntries.reduce((sum, e) => {
-        const raw = e.rawMisses ?? e.autoRawMisses ?? 0
-        const timing = e.timingIssues ?? e.autoTimingIssues ?? 0
-        return sum + raw + timing + (e.guessCount || 0) + (e.carelessMistakes || 0)
-      }, 0)
+      const errorsLogged = errorsByUser[uid] || 0
 
       // Exam date & days left
       const examDate = s.nextExamDate || s.targetExamDate || null
@@ -70,7 +102,7 @@ export async function GET(request) {
         tutorNotes: s.tutorNotes || null,
         isActive: s.isActive,
       }
-    }))
+    })
 
     return NextResponse.json({ students: overview })
   } catch (err) {

@@ -1,51 +1,60 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
+import StudyPlan from '../../../../lib/models/StudyPlan'
+import { requireRole } from '../../../../lib/auth'
+import { STAFF_ROLES, ADMIN_ROLES } from '../../../../lib/constants/roles'
 
-export async function GET() {
+// Whitelist the fields a client is allowed to set/persist on a study plan.
+// Keeps both the model's planning fields and the admin UI's catalog fields.
+function pickStudyPlanFields(body = {}) {
+  const out = {}
+  const allowed = [
+    // model planning fields
+    'userId', 'studentName', 'startDate', 'examDate', 'currentScore',
+    'targetScore', 'weakTopics', 'dailyPlan',
+    // admin UI catalog fields
+    'title', 'description', 'courseId', 'duration', 'difficulty', 'modules', 'isActive'
+  ]
+  // ObjectId-typed fields: drop empty strings so Mongoose doesn't throw a
+  // CastError (which would surface as a 500) when the field is left blank.
+  const objectIdFields = new Set(['userId', 'courseId'])
+  for (const key of allowed) {
+    if (body[key] === undefined) continue
+    if (objectIdFields.has(key) && (body[key] === '' || body[key] === null)) continue
+    out[key] = body[key]
+  }
+  return out
+}
+
+export async function GET(request) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
     await connectDB()
-    // Mock data for study plans
-    const studyPlans = [
-      {
-        _id: '1',
-        title: '8-Week SAT Prep Plan',
-        description: 'Comprehensive 8-week study plan for SAT preparation',
-        courseId: '1',
-        duration: '8 weeks',
-        difficulty: 'Intermediate',
-        targetScore: '1500',
-        isActive: true,
-        modules: [
-          {
-            title: 'Math Fundamentals',
-            description: 'Basic math concepts and problem-solving',
-            order: 1,
-            estimatedHours: '10'
-          },
-          {
-            title: 'Reading Strategies',
-            description: 'Reading comprehension techniques',
-            order: 2,
-            estimatedHours: '8'
-          }
-        ],
-        createdAt: new Date()
-      }
-    ]
+    const studyPlans = await StudyPlan.find()
+      .sort({ createdAt: -1 })
+      .limit(500)
+      .lean()
     return NextResponse.json(studyPlans)
   } catch (error) {
+    console.error('Error fetching study plans:', error)
     return NextResponse.json({ error: 'Failed to fetch study plans' }, { status: 500 })
   }
 }
 
 export async function POST(request) {
   try {
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
     await connectDB()
-    const data = await request.json()
-    // Mock creation - in real app, save to database
-    const studyPlan = { _id: Date.now().toString(), ...data, createdAt: new Date(), isActive: true }
+    const body = await request.json()
+    const data = pickStudyPlanFields(body)
+    // Stamp the creating admin for catalog templates.
+    if (auth.decoded?.userId) data.createdBy = auth.decoded.userId
+    const studyPlan = await StudyPlan.create(data)
     return NextResponse.json(studyPlan, { status: 201 })
   } catch (error) {
+    console.error('Error creating study plan:', error)
     return NextResponse.json({ error: 'Failed to create study plan' }, { status: 500 })
   }
 }

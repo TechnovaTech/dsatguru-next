@@ -256,7 +256,7 @@ function DemoTestTake() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="bg-white border-b px-6 py-3 flex items-center justify-between">
+      <div className="bg-white border-b px-6 py-3 flex flex-wrap gap-2 items-center justify-between">
         <div className="text-sm font-medium text-gray-700">{moduleTitle}</div>
         <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${remaining < 60 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
           <FiClock size={16} />
@@ -290,9 +290,9 @@ function DemoTestTake() {
       </div>
 
       {/* Main split */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row md:overflow-hidden">
         {/* Left - passage + question text + image */}
-        <div className="w-1/2 border-r overflow-y-auto p-8 bg-gray-50">
+        <div className="w-full md:w-1/2 border-b md:border-r md:border-b-0 overflow-y-auto p-4 md:p-8 bg-gray-50">
           {/* Passage */}
           {currentQ.questionParagraph && (
             <div className="prose max-w-none mb-8">
@@ -323,7 +323,7 @@ function DemoTestTake() {
         </div>
 
         {/* Right - answer options only */}
-        <div className="w-1/2 overflow-y-auto p-8 bg-white">
+        <div className="w-full md:w-1/2 overflow-y-auto p-4 md:p-8 bg-white">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Choose an Answer</p>
             <div className="space-y-3">

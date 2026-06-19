@@ -1,19 +1,18 @@
 'use client'
 import { motion } from 'framer-motion'
+import { FiCheck } from 'react-icons/fi'
 import {
   MdAssessment,
   MdTimeline,
   MdLightbulbOutline,
   MdBarChart,
-  MdLibraryBooks,
-  MdSettings,
-  MdDashboardCustomize,
-  MdPsychology,
 } from 'react-icons/md'
 
 const personalizedCards = [
   {
-    icon: <MdAssessment size={28} className="text-blue-600" />,
+    icon: <MdAssessment size={26} />,
+    step: '01',
+    gradient: 'from-indigo-600 to-indigo-700',
     title: 'Diagnostic Assessment',
     description:
       'Begin with our adaptive diagnostic test that precisely identifies your starting level. This 90-minute assessment analyzes your current abilities across all test sections and generates a detailed skill breakdown.',
@@ -25,7 +24,9 @@ const personalizedCards = [
     ],
   },
   {
-    icon: <MdTimeline size={28} className="text-indigo-600" />,
+    icon: <MdTimeline size={26} />,
+    step: '02',
+    gradient: 'from-blue-600 to-blue-700',
     title: 'Personalized Study Plan',
     description:
       'Based on your diagnostic results, we create a customized study plan that focuses on your specific needs. Your plan includes recommended daily activities with time estimates to keep you on track.',
@@ -37,7 +38,9 @@ const personalizedCards = [
     ],
   },
   {
-    icon: <MdLightbulbOutline size={28} className="text-purple-600" />,
+    icon: <MdLightbulbOutline size={26} />,
+    step: '03',
+    gradient: 'from-sky-500 to-cyan-600',
     title: 'Adaptive Learning',
     description:
       'Our system continuously adapts to your progress. As you master concepts, the difficulty increases. If you struggle with certain topics, the system provides additional support and simplified explanations.',
@@ -49,7 +52,9 @@ const personalizedCards = [
     ],
   },
   {
-    icon: <MdBarChart size={28} className="text-green-600" />,
+    icon: <MdBarChart size={26} />,
+    step: '04',
+    gradient: 'from-emerald-500 to-teal-600',
     title: 'Performance Analytics',
     description:
       'Track your improvement with detailed performance analytics. See your progress over time, identify remaining weak areas, and receive projected scores based on your current performance.',
@@ -62,70 +67,55 @@ const personalizedCards = [
   },
 ]
 
-const personalizedFeatureCards = [
-  {
-    icon: <MdLibraryBooks size={28} className="text-blue-500" />,
-    title: 'Comprehensive Learning Materials',
-    description:
-      'Gain access to 4,000+ DSAT/PSAT questions with detailed explanations, updated regularly to reflect real test patterns and difficulty levels.',
-  },
-  {
-    icon: <MdSettings size={28} className="text-purple-500" />,
-    title: 'Adaptive Study System',
-    description:
-      'Automatically focuses your practice on weak areas and increases difficulty as you improve, ensuring a tailored and progressive learning curve.',
-  },
-  {
-    icon: <MdDashboardCustomize size={28} className="text-green-500" />,
-    title: 'Interactive Progress Dashboard',
-    description:
-      'Visualize trends, topic mastery, score projections, and time spent with our smart analytics dashboard to guide next steps.',
-  },
-  {
-    icon: <MdPsychology size={28} className="text-rose-500" />,
-    title: 'AI-Powered Recommendations',
-    description:
-      'Smart suggestions based on performance patterns help you close gaps and maximize your test readiness.',
-  },
-]
-
-export default function PersonalizedLearningSection({ landingPlanRef }) {
+export default function PersonalizedLearningSection() {
   return (
-    <section className="w-full bg-white py-20 px-4 sm:px-6 lg:px-16 font-[Poppins] text-gray-800">
-      <div className="max-w-7xl mx-auto text-center mb-12">
-        <h3 className="text-3xl md:text-4xl font-extrabold mb-4">
-          Your Digital SAT Journey, Your Way
+    <section className="relative w-full overflow-hidden bg-gradient-to-b from-slate-50 to-white px-4 pb-24 pt-14 text-slate-800 sm:px-6 lg:px-16">
+      <div className="mx-auto mb-16 max-w-2xl text-center">
+        <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-indigo-600">
+          How It Works
+        </span>
+        <h3 className="mt-5 text-3xl font-extrabold text-slate-900 md:text-4xl">
+          Your Digital SAT Journey, <span className="dg-gradient-text">Your Way</span>
         </h3>
-        <p className="text-base md:text-lg text-gray-600">
-          Experience a truly personalized sat exam preparation program that evolves with you to
-          maximize your score improvement
+        <p className="mt-4 text-base text-slate-600 md:text-lg">
+          Experience a truly personalized sat exam preparation program that evolves with you to maximize your score
+          improvement
         </p>
       </div>
 
-      <div className="grid gap-10 md:grid-cols-2 max-w-6xl mx-auto">
+      <div className="mx-auto grid max-w-6xl gap-7 md:grid-cols-2">
         {personalizedCards.map((item, idx) => (
           <motion.div
             key={idx}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: idx * 0.2 }}
+            transition={{ duration: 0.5, delay: idx * 0.12 }}
             viewport={{ once: true }}
-            className="bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition"
+            className="group relative overflow-hidden rounded-3xl border border-slate-100 bg-white p-7 shadow-sm transition-all hover:-translate-y-1.5 hover:shadow-xl"
           >
-            <div className="w-12 h-12 rounded-full flex items-center justify-center">
-              {item.icon}
+            <span className="pointer-events-none absolute -right-2 -top-6 text-[6rem] font-black text-slate-50 transition-colors group-hover:text-slate-100">
+              {item.step}
+            </span>
+            <div className="relative">
+              <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${item.gradient} text-white shadow-lg`}>
+                {item.icon}
+              </div>
+              <h4 className="mt-5 text-lg font-bold text-slate-900">{item.title}</h4>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.description}</p>
+              <ul className="mt-4 space-y-2">
+                {item.points.map((point, i) => (
+                  <li key={i} className="flex items-center gap-2.5 text-sm text-slate-700">
+                    <span className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${item.gradient} text-white`}>
+                      <FiCheck size={10} />
+                    </span>
+                    {point}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <h4 className="text-lg font-bold text-gray-800 mb-2">{item.title}</h4>
-            <p className="text-sm text-gray-600 mb-3">{item.description}</p>
-            <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-              {item.points.map((point, i) => (
-                <li key={i}>{point}</li>
-              ))}
-            </ul>
           </motion.div>
         ))}
       </div>
-
     </section>
   )
 }

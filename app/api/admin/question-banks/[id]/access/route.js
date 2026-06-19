@@ -1,23 +1,30 @@
 import { NextResponse } from 'next/server'
+import mongoose from 'mongoose'
 import { connectDB } from '../../../../../../lib/db'
 import { QuestionBankEnrollment } from '../../../../../../lib/models/Course'
 import User from '../../../../../../lib/models/User'
-import { getTokenFromRequest, verifyToken } from '../../../../../../lib/auth'
+import { requireRole } from '../../../../../../lib/auth'
+import { ADMIN_ROLES } from '../../../../../../lib/constants/roles'
 
 export async function GET(request, { params }) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
+
+    // Virtual subject-based banks (e.g. "admin-math", "tutor-rw") aren't real Course
+    // documents and have no per-user enrollment access list — return an empty list
+    // instead of casting a non-ObjectId id (which throws and 500s).
+    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+      return NextResponse.json({ access: [] })
     }
 
     const enrollments = await QuestionBankEnrollment.find({ questionBankId: params.id })
       .populate('userId', 'name email role')
       .sort({ enrolledAt: -1 })
 
-    const access = enrollments.map(enrollment => ({
+    const access = enrollments.filter(e => e.userId).map(enrollment => ({
       userId: enrollment.userId._id,
       userName: enrollment.userId.name,
       userEmail: enrollment.userId.email,
@@ -35,14 +42,16 @@ export async function GET(request, { params }) {
 export async function POST(request, { params }) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
+
+    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+      return NextResponse.json({ error: 'This question bank does not support per-user access management' }, { status: 400 })
     }
 
     const { userId } = await request.json()
-    
+
     // Check if user already has access
     const existing = await QuestionBankEnrollment.findOne({
       userId,

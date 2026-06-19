@@ -2,17 +2,15 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import User from '../../../../../lib/models/User'
 import TestSession from '../../../../../lib/models/TestSession'
-import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
+import { requireRole } from '../../../../../lib/auth'
+import { ROLES, STAFF_ROLES } from '../../../../../lib/constants/roles'
 
 export async function PUT(request) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-
-    if (!decoded || !['Admin', 'TutorAdmin'].includes(decoded.role)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     const { studentId, testId, action, showExplanation } = await request.json()
 
@@ -23,6 +21,12 @@ export async function PUT(request) {
     const student = await User.findById(studentId)
     if (!student || student.role !== 'Student') {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 })
+    }
+
+    // Tutors can only assign tests to their own assigned students
+    if (decoded.role === ROLES.TUTOR &&
+        !(student.assignedTutors || []).map(id => String(id)).includes(decoded.userId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     if (!student.assignedTests) student.assignedTests = []

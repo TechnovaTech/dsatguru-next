@@ -4,6 +4,7 @@ import User from '../../../../lib/models/User'
 import OTP from '../../../../lib/models/OTP'
 import bcrypt from 'bcryptjs'
 import { generateOTP, sendOTPEmail } from '../../../../lib/email'
+import { rateLimit, clientIp } from '../../../../lib/rateLimit'
 
 export async function POST(request) {
   try {
@@ -17,6 +18,11 @@ export async function POST(request) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
+    }
+
+    const limit = rateLimit(`send-otp:${String(email).toLowerCase()}:${clientIp(request)}`, { max: 3, windowMs: 600000 })
+    if (!limit.ok) {
+      return NextResponse.json({ error: 'Too many attempts' }, { status: 429 })
     }
 
     if (type === 'register') {

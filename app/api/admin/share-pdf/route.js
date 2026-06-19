@@ -5,6 +5,8 @@ import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 
+const MAX_PDF_SIZE_BYTES = 25 * 1024 * 1024 // 25 MB
+
 export async function POST(request) {
   try {
     await connectDB()
@@ -27,12 +29,21 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    console.log('Received data:', { studentName, subject, testDate, fileName: pdfFile.name })
+    // Validate the upload is a PDF and within the size cap before touching disk.
+    const ext = path.extname(pdfFile.name || '').toLowerCase()
+    if (ext !== '.pdf') {
+      return NextResponse.json({ error: 'Only PDF files are allowed' }, { status: 400 })
+    }
+    if (typeof pdfFile.size === 'number' && pdfFile.size > MAX_PDF_SIZE_BYTES) {
+      return NextResponse.json({ error: 'File too large (max 25MB)' }, { status: 400 })
+    }
 
     // Save PDF to public/reports folder
     const bytes = await pdfFile.arrayBuffer()
     const buffer = Buffer.from(bytes)
-    const fileName = pdfFile.name
+    // Sanitize: only ever use the base filename with a timestamp prefix.
+    const safeName = path.basename(pdfFile.name || 'report.pdf').replace(/[^a-zA-Z0-9.-]/g, '_')
+    const fileName = `${Date.now()}-${safeName}`
     const reportsDir = path.join(process.cwd(), 'public', 'reports')
     
     // Create reports directory if it doesn't exist

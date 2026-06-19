@@ -1,13 +1,16 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiChevronDown, FiChevronRight, FiPlay, FiFileText, FiBarChart2, FiClock, FiCheckCircle } from 'react-icons/fi'
+import { FiPlay, FiFileText, FiClock, FiCheckCircle, FiBookOpen, FiRefreshCw, FiAlertCircle, FiAward, FiCalendar, FiTarget, FiBarChart2 } from 'react-icons/fi'
+
+const fmtDate = (x) => (x ? new Date(x).toLocaleDateString() : '—')
 
 export default function TutorRWPage() {
   const router = useRouter()
   const [stats, setStats] = useState({ domains: [] })
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState('Assigned')
   const [assignedTestIds, setAssignedTestIds] = useState([])
 
@@ -16,6 +19,8 @@ export default function TutorRWPage() {
   }, [])
 
   const fetchAssignedTests = async () => {
+    setLoading(true)
+    setError(null)
     try {
       const token = localStorage.getItem('token')
       const userRes = await fetch('/api/user/profile', {
@@ -25,9 +30,13 @@ export default function TutorRWPage() {
         const data = await userRes.json()
         setAssignedTestIds(data.user.assignedTests || [])
         fetchHistory(data.user.assignedTests || [])
+      } else {
+        setError('Failed to load your profile. Please try again.')
+        setLoading(false)
       }
     } catch (error) {
       console.error('Failed to fetch assigned tests', error)
+      setError('Failed to load your assigned tests. Please try again.')
       setLoading(false)
     }
   }
@@ -41,7 +50,7 @@ export default function TutorRWPage() {
       })
       const data = await res.json()
       const sessions = data.sessions || data || []
-      
+
       const tutorSessions = sessions.filter(s => {
         // Skip sessions where the test has been deleted
         if (!s.testId) return false
@@ -49,19 +58,20 @@ export default function TutorRWPage() {
         // Ensure testId exists and is a Tutor test
         // EXCLUDE Admin tests (practiceMode === 'admin')
         const isTutor = (s.testId?.practiceMode === 'tutor' || s.testId?.isTutorTest === true) && s.testId?.practiceMode !== 'admin' && !s.testId?.isModuleTest
-        
+
         // STRICT Filtering: Only show tests explicitly marked as 'Reading and Writing'
         // FALLBACK: If 'subject' is missing (legacy data), check 'sections.rw'
         const isRW = s.testId?.subject === 'Reading and Writing' || (!s.testId?.subject && s.testId?.sections?.rw === true)
-        
+
         // Check if test is assigned to this student
         const isAssigned = testIds.length === 0 || testIds.map(id => id?.toString()).includes(s.testId?._id?.toString())
-        
+
         return isTutor && isRW && isAssigned
       })
       setHistory(tutorSessions)
     } catch (error) {
       console.error('Failed to fetch history', error)
+      setError('Failed to load your test history. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -75,125 +85,210 @@ export default function TutorRWPage() {
     }
   }
 
+  const assignedCount = history.filter(h => h.status === 'Assigned').length
+  const inProgressCount = history.filter(h => h.status === 'InProgress' && !h.isReassigned).length
+  const completedCount = history.filter(h => h.status === 'Completed' && !h.isReassigned).length
+
   const tabs = [
-    { name: 'Assigned', count: history.filter(h => h.status === 'Assigned').length },
-    { name: 'In Progress', count: history.filter(h => h.status === 'InProgress').length },
-    { name: 'Completed', count: history.filter(h => h.status === 'Completed').length }
+    { name: 'Assigned', count: assignedCount },
+    { name: 'In Progress', count: inProgressCount },
+    { name: 'Completed', count: completedCount }
   ]
+
+  const difficultyBadge = (difficulty) => {
+    if (difficulty === 'Easy') return 'bg-emerald-100 text-emerald-700'
+    if (difficulty === 'Hard') return 'bg-rose-100 text-rose-700'
+    return 'bg-amber-100 text-amber-700'
+  }
 
   if (loading) {
     return (
-      <div className="p-8 flex justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+        <div className="flex h-64 items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500"></div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col items-center gap-4 rounded-2xl border border-rose-100 bg-rose-50 p-10 text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+              <FiAlertCircle className="h-6 w-6" />
+            </span>
+            <div>
+              <h3 className="text-base font-semibold text-rose-800">Something went wrong</h3>
+              <p className="mt-1 text-sm text-rose-600">{error}</p>
+            </div>
+            <button
+              onClick={fetchAssignedTests}
+              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+            >
+              <FiRefreshCw className="h-4 w-4" /> Retry
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl space-y-6">
+        {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reading & Writing Tutor Tests</h1>
-          <p className="text-gray-500 mt-1">Access your assigned tutor tests and track your progress.</p>
-          
-          <div className="flex items-center gap-2 mt-6 border-b border-gray-200">
-            {tabs.map(tab => (
-              <button
-                key={tab.name}
-                onClick={() => setActiveTab(tab.name)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-                  activeTab === tab.name 
-                    ? 'border-purple-700 text-purple-700' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {tab.name}
-                {tab.count > 0 && (
-                   <span className={`text-xs px-2 py-0.5 rounded-full ${activeTab === tab.name ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}>
-                     {tab.count}
-                   </span>
-                )}
-              </button>
-            ))}
+          <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900 lg:text-3xl">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+              <FiBookOpen className="h-5 w-5" />
+            </span>
+            Reading &amp; Writing Tutor Tests
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">Access your assigned tutor tests and track your progress.</p>
+        </div>
+
+        {/* Stat cards */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-500 text-white">
+                <FiFileText className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-2xl font-extrabold text-slate-900">{assignedCount}</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-slate-500">Assigned</p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500 text-white">
+                <FiClock className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-2xl font-extrabold text-slate-900">{inProgressCount}</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-slate-500">In Progress</p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500 text-white">
+                <FiCheckCircle className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-2xl font-extrabold text-slate-900">{completedCount}</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-slate-500">Completed</p>
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="flex items-center gap-1 border-b border-slate-200">
+          {tabs.map(tab => (
+            <button
+              key={tab.name}
+              onClick={() => setActiveTab(tab.name)}
+              className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors ${
+                activeTab === tab.name
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {tab.name}
+              {tab.count > 0 && (
+                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${activeTab === tab.name ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
         <div className="space-y-3">
           {activeTab === 'Assigned' && (
-            history.filter(h => h.status === 'Assigned').length > 0 ? (
+            assignedCount > 0 ? (
               history
                 .filter(h => h.status === 'Assigned')
                 .map((session) => {
                   const test = session.testId
-                  const questionCount = test?.questions?.length || test?.totalQuestions || 0
+                  const questionCount = test?.questions?.length || test?.totalQuestions || session.totalQuestions || 0
                   const difficulty = test?.difficulty || 'Mixed'
                   const duration = test?.duration || 0
                   const isReassigned = test?.isReassigned === true
                   const completedSession = history.find(h => String(h.testId?._id) === String(test?._id) && h.status === 'Completed')
 
                   return (
-                    <div key={session._id} className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-all">
+                    <div key={session._id} className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md md:flex-row md:items-center">
                       <div className="flex-1">
-                         <div className="flex items-center gap-2 mb-2 flex-wrap">
-                           <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${completedSession ? 'bg-green-50 border-green-200 text-green-700' : 'bg-blue-50 border-blue-100 text-blue-700'}`}>
-                             {completedSession ? 'Completed' : 'Assigned'}
-                           </span>
-                           <span className="text-xs text-gray-500">{new Date(session.createdAt).toLocaleDateString()}</span>
-                           {isReassigned && (
-                             <span className="px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded border border-amber-100">
-                               🔄 Reassigned
-                             </span>
-                           )}
-                         </div>
-                         <h3 className="text-lg font-bold text-gray-900 mb-2">{test?.title || 'Assigned Test'}</h3>
-                         <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
-                           <span className="flex items-center gap-1">
-                             <FiFileText className="w-4 h-4" />
-                             <span className="font-medium">{questionCount}</span> Question{questionCount !== 1 ? 's' : ''}
-                           </span>
-                           <span className="flex items-center gap-1">
-                             <FiClock className="w-4 h-4" />
-                             {test?.isTimed ? (
-                               <span className="font-medium">{duration} min</span>
-                             ) : (
-                               <span className="font-medium text-orange-600">Untimed</span>
-                             )}
-                           </span>
-                           <span className={`px-2 py-0.5 text-xs font-semibold rounded ${
-                             difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
-                             difficulty === 'Hard' ? 'bg-red-100 text-red-700' :
-                             'bg-yellow-100 text-yellow-700'
-                           }`}>
-                             {difficulty}
-                           </span>
-                         </div>
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${completedSession ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                            {completedSession ? 'Completed' : 'Assigned'}
+                          </span>
+                          <span className="flex items-center gap-1 text-xs text-slate-500">
+                            <FiCalendar className="h-3.5 w-3.5" /> {fmtDate(session.createdAt)}
+                          </span>
+                          {isReassigned && (
+                            <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">
+                              <FiRefreshCw className="h-3 w-3" /> Reassigned
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="mb-2 text-lg font-bold text-slate-900">{test?.title || 'Assigned Test'}</h3>
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
+                          <span className="flex items-center gap-1.5">
+                            <FiFileText className="h-4 w-4 text-slate-400" />
+                            <span className="font-medium">{questionCount}</span> Question{questionCount !== 1 ? 's' : ''}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <FiClock className="h-4 w-4 text-slate-400" />
+                            {test?.isTimed ? (
+                              <span className="font-medium">{duration} min</span>
+                            ) : (
+                              <span className="font-medium text-amber-600">Untimed</span>
+                            )}
+                          </span>
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${difficultyBadge(difficulty)}`}>
+                            {difficulty}
+                          </span>
+                          {completedSession && (
+                            <span className="flex items-center gap-1.5">
+                              <FiAward className="h-4 w-4 text-slate-400" />
+                              <span className="font-medium text-slate-900">{completedSession.rwScore ?? completedSession.totalScore ?? '—'}</span> Score
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {completedSession ? (
                         <button
                           onClick={() => router.push(`/dashboard/tests/${test?._id}/results?session_id=${completedSession._id}&returnUrl=/dashboard/tutor/rw`)}
-                          className="px-6 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2"
+                          className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
                         >
-                          <FiCheckCircle className="w-4 h-4" /> View Results
+                          <FiCheckCircle className="h-4 w-4" /> View Results
                         </button>
                       ) : (
                         <button
                           onClick={() => handleStartSession(session)}
-                          className="px-6 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
+                          className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
                         >
-                          <FiPlay className="w-4 h-4" /> Start Test
+                          <FiPlay className="h-4 w-4" /> Start Test
                         </button>
                       )}
                     </div>
                   )
                 })
             ) : (
-              <div className="text-center py-16 bg-white rounded-lg border border-dashed border-gray-300">
-                <div className="bg-gray-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <FiFileText className="w-6 h-6 text-gray-400" />
-                </div>
-                <h3 className="text-gray-900 font-medium">No tests assigned</h3>
-                <p className="text-gray-500 text-sm mt-1">You don&apos;t have any pending Reading & Writing tests.</p>
+              <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                  <FiFileText className="h-6 w-6" />
+                </span>
+                <h3 className="font-semibold text-slate-900">No tests assigned</h3>
+                <p className="text-sm text-slate-500">You don&apos;t have any pending Reading &amp; Writing tests.</p>
               </div>
             )
           )}
@@ -213,82 +308,110 @@ export default function TutorRWPage() {
                 })
                 .map((session) => {
                   const test = session.testId
-                  const questionCount = test?.questions?.length || test?.totalQuestions || 0
+                  const questionCount = test?.questions?.length || test?.totalQuestions || session.totalQuestions || 0
                   const difficulty = test?.difficulty || 'Mixed'
                   const duration = test?.duration || 0
-                                    
+                  const isCompleted = session.status === 'Completed'
+
                   return (
-                    <div key={session._id} className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-all">
+                    <div key={session._id} className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md md:flex-row md:items-center">
                       <div className="flex-1">
-                         <div className="flex items-center gap-2 mb-2 flex-wrap">
-                           <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${
-                             session.status === 'Completed'
-                               ? 'bg-green-50 border-green-200 text-green-600' 
-                               : 'bg-yellow-50 border-yellow-200 text-yellow-600'
-                           }`}>
-                             {session.status === 'Completed' ? 'Completed' : 'In Progress'}
-                           </span>
-                           <span className="text-xs text-gray-500">{new Date(session.createdAt).toLocaleDateString()}</span>
-                         </div>
-                         <h3 className="text-lg font-bold text-gray-900 mb-2">{test?.title || 'Practice Session'}</h3>
-                         <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
-                           <span className="flex items-center gap-1">
-                             <FiFileText className="w-4 h-4" /> 
-                             <span className="font-medium">{questionCount}</span> Question{questionCount !== 1 ? 's' : ''}
-                           </span>
-                           <span className="flex items-center gap-1">
-                             <FiClock className="w-4 h-4" />
-                             {test?.isTimed ? (
-                               <span className="font-medium">{duration} min</span>
-                             ) : (
-                               <span className="font-medium text-orange-600">Untimed</span>
-                             )}
-                           </span>
-                           <span className={`px-2 py-0.5 text-xs font-semibold rounded ${
-                             difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
-                             difficulty === 'Hard' ? 'bg-red-100 text-red-700' :
-                             'bg-yellow-100 text-yellow-700'
-                           }`}>
-                             {difficulty}
-                           </span>
-                         </div>
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                            isCompleted
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {isCompleted ? 'Completed' : 'In Progress'}
+                          </span>
+                          <span className="flex items-center gap-1 text-xs text-slate-500">
+                            <FiCalendar className="h-3.5 w-3.5" /> {fmtDate(session.createdAt)}
+                          </span>
+                          {isCompleted && (
+                            <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                              session.analysisSubmitted ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-600'
+                            }`}>
+                              {session.analysisSubmitted ? 'Analysis submitted' : 'Analysis pending'}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="mb-2 text-lg font-bold text-slate-900">{test?.title || 'Practice Session'}</h3>
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
+                          <span className="flex items-center gap-1.5">
+                            <FiFileText className="h-4 w-4 text-slate-400" />
+                            <span className="font-medium">{questionCount}</span> Question{questionCount !== 1 ? 's' : ''}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <FiClock className="h-4 w-4 text-slate-400" />
+                            {test?.isTimed ? (
+                              <span className="font-medium">{duration} min</span>
+                            ) : (
+                              <span className="font-medium text-amber-600">Untimed</span>
+                            )}
+                          </span>
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${difficultyBadge(difficulty)}`}>
+                            {difficulty}
+                          </span>
+                          {isCompleted && (
+                            <>
+                              <span className="flex items-center gap-1.5">
+                                <FiAward className="h-4 w-4 text-slate-400" />
+                                <span className="font-medium text-slate-900">{session.rwScore ?? session.totalScore ?? '—'}</span> Score
+                              </span>
+                              <span className="flex items-center gap-1.5">
+                                <FiTarget className="h-4 w-4 text-slate-400" />
+                                <span className="font-medium">{session.correctAnswers ?? '—'}</span> Correct
+                              </span>
+                              <span className="flex items-center gap-1.5">
+                                <FiCheckCircle className="h-4 w-4 text-slate-400" />
+                                Completed {fmtDate(session.completedAt)}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-3">
-                         {session.status === 'Completed' ? (
-                           <button
-                             onClick={() => router.push(`/dashboard/tests/${session.testId?._id}/results?session_id=${session._id}&returnUrl=/dashboard/tutor/rw`)}
-                             className={`px-6 py-2 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm ${
-                               session.analysisSubmitted 
-                                 ? 'bg-green-600 hover:bg-green-700' 
-                                 : 'bg-purple-900 hover:bg-purple-800'
-                             }`}
-                           >
-                             {session.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
-                           </button>
-                         ) : (
-                           <button
-                             onClick={() => router.push(`/dashboard/tests/${session.testId?._id}/start?sessionId=${session._id}&returnUrl=/dashboard/tutor/rw`)}
-                             className="px-6 py-2 bg-purple-900 text-white text-sm font-semibold rounded-lg hover:bg-purple-800 transition-colors shadow-sm"
-                           >
-                             Resume
-                           </button>
-                         )}
+                        {isCompleted ? (
+                          <button
+                            onClick={() => router.push(`/dashboard/tests/${session.testId?._id}/results?session_id=${session._id}&returnUrl=/dashboard/tutor/rw`)}
+                            className={`inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors ${
+                              session.analysisSubmitted
+                                ? 'bg-emerald-600 hover:bg-emerald-700'
+                                : 'bg-indigo-600 hover:bg-indigo-700'
+                            }`}
+                          >
+                            <FiBarChart2 className="h-4 w-4" />
+                            {session.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => router.push(`/dashboard/tests/${session.testId?._id}/start?sessionId=${session._id}&returnUrl=/dashboard/tutor/rw`)}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
+                          >
+                            <FiPlay className="h-4 w-4" /> Resume
+                          </button>
+                        )}
                       </div>
                     </div>
                   )
                 })
             ) : (
-              <div className="text-center py-12 text-gray-500">No sessions found.</div>
+              <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                  <FiBarChart2 className="h-6 w-6" />
+                </span>
+                <h3 className="font-semibold text-slate-900">No sessions found</h3>
+                <p className="text-sm text-slate-500">
+                  {activeTab === 'Completed'
+                    ? 'You haven’t completed any Reading & Writing tutor tests yet.'
+                    : 'You don’t have any Reading & Writing tutor tests in progress.'}
+                </p>
+              </div>
             )
-          )}
-          
-          {(activeTab === 'Scheduled' || activeTab === 'Expired') && (
-             <div className="text-center py-12 text-gray-500">No items found in this category.</div>
           )}
         </div>
       </div>
     </div>
   )
 }
-

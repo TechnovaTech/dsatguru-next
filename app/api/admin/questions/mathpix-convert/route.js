@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
-import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
+import { requireRole } from '../../../../../lib/auth'
+import { STAFF_ROLES } from '../../../../../lib/constants/roles'
 import { generateQuestionId } from '../../../../../lib/idGenerator'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
@@ -11,12 +12,10 @@ const MX = () => ({ app_id: MATHPIX_APP_ID, app_key: MATHPIX_APP_KEY })
 
 export async function POST(request) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
     await connectDB()
-    const token = getTokenFromRequest(request)
-    if (!token) return NextResponse.json({ error: 'No token' }, { status: 401 })
-    const decoded = verifyToken(token)
-    if (!decoded || !['Admin', 'TutorAdmin'].includes(decoded.role))
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     if (!MATHPIX_APP_ID || !MATHPIX_APP_KEY)
       return NextResponse.json({ error: 'Mathpix credentials not configured' }, { status: 500 })
 
@@ -99,11 +98,9 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
-    const token = getTokenFromRequest(request)
-    if (!token) return NextResponse.json({ error: 'No token' }, { status: 401 })
-    const decoded = verifyToken(token)
-    if (!decoded || !['Admin', 'TutorAdmin'].includes(decoded.role))
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     const { searchParams } = new URL(request.url)
     const pdfId = searchParams.get('pdfId')

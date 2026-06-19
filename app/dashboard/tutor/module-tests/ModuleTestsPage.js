@@ -1,30 +1,34 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlay, FiFileText, FiCheckCircle, FiLayers, FiClock } from 'react-icons/fi'
+import { FiPlay, FiFileText, FiCheckCircle, FiLayers, FiClock, FiAlertCircle, FiTarget, FiAward } from 'react-icons/fi'
 
 export default function ModuleTestsPage({ subject }) {
   const router = useRouter()
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState('Assigned')
 
   useEffect(() => { fetchSessions() }, [])
 
   const fetchSessions = async () => {
+    setLoading(true)
+    setError(null)
     try {
       const token = localStorage.getItem('token')
       const res = await fetch('/api/test-sessions', {
         headers: { 'Authorization': `Bearer ${token}` },
         cache: 'no-store'
       })
+      if (!res.ok) throw new Error('Failed to load module tests')
       const data = await res.json()
       const sessions = data.sessions || data || []
       const filtered = sessions.filter(s => {
         if (!s.testId?.isModuleTest) return false
         // If no subject is provided, show all module tests
         if (!subject) return true
-        
+
         const modules = s.testId?.modules || []
         // Reassigned module tests have no modules array — match by test subject directly
         if (modules.length === 0) return s.testId?.subject === subject
@@ -33,6 +37,7 @@ export default function ModuleTestsPage({ subject }) {
       setHistory(filtered)
     } catch (e) {
       console.error(e)
+      setError(e.message || 'Something went wrong')
     } finally {
       setLoading(false)
     }
@@ -45,45 +50,91 @@ export default function ModuleTestsPage({ subject }) {
   ]
 
   const statusMap = { Assigned: 'Assigned', 'In Progress': 'InProgress', Completed: 'Completed' }
-  const returnUrl = subject 
+  const returnUrl = subject
     ? (subject === 'Math' ? '/dashboard/tutor/module-tests/math' : '/dashboard/tutor/module-tests/rw')
     : '/dashboard/tutor/module-tests'
 
+  const heading = subject ? `Module ${subject === 'Math' ? 'Math' : 'Reading & Writing'} Tests` : 'Tutor Module Tests'
+  const subtitle = subject
+    ? `Multi-module ${subject} tests assigned by your instructor.`
+    : 'All multi-module tests (Math & RW) assigned by your instructor.'
+
+  const stats = [
+    { label: 'Assigned', value: tabs[0].count, icon: FiFileText, chip: 'bg-indigo-500' },
+    { label: 'In Progress', value: tabs[1].count, icon: FiClock, chip: 'bg-amber-500' },
+    { label: 'Completed', value: tabs[2].count, icon: FiCheckCircle, chip: 'bg-emerald-500' },
+  ]
+
   if (loading) return (
-    <div className="p-8 flex justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+      <div className="flex justify-center py-24">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500"></div>
+      </div>
+    </div>
+  )
+
+  if (error) return (
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center">
+          <FiAlertCircle className="mx-auto mb-3 h-8 w-8 text-rose-500" />
+          <h3 className="font-semibold text-rose-800">{error}</h3>
+          <button onClick={fetchSessions}
+            className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700">
+            Retry
+          </button>
+        </div>
+      </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl space-y-6">
+        {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {subject ? `Module ${subject === 'Math' ? 'Math' : 'Reading & Writing'} Tests` : 'Tutor Module Tests'}
+          <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900 lg:text-3xl">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+              <FiLayers className="h-5 w-5" />
+            </span>
+            {heading}
           </h1>
-          <p className="text-gray-500 mt-1">
-            {subject 
-              ? `Multi-module ${subject} tests assigned by your instructor.`
-              : 'All multi-module tests (Math & RW) assigned by your instructor.'}
-          </p>
-          <div className="flex items-center gap-2 mt-6 border-b border-gray-200">
-            {tabs.map(tab => (
-              <button key={tab.name} onClick={() => setActiveTab(tab.name)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-                  activeTab === tab.name ? 'border-purple-700 text-purple-700' : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}>
-                {tab.name}
-                {tab.count > 0 && (
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${activeTab === tab.name ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+          <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
         </div>
 
+        {/* Stat cards */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {stats.map(stat => (
+            <div key={stat.label} className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+              <span className={`flex h-11 w-11 items-center justify-center rounded-xl text-white ${stat.chip}`}>
+                <stat.icon className="h-5 w-5" />
+              </span>
+              <div>
+                <div className="text-2xl font-extrabold text-slate-900">{stat.value}</div>
+                <div className="text-sm text-slate-500">{stat.label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Tabs */}
+        <div className="flex items-center gap-2 border-b border-slate-200">
+          {tabs.map(tab => (
+            <button key={tab.name} onClick={() => setActiveTab(tab.name)}
+              className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+                activeTab === tab.name ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+              }`}>
+              {tab.name}
+              {tab.count > 0 && (
+                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${activeTab === tab.name ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'}`}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* List */}
         <div className="space-y-3">
           {(() => {
             const filtered = history.filter(h => {
@@ -93,10 +144,12 @@ export default function ModuleTestsPage({ subject }) {
               return true
             })
             if (!filtered.length) return (
-              <div className="text-center py-16 bg-white rounded-lg border border-dashed border-gray-300">
-                <FiFileText className="mx-auto w-8 h-8 text-gray-400 mb-3" />
-                <h3 className="text-gray-900 font-medium">No {activeTab.toLowerCase()} module tests</h3>
-                <p className="text-gray-500 text-sm mt-1">Check back later or contact your instructor.</p>
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
+                <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                  <FiFileText className="h-6 w-6" />
+                </span>
+                <h3 className="font-semibold text-slate-900">No {activeTab.toLowerCase()} module tests</h3>
+                <p className="mt-1 text-sm text-slate-500">Check back later or contact your instructor.</p>
               </div>
             )
             return filtered.map(session => {
@@ -108,27 +161,54 @@ export default function ModuleTestsPage({ subject }) {
                 ? history.find(h => String(h.testId?._id) === String(test?._id) && h.status === 'Completed')
                 : null
               const effectiveStatus = completedSession ? 'Completed' : session.status
+              const resultSession = completedSession || session
+              const showScore = effectiveStatus === 'Completed'
+              const dispTotalQ = totalQ || resultSession.totalQuestions || 0
               return (
-                <div key={session._id} className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-all">
+                <div key={session._id} className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md md:flex-row md:items-center">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${
-                        effectiveStatus === 'Completed' ? 'bg-green-50 border-green-200 text-green-600'
-                        : effectiveStatus === 'InProgress' ? 'bg-yellow-50 border-yellow-200 text-yellow-600'
-                        : 'bg-blue-50 border-blue-100 text-blue-700'
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                        effectiveStatus === 'Completed' ? 'bg-emerald-100 text-emerald-700'
+                        : effectiveStatus === 'InProgress' ? 'bg-amber-100 text-amber-700'
+                        : 'bg-indigo-100 text-indigo-700'
                       }`}>
                         {effectiveStatus === 'InProgress' ? 'In Progress' : effectiveStatus}
                       </span>
-                      <span className="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs font-semibold rounded border border-purple-100">
-                        <FiLayers className="inline w-3 h-3 mr-1" />{modules.length} Modules
+                      <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-1 text-xs font-medium text-violet-700">
+                        <FiLayers className="h-3 w-3" />{modules.length} Modules
                       </span>
-                      <span className="text-xs text-gray-500">{new Date(session.createdAt).toLocaleDateString()}</span>
+                      {isReassigned && (
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">Reassigned</span>
+                      )}
+                      <span className="text-xs text-slate-400">
+                        {session.createdAt ? new Date(session.createdAt).toLocaleDateString() : '—'}
+                      </span>
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{test?.title || 'Module Test'}</h3>
-                    <div className="flex items-center gap-3 text-sm text-gray-600 flex-wrap">
-                      <span className="flex items-center gap-1"><FiFileText className="w-4 h-4" /> <b>{totalQ}</b> Questions</span>
+                    <h3 className="mb-2 text-lg font-bold text-slate-900">{test?.title || 'Module Test'}</h3>
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+                      <span className="inline-flex items-center gap-1"><FiFileText className="h-4 w-4 text-slate-400" /> <b>{dispTotalQ}</b> Questions</span>
+                      {showScore && (
+                        <>
+                          <span className="inline-flex items-center gap-1 text-emerald-700">
+                            <FiTarget className="h-4 w-4" /> <b>{resultSession.correctAnswers ?? 0}</b>/{dispTotalQ} Correct
+                          </span>
+                          {resultSession.totalScore != null && (
+                            <span className="inline-flex items-center gap-1 text-indigo-700">
+                              <FiAward className="h-4 w-4" /> Score <b>{resultSession.totalScore}</b>
+                            </span>
+                          )}
+                          {resultSession.completedAt && (
+                            <span className="inline-flex items-center gap-1 text-slate-400">
+                              <FiCheckCircle className="h-3.5 w-3.5" /> {new Date(resultSession.completedAt).toLocaleDateString()}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
                       {modules.map((m, i) => (
-                        <span key={i} className="text-xs px-2 py-0.5 bg-gray-100 rounded">
+                        <span key={i} className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
                           M{i+1}: {m.subject} • {m.numberOfQuestions || m.questions?.length || 0}q • {m.isTimed ? `${m.duration}min` : 'Untimed'}
                         </span>
                       ))}
@@ -136,16 +216,16 @@ export default function ModuleTestsPage({ subject }) {
                   </div>
                   <div>
                     {effectiveStatus === 'Completed' ? (
-                      <button onClick={() => router.push(`/dashboard/tests/${test?._id}/results?session_id=${(completedSession || session)._id}&returnUrl=${returnUrl}`)}
-                        className={`px-6 py-2 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2 ${
-                          (completedSession || session).analysisSubmitted ? 'bg-green-600 hover:bg-green-700' : 'bg-purple-900 hover:bg-purple-800'
+                      <button onClick={() => router.push(`/dashboard/tests/${test?._id}/results?session_id=${resultSession._id}&returnUrl=${returnUrl}`)}
+                        className={`flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-colors ${
+                          resultSession.analysisSubmitted ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'
                         }`}>
-                        <FiCheckCircle className="w-4 h-4" /> {(completedSession || session).analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
+                        <FiCheckCircle className="h-4 w-4" /> {resultSession.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
                       </button>
                     ) : (
                       <button onClick={() => router.push(`/dashboard/tests/${test?._id}/module-start?sessionId=${session._id}&returnUrl=${returnUrl}`)}
-                        className="px-6 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-                        <FiPlay className="w-4 h-4" /> {effectiveStatus === 'InProgress' ? 'Resume' : 'Start Test'}
+                        className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700">
+                        <FiPlay className="h-4 w-4" /> {effectiveStatus === 'InProgress' ? 'Resume' : 'Start Test'}
                       </button>
                     )}
                   </div>

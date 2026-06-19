@@ -19,7 +19,7 @@ export default function Home() {
   const landingPlanRef = useRef(null)
 
   return (
-    <div className="font-[Poppins]">
+    <div>
       <HeroSection landingPlanRef={landingPlanRef} />
       <IntroSection />
       <FeaturesSection />

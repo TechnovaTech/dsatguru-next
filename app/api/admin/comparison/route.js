@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import Comparison from '../../../../lib/models/Comparison'
+import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
 
 export async function GET() {
   try {
@@ -21,6 +22,10 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+    const decoded = verifyToken(getTokenFromRequest(request))
+    if (!decoded || !['Admin', 'TutorAdmin'].includes(decoded.role)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     await connectDB()
     const data = await request.json()
     console.log('Saving comparison data:', data)

@@ -3,9 +3,14 @@ import { connectDB } from '../../../../../lib/db'
 import TestSession from '../../../../../lib/models/TestSession'
 import User from '../../../../../lib/models/User'
 import Test from '../../../../../lib/models/Test'
+import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const decoded = verifyToken(getTokenFromRequest(request))
+    if (!decoded || !['Admin', 'TutorAdmin', 'Tutor'].includes(decoded.role)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     await connectDB()
     
     const activeSessions = await TestSession.find({

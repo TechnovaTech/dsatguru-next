@@ -6,7 +6,7 @@ const program = {
   examLabel: 'Digital SAT',
   title: 'Free Digital SAT Diagnostic Test',
   highlightTag: 'Start Smart',
-  heroImage: '/hero-2.png',
+  heroArt: '/art/prog-diagnostic.png',
   seoTitle: 'Free SAT Diagnostic Test Online | Detailed Analysis',
   seoDescription: 'Identify your strengths and weaknesses with a free SAT diagnostic test online, gain performance insights, and plan a personalized SAT prep strategy.',
   overview: 'A realistic diagnostic test that maps your current performance, identifies gaps, and recommends a clear preparation roadmap.',

@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import User from '../../../../../lib/models/User'
-import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
+import { requireRole } from '../../../../../lib/auth'
+import { ADMIN_ROLES } from '../../../../../lib/constants/roles'
 import bcrypt from 'bcryptjs'
 
 export async function PUT(request, { params }) {
   try {
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
 
     const { name, email, role, password } = await request.json()
     
@@ -23,7 +22,7 @@ export async function PUT(request, { params }) {
 
     // Check if email is being changed and if it conflicts
     if (email !== user.email) {
-      const existingUser = await User.findOne({ email })
+      const existingUser = await User.findOne({ email: String(email).toLowerCase() })
       if (existingUser) {
         return NextResponse.json({ error: 'Email already in use' }, { status: 400 })
       }
@@ -52,12 +51,11 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
+
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
 
     const user = await User.findById(params.id)
     if (!user) {

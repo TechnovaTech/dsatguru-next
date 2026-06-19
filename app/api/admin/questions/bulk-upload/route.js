@@ -3,7 +3,8 @@ import { connectDB } from '../../../../../lib/db'
 import Question from '../../../../../lib/models/Question'
 import Course from '../../../../../lib/models/Course'
 import User from '../../../../../lib/models/User'
-import { getTokenFromRequest, verifyToken, hashPassword } from '../../../../../lib/auth'
+import { requireRole, hashPassword } from '../../../../../lib/auth'
+import { STAFF_ROLES } from '../../../../../lib/constants/roles'
 import ExcelJS from 'exceljs'
 import { generateQuestionId } from '../../../../../lib/idGenerator'
 import { writeFile, mkdir, appendFile } from 'fs/promises'
@@ -155,16 +156,11 @@ function parseCsv(text) {
 
 export async function POST(request) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
+
     await connectDB()
-    const token = getTokenFromRequest(request)
-    if (!token) {
-      return NextResponse.json({ error: 'No token provided' }, { status: 401 })
-    }
-    
-    const decoded = verifyToken(token)
-    if (!decoded || !['Admin', 'TutorAdmin'].includes(decoded.role)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
 
     const form = await request.formData()
     const file = form.get('file')

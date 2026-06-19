@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2, FiFolder, FiUpload, FiFile, FiBell, FiEye, FiSearch, FiX, FiImage } from 'react-icons/fi'
 import CourseCalendar from './CourseCalendar'
+import { useConfirm, useToast } from '../ui/UIProvider'
 import moment from 'moment'
 import dynamic from 'next/dynamic'
 const LiveKitMeeting = dynamic(() => import('../LiveKitMeeting'), { ssr: false })
@@ -41,62 +42,76 @@ export default function ManageCourses() {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-slate-50 p-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
       </div>
     )
   }
 
+  const courseList = Array.isArray(courses) ? courses.filter(c => c.type ? c.type === 'course' : true) : []
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Manage Courses</h1>
+        <h1 className="text-2xl font-extrabold text-slate-900 lg:text-3xl">Manage Courses</h1>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Course</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Instructor</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Enrollments</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {Array.isArray(courses) ? courses.filter(c => c.type ? c.type === 'course' : true).map((course) => (
-              <tr key={course._id || course.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <div>
-                    <div className="font-medium text-gray-900">{course.title}</div>
-                    <div className="text-sm text-gray-500">{course.description}</div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-900">{course.instructor || 'Instructor'}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{course.duration || '—'}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{course.enrollments || 0}</td>
-                <td className="px-6 py-4 text-sm font-medium">
-                  <button
-                    onClick={() => setSelectedCourse({
-                      id: course._id || course.id,
-                      title: course.title
-                    })}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                  >
-                    Manage Content
-                  </button>
-                </td>
-              </tr>
-            )) : []}
-          </tbody>
-        </table>
-      </div>
+      {courseList.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-12 text-center shadow-sm">
+          <FiFolder size={40} className="mb-3 text-slate-300" />
+          <h3 className="text-base font-semibold text-slate-700">No courses yet</h3>
+          <p className="mt-1 text-sm text-slate-400">Courses you create will appear here.</p>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-100">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Course</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Instructor</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Duration</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Enrollments</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {courseList.map((course) => (
+                  <tr key={course._id || course.id} className="transition-colors hover:bg-indigo-50/40">
+                    <td className="px-6 py-4">
+                      <div>
+                        <div className="font-semibold text-slate-900">{course.title}</div>
+                        <div className="text-sm text-slate-500">{course.description}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-700">{course.instructor || 'Instructor'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-700">{course.duration || '—'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-700">{course.enrollments || 0}</td>
+                    <td className="px-6 py-4 text-sm font-medium">
+                      <button
+                        onClick={() => setSelectedCourse({
+                          id: course._id || course.id,
+                          title: course.title
+                        })}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                      >
+                        Manage Content
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function CourseContentManager({ course, onBack }) {
+  const confirm = useConfirm()
+  const toast = useToast()
   const [activeTab, setActiveTab] = useState('meetings')
   const [courseData, setCourseData] = useState({
     meetings: [],
@@ -240,16 +255,16 @@ function CourseContentManager({ course, onBack }) {
         body: JSON.stringify(enrollForm)
       })
       if (response.ok) {
-        alert('User enrolled successfully!')
+        toast.success('User enrolled successfully!')
         setShowEnrollModal(false)
         setEnrollForm({ userId: '', accessType: 'lifetime', accessDuration: '' })
         fetchEnrolledUsers()
       } else {
         const error = await response.json()
-        alert(error.error || 'Failed to enroll user')
+        toast.error(error.error || 'Failed to enroll user')
       }
     } catch (error) {
-      alert('Failed to enroll user')
+      toast.error('Failed to enroll user')
     }
   }
 
@@ -272,19 +287,19 @@ function CourseContentManager({ course, onBack }) {
       })
       
       if (response.ok) {
-        alert('Enrollment updated successfully!')
+        toast.success('Enrollment updated successfully!')
         setShowEditModal(false)
         setEditingEnrollment(null)
         setEnrollForm({ userId: '', accessType: 'lifetime', accessDuration: '' })
         fetchEnrolledUsers()
       } else {
         const error = await response.json()
-        alert(error.error || 'Failed to update enrollment')
+        toast.error(error.error || 'Failed to update enrollment')
         console.error('Update error:', error)
       }
     } catch (error) {
       console.error('Update error:', error)
-      alert('Failed to update enrollment')
+      toast.error('Failed to update enrollment')
     }
   }
 
@@ -302,15 +317,15 @@ function CourseContentManager({ course, onBack }) {
       if (response.ok) {
         fetchEnrolledUsers()
       } else {
-        alert('Failed to toggle status')
+        toast.error('Failed to toggle status')
       }
     } catch (error) {
-      alert('Failed to toggle status')
+      toast.error('Failed to toggle status')
     }
   }
 
   const handleDeleteEnrollment = async (enrollmentId) => {
-    if (!confirm('Are you sure you want to remove this enrollment?')) return
+    if (!(await confirm({ message: 'Are you sure you want to remove this enrollment?', tone: 'danger', confirmText: 'Delete' }))) return
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(`/api/admin/courses/${course.id}/enrollments/${enrollmentId}`, {
@@ -318,13 +333,13 @@ function CourseContentManager({ course, onBack }) {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.ok) {
-        alert('Enrollment removed successfully!')
+        toast.success('Enrollment removed successfully!')
         fetchEnrolledUsers()
       } else {
-        alert('Failed to remove enrollment')
+        toast.error('Failed to remove enrollment')
       }
     } catch (error) {
-      alert('Failed to remove enrollment')
+      toast.error('Failed to remove enrollment')
     }
   }
 
@@ -341,37 +356,37 @@ function CourseContentManager({ course, onBack }) {
         body: JSON.stringify({ content: courseData })
       })
       if (response.ok) {
-        alert('Content saved successfully!')
+        toast.success('Content saved successfully!')
       }
     } catch (error) {
       console.error('Error saving content:', error)
-      alert('Failed to save content')
+      toast.error('Failed to save content')
     } finally {
       setSaving(false)
     }
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8 space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <button onClick={onBack} className="text-blue-600 hover:text-blue-800 mb-2 flex items-center gap-2">
+          <button onClick={onBack} className="mb-2 flex items-center gap-2 text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700">
             <FiArrowLeft /> Back to Courses
           </button>
-          <h1 className="text-2xl font-bold">{course.title}</h1>
-          <p className="text-gray-600">Manage course content and materials</p>
+          <h1 className="text-2xl font-extrabold text-slate-900 lg:text-3xl">{course.title}</h1>
+          <p className="mt-1 text-sm text-slate-500">Manage course content and materials</p>
         </div>
         <button
           onClick={handleSave}
           disabled={saving || loading}
-          className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-green-700 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
         >
           <FiSave /> {saving ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md">
-        <div className="flex border-b">
+      <div className="rounded-2xl border border-slate-100 bg-white shadow-sm">
+        <div className="flex overflow-x-auto whitespace-nowrap border-b border-slate-100">
           {[
             { id: 'meetings', label: 'Live Meetings', icon: <FiVideo size={16} /> },
             { id: 'transcripts', label: 'Transcripts', icon: <FiFileText size={16} /> },
@@ -384,8 +399,8 @@ function CourseContentManager({ course, onBack }) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium ${
-                activeTab === tab.id ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
+                activeTab === tab.id ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               {tab.icon}
@@ -395,17 +410,17 @@ function CourseContentManager({ course, onBack }) {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
           </div>
         ) : (
           <>
             {activeTab === 'meetings' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Live Meetings</h2>
+              <h2 className="text-xl font-bold text-slate-900">Live Meetings</h2>
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
@@ -414,14 +429,21 @@ function CourseContentManager({ course, onBack }) {
                     { title: '', date: '', link: '', transcript: '', transcriptSummary: '' }
                   ]
                 }))}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 Add Meeting
               </button>
             </div>
+            {courseData.meetings.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-12 text-center">
+                <FiVideo size={40} className="mb-3 text-slate-300" />
+                <h3 className="text-base font-semibold text-slate-700">No meetings yet</h3>
+                <p className="mt-1 text-sm text-slate-400">Click &quot;Add Meeting&quot; to schedule a live session.</p>
+              </div>
+            ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {courseData.meetings.map((m, index) => (
-                <div key={m._id || index} className="border rounded-lg p-4">
+                <div key={m._id || index} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
                   <input
                     type="text"
                     value={m.title}
@@ -430,7 +452,7 @@ function CourseContentManager({ course, onBack }) {
                       updated[index] = { ...updated[index], title: e.target.value }
                       setCourseData(prev => ({ ...prev, meetings: updated }))
                     }}
-                    className="w-full mb-2 p-2 border rounded"
+                    className="w-full mb-2 rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     placeholder="Meeting title"
                   />
                   <input
@@ -441,7 +463,7 @@ function CourseContentManager({ course, onBack }) {
                       updated[index] = { ...updated[index], date: e.target.value }
                       setCourseData(prev => ({ ...prev, meetings: updated }))
                     }}
-                    className="w-full mb-2 p-2 border rounded"
+                    className="w-full mb-2 rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     placeholder="Date & time"
                   />
                   <div className="flex gap-2 mb-2">
@@ -453,7 +475,7 @@ function CourseContentManager({ course, onBack }) {
                         updated[index] = { ...updated[index], link: e.target.value }
                         setCourseData(prev => ({ ...prev, meetings: updated }))
                       }}
-                      className="flex-1 p-2 border rounded"
+                      className="flex-1 rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                       placeholder="Meeting link or Room Name"
                     />
                     <button
@@ -465,14 +487,14 @@ function CourseContentManager({ course, onBack }) {
                         updated[index] = { ...updated[index], link: roomName }
                         setCourseData(prev => ({ ...prev, meetings: updated }))
                       }}
-                      className="bg-purple-100 text-purple-700 px-3 py-2 rounded hover:bg-purple-200 text-sm whitespace-nowrap"
+                      className="bg-violet-50 text-violet-700 px-3 py-2 rounded-lg hover:bg-violet-100 text-sm whitespace-nowrap transition-colors"
                     >
                       Generate Room
                     </button>
                     {m.link && (
                       <button
                         onClick={() => setActiveAdminMeeting(m)}
-                        className="bg-green-100 text-green-700 px-3 py-2 rounded hover:bg-green-200 text-sm whitespace-nowrap flex items-center"
+                        className="bg-green-50 text-green-700 px-3 py-2 rounded-lg hover:bg-green-100 text-sm whitespace-nowrap flex items-center transition-colors"
                         title="Join Meeting"
                       >
                         <FiVideo className="mr-1" /> Join
@@ -487,7 +509,7 @@ function CourseContentManager({ course, onBack }) {
                         updated[index] = { ...updated[index], transcript: e.target.value }
                         setCourseData(prev => ({ ...prev, meetings: updated }))
                       }}
-                      className="w-full p-2 border rounded text-sm"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                       rows={4}
                       placeholder="Paste or write meeting transcript here"
                     />
@@ -498,7 +520,7 @@ function CourseContentManager({ course, onBack }) {
                         updated[index] = { ...updated[index], transcriptSummary: e.target.value }
                         setCourseData(prev => ({ ...prev, meetings: updated }))
                       }}
-                      className="w-full p-2 border rounded text-sm"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                       rows={3}
                       placeholder="Short summary of key points (optional)"
                     />
@@ -512,7 +534,7 @@ function CourseContentManager({ course, onBack }) {
                             ...prev.meetings.slice(index + 1)
                           ]
                         }))}
-                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                        className="bg-indigo-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-indigo-700 transition-colors"
                       >
                         Add Below
                       </button>
@@ -521,7 +543,7 @@ function CourseContentManager({ course, onBack }) {
                           const updated = courseData.meetings.filter((_, i) => i !== index)
                           setCourseData(prev => ({ ...prev, meetings: updated }))
                         }}
-                        className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                        className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700 transition-colors"
                       >
                         Remove
                       </button>
@@ -530,11 +552,19 @@ function CourseContentManager({ course, onBack }) {
                 </div>
               ))}
             </div>
+            )}
           </div>
         )}
 
         {activeTab === 'calendar' && (
           <div className="space-y-4">
+            {courseData.calendarEvents.length === 0 && (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-8 text-center">
+                <FiCalendar size={36} className="mb-2 text-slate-300" />
+                <h3 className="text-sm font-semibold text-slate-700">No calendar events yet</h3>
+                <p className="mt-1 text-sm text-slate-400">Click a date on the calendar below to add an event.</p>
+              </div>
+            )}
             <CourseCalendar
               events={courseData.calendarEvents.map(evt => ({
                 title: evt.title,
@@ -550,8 +580,8 @@ function CourseContentManager({ course, onBack }) {
                 setEventForm({ title: '', start: startStr, end: endStr, description: '' })
                 setShowEventModal(true)
               }}
-              onEventClick={(event) => {
-                if (confirm(`Delete event "${event.title}"?`)) {
+              onEventClick={async (event) => {
+                if (await confirm({ message: `Delete event "${event.title}"?`, tone: 'danger', confirmText: 'Delete' })) {
                   const updated = courseData.calendarEvents.filter(e => e !== event.resource)
                   setCourseData(prev => ({ ...prev, calendarEvents: updated }))
                 }
@@ -563,36 +593,42 @@ function CourseContentManager({ course, onBack }) {
         {activeTab === 'materials' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Study Materials</h2>
+              <h2 className="text-xl font-bold text-slate-900">Study Materials</h2>
               <button
                 onClick={() => setShowMaterialModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 Add Material
               </button>
             </div>
-            
+
             {/* Materials List */}
             <div className="space-y-4">
-              {courseData.materials.map((mat, index) => {
+              {courseData.materials.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-12 text-center">
+                  <FiDownload size={40} className="mb-3 text-slate-300" />
+                  <h3 className="text-base font-semibold text-slate-700">No study materials yet</h3>
+                  <p className="mt-1 text-sm text-slate-400">Click &quot;Add Material&quot; to share resources with students.</p>
+                </div>
+              ) : courseData.materials.map((mat, index) => {
                 // Handle both old and new material formats
                 const materialName = mat.mainName || mat.title || 'Untitled Material'
                 const subMaterialsCount = mat.subMaterials?.length || 0
                 const hasSubMaterials = mat.hasSubMaterials || (mat.subMaterials && mat.subMaterials.length > 0)
-                
+
                 return (
-                  <div key={mat._id || index} className="border rounded-lg p-4 bg-white">
+                  <div key={mat._id || index} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
                     <div className="flex justify-between items-center">
                       <div>
-                        <h3 className="font-semibold text-lg">{materialName}</h3>
-                        <p className="text-sm text-gray-600">
+                        <h3 className="font-semibold text-lg text-slate-900">{materialName}</h3>
+                        <p className="text-sm text-slate-500">
                           {hasSubMaterials ? `${subMaterialsCount} sub-materials` : 'Single material'}
                         </p>
                       </div>
                       <div className="flex gap-2">
                         <button
                           onClick={() => setViewingMaterial(mat)}
-                          className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                          className="bg-indigo-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-indigo-700 transition-colors"
                         >
                           View
                         </button>
@@ -601,7 +637,7 @@ function CourseContentManager({ course, onBack }) {
                             const updated = courseData.materials.filter((_, i) => i !== index)
                             setCourseData(prev => ({ ...prev, materials: updated }))
                           }}
-                          className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                          className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700 transition-colors"
                         >
                           Remove
                         </button>
@@ -617,20 +653,26 @@ function CourseContentManager({ course, onBack }) {
         {activeTab === 'syllabus' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Course Timeline</h2>
+              <h2 className="text-xl font-bold text-slate-900">Course Timeline</h2>
               <button
                 onClick={() => setCourseData(prev => ({
                   ...prev,
                   syllabus: [...prev.syllabus, { week: prev.syllabus.length + 1, title: '', description: '' }]
                 }))}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 Add Topic
               </button>
             </div>
             <div className="space-y-3">
-              {courseData.syllabus.map((t, index) => (
-                <div key={t._id || index} className="border rounded-lg p-4">
+              {courseData.syllabus.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-12 text-center">
+                  <FiCalendar size={40} className="mb-3 text-slate-300" />
+                  <h3 className="text-base font-semibold text-slate-700">No timeline topics yet</h3>
+                  <p className="mt-1 text-sm text-slate-400">Click &quot;Add Topic&quot; to build the course timeline.</p>
+                </div>
+              ) : courseData.syllabus.map((t, index) => (
+                <div key={t._id || index} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
                   <div className="flex gap-2 mb-2">
                     <input
                       type="number"
@@ -640,7 +682,7 @@ function CourseContentManager({ course, onBack }) {
                         updated[index] = { ...updated[index], week: parseInt(e.target.value) }
                         setCourseData(prev => ({ ...prev, syllabus: updated }))
                       }}
-                      className="w-20 p-2 border rounded"
+                      className="w-20 rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                       placeholder="Week"
                     />
                     <input
@@ -651,7 +693,7 @@ function CourseContentManager({ course, onBack }) {
                         updated[index] = { ...updated[index], title: e.target.value }
                         setCourseData(prev => ({ ...prev, syllabus: updated }))
                       }}
-                      className="flex-1 p-2 border rounded"
+                      className="flex-1 rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                       placeholder="Topic title"
                     />
                   </div>
@@ -662,7 +704,7 @@ function CourseContentManager({ course, onBack }) {
                       updated[index] = { ...updated[index], description: e.target.value }
                       setCourseData(prev => ({ ...prev, syllabus: updated }))
                     }}
-                    className="w-full p-2 border rounded"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     placeholder="Description"
                     rows="2"
                   />
@@ -672,7 +714,7 @@ function CourseContentManager({ course, onBack }) {
                         ...prev,
                         syllabus: [...prev.syllabus.slice(0, index + 1), { week: prev.syllabus.length + 1, title: '', description: '' }, ...prev.syllabus.slice(index + 1)]
                       }))}
-                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                      className="bg-indigo-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-indigo-700 transition-colors"
                     >
                       Add Below
                     </button>
@@ -681,7 +723,7 @@ function CourseContentManager({ course, onBack }) {
                         const updated = courseData.syllabus.filter((_, i) => i !== index)
                         setCourseData(prev => ({ ...prev, syllabus: updated }))
                       }}
-                      className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                      className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700 transition-colors"
                     >
                       Remove
                     </button>
@@ -695,7 +737,7 @@ function CourseContentManager({ course, onBack }) {
         {activeTab === 'assignments' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Assignments</h2>
+              <h2 className="text-xl font-bold text-slate-900">Assignments</h2>
               <button
                 onClick={() => {
                   const newIndex = courseData.assignments.length
@@ -705,29 +747,29 @@ function CourseContentManager({ course, onBack }) {
                   }))
                   setEditingAssignmentIndex(newIndex)
                 }}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 Add Assignment
               </button>
             </div>
             <div className="space-y-3">
               {courseData.assignments.map((a, index) => (
-                <div key={a._id || index} className="border rounded-lg bg-white shadow-sm overflow-hidden">
+                <div key={a._id || index} className="rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden">
                   {editingAssignmentIndex === index ? (
                     /* Edit Mode - Full Form */
-                    <div className="p-4 bg-blue-50">
+                    <div className="p-4 bg-indigo-50/60">
                       <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-semibold text-blue-800">Editing Assignment</h3>
-                        <button 
+                        <h3 className="font-semibold text-indigo-700">Editing Assignment</h3>
+                        <button
                           onClick={() => setEditingAssignmentIndex(null)}
-                          className="text-sm bg-white border border-gray-300 px-3 py-1 rounded hover:bg-gray-50"
+                          className="text-sm bg-white border border-slate-300 text-slate-600 px-3 py-1 rounded-lg hover:bg-slate-50 transition-colors"
                         >
                           Done Editing
                         </button>
                       </div>
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-sm font-medium mb-1">Assignment Title</label>
+                          <label className="block text-sm font-medium text-slate-600 mb-1">Assignment Title</label>
                           <input
                             type="text"
                             value={a.title}
@@ -736,12 +778,12 @@ function CourseContentManager({ course, onBack }) {
                               updated[index] = { ...updated[index], title: e.target.value }
                               setCourseData(prev => ({ ...prev, assignments: updated }))
                             }}
-                            className="w-full p-2 border rounded"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                             placeholder="Enter assignment title"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-1">Description</label>
+                          <label className="block text-sm font-medium text-slate-600 mb-1">Description</label>
                           <textarea
                             value={a.description || ''}
                             onChange={(e) => {
@@ -749,14 +791,14 @@ function CourseContentManager({ course, onBack }) {
                               updated[index] = { ...updated[index], description: e.target.value }
                               setCourseData(prev => ({ ...prev, assignments: updated }))
                             }}
-                            className="w-full p-2 border rounded"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                             placeholder="Enter assignment description"
                             rows="3"
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium mb-1">Due Date (dd-mm-yyyy)</label>
+                            <label className="block text-sm font-medium text-slate-600 mb-1">Due Date (dd-mm-yyyy)</label>
                             <input
                               type="date"
                               value={a.dueDate}
@@ -765,11 +807,11 @@ function CourseContentManager({ course, onBack }) {
                                 updated[index] = { ...updated[index], dueDate: e.target.value }
                                 setCourseData(prev => ({ ...prev, assignments: updated }))
                               }}
-                              className="w-full p-2 border rounded"
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium mb-1">Status</label>
+                            <label className="block text-sm font-medium text-slate-600 mb-1">Status</label>
                             <select
                               value={a.status}
                               onChange={(e) => {
@@ -777,7 +819,7 @@ function CourseContentManager({ course, onBack }) {
                                 updated[index] = { ...updated[index], status: e.target.value }
                                 setCourseData(prev => ({ ...prev, assignments: updated }))
                               }}
-                              className="w-full p-2 border rounded"
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                             >
                               <option value="Pending">Pending</option>
                               <option value="Active">Active</option>
@@ -786,37 +828,37 @@ function CourseContentManager({ course, onBack }) {
                             </select>
                           </div>
                         </div>
-                        
+
                         {/* Assignment Materials */}
-                        <div className="border-t pt-3 mt-3">
+                        <div className="border-t border-slate-200 pt-3 mt-3">
                           <div className="flex justify-between items-center mb-2">
-                            <label className="block text-sm font-medium text-gray-700">Attached Materials</label>
+                            <label className="block text-sm font-medium text-slate-600">Attached Materials</label>
                             <button
                               onClick={() => {
                                 setCurrentAssignmentIndex(index)
                                 setShowAssignmentMaterialModal(true)
                               }}
-                              className="text-blue-600 text-sm flex items-center gap-1 hover:underline"
+                              className="text-indigo-600 text-sm flex items-center gap-1 hover:underline"
                             >
                               <FiUpload size={14} /> Add Material
                             </button>
                           </div>
-                          <div className="space-y-2 bg-white p-3 rounded border">
+                          <div className="space-y-2 bg-white p-3 rounded-lg border border-slate-200">
                             {a.materials && a.materials.length > 0 ? (
                               a.materials.map((mat, matIndex) => (
-                                <div key={matIndex} className="flex items-center justify-between bg-gray-50 p-2 rounded border text-sm">
+                                <div key={matIndex} className="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200 text-sm">
                                   <div className="flex items-center gap-2 overflow-hidden">
-                                    <FiFileText className="text-gray-500 flex-shrink-0" />
-                                    <a 
-                                      href={mat.link} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer" 
-                                      className="text-blue-600 hover:underline truncate"
+                                    <FiFileText className="text-slate-400 flex-shrink-0" />
+                                    <a
+                                      href={mat.link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-indigo-600 hover:underline truncate"
                                       title={mat.name}
                                     >
                                       {mat.name || 'Untitled Material'}
                                     </a>
-                                    <span className="text-xs text-gray-400 uppercase border px-1 rounded flex-shrink-0">{mat.type}</span>
+                                    <span className="text-xs text-slate-400 uppercase border border-slate-200 px-1 rounded flex-shrink-0">{mat.type}</span>
                                   </div>
                                   <button
                                     onClick={() => {
@@ -833,15 +875,15 @@ function CourseContentManager({ course, onBack }) {
                                 </div>
                               ))
                             ) : (
-                              <div className="text-sm text-gray-400 italic text-center py-2">No materials attached to this assignment</div>
+                              <div className="text-sm text-slate-400 italic text-center py-2">No materials attached to this assignment</div>
                             )}
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-2 mt-4 pt-4 border-t border-blue-200">
+                      <div className="flex gap-2 mt-4 pt-4 border-t border-indigo-100">
                         <button
                           onClick={() => setEditingAssignmentIndex(null)}
-                          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 w-full"
+                          className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 w-full transition-colors"
                         >
                           Save & Close Editor
                         </button>
@@ -849,24 +891,24 @@ function CourseContentManager({ course, onBack }) {
                     </div>
                   ) : (
                     /* View Mode - Summary List */
-                    <div className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <div className="p-4 flex items-center justify-between hover:bg-indigo-50/40 transition-colors">
                       <div className="flex-1 min-w-0 pr-4">
                         <div className="flex items-center gap-3 mb-1">
-                          <h3 className="font-semibold text-gray-900 truncate" title={a.title}>
+                          <h3 className="font-semibold text-slate-900 truncate" title={a.title}>
                             {a.title || '(Untitled Assignment)'}
                           </h3>
                           <span className={`text-xs px-2 py-0.5 rounded-full ${
-                            a.status === 'Active' ? 'bg-green-100 text-green-800' :
-                            a.status === 'Completed' ? 'bg-blue-100 text-blue-800' :
-                            a.status === 'Overdue' ? 'bg-red-100 text-red-800' :
-                            'bg-gray-100 text-gray-800'
+                            a.status === 'Active' ? 'bg-green-50 text-green-700' :
+                            a.status === 'Completed' ? 'bg-indigo-50 text-indigo-700' :
+                            a.status === 'Overdue' ? 'bg-red-50 text-red-700' :
+                            'bg-slate-100 text-slate-600'
                           }`}>
                             {a.status}
                           </span>
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-4 text-sm text-slate-500">
                           <span className="flex items-center gap-1">
-                            <FiCalendar size={14} /> 
+                            <FiCalendar size={14} />
                             {a.dueDate ? `Due: ${a.dueDate}` : 'No due date'}
                           </span>
                           <span className="flex items-center gap-1">
@@ -875,28 +917,28 @@ function CourseContentManager({ course, onBack }) {
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <button
                           onClick={() => setViewingAssignment(a)}
-                          className="bg-green-600 text-white px-3 py-1.5 rounded text-sm hover:bg-green-700 flex items-center gap-1"
+                          className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-green-700 flex items-center gap-1 transition-colors"
                         >
                           <FiFileText /> View
                         </button>
                         <button
                           onClick={() => setEditingAssignmentIndex(index)}
-                          className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 flex items-center gap-1"
+                          className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-indigo-700 flex items-center gap-1 transition-colors"
                         >
                           <FiEdit /> Edit
                         </button>
                         <button
-                          onClick={() => {
-                            if (confirm('Are you sure you want to delete this assignment?')) {
+                          onClick={async () => {
+                            if (await confirm({ message: 'Are you sure you want to delete this assignment?', tone: 'danger', confirmText: 'Delete' })) {
                               const updated = courseData.assignments.filter((_, i) => i !== index)
                               setCourseData(prev => ({ ...prev, assignments: updated }))
                             }
                           }}
-                          className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 flex items-center gap-1"
+                          className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-red-700 flex items-center gap-1 transition-colors"
                         >
                           <FiTrash2 /> Delete
                         </button>
@@ -905,11 +947,11 @@ function CourseContentManager({ course, onBack }) {
                   )}
                 </div>
               ))}
-              
+
               {courseData.assignments.length === 0 && (
-                <div className="text-center py-10 border-2 border-dashed rounded-lg text-gray-400">
-                  <FiFileText size={48} className="mx-auto mb-2 opacity-50" />
-                  <p>No assignments created yet.</p>
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-12 text-center">
+                  <FiFileText size={40} className="mb-3 text-slate-300" />
+                  <h3 className="text-base font-semibold text-slate-700">No assignments created yet</h3>
                   <button
                     onClick={() => {
                       setCourseData(prev => ({
@@ -918,7 +960,7 @@ function CourseContentManager({ course, onBack }) {
                       }))
                       setEditingAssignmentIndex(0)
                     }}
-                    className="text-blue-600 hover:underline mt-2"
+                    className="text-indigo-600 hover:underline mt-2 text-sm"
                   >
                     Create your first assignment
                   </button>
@@ -931,30 +973,31 @@ function CourseContentManager({ course, onBack }) {
         {activeTab === 'transcripts' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Meeting Transcripts</h2>
+              <h2 className="text-xl font-bold text-slate-900">Meeting Transcripts</h2>
               <div className="relative w-64">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search in transcripts..."
                   value={transcriptSearch}
                   onChange={(e) => setTranscriptSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
             </div>
-            
-            <div className="bg-white rounded-lg border overflow-hidden">
+
+            <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+              <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-slate-50 border-b border-slate-100">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Meeting</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date & Time</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Intelligent Recap</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Meeting</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Date & Time</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Intelligent Recap</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-slate-100">
                   {(() => {
                     const filteredMeetings = courseData.meetings.filter(m => {
                       if (!m.transcript && !m.transcriptSummary) return false;
@@ -969,20 +1012,20 @@ function CourseContentManager({ course, onBack }) {
 
                     return filteredMeetings.length > 0 ? (
                       filteredMeetings.map((m, index) => (
-                      <tr key={m._id || index} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                      <tr key={m._id || index} className="transition-colors hover:bg-indigo-50/40">
+                        <td className="px-4 py-3 text-sm font-medium text-slate-900">
                           {m.title || 'Untitled Meeting'}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-slate-500">
                           {m.date ? new Date(m.date).toLocaleString() : 'N/A'}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-slate-500">
                           {m.transcriptSummary ? (
-                            <div className="max-w-xs truncate text-blue-600 font-medium" title={m.transcriptSummary}>
+                            <div className="max-w-xs truncate text-indigo-600 font-medium" title={m.transcriptSummary}>
                               Recap available
                             </div>
                           ) : (
-                            <span className="text-gray-400 italic">No recap</span>
+                            <span className="text-slate-400 italic">No recap</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-sm font-medium">
@@ -1118,10 +1161,10 @@ function CourseContentManager({ course, onBack }) {
                                     pdf.save(`Report-${m.title || 'Meeting'}-${new Date(m.date).toLocaleDateString()}.pdf`)
                                   } catch (error) {
                                     console.error('PDF generation failed:', error)
-                                    alert('Failed to generate PDF')
+                                    toast.error('Failed to generate PDF')
                                   }
                                 }}
-                                className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
+                                className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
                                 title="Download Transcript (PDF)"
                               >
                                 <FiDownload /> Download PDF
@@ -1130,7 +1173,7 @@ function CourseContentManager({ course, onBack }) {
                             {m.transcriptSummary && (
                               <button
                                 onClick={() => setViewingSummary(m)}
-                                className="text-indigo-600 hover:text-indigo-900 flex items-center gap-1"
+                                className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
                                 title="View Intelligent Recap"
                               >
                                 <FiVideo /> Intelligent Recap
@@ -1138,7 +1181,7 @@ function CourseContentManager({ course, onBack }) {
                             )}
                             <button
                               onClick={async () => {
-                                if (confirm('Are you sure you want to delete this transcript and all related snapshots?')) {
+                                if (await confirm({ message: 'Are you sure you want to delete this transcript and all related snapshots?', tone: 'danger', confirmText: 'Delete' })) {
                                   try {
                                     const token = localStorage.getItem('token')
                                     const res = await fetch('/api/admin/meetings/delete-transcript', {
@@ -1163,17 +1206,17 @@ function CourseContentManager({ course, onBack }) {
                                             : meet
                                         )
                                       }))
-                                      alert('Transcript deleted successfully')
+                                      toast.success('Transcript deleted successfully')
                                     } else {
-                                      alert(`Failed: ${data.error || 'Unknown error'}`)
+                                      toast.error(`Failed: ${data.error || 'Unknown error'}`)
                                     }
                                   } catch (error) {
                                     console.error('Delete transcript error:', error)
-                                    alert('Failed to connect to server')
+                                    toast.error('Failed to connect to server')
                                   }
                                 }
                               }}
-                              className="text-red-600 hover:text-red-900 flex items-center gap-1 ml-2"
+                              className="text-red-600 hover:text-red-800 flex items-center gap-1 ml-2"
                               title="Delete Transcript"
                             >
                               <FiTrash2 /> Delete
@@ -1184,21 +1227,28 @@ function CourseContentManager({ course, onBack }) {
                     ))
                     ) : (
                     <tr>
-                      <td colSpan="4" className="px-4 py-8 text-center text-gray-500 italic">
-                        {transcriptSearch ? 'No transcripts match your search.' : 'No transcripts available yet. They will appear here after meetings conclude.'}
+                      <td colSpan="4" className="px-4 py-12 text-center">
+                        <FiFileText size={40} className="mx-auto mb-3 text-slate-300" />
+                        <p className="text-sm font-semibold text-slate-700">
+                          {transcriptSearch ? 'No transcripts match your search' : 'No transcripts available yet'}
+                        </p>
+                        {!transcriptSearch && (
+                          <p className="mt-1 text-sm text-slate-400">They will appear here after meetings conclude.</p>
+                        )}
                       </td>
                     </tr>
                     );
                   })()}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         )}
 
         {/* Intelligent Recap Modal */}
         {viewingSummary && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60] backdrop-blur-sm">
+          <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-[60] backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-fadeIn">
               <div className="p-5 border-b flex items-center justify-between bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
                 <div className="flex items-center gap-3">
@@ -1214,23 +1264,23 @@ function CourseContentManager({ course, onBack }) {
                   <FiX size={24} />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50 custom-scrollbar">
                 <div className="prose prose-sm max-w-none prose-indigo">
-                  <div className="bg-white p-5 rounded-xl border shadow-sm whitespace-pre-wrap leading-relaxed text-gray-800 font-sans">
+                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm whitespace-pre-wrap leading-relaxed text-slate-800 font-sans">
                     {viewingSummary.transcriptSummary}
                   </div>
                 </div>
 
                 {viewingSummary.snapshots && viewingSummary.snapshots.length > 0 && (
                   <div className="space-y-4">
-                    <h4 className="font-bold text-gray-700 flex items-center gap-2">
+                    <h4 className="font-bold text-slate-700 flex items-center gap-2">
                       <FiImage /> Visual Recap
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {viewingSummary.snapshots.map((snap, i) => (
-                        <div key={i} className="bg-white p-2 rounded-lg border shadow-sm space-y-2">
-                          <img src={snap.imageUrl} alt={snap.title} className="w-full h-auto rounded border" />
-                          <div className="flex justify-between items-center text-[10px] text-gray-500">
+                        <div key={i} className="bg-white p-2 rounded-lg border border-slate-200 shadow-sm space-y-2">
+                          <img src={snap.imageUrl} alt={snap.title} className="w-full h-auto rounded border border-slate-200" />
+                          <div className="flex justify-between items-center text-[10px] text-slate-500">
                             <span>{snap.title}</span>
                             <span>{snap.timestamp}</span>
                           </div>
@@ -1242,7 +1292,7 @@ function CourseContentManager({ course, onBack }) {
               </div>
               <div className="p-4 border-t bg-white flex justify-end">
                 <button 
-                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-md"
+                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
                   onClick={() => setViewingSummary(null)}
                 >
                   Close Recap
@@ -1255,9 +1305,9 @@ function CourseContentManager({ course, onBack }) {
         {activeTab === 'users' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Enrolled Users</h2>
+              <h2 className="text-xl font-bold text-slate-900">Enrolled Users</h2>
               <div className="flex items-center gap-4">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-slate-500">
                   Total: {enrolledUsers.length} students
                 </div>
                 <button
@@ -1265,7 +1315,7 @@ function CourseContentManager({ course, onBack }) {
                     setShowEnrollModal(true)
                     fetchAllUsers()
                   }}
-                  className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-700"
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors"
                 >
                   <FiUsers size={16} /> Add Enrollment
                 </button>
@@ -1273,45 +1323,46 @@ function CourseContentManager({ course, onBack }) {
             </div>
             {loadingUsers ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mr-3"></div>
-                <span>Loading enrolled users...</span>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mr-3"></div>
+                <span className="text-slate-500">Loading enrolled users...</span>
               </div>
             ) : enrolledUsers.length > 0 ? (
-              <div className="bg-white rounded-lg border overflow-hidden">
+              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+                <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-slate-50 border-b border-slate-100">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Enrolled Date</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Access</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Email</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Enrolled Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Access</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-slate-100">
                     {enrolledUsers.map((enrollment, index) => (
-                      <tr key={enrollment._id || index} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                      <tr key={enrollment._id || index} className="transition-colors hover:bg-indigo-50/40">
+                        <td className="px-4 py-3 text-sm font-medium text-slate-900">
                           {enrollment.userId?.name || enrollment.userName || 'N/A'}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-slate-500">
                           {enrollment.userId?.email || enrollment.userEmail || 'N/A'}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-slate-500">
                           {new Date(enrollment.enrolledAt).toLocaleDateString()}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
-                          {enrollment.accessType === 'lifetime' ? 'Lifetime' : 
-                           enrollment.expiresAt ? 
-                           `Until ${new Date(enrollment.expiresAt).toLocaleDateString()}` : 
+                        <td className="px-4 py-3 text-sm text-slate-500">
+                          {enrollment.accessType === 'lifetime' ? 'Lifetime' :
+                           enrollment.expiresAt ?
+                           `Until ${new Date(enrollment.expiresAt).toLocaleDateString()}` :
                            `${enrollment.accessDuration || 0} ${enrollment.accessType || 'days'}`}
                         </td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            enrollment.userId?.isActive !== false 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
+                            enrollment.userId?.isActive !== false
+                              ? 'bg-green-50 text-green-700'
+                              : 'bg-red-50 text-red-700'
                           }`}>
                             {enrollment.userId?.isActive !== false ? 'Active' : 'Inactive'}
                           </span>
@@ -1328,21 +1379,21 @@ function CourseContentManager({ course, onBack }) {
                                 })
                                 setShowEditModal(true)
                               }}
-                              className="text-blue-600 hover:text-blue-900"
+                              className="text-indigo-600 hover:text-indigo-800"
                               title="Edit Enrollment"
                             >
                               <FiEdit />
                             </button>
                             <button
                               onClick={() => handleToggleEnrollmentStatus(enrollment._id, enrollment.userId?.isActive !== false)}
-                              className="text-orange-600 hover:text-orange-900"
+                              className="text-amber-600 hover:text-amber-800"
                               title="Toggle Status"
                             >
                               {enrollment.userId?.isActive !== false ? <FiToggleRight /> : <FiToggleLeft />}
                             </button>
                             <button
                               onClick={() => handleDeleteEnrollment(enrollment._id)}
-                              className="text-red-600 hover:text-red-900"
+                              className="text-red-600 hover:text-red-800"
                               title="Delete Enrollment"
                             >
                               <FiTrash2 />
@@ -1353,11 +1404,13 @@ function CourseContentManager({ course, onBack }) {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                <FiUsers size={48} className="mx-auto mb-4 text-gray-300" />
-                <p>No students enrolled in this course yet.</p>
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-12 text-center">
+                <FiUsers size={40} className="mb-3 text-slate-300" />
+                <h3 className="text-base font-semibold text-slate-700">No students enrolled yet</h3>
+                <p className="mt-1 text-sm text-slate-400">Click &quot;Add Enrollment&quot; to enroll a student in this course.</p>
               </div>
             )}
           </div>
@@ -1368,22 +1421,22 @@ function CourseContentManager({ course, onBack }) {
 
       {/* Add Enrollment Modal */}
       {showEnrollModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Add Course Enrollment</h2>
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold text-slate-900 mb-4">Add Course Enrollment</h2>
             <form onSubmit={handleAddEnrollment}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Select User</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">Select User</label>
                   <select
                     value={enrollForm.userId}
                     onChange={(e) => setEnrollForm({...enrollForm, userId: e.target.value})}
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     required
                   >
                     <option value="">Choose a student...</option>
-                    {allUsers.filter(user => 
-                      !enrolledUsers.some(enrollment => 
+                    {allUsers.filter(user =>
+                      !enrolledUsers.some(enrollment =>
                         (enrollment.userId?._id || enrollment.userId) === user._id
                       )
                     ).map((user) => (
@@ -1394,13 +1447,13 @@ function CourseContentManager({ course, onBack }) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Access Type</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">Access Type</label>
                   <select
                     value={enrollForm.accessType}
                     onChange={(e) => {
                       setEnrollForm({...enrollForm, accessType: e.target.value, accessDuration: ''})
                     }}
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="lifetime">Lifetime</option>
                     <option value="days">Days</option>
@@ -1410,17 +1463,17 @@ function CourseContentManager({ course, onBack }) {
                 </div>
                 {enrollForm.accessType !== 'lifetime' && (
                   <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Duration ({enrollForm.accessType === 'days' ? 'Max 31' : 
+                    <label className="block text-sm font-medium text-slate-600 mb-1">
+                      Duration ({enrollForm.accessType === 'days' ? 'Max 31' :
                                 enrollForm.accessType === 'months' ? 'Max 12' : 'Any number'})
                     </label>
                     <input
                       type="number"
                       value={enrollForm.accessDuration}
                       onChange={(e) => setEnrollForm({...enrollForm, accessDuration: e.target.value})}
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                       min="1"
-                      max={enrollForm.accessType === 'days' ? '31' : 
+                      max={enrollForm.accessType === 'days' ? '31' :
                            enrollForm.accessType === 'months' ? '12' : undefined}
                       required
                       placeholder={`Enter number of ${enrollForm.accessType}`}
@@ -1435,13 +1488,13 @@ function CourseContentManager({ course, onBack }) {
                     setShowEnrollModal(false)
                     setEnrollForm({ userId: '', accessType: 'lifetime', accessDuration: '' })
                   }}
-                  className="flex-1 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                  className="flex-1 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  className="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                 >
                   Enroll User
                 </button>
@@ -1453,9 +1506,9 @@ function CourseContentManager({ course, onBack }) {
 
       {/* Add Material Modal */}
       {showMaterialModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Add Study Material</h2>
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+            <h2 className="text-xl font-bold text-slate-900 mb-4">Add Study Material</h2>
             <form onSubmit={async (e) => {
               e.preventDefault()
               setUploading(true)
@@ -1531,45 +1584,45 @@ function CourseContentManager({ course, onBack }) {
                   hasSubMaterials: false,
                   subMaterials: [{ name: '', file: null, link: '', type: 'pdf', uploadMethod: 'link' }]
                 })
-                alert('Material added and saved successfully!')
+                toast.success('Material added and saved successfully!')
               } catch (error) {
                 console.error('Error:', error)
-                alert('Failed to add material: ' + error.message)
+                toast.error('Failed to add material: ' + error.message)
               } finally {
                 setUploading(false)
               }
             }}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Main Material Name</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">Main Material Name</label>
                   <input
                     type="text"
                     value={materialForm.mainName}
                     onChange={(e) => setMaterialForm({...materialForm, mainName: e.target.value})}
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     placeholder="e.g., Mathematics"
                     required
                   />
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     id="hasSubMaterials"
                     checked={materialForm.hasSubMaterials}
                     onChange={(e) => setMaterialForm({
-                      ...materialForm, 
+                      ...materialForm,
                       hasSubMaterials: e.target.checked,
                       subMaterials: e.target.checked ? [{ name: '', file: null, link: '', type: 'pdf', uploadMethod: 'link' }] : materialForm.subMaterials
                     })}
                   />
-                  <label htmlFor="hasSubMaterials" className="text-sm">Has sub-materials</label>
+                  <label htmlFor="hasSubMaterials" className="text-sm text-slate-600">Has sub-materials</label>
                 </div>
-                
+
                 <div className="space-y-3">
-                  <h3 className="font-medium">{materialForm.hasSubMaterials ? 'Sub-Materials' : 'Material Details'}</h3>
+                  <h3 className="font-medium text-slate-700">{materialForm.hasSubMaterials ? 'Sub-Materials' : 'Material Details'}</h3>
                   {materialForm.subMaterials.map((sub, index) => (
-                    <div key={index} className="border rounded p-3 space-y-2">
+                    <div key={index} className="rounded-lg border border-slate-200 p-3 space-y-2">
                       <input
                         type="text"
                         value={sub.name}
@@ -1578,7 +1631,7 @@ function CourseContentManager({ course, onBack }) {
                           updated[index] = { ...updated[index], name: e.target.value }
                           setMaterialForm({...materialForm, subMaterials: updated})
                         }}
-                        className="w-full border rounded px-3 py-2"
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                         placeholder={materialForm.hasSubMaterials ? `${materialForm.mainName} ${index + 1}` : 'Material name'}
                         required
                       />
@@ -1589,13 +1642,13 @@ function CourseContentManager({ course, onBack }) {
                           updated[index] = { ...updated[index], type: e.target.value }
                           setMaterialForm({...materialForm, subMaterials: updated})
                         }}
-                        className="w-full border rounded px-3 py-2"
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                       >
                         <option value="pdf">PDF</option>
                         <option value="doc">Word Document</option>
                         <option value="video">Video</option>
                       </select>
-                      
+
                       <div className="flex gap-2 mb-2">
                         <label className="flex items-center gap-1">
                           <input
@@ -1609,7 +1662,7 @@ function CourseContentManager({ course, onBack }) {
                               setMaterialForm({...materialForm, subMaterials: updated})
                             }}
                           />
-                          <span className="text-sm">Link</span>
+                          <span className="text-sm text-slate-600">Link</span>
                         </label>
                         <label className="flex items-center gap-1">
                           <input
@@ -1623,10 +1676,10 @@ function CourseContentManager({ course, onBack }) {
                               setMaterialForm({...materialForm, subMaterials: updated})
                             }}
                           />
-                          <span className="text-sm">Upload File</span>
+                          <span className="text-sm text-slate-600">Upload File</span>
                         </label>
                       </div>
-                      
+
                       {sub.uploadMethod === 'link' ? (
                         <input
                           type="url"
@@ -1636,7 +1689,7 @@ function CourseContentManager({ course, onBack }) {
                             updated[index] = { ...updated[index], link: e.target.value }
                             setMaterialForm({...materialForm, subMaterials: updated})
                           }}
-                          className="w-full border rounded px-3 py-2"
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                           placeholder="Enter file URL"
                           required
                         />
@@ -1650,7 +1703,7 @@ function CourseContentManager({ course, onBack }) {
                               updated[index] = { ...updated[index], file: e.target.files[0] }
                               setMaterialForm({...materialForm, subMaterials: updated})
                             }}
-                            className="w-full border rounded px-3 py-2"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                             required
                           />
                           {sub.file && (
@@ -1658,7 +1711,7 @@ function CourseContentManager({ course, onBack }) {
                           )}
                         </div>
                       )}
-                      
+
                       {materialForm.hasSubMaterials && (
                         <button
                           type="button"
@@ -1673,7 +1726,7 @@ function CourseContentManager({ course, onBack }) {
                       )}
                     </div>
                   ))}
-                  
+
                   {materialForm.hasSubMaterials && (
                     <button
                       type="button"
@@ -1681,14 +1734,14 @@ function CourseContentManager({ course, onBack }) {
                         ...materialForm,
                         subMaterials: [...materialForm.subMaterials, { name: '', file: null, link: '', type: 'pdf', uploadMethod: 'link' }]
                       })}
-                      className="bg-green-600 text-white px-3 py-1 rounded text-sm"
+                      className="bg-indigo-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-indigo-700 transition-colors"
                     >
                       Add More Sub-Material
                     </button>
                   )}
                 </div>
               </div>
-              
+
               <div className="flex gap-3 mt-6">
                 <button
                   type="button"
@@ -1700,14 +1753,14 @@ function CourseContentManager({ course, onBack }) {
                       subMaterials: [{ name: '', file: null, link: '', type: 'pdf', uploadMethod: 'link' }]
                     })
                   }}
-                  className="flex-1 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                  className="flex-1 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={uploading}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
                 >
                   {uploading ? 'Saving...' : 'Save Material'}
                 </button>
@@ -1719,18 +1772,18 @@ function CourseContentManager({ course, onBack }) {
       
       {/* View Material Modal */}
       {viewingMaterial && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">{viewingMaterial.mainName || viewingMaterial.title || 'Material Details'}</h2>
+              <h2 className="text-xl font-bold text-slate-900">{viewingMaterial.mainName || viewingMaterial.title || 'Material Details'}</h2>
               <button
                 onClick={() => setViewingMaterial(null)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-slate-400 hover:text-slate-600"
               >
-                ✕
+                <FiX size={20} />
               </button>
             </div>
-            
+
             <div className="space-y-3">
               {(() => {
                 // Handle both old and new material formats
@@ -1756,21 +1809,21 @@ function CourseContentManager({ course, onBack }) {
                 }
                 
                 return materialsToShow.map((sub, index) => (
-                  <div key={index} className="border rounded p-3 flex justify-between items-center">
+                  <div key={index} className="rounded-lg border border-slate-200 p-3 flex justify-between items-center">
                     <div>
-                      <h4 className="font-medium">{sub.name || 'Untitled'}</h4>
-                      <p className="text-sm text-gray-600 capitalize">{sub.type || 'pdf'} file</p>
+                      <h4 className="font-medium text-slate-900">{sub.name || 'Untitled'}</h4>
+                      <p className="text-sm text-slate-500 capitalize">{sub.type || 'pdf'} file</p>
                     </div>
                     {sub.link && sub.link !== '#' ? (
                       <a
                         href={sub.link}
                         download
-                        className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center gap-1"
+                        className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 flex items-center gap-1 transition-colors"
                       >
                         <FiDownload size={14} /> Download
                       </a>
                     ) : (
-                      <span className="text-gray-400 text-sm">No link available</span>
+                      <span className="text-slate-400 text-sm">No link available</span>
                     )}
                   </div>
                 ))
@@ -1782,28 +1835,28 @@ function CourseContentManager({ course, onBack }) {
 
       {/* Edit Enrollment Modal */}
       {showEditModal && editingEnrollment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Edit Enrollment</h2>
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold text-slate-900 mb-4">Edit Enrollment</h2>
             <form onSubmit={handleEditEnrollment}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">User</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">User</label>
                   <input
                     type="text"
                     value={editingEnrollment.userId?.name || 'Unknown User'}
-                    className="w-full border rounded px-3 py-2 bg-gray-100"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 bg-slate-100 text-slate-500"
                     disabled
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Access Type</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">Access Type</label>
                   <select
                     value={enrollForm.accessType}
                     onChange={(e) => {
                       setEnrollForm({...enrollForm, accessType: e.target.value, accessDuration: ''})
                     }}
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="lifetime">Lifetime</option>
                     <option value="days">Days</option>
@@ -1813,17 +1866,17 @@ function CourseContentManager({ course, onBack }) {
                 </div>
                 {enrollForm.accessType !== 'lifetime' && (
                   <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Duration ({enrollForm.accessType === 'days' ? 'Max 31' : 
+                    <label className="block text-sm font-medium text-slate-600 mb-1">
+                      Duration ({enrollForm.accessType === 'days' ? 'Max 31' :
                                 enrollForm.accessType === 'months' ? 'Max 12' : 'Any number'})
                     </label>
                     <input
                       type="number"
                       value={enrollForm.accessDuration}
                       onChange={(e) => setEnrollForm({...enrollForm, accessDuration: e.target.value})}
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                       min="1"
-                      max={enrollForm.accessType === 'days' ? '31' : 
+                      max={enrollForm.accessType === 'days' ? '31' :
                            enrollForm.accessType === 'months' ? '12' : undefined}
                       required
                       placeholder={`Enter number of ${enrollForm.accessType}`}
@@ -1839,13 +1892,13 @@ function CourseContentManager({ course, onBack }) {
                     setEditingEnrollment(null)
                     setEnrollForm({ userId: '', accessType: 'lifetime', accessDuration: '' })
                   }}
-                  className="flex-1 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                  className="flex-1 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  className="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                 >
                   Update Enrollment
                 </button>
@@ -1857,9 +1910,9 @@ function CourseContentManager({ course, onBack }) {
 
       {/* Add Assignment Material Modal */}
       {showAssignmentMaterialModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Add Assignment Material</h2>
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold text-slate-900 mb-4">Add Assignment Material</h2>
             <form onSubmit={async (e) => {
               e.preventDefault()
               setUploading(true)
@@ -1905,32 +1958,32 @@ function CourseContentManager({ course, onBack }) {
                     type: 'pdf',
                     uploadMethod: 'link'
                 })
-                alert('Material added to assignment! Don\'t forget to save changes.')
+                toast.success('Material added to assignment! Don\'t forget to save changes.')
 
               } catch (error) {
                 console.error(error)
-                alert('Failed to add material: ' + error.message)
+                toast.error('Failed to add material: ' + error.message)
               } finally {
                 setUploading(false)
               }
             }}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Material Name</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">Material Name</label>
                   <input
                     type="text"
                     value={assignmentMaterialForm.name}
                     onChange={(e) => setAssignmentMaterialForm({...assignmentMaterialForm, name: e.target.value})}
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     placeholder="e.g. Question Paper, Reference Doc"
                     required
                   />
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium mb-1">Source Type</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">Source Type</label>
                   <div className="flex gap-4 mb-2">
-                    <label className="flex items-center gap-2">
+                    <label className="flex items-center gap-2 text-slate-600">
                       <input
                         type="radio"
                         checked={assignmentMaterialForm.uploadMethod === 'link'}
@@ -1938,7 +1991,7 @@ function CourseContentManager({ course, onBack }) {
                       />
                       <span>External Link</span>
                     </label>
-                    <label className="flex items-center gap-2">
+                    <label className="flex items-center gap-2 text-slate-600">
                       <input
                         type="radio"
                         checked={assignmentMaterialForm.uploadMethod === 'upload'}
@@ -1951,34 +2004,34 @@ function CourseContentManager({ course, onBack }) {
 
                 {assignmentMaterialForm.uploadMethod === 'link' ? (
                   <div>
-                    <label className="block text-sm font-medium mb-1">Link URL</label>
+                    <label className="block text-sm font-medium text-slate-600 mb-1">Link URL</label>
                     <input
                       type="url"
                       value={assignmentMaterialForm.link}
                       onChange={(e) => setAssignmentMaterialForm({...assignmentMaterialForm, link: e.target.value})}
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                       placeholder="https://..."
                       required
                     />
                   </div>
                 ) : (
                   <div>
-                    <label className="block text-sm font-medium mb-1">Select File</label>
+                    <label className="block text-sm font-medium text-slate-600 mb-1">Select File</label>
                     <input
                       type="file"
                       onChange={(e) => setAssignmentMaterialForm({...assignmentMaterialForm, file: e.target.files[0]})}
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                       required
                     />
                   </div>
                 )}
 
                 <div>
-                    <label className="block text-sm font-medium mb-1">File Type Label</label>
+                    <label className="block text-sm font-medium text-slate-600 mb-1">File Type Label</label>
                     <select
                         value={assignmentMaterialForm.type}
                         onChange={(e) => setAssignmentMaterialForm({...assignmentMaterialForm, type: e.target.value})}
-                        className="w-full border rounded px-3 py-2"
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     >
                         <option value="pdf">PDF Document</option>
                         <option value="video">Video</option>
@@ -1993,14 +2046,14 @@ function CourseContentManager({ course, onBack }) {
                 <button
                   type="button"
                   onClick={() => setShowAssignmentMaterialModal(false)}
-                  className="flex-1 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                  className="flex-1 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={uploading}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
                 >
                   {uploading ? 'Uploading...' : 'Add Material'}
                 </button>
@@ -2012,22 +2065,22 @@ function CourseContentManager({ course, onBack }) {
 
       {/* View Assignment Modal */}
       {viewingAssignment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-xl font-bold">{viewingAssignment.title || 'Untitled Assignment'}</h2>
+                <h2 className="text-xl font-bold text-slate-900">{viewingAssignment.title || 'Untitled Assignment'}</h2>
                 <div className="flex gap-2 mt-1">
                   <span className={`text-xs px-2 py-1 rounded-full ${
-                    viewingAssignment.status === 'Active' ? 'bg-green-100 text-green-800' :
-                    viewingAssignment.status === 'Completed' ? 'bg-blue-100 text-blue-800' :
-                    viewingAssignment.status === 'Overdue' ? 'bg-red-100 text-red-800' :
-                    'bg-gray-100 text-gray-800'
+                    viewingAssignment.status === 'Active' ? 'bg-green-50 text-green-700' :
+                    viewingAssignment.status === 'Completed' ? 'bg-indigo-50 text-indigo-700' :
+                    viewingAssignment.status === 'Overdue' ? 'bg-red-50 text-red-700' :
+                    'bg-slate-100 text-slate-600'
                   }`}>
                     {viewingAssignment.status}
                   </span>
                   {viewingAssignment.dueDate && (
-                    <span className="text-xs text-gray-500 flex items-center gap-1 border px-2 py-1 rounded">
+                    <span className="text-xs text-slate-500 flex items-center gap-1 border border-slate-200 px-2 py-1 rounded">
                       <FiCalendar size={12} /> Due: {viewingAssignment.dueDate}
                     </span>
                   )}
@@ -2035,47 +2088,47 @@ function CourseContentManager({ course, onBack }) {
               </div>
               <button
                 onClick={() => setViewingAssignment(null)}
-                className="text-gray-500 hover:text-gray-700 p-1"
+                className="text-slate-400 hover:text-slate-600 p-1"
               >
-                ✕
+                <FiX size={20} />
               </button>
             </div>
 
             <div className="space-y-6">
               {/* Description */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Description</h3>
-                <p className="text-gray-600 whitespace-pre-wrap">
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <h3 className="text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Description</h3>
+                <p className="text-slate-600 whitespace-pre-wrap">
                   {viewingAssignment.description || 'No description provided.'}
                 </p>
               </div>
 
               {/* Materials */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wide flex items-center gap-2">
                   <FiDownload /> Attached Materials ({viewingAssignment.materials?.length || 0})
                 </h3>
-                
+
                 <div className="space-y-3">
                   {viewingAssignment.materials && viewingAssignment.materials.length > 0 ? (
                     viewingAssignment.materials.map((mat, idx) => (
-                      <div key={idx} className="flex items-center justify-between border p-3 rounded hover:bg-gray-50 transition-colors">
+                      <div key={idx} className="flex items-center justify-between border border-slate-200 p-3 rounded-lg hover:bg-indigo-50/40 transition-colors">
                         <div className="flex items-center gap-3">
-                          <div className="bg-blue-100 p-2 rounded text-blue-600">
+                          <div className="bg-indigo-50 p-2 rounded text-indigo-600">
                             {mat.type === 'video' ? <FiVideo /> : <FiFileText />}
                           </div>
                           <div>
-                            <div className="font-medium">{mat.name || 'Untitled Material'}</div>
-                            <div className="text-xs text-gray-500 uppercase">{mat.type}</div>
+                            <div className="font-medium text-slate-900">{mat.name || 'Untitled Material'}</div>
+                            <div className="text-xs text-slate-500 uppercase">{mat.type}</div>
                           </div>
                         </div>
-                        
+
                         {mat.link && (
                           <a
                             href={mat.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 transition-colors"
+                            className="flex items-center gap-2 bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-indigo-700 transition-colors"
                           >
                             <FiDownload size={14} /> Download/View
                           </a>
@@ -2083,7 +2136,7 @@ function CourseContentManager({ course, onBack }) {
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-6 border-2 border-dashed rounded-lg text-gray-400">
+                    <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-lg text-slate-400">
                       No materials attached to this assignment.
                     </div>
                   )}
@@ -2091,23 +2144,23 @@ function CourseContentManager({ course, onBack }) {
               </div>
             </div>
 
-            <div className="flex justify-between mt-8 pt-4 border-t">
+            <div className="flex justify-between mt-8 pt-4 border-t border-slate-100">
                <button
-                onClick={() => {
-                  if (confirm('Are you sure you want to delete this assignment?')) {
+                onClick={async () => {
+                  if (await confirm({ message: 'Are you sure you want to delete this assignment?', tone: 'danger', confirmText: 'Delete' })) {
                     const updated = courseData.assignments.filter(a => a !== viewingAssignment)
                     setCourseData(prev => ({ ...prev, assignments: updated }))
                     setViewingAssignment(null)
                   }
                 }}
-                className="text-red-600 hover:text-red-800 flex items-center gap-2 px-3 py-2 rounded hover:bg-red-50"
+                className="text-red-600 hover:text-red-800 flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors"
               >
                 <FiTrash2 /> Delete Assignment
               </button>
-              
+
               <button
                 onClick={() => setViewingAssignment(null)}
-                className="bg-gray-200 text-gray-800 px-6 py-2 rounded hover:bg-gray-300"
+                className="border border-slate-300 text-slate-600 px-6 py-2 rounded-lg hover:bg-slate-50 transition-colors"
               >
                 Close
               </button>
@@ -2118,9 +2171,9 @@ function CourseContentManager({ course, onBack }) {
 
       {/* Event Modal */}
       {showEventModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Add Calendar Event</h2>
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md">
+            <h2 className="text-xl font-bold text-slate-900 mb-4">Add Calendar Event</h2>
             <form onSubmit={(e) => {
               e.preventDefault()
               setCourseData(prev => ({
@@ -2131,41 +2184,41 @@ function CourseContentManager({ course, onBack }) {
             }}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Title</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">Title</label>
                   <input
                     type="text"
                     required
                     value={eventForm.title}
                     onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
-                    className="w-full p-2 border rounded"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Start Time</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">Start Time</label>
                   <input
                     type="datetime-local"
                     required
                     value={eventForm.start}
                     onChange={(e) => setEventForm({ ...eventForm, start: e.target.value })}
-                    className="w-full p-2 border rounded"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">End Time</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">End Time</label>
                   <input
                     type="datetime-local"
                     required
                     value={eventForm.end}
                     onChange={(e) => setEventForm({ ...eventForm, end: e.target.value })}
-                    className="w-full p-2 border rounded"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Description</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">Description</label>
                   <textarea
                     value={eventForm.description}
                     onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
-                    className="w-full p-2 border rounded"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     rows={3}
                   />
                 </div>
@@ -2173,13 +2226,13 @@ function CourseContentManager({ course, onBack }) {
                   <button
                     type="button"
                     onClick={() => setShowEventModal(false)}
-                    className="px-4 py-2 border rounded hover:bg-gray-100"
+                    className="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                   >
                     Add Event
                   </button>

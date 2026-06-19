@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import TestSession from '../../../../../lib/models/TestSession'
+// Side-effect imports: register User and Test schemas so .populate('userId') /
+// .populate('testId') resolve on cold start.
+import '../../../../../lib/models/User'
+import '../../../../../lib/models/Test'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 
 export async function GET(request) {
@@ -17,6 +21,7 @@ export async function GET(request) {
       .populate('userId', 'name email')
       .populate('testId', 'title subject practiceMode isTutorTest isAdminTest duration isTimed')
       .sort({ completedAt: -1 })
+      .limit(500)
       .lean()
 
     // Only adaptive/standard tests — exclude tutor and admin-panel tests
@@ -28,6 +33,14 @@ export async function GET(request) {
       if (pm === 'tutor' || pm === 'admin') return false
       return true
     })
+
+    // A row can't be reassigned again while its previous reassignment is still
+    // awaiting the student's attempt (the new session isn't Completed yet).
+    const ids = filtered.map(s => s._id)
+    const pendingReassigns = ids.length
+      ? await TestSession.find({ originalSessionId: { $in: ids }, status: { $ne: 'Completed' } }).select('originalSessionId').lean()
+      : []
+    const pendingSet = new Set(pendingReassigns.map(p => String(p.originalSessionId)))
 
     const results = filtered.map(s => ({
       _id: s._id,
@@ -43,7 +56,8 @@ export async function GET(request) {
       rwScore: s.rwScore || 0,
       mathScore: s.mathScore || 0,
       analysisSubmitted: s.analysisSubmitted || false,
-      isReassigned: s.isReassigned || false
+      isReassigned: s.isReassigned || false,
+      reassignPending: pendingSet.has(String(s._id))
     }))
 
     return NextResponse.json(results)

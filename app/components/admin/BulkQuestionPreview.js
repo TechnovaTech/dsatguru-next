@@ -1,10 +1,12 @@
 'use client'
-import { useState, useRef } from 'react'
-import { FiCheck, FiX, FiEdit2, FiImage, FiChevronDown, FiChevronUp, FiSave } from 'react-icons/fi'
+import { useState, useRef, useEffect } from 'react'
+import { FiCheck, FiX, FiEdit2, FiImage, FiChevronDown, FiChevronUp, FiSave, FiInbox } from 'react-icons/fi'
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
+import { useToast } from '../ui/UIProvider'
 
 export default function BulkQuestionPreview({ questions, onApprove, onCancel, questionBankId, isTutor }) {
+  const toast = useToast()
   const [editedQuestions, setEditedQuestions] = useState(questions)
   const [expandedQuestions, setExpandedQuestions] = useState(new Set([0]))
   const [editingQuestion, setEditingQuestion] = useState(null)
@@ -13,6 +15,12 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
   const [uploadingField, setUploadingField] = useState(null) // 'qIndex-field' or 'qIndex-opt-optIndex'
   const imgInputRef = useRef(null)
   const pendingUpload = useRef(null) // { qIndex, field, optIndex? }
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onCancel() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onCancel])
 
   const toggleExpand = (index) => {
     const newExpanded = new Set(expandedQuestions)
@@ -33,9 +41,9 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
   }
 
   const applyGlobalRemark = () => {
-    if (!globalRemark.trim()) { alert('Please enter a remark'); return }
+    if (!globalRemark.trim()) { toast.error('Please enter a remark'); return }
     setEditedQuestions(editedQuestions.map(q => ({ ...q, remark: globalRemark })))
-    alert(`Remark applied to all ${editedQuestions.length} questions!`)
+    toast.success(`Remark applied to all ${editedQuestions.length} questions!`)
   }
 
   const updateOption = (qIndex, optIndex, value) => {
@@ -74,7 +82,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
         body: fd
       })
       const data = await res.json()
-      if (!res.ok || !data.url) { alert(data.error || 'Image upload failed'); return }
+      if (!res.ok || !data.url) { toast.error(data.error || 'Image upload failed'); return }
       const md = `![image](${data.url})`
       if (optIndex !== null) {
         const updated = [...editedQuestions]
@@ -87,7 +95,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
         updateQuestion(qIndex, field, prev + '\n' + md)
       }
     } catch (err) {
-      alert('Image upload failed: ' + err.message)
+      toast.error('Image upload failed: ' + err.message)
     } finally {
       setUploadingField(null)
       pendingUpload.current = null
@@ -104,7 +112,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
         onClick={() => triggerImageUpload(qIndex, field, optIndex)}
         disabled={busy}
         title="Upload image"
-        className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded disabled:opacity-50"
+        className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg disabled:opacity-50"
       >
         <FiImage className="w-3 h-3" />{busy ? 'Uploading…' : 'Image'}
       </button>
@@ -128,9 +136,9 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
     return (
       <div className="flex flex-wrap gap-2 mt-2">
         {urls.map((url, i) => (
-          <div key={i} className="relative group border rounded overflow-hidden bg-gray-50">
+          <div key={i} className="relative group border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
             <img src={url} alt={`img-${i}`} className="h-20 w-auto max-w-[160px] object-contain" onError={e => { e.target.style.border = '2px solid red' }} />
-            <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-1 py-0.5 truncate opacity-0 group-hover:opacity-100 transition-opacity">{url.split('/').pop()}</div>
+            <div className="absolute bottom-0 left-0 right-0 bg-slate-900/60 text-white text-[10px] px-1 py-0.5 truncate opacity-0 group-hover:opacity-100 transition-opacity">{url.split('/').pop()}</div>
           </div>
         ))}
       </div>
@@ -198,9 +206,9 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
     const headers = parseCells(rows[0])
     const bodyRows = rows.slice(2)
     return (
-      <table className="border-collapse border border-gray-300 my-2 text-sm">
-        <thead><tr>{headers.map((h, i) => <th key={i} className="border border-gray-300 px-3 py-1 bg-gray-100">{renderLatex(h)}</th>)}</tr></thead>
-        <tbody>{bodyRows.map((row, ri) => <tr key={ri}>{parseCells(row).map((cell, ci) => <td key={ci} className="border border-gray-300 px-3 py-1">{renderLatex(cell)}</td>)}</tr>)}</tbody>
+      <table className="border-collapse border border-slate-300 my-2 text-sm">
+        <thead><tr>{headers.map((h, i) => <th key={i} className="border border-slate-300 px-3 py-1 bg-slate-100">{renderLatex(h)}</th>)}</tr></thead>
+        <tbody>{bodyRows.map((row, ri) => <tr key={ri}>{parseCells(row).map((cell, ci) => <td key={ci} className="border border-slate-300 px-3 py-1">{renderLatex(cell)}</td>)}</tr>)}</tbody>
       </table>
     )
   }
@@ -213,7 +221,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
       <div className="whitespace-pre-wrap">
         {imgParts.map((part, idx) => {
           const imgMatch = part.match(/!\[.*?\]\((.*?)\)/)
-          if (imgMatch) return <div key={idx} className="my-2"><img src={imgMatch[1]} alt="Question" className="max-w-full h-auto rounded border" onError={e => { e.target.style.border = '2px solid red' }} /></div>
+          if (imgMatch) return <div key={idx} className="my-2"><img src={imgMatch[1]} alt="Question" className="max-w-full h-auto rounded-lg border border-slate-200" onError={e => { e.target.style.border = '2px solid red' }} /></div>
           if (/^\|.+\|/.test(part.trim()) && part.includes('\n')) {
             const tableMatch = part.match(/((?:\|.+\|\n?)+)/g)
             if (tableMatch) {
@@ -235,120 +243,129 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4" onClick={onCancel}>
       {/* Hidden global image input shared across all fields */}
       <input ref={imgInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageFileChange} />
-      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
-        <div className="p-6 border-b flex items-center justify-between">
+      <div className="bg-white rounded-2xl shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Preview & Approve Questions</h2>
-            <p className="text-sm text-gray-600 mt-1">Review {editedQuestions.length} question(s) before saving</p>
+            <h2 className="text-2xl font-bold text-slate-900">Preview &amp; Approve Questions</h2>
+            <p className="text-sm text-slate-500 mt-1">
+              <span className="font-semibold text-indigo-600">{editedQuestions.length}</span> question(s) parsed — review before saving
+            </p>
           </div>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600"><FiX className="w-6 h-6" /></button>
+          <button onClick={onCancel} aria-label="Close preview" className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-lg transition-colors"><FiX className="w-6 h-6" /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <div className="mb-6 p-4 bg-amber-50 border-2 border-amber-300 rounded-lg">
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
             <div className="flex items-start gap-3">
               <div className="flex-1">
-                <label className="block text-sm font-semibold text-amber-900 mb-2">Apply Remark to All Questions</label>
-                <textarea value={globalRemark} onChange={(e) => setGlobalRemark(e.target.value)} className="w-full border border-amber-300 rounded px-3 py-2 text-sm" rows={2} placeholder="Enter remark for all questions..." />
+                <label htmlFor="bulk-global-remark" className="block text-sm font-semibold text-amber-900 mb-2">Apply Remark to All Questions</label>
+                <textarea id="bulk-global-remark" value={globalRemark} onChange={(e) => setGlobalRemark(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" rows={2} placeholder="Enter remark for all questions..." />
               </div>
               <button onClick={applyGlobalRemark} disabled={!globalRemark.trim()} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 text-sm font-medium whitespace-nowrap mt-6">Apply to All</button>
             </div>
           </div>
 
           <div className="mb-4 flex items-center justify-between">
-            <div className="text-sm text-gray-600">{expandedQuestions.size} of {editedQuestions.length} expanded</div>
+            <div className="text-sm text-slate-500">{expandedQuestions.size} of {editedQuestions.length} expanded</div>
             <div className="flex gap-2">
-              <button onClick={expandAll} className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">Expand All</button>
-              <button onClick={collapseAll} className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">Collapse All</button>
+              <button onClick={expandAll} className="px-3 py-1 text-sm border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50">Expand All</button>
+              <button onClick={collapseAll} className="px-3 py-1 text-sm border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50">Collapse All</button>
             </div>
           </div>
 
+          {editedQuestions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <FiInbox className="w-10 h-10 text-slate-300 mb-3" />
+              <h3 className="text-sm font-semibold text-slate-600">No questions to preview</h3>
+              <p className="mt-1 text-sm text-slate-400">All parsed questions were removed. Cancel to start over.</p>
+            </div>
+          ) : (
           <div className="space-y-4">
             {editedQuestions.map((question, qIndex) => {
               const isExpanded = expandedQuestions.has(qIndex)
               const isEditing = editingQuestion === qIndex
               return (
-                <div key={question.id || qIndex} className={`border rounded-lg bg-white shadow-sm ${isEditing ? 'ring-2 ring-blue-500' : ''}`}>
-                  <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50" onClick={() => !isEditing && toggleExpand(qIndex)}>
+                <div key={question.id || qIndex} className={`border border-slate-100 rounded-2xl bg-white shadow-sm ${isEditing ? 'ring-2 ring-indigo-500' : ''}`}>
+                  <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-indigo-50/40 transition-colors rounded-2xl" onClick={() => !isEditing && toggleExpand(qIndex)}>
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <span className="text-sm font-medium text-gray-500 flex-shrink-0">#{qIndex + 1}</span>
+                      <span className="text-sm font-medium text-slate-500 flex-shrink-0">#{qIndex + 1}</span>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className={`px-2 py-1 text-xs rounded-full ${question.subject === 'Math' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>{question.subject}</span>
-                        <span className={`px-2 py-1 text-xs rounded-full ${question.difficulty === 'Easy' ? 'bg-green-100 text-green-800' : question.difficulty === 'Hard' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>{question.difficulty}</span>
-                        {hasImage(question.content) && <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800 flex items-center gap-1"><FiImage className="w-3 h-3" /> Image</span>}
+                        <span className={`px-2 py-1 text-xs rounded-full ${question.subject === 'Math' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>{question.subject}</span>
+                        <span className={`px-2 py-1 text-xs rounded-full ${question.difficulty === 'Easy' ? 'bg-emerald-50 text-emerald-700' : question.difficulty === 'Hard' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`}>{question.difficulty}</span>
+                        {hasImage(question.content) && <span className="px-2 py-1 text-xs rounded-full bg-slate-100 text-slate-700 flex items-center gap-1"><FiImage className="w-3 h-3" /> Image</span>}
                       </div>
-                      <p className="text-sm text-gray-700 truncate flex-1">{plainText(question.content).substring(0, 100)}</p>
+                      <p className="text-sm text-slate-700 truncate flex-1">{plainText(question.content).substring(0, 100)}</p>
                     </div>
-                    <div className="flex-shrink-0">{isExpanded ? <FiChevronUp /> : <FiChevronDown />}</div>
+                    <div className="flex-shrink-0 text-slate-400">{isExpanded ? <FiChevronUp /> : <FiChevronDown />}</div>
                   </div>
 
                   {isExpanded && (
-                    <div className="p-4 border-t bg-gray-50" onClick={(e) => e.stopPropagation()}>
+                    <div className="p-4 border-t border-slate-100 bg-slate-50 rounded-b-2xl" onClick={(e) => e.stopPropagation()}>
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-gray-900">Question Details {isEditing && <span className="ml-2 text-sm text-blue-600">(Editing)</span>}</h3>
+                          <h3 className="font-semibold text-slate-900">Question Details {isEditing && <span className="ml-2 text-sm text-indigo-600">(Editing)</span>}</h3>
                           <div className="flex gap-2">
                             {isEditing
-                              ? <button onClick={(e) => { e.stopPropagation(); saveEdit() }} className="px-3 py-1 bg-green-600 text-white rounded text-sm flex items-center gap-1"><FiSave className="w-4 h-4" /> Save</button>
-                              : <button onClick={(e) => { e.stopPropagation(); startEdit(qIndex) }} className="px-3 py-1 bg-blue-600 text-white rounded text-sm flex items-center gap-1"><FiEdit2 className="w-4 h-4" /> Edit</button>}
-                            <button onClick={(e) => { e.stopPropagation(); removeQuestion(qIndex) }} className="px-3 py-1 bg-red-600 text-white rounded text-sm flex items-center gap-1"><FiX className="w-4 h-4" /> Remove</button>
+                              ? <button onClick={(e) => { e.stopPropagation(); saveEdit() }} className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm flex items-center gap-1"><FiSave className="w-4 h-4" /> Save</button>
+                              : <button onClick={(e) => { e.stopPropagation(); startEdit(qIndex) }} className="px-3 py-1 border border-slate-300 text-slate-600 hover:bg-slate-50 rounded-lg text-sm flex items-center gap-1"><FiEdit2 className="w-4 h-4" /> Edit</button>}
+                            <button onClick={(e) => { e.stopPropagation(); removeQuestion(qIndex) }} className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm flex items-center gap-1"><FiX className="w-4 h-4" /> Remove</button>
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                            {isEditing ? <select value={question.subject} onChange={(e) => updateQuestion(qIndex, 'subject', e.target.value)} className="w-full border rounded px-3 py-2"><option value="Math">Math</option><option value="Reading and Writing">Reading and Writing</option></select> : <p>{question.subject}</p>}
+                            <label htmlFor={`q-${qIndex}-subject`} className="block text-sm font-medium text-slate-600 mb-1">Subject</label>
+                            {isEditing ? <select id={`q-${qIndex}-subject`} value={question.subject} onChange={(e) => updateQuestion(qIndex, 'subject', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"><option value="Math">Math</option><option value="Reading and Writing">Reading and Writing</option></select> : <p className="text-slate-900">{question.subject}</p>}
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
-                            {isEditing ? <select value={question.difficulty} onChange={(e) => updateQuestion(qIndex, 'difficulty', e.target.value)} className="w-full border rounded px-3 py-2"><option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option></select> : <p>{question.difficulty}</p>}
+                            <label htmlFor={`q-${qIndex}-difficulty`} className="block text-sm font-medium text-slate-600 mb-1">Difficulty</label>
+                            {isEditing ? <select id={`q-${qIndex}-difficulty`} value={question.difficulty} onChange={(e) => updateQuestion(qIndex, 'difficulty', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"><option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option></select> : <p className="text-slate-900">{question.difficulty}</p>}
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Question Type</label>
+                            <label htmlFor={`q-${qIndex}-type`} className="block text-sm font-medium text-slate-600 mb-1">Question Type</label>
                             {isEditing ? (
-                              <select value={question.type || 'MultipleChoice'} onChange={(e) => updateQuestion(qIndex, 'type', e.target.value)} className="w-full border rounded px-3 py-2">
+                              <select id={`q-${qIndex}-type`} value={question.type || 'MultipleChoice'} onChange={(e) => updateQuestion(qIndex, 'type', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none">
                                 <option value="MultipleChoice">Multiple Choice</option>
                                 <option value="ShortAnswer">Short Answer (Grid-in)</option>
                                 <option value="TrueFalse">True/False</option>
                                 <option value="Essay">Essay</option>
                               </select>
                             ) : (
-                              <p className="font-medium text-blue-600">{question.type || 'MultipleChoice'}</p>
+                              <p className="font-medium text-indigo-600">{question.type || 'MultipleChoice'}</p>
                             )}
                           </div>
                         </div>
 
                         {(question.questionParagraph || isEditing) && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Passage / Context</label>
-                            {isEditing ? <textarea value={question.questionParagraph || ''} onChange={(e) => updateQuestion(qIndex, 'questionParagraph', e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={4} placeholder="Passage or context..." /> : <div className="bg-blue-50 p-3 rounded border border-blue-200">{renderContent(question.questionParagraph)}</div>}
+                            <label htmlFor={`q-${qIndex}-paragraph`} className="block text-sm font-medium text-slate-600 mb-1">Passage / Context</label>
+                            {isEditing ? <textarea id={`q-${qIndex}-paragraph`} value={question.questionParagraph || ''} onChange={(e) => updateQuestion(qIndex, 'questionParagraph', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" rows={4} placeholder="Passage or context..." /> : <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">{renderContent(question.questionParagraph)}</div>}
                           </div>
                         )}
 
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <label className="block text-sm font-medium text-gray-700">Question Content</label>
+                            <label htmlFor={`q-${qIndex}-content`} className="block text-sm font-medium text-slate-600">Question Content</label>
                             {isEditing && <ImgBtn qIndex={qIndex} field="content" />}
                           </div>
                           {isEditing
-                            ? <div><textarea value={question.content} onChange={(e) => updateQuestion(qIndex, 'content', e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={6} /><ImagePreviews text={question.content} /><details className="mt-1"><summary className="text-xs text-gray-400 cursor-pointer">Raw</summary><pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">{question.content}</pre></details></div>
-                            : <div className="bg-white p-3 rounded border">{renderContent(question.content)}</div>}
+                            ? <div><textarea id={`q-${qIndex}-content`} value={question.content} onChange={(e) => updateQuestion(qIndex, 'content', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" rows={6} /><ImagePreviews text={question.content} /><details className="mt-1"><summary className="text-xs text-slate-400 cursor-pointer">Raw</summary><pre className="text-xs bg-slate-100 p-2 rounded-lg overflow-x-auto">{question.content}</pre></details></div>
+                            : <div className="bg-white p-3 rounded-lg border border-slate-100">{renderContent(question.content)}</div>}
                         </div>
 
                         {(question.type !== 'ShortAnswer' || (question.options && question.options.length > 0)) && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Answer Options</label>
+                            <label className="block text-sm font-medium text-slate-600 mb-2">Answer Options</label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               {(question.options || []).map((option, optIndex) => (
                                 <div key={optIndex} className="flex items-start gap-2">
-                                  <span className={`px-2 py-1 rounded text-sm font-medium flex-shrink-0 ${question.correctAnswer === String.fromCharCode(65 + optIndex) ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>{String.fromCharCode(65 + optIndex)}</span>
+                                  <span className={`px-2 py-1 rounded-lg text-sm font-medium flex-shrink-0 ${question.correctAnswer === String.fromCharCode(65 + optIndex) ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{String.fromCharCode(65 + optIndex)}</span>
                                   {isEditing
-                                    ? <div className="flex-1 space-y-1"><textarea value={option} onChange={(e) => updateOption(qIndex, optIndex, e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={2} /><ImagePreviews text={option} /><ImgBtn qIndex={qIndex} field="option" optIndex={optIndex} /></div>
-                                    : <div className="flex-1 bg-white p-2 rounded border">{renderContent(option)}</div>}
+                                    ? <div className="flex-1 space-y-1"><textarea aria-label={`Option ${String.fromCharCode(65 + optIndex)} for question ${qIndex + 1}`} value={option} onChange={(e) => updateOption(qIndex, optIndex, e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" rows={2} /><ImagePreviews text={option} /><ImgBtn qIndex={qIndex} field="option" optIndex={optIndex} /></div>
+                                    : <div className="flex-1 bg-white p-2 rounded-lg border border-slate-100">{renderContent(option)}</div>}
                                 </div>
                               ))}
                             </div>
@@ -356,18 +373,19 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                         )}
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Correct Answer</label>
+                          <label htmlFor={`q-${qIndex}-correct`} className="block text-sm font-medium text-slate-600 mb-1">Correct Answer</label>
                           {isEditing ? (
                             question.type === 'ShortAnswer' ? (
                               <input
+                                id={`q-${qIndex}-correct`}
                                 type="text"
                                 value={question.correctAnswer}
                                 onChange={(e) => updateQuestion(qIndex, 'correctAnswer', e.target.value)}
-                                className="w-full border rounded px-3 py-2"
+                                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                                 placeholder="Enter numeric answer or text..."
                               />
                             ) : (
-                              <select value={question.correctAnswer} onChange={(e) => updateQuestion(qIndex, 'correctAnswer', e.target.value)} className="w-full border rounded px-3 py-2">
+                              <select id={`q-${qIndex}-correct`} value={question.correctAnswer} onChange={(e) => updateQuestion(qIndex, 'correctAnswer', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none">
                                 <option value="A">A</option>
                                 <option value="B">B</option>
                                 <option value="C">C</option>
@@ -375,44 +393,44 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                               </select>
                             )
                           ) : (
-                            <p className="text-green-600 font-semibold">{question.correctAnswer}</p>
+                            <p className="text-emerald-600 font-semibold">{question.correctAnswer}</p>
                           )}
                         </div>
 
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <label className="block text-sm font-medium text-gray-700">Short Explanation</label>
+                            <label htmlFor={`q-${qIndex}-shortExp`} className="block text-sm font-medium text-slate-600">Short Explanation</label>
                             {isEditing && <ImgBtn qIndex={qIndex} field="shortExplanation" />}
                           </div>
                           {isEditing
-                            ? <div><textarea value={question.shortExplanation || question.explanation || ''} onChange={(e) => updateQuestion(qIndex, 'shortExplanation', e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={4} placeholder="Add short explanation..." /><ImagePreviews text={question.shortExplanation || question.explanation} /></div>
+                            ? <div><textarea id={`q-${qIndex}-shortExp`} value={question.shortExplanation || question.explanation || ''} onChange={(e) => updateQuestion(qIndex, 'shortExplanation', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" rows={4} placeholder="Add short explanation..." /><ImagePreviews text={question.shortExplanation || question.explanation} /></div>
                             : (question.shortExplanation || question.explanation)
-                              ? <div className="bg-white p-3 rounded border">{renderContent(question.shortExplanation || question.explanation)}</div>
-                              : <p className="text-xs text-gray-400 italic">No short explanation — click Edit to add</p>}
+                              ? <div className="bg-white p-3 rounded-lg border border-slate-100">{renderContent(question.shortExplanation || question.explanation)}</div>
+                              : <p className="text-xs text-slate-400 italic">No short explanation — click Edit to add</p>}
                         </div>
 
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <label className="block text-sm font-medium text-gray-700">Long Explanation</label>
+                            <label htmlFor={`q-${qIndex}-longExp`} className="block text-sm font-medium text-slate-600">Long Explanation</label>
                             {isEditing && <ImgBtn qIndex={qIndex} field="longExplanation" />}
                           </div>
                           {isEditing
-                            ? <div><textarea value={question.longExplanation || ''} onChange={(e) => updateQuestion(qIndex, 'longExplanation', e.target.value)} className="w-full border rounded px-3 py-2 font-mono text-sm" rows={6} placeholder="Add long explanation..." /><ImagePreviews text={question.longExplanation} /></div>
+                            ? <div><textarea id={`q-${qIndex}-longExp`} value={question.longExplanation || ''} onChange={(e) => updateQuestion(qIndex, 'longExplanation', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" rows={6} placeholder="Add long explanation..." /><ImagePreviews text={question.longExplanation} /></div>
                             : question.longExplanation
-                              ? <div className="bg-white p-3 rounded border">{renderContent(question.longExplanation)}</div>
-                              : <p className="text-xs text-gray-400 italic">No long explanation — click Edit to add</p>}
+                              ? <div className="bg-white p-3 rounded-lg border border-slate-100">{renderContent(question.longExplanation)}</div>
+                              : <p className="text-xs text-slate-400 italic">No long explanation — click Edit to add</p>}
                         </div>
 
                         {question.tags && question.tags.length > 0 && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
-                            <div className="flex flex-wrap gap-2">{question.tags.map((tag, ti) => <span key={ti} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">{tag}</span>)}</div>
+                            <label className="block text-sm font-medium text-slate-600 mb-1">Tags</label>
+                            <div className="flex flex-wrap gap-2">{question.tags.map((tag, ti) => <span key={ti} className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm">{tag}</span>)}</div>
                           </div>
                         )}
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Remark</label>
-                          <textarea value={question.remark || ''} onChange={(e) => updateQuestion(qIndex, 'remark', e.target.value)} className="w-full border border-amber-300 rounded px-3 py-2 text-sm" rows={2} placeholder="Add notes or remarks..." />
+                          <label htmlFor={`q-${qIndex}-remark`} className="block text-sm font-medium text-slate-600 mb-1">Remark</label>
+                          <textarea id={`q-${qIndex}-remark`} value={question.remark || ''} onChange={(e) => updateQuestion(qIndex, 'remark', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" rows={2} placeholder="Add notes or remarks..." />
                         </div>
                       </div>
                     </div>
@@ -421,14 +439,20 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
               )
             })}
           </div>
+          )}
         </div>
 
-        <div className="p-6 border-t bg-gray-50 flex items-center justify-between">
-          <div className="text-sm text-gray-600">{editedQuestions.length} question(s) ready</div>
+        <div className="p-6 border-t border-slate-100 bg-slate-50 rounded-b-2xl flex items-center justify-between gap-4">
+          <div className="text-sm text-slate-500">
+            <span className="text-lg font-extrabold text-slate-900">{editedQuestions.length}</span> question(s) ready to save
+          </div>
           <div className="flex gap-3">
-            <button onClick={onCancel} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">Cancel</button>
-            <button onClick={handleApprove} disabled={approving || editedQuestions.length === 0} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2">
-              <FiCheck className="w-5 h-5" />{approving ? 'Approving...' : 'Approve & Save All'}
+            <button onClick={onCancel} className="px-6 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">Cancel</button>
+            <button onClick={handleApprove} disabled={approving || editedQuestions.length === 0} className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium transition-colors">
+              {approving
+                ? <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                : <FiCheck className="w-5 h-5" />}
+              {approving ? 'Approving...' : 'Approve & Save All'}
             </button>
           </div>
         </div>

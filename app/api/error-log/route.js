@@ -1,23 +1,20 @@
 import { NextResponse } from 'next/server'
-import jwt from 'jsonwebtoken'
 import dbConnect from '@/lib/db'
+import { verifyToken, getTokenFromRequest } from '@/lib/auth'
 import ErrorLog from '@/lib/models/ErrorLog'
 import TestSession from '@/lib/models/TestSession'
+import Test from '@/lib/models/Test'
 import Question from '@/lib/models/Question'
 
-async function getUserId(request) {
-  const auth = request.headers.get('authorization') || ''
-  const token = auth.replace('Bearer ', '')
-  if (!token) return null
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    return decoded.userId || decoded.id || decoded._id
-  } catch { return null }
+function getUserId(request) {
+  const decoded = verifyToken(getTokenFromRequest(request))
+  if (!decoded) return null
+  return decoded.userId
 }
 
 export async function GET(request) {
   await dbConnect()
-  const userId = await getUserId(request)
+  const userId = getUserId(request)
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
@@ -138,7 +135,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   await dbConnect()
-  const userId = await getUserId(request)
+  const userId = getUserId(request)
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await request.json()
 
@@ -157,7 +154,7 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   await dbConnect()
-  const userId = await getUserId(request)
+  const userId = getUserId(request)
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id } = await request.json()
   await ErrorLog.findOneAndDelete({ _id: id, userId })

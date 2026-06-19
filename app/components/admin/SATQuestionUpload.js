@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { FiUpload, FiFile, FiCheck, FiX, FiDownload, FiPlus, FiSearch, FiEdit, FiImage, FiArrowLeft } from 'react-icons/fi'
 import BulkQuestionPreview from './BulkQuestionPreview'
+import { useToast } from '../ui/UIProvider'
 
 export default function SATQuestionUpload({ isTutor: propIsTutor = false, managePath = '/admin/question-bank' }) {
+  const toast = useToast()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -176,19 +178,19 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
         console.error('Preview error response:', JSON.stringify(error, null, 2))
         const isSubjectErr = (error.error || '').toLowerCase().includes('subject mismatch')
         if (isSubjectErr) {
-          alert(
+          toast.error(
             `❌ UPLOAD BLOCKED — WRONG SUBJECT\n\n` +
             `${error.error}\n\n` +
             `${error.details || ''}\n\n` +
             `✔ Fix: Open your file and make sure every row's "subject" column is exactly "${singleQuestion.subject}" (this bank), then upload again.`
           )
         } else {
-          alert(`Preview failed: ${error.error || error.message || 'Unknown error'}\n${error.details || ''}`)
+          toast.error(`Preview failed: ${error.error || error.message || 'Unknown error'}\n${error.details || ''}`)
         }
       }
     } catch (error) {
       console.error('Preview error:', error.message || error)
-      alert(`Preview failed: ${error.message || 'Network error'}`)
+      toast.error(`Preview failed: ${error.message || 'Network error'}`)
     } finally {
       if (progressInterval) clearInterval(progressInterval)
       setUploading(false)
@@ -215,7 +217,7 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
 
       if (response.ok) {
         const result = await response.json()
-        alert(`Successfully saved ${result.count} questions to database`)
+        toast.success(`Successfully saved ${result.count} questions to database`)
         setShowPreview(false)
         setPreviewQuestions(null)
         setFile(null)
@@ -223,11 +225,11 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
         setBulkUpload({ csvRecords: [], images: [], imagePreviews: [], mapping: null, progress: 0 })
       } else {
         const error = await response.json()
-        alert(`Failed to save questions: ${error.error || error.message}`)
+        toast.error(`Failed to save questions: ${error.error || error.message}`)
       }
     } catch (error) {
       console.error('Approve error:', error)
-      alert(`Failed to save questions: ${error.message}`)
+      toast.error(`Failed to save questions: ${error.message}`)
     }
   }
 
@@ -286,7 +288,7 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
       })
 
       if (response.ok) {
-        alert('Question added successfully')
+        toast.success('Question added successfully')
         setSingleQuestion({
           questionText: '',
           options: ['', '', '', ''],
@@ -309,7 +311,7 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
       }
     } catch (error) {
       console.error('Error adding question:', error)
-      alert('Failed to add question')
+      toast.error('Failed to add question')
     }
   }
 
@@ -336,7 +338,7 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
       })
       const uploadData = await uploadRes.json()
       if (!uploadRes.ok || !uploadData.pdfId) {
-        alert(`Upload failed: ${uploadData.error || 'Unknown error'}`)
+        toast.error(`Upload failed: ${uploadData.error || 'Unknown error'}`)
         return
       }
 
@@ -371,7 +373,7 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
         }
 
         if (pollData.status === 'error') {
-          alert(`Conversion failed: ${pollData.error || 'Unknown error'}`)
+          toast.error(`Conversion failed: ${pollData.error || 'Unknown error'}`)
           return
         }
 
@@ -384,9 +386,9 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
         }
       }
 
-      alert('Conversion timed out. Please try again with a smaller file.')
+      toast.error('Conversion timed out. Please try again with a smaller file.')
     } catch (err) {
-      alert(`Conversion failed: ${err.message}`)
+      toast.error(`Conversion failed: ${err.message}`)
     } finally {
       setMathpixConverting(false)
       setMathpixProgress(0)
@@ -409,7 +411,7 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
       window.URL.revokeObjectURL(url)
     } catch (err) {
       console.error('Template download error:', err)
-      alert('Failed to download template')
+      toast.error('Failed to download template')
     }
   }
 
@@ -638,9 +640,10 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
       id: 'single',
       title: 'Single Question Upload',
       description: 'Upload individual SAT questions with detailed options and explanations',
+      whenToUse: 'Best when you want to add one carefully crafted question at a time.',
       icon: FiPlus,
       action: () => setModeAndView('single'),
-      color: 'blue',
+      cta: 'Add a question',
       features: [
         'Individual question creation',
         'Rich text formatting',
@@ -652,12 +655,13 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
     {
       id: 'bulk',
       title: 'Bulk Upload',
-      description: 'Upload multiple questions at once using CSV files with optional images',
+      description: 'Upload multiple questions at once using CSV, JSON, or PDF/DOCX files',
+      whenToUse: 'Best when importing many questions from a file (CSV, JSON, or PDF/DOCX).',
       icon: FiUpload,
       action: () => setModeAndView('bulk'),
-      color: 'green',
+      cta: 'Start bulk upload',
       features: [
-        'CSV file upload',
+        'CSV / JSON / Mathpix import',
         'Template download',
         'Upload progress',
         'Error validation',
@@ -668,9 +672,10 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
       id: 'manage',
       title: 'Manage Questions',
       description: 'View, edit, and delete existing questions from your question banks',
+      whenToUse: 'Best when reviewing, editing, or cleaning up questions you already added.',
       icon: FiSearch,
       action: () => router.push(managePath),
-      color: 'purple',
+      cta: 'Open library',
       features: [
         'Search and filter',
         'Edit questions',
@@ -681,93 +686,73 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
     }
   ]
 
-  const getColorClasses = (color) => {
-    const colorMap = {
-      blue: { bg: 'bg-blue-50', border: 'border-blue-200', icon: 'text-blue-600', button: 'bg-blue-600 hover:bg-blue-700' },
-      green: { bg: 'bg-green-50', border: 'border-green-200', icon: 'text-green-600', button: 'bg-green-600 hover:bg-green-700' },
-      purple: { bg: 'bg-purple-50', border: 'border-purple-200', icon: 'text-purple-600', button: 'bg-purple-600 hover:bg-purple-700' }
-    }
-    return colorMap[color] || colorMap.blue
-  }
-
   if (view === 'landing') {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">{isTutor ? 'Tutor Question Bank' : 'SAT Question Management'}</h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              {isTutor ? 'Upload questions specifically for Tutor Mode. These will be kept separate from the main SAT question bank.' : 'Choose how you\'d like to work with SAT questions. Upload individual questions, bulk upload from CSV files, or manage your existing question library.'}
+          <div className="mb-8">
+            <h1 className="text-2xl font-extrabold text-slate-900 lg:text-3xl">{isTutor ? 'Tutor Question Bank' : 'SAT Question Management'}</h1>
+            <p className="mt-2 max-w-3xl text-sm text-slate-500">
+              {isTutor ? 'Upload questions specifically for Tutor Mode. These will be kept separate from the main SAT question bank.' : 'Choose how you’d like to work with SAT questions. Upload individual questions, bulk upload from a file, or manage your existing question library.'}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {navigationCards.map((card) => {
               // Hide "Manage Questions" card if in Tutor mode, since we have a dedicated page for that
               if (isTutor && card.id === 'manage') return null
 
               const Icon = card.icon
-              const colors = getColorClasses(card.color)
               return (
-                <div
+                <button
                   key={card.id}
-                  className={`${colors.bg} ${colors.border} border-2 rounded-xl p-6 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer`}
+                  type="button"
                   onClick={card.action}
+                  className="group flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-6 text-left shadow-sm transition-all hover:-translate-y-1 hover:border-indigo-200 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                  <div className="text-center mb-6">
-                    <div className={`inline-flex items-center justify-center w-16 h-16 ${colors.bg} rounded-full mb-4`}>
-                      <Icon className={`w-8 h-8 ${colors.icon}`} />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{card.title}</h3>
-                    <p className="text-gray-600">{card.description}</p>
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition-transform group-hover:scale-110">
+                    <Icon className="h-6 w-6" />
                   </div>
-                  <div className="space-y-2 mb-6">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Features:</h4>
+                  <h3 className="text-lg font-bold text-slate-900">{card.title}</h3>
+                  <p className="mt-1 text-sm text-slate-500">{card.description}</p>
+                  <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600">{card.whenToUse}</p>
+                  <ul className="mt-4 space-y-1.5">
                     {card.features.map((feature, index) => (
-                      <div key={index} className="flex items-center text-sm text-gray-600">
-                        <div className={`w-1.5 h-1.5 ${colors.button.split(' ')[0]} rounded-full mr-2`}></div>
+                      <li key={index} className="flex items-center text-sm text-slate-600">
+                        <FiCheck className="mr-2 h-3.5 w-3.5 flex-shrink-0 text-indigo-500" />
                         {feature}
-                      </div>
+                      </li>
                     ))}
-                  </div>
-                  <button
-                    className={`w-full ${colors.button} text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center`}
-                    onClick={(e) => { e.stopPropagation(); card.action() }}
-                  >
-                    <Icon className="w-4 h-4 mr-2" />
-                    Get Started
-                  </button>
-                </div>
+                  </ul>
+                  <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 group-hover:text-indigo-700">
+                    {card.cta}
+                    <span aria-hidden="true">&rarr;</span>
+                  </span>
+                </button>
               )
             })}
           </div>
 
-          <div className="mt-12 bg-white rounded-xl shadow-sm p-8">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Question Management Tips</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                <div className="text-center">
-                  <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                    <FiPlus className="w-6 h-6 text-blue-600" />
+          <div className="mt-10 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm lg:p-8">
+            <h2 className="text-lg font-bold text-slate-900">Question Management Tips</h2>
+            <p className="mt-1 text-sm text-slate-500">A quick guide to choosing the right tool for the job.</p>
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+              {[
+                { icon: FiPlus, title: 'Single Upload', text: 'Perfect for creating detailed questions with rich formatting and immediate preview.' },
+                { icon: FiUpload, title: 'Bulk Upload', text: 'Ideal for importing large question sets from existing materials or databases.' },
+                { icon: FiEdit, title: 'Manage', text: 'Organize, edit, and maintain your question library with powerful search and filtering.' }
+              ].map((tip, i) => {
+                const TipIcon = tip.icon
+                return (
+                  <div key={i} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                      <TipIcon className="h-5 w-5" />
+                    </div>
+                    <h3 className="font-semibold text-slate-900">{tip.title}</h3>
+                    <p className="mt-1 text-sm text-slate-500">{tip.text}</p>
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Single Upload</h3>
-                  <p className="text-sm text-gray-600">Perfect for creating detailed questions with rich formatting and immediate preview.</p>
-                </div>
-                <div className="text-center">
-                  <div className="bg-green-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                    <FiUpload className="w-6 h-6 text-green-600" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Bulk Upload</h3>
-                  <p className="text-sm text-gray-600">Ideal for importing large question sets from existing materials or databases.</p>
-                </div>
-                <div className="text-center">
-                  <div className="bg-purple-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                    <FiEdit className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Manage</h3>
-                  <p className="text-sm text-gray-600">Organize, edit, and maintain your question library with powerful search and filtering.</p>
-                </div>
-              </div>
+                )
+              })}
             </div>
           </div>
         </div>
@@ -775,8 +760,10 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
     )
   }
 
+  const bankSelected = isTutor || !!selectedQuestionBank
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
       {showPreview && previewQuestions && (
         <BulkQuestionPreview
           questions={previewQuestions}
@@ -786,246 +773,262 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
           isTutor={isTutor}
         />
       )}
-      
+
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <button
-              type="button"
-              onClick={() => { setView('landing'); router.replace(pathname) }}
-              className="inline-flex items-center text-blue-600 hover:text-blue-800"
-            >
-              <FiArrowLeft className="mr-2" />
-              <span>Back to {isTutor ? 'Tutor' : 'SAT'} Question Management</span>
-            </button>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="mb-6">
+          <button
+            type="button"
+            onClick={() => { setView('landing'); router.replace(pathname) }}
+            className="mb-3 inline-flex items-center text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700"
+          >
+            <FiArrowLeft className="mr-2" />
+            <span>Back to {isTutor ? 'Tutor' : 'SAT'} Question Management</span>
+          </button>
+          <h1 className="text-2xl font-extrabold text-slate-900 lg:text-3xl">
             {uploadType === 'bulk' ? 'Bulk Question Upload' : 'Single Question Upload'}
           </h1>
-          <p className="text-gray-600">
+          <p className="mt-2 text-sm text-slate-500">
             {uploadType === 'bulk'
-              ? 'Upload multiple SAT questions at once using a CSV file with optional images'
-              : 'Upload individual SAT questions with detailed options and explanations'}
+              ? 'Import multiple SAT questions at once from a CSV, JSON, or PDF/DOCX file. Follow the steps below.'
+              : 'Add an individual SAT question with detailed options and explanations. Follow the steps below.'}
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Select Question Bank</h2>
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm mb-6">
+            <div className="mb-4 flex items-center gap-2.5">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white">1</span>
+              <h2 className="text-lg font-bold text-slate-900">Select Question Bank <span className="text-rose-500">*</span></h2>
+            </div>
             {!isTutor ? (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Choose Destination Bank
-                  </label>
-                  <select
-                    value={selectedQuestionBank}
-                    onChange={(e) => setSelectedQuestionBank(e.target.value)}
-                    className="w-full border rounded-md px-3 py-2"
-                    required
-                  >
-                    <option value="">Select a question bank...</option>
-                    {questionBanks.map((bank) => (
-                      <option key={bank._id} value={bank._id}>
-                        {bank.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="space-y-2">
+                <label htmlFor="destination-bank" className="block text-sm font-medium text-slate-600">
+                  Choose Destination Bank <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  id="destination-bank"
+                  value={selectedQuestionBank}
+                  onChange={(e) => setSelectedQuestionBank(e.target.value)}
+                  className={`w-full rounded-lg border px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500 ${selectedQuestionBank ? 'border-slate-300' : 'border-rose-300'}`}
+                  required
+                >
+                  <option value="">Select a question bank...</option>
+                  {questionBanks.map((bank) => (
+                    <option key={bank._id} value={bank._id}>
+                      {bank.name}
+                    </option>
+                  ))}
+                </select>
+                {selectedQuestionBank ? (
+                  <p className="text-xs text-slate-500">Questions you add below will be saved to this bank.</p>
+                ) : (
+                  <p className="text-xs text-rose-600" role="alert">Required — pick a bank before uploading questions.</p>
+                )}
               </div>
             ) : (
-              <div className="bg-white p-4 border border-blue-200 rounded-md">
-                <h3 className="text-lg font-medium text-blue-900 mb-2">Tutor Question Bank</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Select Subject Database
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <h3 className="mb-2 text-sm font-semibold text-slate-900">Tutor Question Bank</h3>
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-slate-600">
+                    Select Subject Database <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <label className={`flex flex-1 cursor-pointer items-center rounded-lg border p-3 transition-colors ${singleQuestion.subject === 'Math' ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500' : 'border-slate-300 bg-white hover:bg-slate-50'}`}>
+                      <input
+                        type="radio"
+                        name="tutorSubject"
+                        value="Math"
+                        checked={singleQuestion.subject === 'Math'}
+                        onChange={(e) => setSingleQuestion(prev => ({ ...prev, subject: e.target.value }))}
+                        className="h-4 w-4 border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="ml-2 text-sm font-medium text-slate-900">Math</span>
                     </label>
-                    <div className="flex space-x-4">
-                      <label className={`flex items-center p-3 border rounded-md cursor-pointer transition-colors ${singleQuestion.subject === 'Math' ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500' : 'hover:bg-gray-50'}`}>
-                        <input
-                          type="radio"
-                          name="tutorSubject"
-                          value="Math"
-                          checked={singleQuestion.subject === 'Math'}
-                          onChange={(e) => setSingleQuestion(prev => ({ ...prev, subject: e.target.value }))}
-                          className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                        />
-                        <span className="ml-2 text-sm font-medium text-gray-900">Math</span>
-                      </label>
-                      <label className={`flex items-center p-3 border rounded-md cursor-pointer transition-colors ${singleQuestion.subject === 'Reading and Writing' ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500' : 'hover:bg-gray-50'}`}>
-                        <input
-                          type="radio"
-                          name="tutorSubject"
-                          value="Reading and Writing"
-                          checked={singleQuestion.subject === 'Reading and Writing'}
-                          onChange={(e) => setSingleQuestion(prev => ({ ...prev, subject: e.target.value }))}
-                          className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                        />
-                        <span className="ml-2 text-sm font-medium text-gray-900">Reading & Writing</span>
-                      </label>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Questions will be saved to the <strong>{singleQuestion.subject}</strong> section of the Tutor Question Bank.
-                    </p>
+                    <label className={`flex flex-1 cursor-pointer items-center rounded-lg border p-3 transition-colors ${singleQuestion.subject === 'Reading and Writing' ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500' : 'border-slate-300 bg-white hover:bg-slate-50'}`}>
+                      <input
+                        type="radio"
+                        name="tutorSubject"
+                        value="Reading and Writing"
+                        checked={singleQuestion.subject === 'Reading and Writing'}
+                        onChange={(e) => setSingleQuestion(prev => ({ ...prev, subject: e.target.value }))}
+                        className="h-4 w-4 border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="ml-2 text-sm font-medium text-slate-900">Reading &amp; Writing</span>
+                    </label>
                   </div>
+                  <p className="text-xs text-slate-500">
+                    Questions will be saved to the <strong className="text-slate-700">{singleQuestion.subject}</strong> section of the Tutor Question Bank.
+                  </p>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
             <div className="space-y-6">
 
             {uploadType === 'bulk' ? (
               <div className="space-y-6">
-                {/* Bulk Upload Tabs */}
-                <div className="flex border-b border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => setBulkTab('csv')}
-                    className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${bulkTab === 'csv' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  >
-                    CSV / Excel Upload
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBulkTab('json')}
-                    className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${bulkTab === 'json' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  >
-                    <span>&#123;&#125;</span> JSON Upload
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBulkTab('mathpix')}
-                    className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${bulkTab === 'mathpix' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  >
-                    <span>📄</span> DOCX / PDF via Mathpix
-                  </button>
+                {/* Step 2: Choose method */}
+                <div>
+                  <div className="mb-3 flex items-center gap-2.5">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white">2</span>
+                    <h2 className="text-lg font-bold text-slate-900">Choose Upload Method</h2>
+                  </div>
+                  {/* Bulk Upload Tabs */}
+                  <div className="-mx-1 flex gap-1 overflow-x-auto border-b border-slate-200 px-1">
+                    <button
+                      type="button"
+                      onClick={() => setBulkTab('csv')}
+                      className={`flex-shrink-0 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${bulkTab === 'csv' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                    >
+                      CSV / Excel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBulkTab('json')}
+                      className={`flex flex-shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${bulkTab === 'json' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                    >
+                      <span>&#123;&#125;</span> JSON
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBulkTab('mathpix')}
+                      className={`flex flex-shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${bulkTab === 'mathpix' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                    >
+                      <FiFile className="h-4 w-4" /> PDF / DOCX (Mathpix)
+                    </button>
+                  </div>
                 </div>
 
                 {bulkTab === 'csv' ? (
               <form onSubmit={handleFileUpload} className="space-y-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                  <div className="flex items-start">
-                    <FiDownload className="text-blue-600 mt-0.5 mr-3" />
-                    <div className="flex-1">
-                      <h3 className="text-sm font-medium text-blue-800 mb-1">Download CSV Template</h3>
-                      <p className="text-sm text-blue-600 mb-3">Use our template to ensure your CSV file has the correct format and required columns.</p>
-                      <button type="button" onClick={downloadTemplate} className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-md text-sm">Download Template</button>
+                <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <FiDownload className="mt-0.5 flex-shrink-0 text-indigo-600" />
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900">Download CSV Template</h3>
+                      <p className="text-sm text-slate-500">Not sure of the format? Download a template with the correct columns.</p>
                     </div>
                   </div>
+                  <button type="button" onClick={downloadTemplate} className="inline-flex flex-shrink-0 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-white">
+                    <FiDownload /> Download template
+                  </button>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">CSV/Excel File *</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
-                    <label className="cursor-pointer">
-                      <span className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md">
-                        <FiUpload className="mr-2" /> Upload CSV/Excel
-                      </span>
-                      <input type="file" accept=".csv,.xlsx,.xls" onChange={handleCSVFileChange} className="hidden" />
-                    </label>
-                    <p className="text-xs text-gray-500 mt-2">CSV or Excel files only. Maximum file size: 10MB</p>
+                  <div className="mb-2 flex items-center gap-2.5">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white">3</span>
+                    <h3 className="text-base font-bold text-slate-900">Upload your file</h3>
+                  </div>
+                  <label className="block text-sm font-medium text-slate-600 mb-2">CSV / Excel File <span className="text-rose-500">*</span></label>
+                  <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/40">
+                    <FiUpload className="mb-2 h-8 w-8 text-slate-400" />
+                    <span className="text-sm font-medium text-slate-700">Click to choose a file or drag it here</span>
+                    <span className="mt-1 text-xs text-slate-500">CSV or Excel files only. Maximum file size: 10MB</span>
+                    <input type="file" accept=".csv,.xlsx,.xls" onChange={handleCSVFileChange} className="hidden" />
                     {file && (
-                      <div className="mt-3 flex items-center justify-center gap-2 text-sm text-gray-600">
-                        <FiFile />
-                        {file.name}
-                      </div>
+                      <span className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm">
+                        <FiFile className="text-indigo-600" /> {file.name}
+                      </span>
                     )}
-                  </div>
+                  </label>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Images (required if placeholders used)</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
+                  <label className="block text-sm font-medium text-slate-600 mb-2">Images <span className="text-xs font-normal text-slate-400">(required only if placeholders are used)</span></label>
+                  <label htmlFor="images-upload" className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/40">
                     <input id="images-upload" type="file" accept="image/*" multiple onChange={handleImagesChange} className="hidden" />
-                    <label htmlFor="images-upload" className="cursor-pointer inline-flex items-center px-4 py-2 bg-gray-800 text-white rounded-md"><FiImage className="mr-2" /> Upload Images</label>
-                    <p className="text-xs text-gray-500 mt-2">
-                      <strong>Note:</strong> Images embedded directly inside Excel cells will be automatically extracted.
-                      <br />If you prefer using <code>[filename.png]</code> placeholders, upload the matching files here.
-                    </p>
-                    {bulkUpload.images.length > 0 && (
-                      <div className="mt-4">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Images:</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                          {bulkUpload.imagePreviews.map((preview, index) => (
-                            <div key={index} className="relative">
-                              <img src={preview.url} alt={preview.name} className="w-full h-20 object-cover rounded-md border" />
-                              <button
-                                type="button"
-                                onClick={() => removeImageAt(index)}
-                                className="absolute top-1 right-1 bg-white/90 hover:bg-white text-red-600 hover:text-red-700 rounded-full p-1 shadow"
-                                aria-label="Remove image"
-                              >
-                                <FiX className="w-3 h-3" />
-                              </button>
-                              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white text-xs p-1 rounded-b-md truncate">
-                                {preview.name}
-                              </div>
+                    <FiImage className="mb-2 h-8 w-8 text-slate-400" />
+                    <span className="text-sm font-medium text-slate-700">Click to choose images or drag them here</span>
+                    <span className="mt-1 text-xs text-slate-500">
+                      Images embedded directly inside Excel cells are extracted automatically.
+                      <br />For <code className="rounded bg-slate-200 px-1">[filename.png]</code> placeholders, upload the matching files here.
+                    </span>
+                  </label>
+                  {bulkUpload.images.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="mb-2 text-sm font-medium text-slate-600">Selected Images ({bulkUpload.images.length}):</h4>
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+                        {bulkUpload.imagePreviews.map((preview, index) => (
+                          <div key={index} className="relative">
+                            <img src={preview.url} alt={preview.name} className="h-20 w-full rounded-lg border border-slate-200 object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => removeImageAt(index)}
+                              className="absolute right-1 top-1 rounded-full bg-white/90 p-1 text-rose-600 shadow hover:bg-white hover:text-rose-700"
+                              aria-label="Remove image"
+                            >
+                              <FiX className="h-3 w-3" />
+                            </button>
+                            <div className="absolute inset-x-0 bottom-0 truncate rounded-b-lg bg-slate-900/75 p-1 text-xs text-white">
+                              {preview.name}
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        ))}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
 
                 {bulkUpload.csvRecords.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">CSV Preview</h3>
-                    <p className="text-sm text-gray-600 mb-4">Found {bulkUpload.csvRecords.length} question(s) in your CSV file.</p>
+                    <div className="mb-3 flex items-center gap-2.5">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white">4</span>
+                      <h3 className="text-base font-bold text-slate-900">Review parsed questions</h3>
+                    </div>
+                    <p className="mb-4 text-sm text-slate-500"><strong className="text-slate-700">{bulkUpload.csvRecords.length}</strong> question(s) parsed from your file.</p>
                     {bulkUpload.mapping && (
                       <div className="mb-4">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">Image Mapping Summary:</h4>
-                        <div className="bg-white rounded border p-3">
+                        <h4 className="mb-2 text-sm font-medium text-slate-600">Image Mapping Summary</h4>
+                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                           <div className="grid grid-cols-3 gap-4 text-sm">
-                            <div>
+                            <div className="text-slate-600">
                               <span className="font-medium">Total with Images:</span>
-                              <span className="ml-2">{bulkUpload.mapping.summary.totalWithImages}</span>
+                              <span className="ml-2 font-semibold text-slate-900">{bulkUpload.mapping.summary.totalWithImages}</span>
                             </div>
-                            <div className="text-green-600">
+                            <div className="text-emerald-600">
                               <span className="font-medium">Matched:</span>
-                              <span className="ml-2">{bulkUpload.mapping.summary.matched}</span>
+                              <span className="ml-2 font-semibold">{bulkUpload.mapping.summary.matched}</span>
                             </div>
-                            <div className="text-red-600">
+                            <div className="text-rose-600">
                               <span className="font-medium">Missing:</span>
-                              <span className="ml-2">{bulkUpload.mapping.summary.missing}</span>
+                              <span className="ml-2 font-semibold">{bulkUpload.mapping.summary.missing}</span>
                             </div>
                           </div>
                           {bulkUpload.mapping.summary.missing > 0 && (
-                            <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded">
+                            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2" role="alert">
                               <p className="text-sm text-amber-800">Some questions reference images that were not found. These questions will be created without images.</p>
                             </div>
                           )}
                         </div>
                       </div>
                     )}
-                    <div className="border rounded-md">
-                      <div className="max-h-64 overflow-y-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50 sticky top-0">
+                    <div className="overflow-hidden rounded-xl border border-slate-100">
+                      <div className="max-h-64 overflow-y-auto overflow-x-auto">
+                        <table className="min-w-full divide-y divide-slate-100">
+                          <thead className="sticky top-0 bg-slate-50">
                             <tr>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Row</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Question Preview</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                              <th className="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Row</th>
+                              <th className="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Question Preview</th>
+                              <th className="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Image</th>
+                              <th className="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Status</th>
                             </tr>
                           </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
+                          <tbody className="divide-y divide-slate-100 bg-white">
                             {bulkUpload.csvRecords.map((record, index) => {
                               const mappingEntry = bulkUpload.mapping?.entries.find(e => e.csvRow === record.row)
                               return (
-                                <tr key={index}>
-                                  <td className="px-4 py-2 text-sm text-gray-900">{record.row}</td>
-                                  <td className="px-4 py-2 text-sm text-gray-900 max-w-xs truncate" title={record.label}>{record.label}</td>
-                                  <td className="px-4 py-2 text-sm text-gray-500">{record.imageFileName || '-'}</td>
+                                <tr key={index} className="transition-colors hover:bg-indigo-50/40">
+                                  <td className="px-4 py-2 text-sm text-slate-700">{record.row}</td>
+                                  <td className="max-w-xs truncate px-4 py-2 text-sm text-slate-900" title={record.label}>{record.label}</td>
+                                  <td className="px-4 py-2 text-sm text-slate-500">{record.imageFileName || '-'}</td>
                                   <td className="px-4 py-2 text-sm">
                                     {mappingEntry ? (
-                                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${mappingEntry.status === 'matched' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${mappingEntry.status === 'matched' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
                                         {mappingEntry.status === 'matched' ? 'Matched' : 'Missing'}
                                       </span>
                                     ) : (
-                                      <span className="text-gray-400">No image</span>
+                                      <span className="text-slate-400">No image</span>
                                     )}
                                   </td>
                                 </tr>
@@ -1034,7 +1037,7 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                           </tbody>
                         </table>
                       </div>
-                      <div className="px-4 py-2 bg-gray-50 border-t text-sm text-gray-600">
+                      <div className="border-t border-slate-100 bg-slate-50 px-4 py-2 text-sm text-slate-500">
                         Total: {bulkUpload.csvRecords.length} questions
                       </div>
                     </div>
@@ -1042,31 +1045,39 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                 )}
 
                 {bulkUpload.progress > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <FiUpload className="text-blue-600 mr-2" />
-                      <span className="text-sm font-medium text-blue-800">Uploading Questions...</span>
+                  <div className="space-y-2" role="alert">
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-2 text-sm font-medium text-indigo-700">
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                        Uploading questions...
+                      </span>
+                      <span className="text-sm font-semibold text-indigo-700">{bulkUpload.progress}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded h-2">
-                      <div className="h-2 bg-blue-600 rounded" style={{ width: `${bulkUpload.progress}%` }}></div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-2 rounded-full bg-indigo-600 transition-all duration-300" style={{ width: `${bulkUpload.progress}%` }}></div>
                     </div>
                   </div>
                 )}
 
-                <button type="submit" disabled={!file || (!isTutor && !selectedQuestionBank) || uploading} className="w-full bg-blue-600 text-white py-2 rounded-md">
-                  {uploading ? 'Processing...' : 'Preview Questions'}
-                </button>
+                <div>
+                  {!bankSelected && <p className="mb-2 text-xs text-rose-600" role="alert">Select a question bank above before previewing.</p>}
+                  {!file && <p className="mb-2 text-xs text-slate-500">Choose a CSV/Excel file to enable preview.</p>}
+                  <button type="submit" disabled={!file || (!isTutor && !selectedQuestionBank) || uploading} className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2.5 font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50">
+                    {uploading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />}
+                    {uploading ? 'Processing...' : 'Preview Questions'}
+                  </button>
+                </div>
               </form>
                 ) : bulkTab === 'json' ? (
                   /* JSON Upload Tab */
                   <form onSubmit={handleFileUpload} className="space-y-6">
-                    <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                       <div className="flex items-start gap-3">
-                        <span className="text-2xl">&#123;&#125;</span>
+                        <span className="text-2xl text-indigo-600">&#123;&#125;</span>
                         <div className="flex-1">
-                          <h3 className="text-sm font-medium text-green-900 mb-1">JSON Upload</h3>
-                          <p className="text-sm text-green-700 mb-2">Upload a <code>.json</code> file — an array of question objects. Supports the same fields as CSV/Excel.</p>
-                          <pre className="bg-white border border-green-200 rounded p-2 text-xs text-gray-700 overflow-x-auto">{`[
+                          <h3 className="mb-1 text-sm font-semibold text-slate-900">JSON Upload</h3>
+                          <p className="mb-2 text-sm text-slate-500">Upload a <code className="rounded bg-slate-200 px-1">.json</code> file — an array of question objects. Supports the same fields as CSV/Excel.</p>
+                          <pre className="overflow-x-auto rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-600">{`[
   {
     "question": "Question text here",
     "option a": "...", "option b": "...",
@@ -1084,130 +1095,142 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">JSON File *</label>
-                      <div className="border-2 border-dashed border-green-300 rounded-md p-6 text-center">
-                        <label className="cursor-pointer">
-                          <span className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md">
-                            <FiUpload className="mr-2" /> Upload JSON
-                          </span>
-                          <input type="file" accept=".json" onChange={handleCSVFileChange} className="hidden" />
-                        </label>
-                        <p className="text-xs text-gray-500 mt-2">JSON files only (.json)</p>
-                        {file && (
-                          <div className="mt-3 flex items-center justify-center gap-2 text-sm text-gray-600">
-                            <FiFile /> {file.name}
-                          </div>
-                        )}
+                      <div className="mb-2 flex items-center gap-2.5">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white">3</span>
+                        <h3 className="text-base font-bold text-slate-900">Upload your file</h3>
                       </div>
+                      <label className="block text-sm font-medium text-slate-600 mb-2">JSON File <span className="text-rose-500">*</span></label>
+                      <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/40">
+                        <FiUpload className="mb-2 h-8 w-8 text-slate-400" />
+                        <span className="text-sm font-medium text-slate-700">Click to choose a file or drag it here</span>
+                        <span className="mt-1 text-xs text-slate-500">JSON files only (.json)</span>
+                        <input type="file" accept=".json" onChange={handleCSVFileChange} className="hidden" />
+                        {file && (
+                          <span className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm">
+                            <FiFile className="text-indigo-600" /> {file.name}
+                          </span>
+                        )}
+                      </label>
                     </div>
 
                     {bulkUpload.progress > 0 && (
-                      <div className="space-y-2">
-                        <div className="flex items-center">
-                          <FiUpload className="text-green-600 mr-2" />
-                          <span className="text-sm font-medium text-green-800">Processing JSON...</span>
+                      <div className="space-y-2" role="alert">
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-2 text-sm font-medium text-indigo-700">
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                            Processing JSON...
+                          </span>
+                          <span className="text-sm font-semibold text-indigo-700">{bulkUpload.progress}%</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded h-2">
-                          <div className="h-2 bg-green-600 rounded" style={{ width: `${bulkUpload.progress}%` }}></div>
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                          <div className="h-2 rounded-full bg-indigo-600 transition-all duration-300" style={{ width: `${bulkUpload.progress}%` }}></div>
                         </div>
                       </div>
                     )}
 
-                    <button type="submit" disabled={!file || (!isTutor && !selectedQuestionBank) || uploading} className="w-full bg-green-600 text-white py-2 rounded-md">
-                      {uploading ? 'Processing...' : 'Preview Questions'}
-                    </button>
+                    <div>
+                      {!bankSelected && <p className="mb-2 text-xs text-rose-600" role="alert">Select a question bank above before previewing.</p>}
+                      {!file && <p className="mb-2 text-xs text-slate-500">Choose a JSON file to enable preview.</p>}
+                      <button type="submit" disabled={!file || (!isTutor && !selectedQuestionBank) || uploading} className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2.5 font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50">
+                        {uploading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />}
+                        {uploading ? 'Processing...' : 'Preview Questions'}
+                      </button>
+                    </div>
                   </form>
                 ) : (
                   /* Mathpix DOCX/PDF Tab */
                   <form onSubmit={handleMathpixConvert} className="space-y-6">
-                    <div className="bg-purple-50 border border-purple-200 rounded-md p-4">
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                       <div className="flex items-start gap-3">
-                        <span className="text-2xl">🔬</span>
+                        <FiFile className="mt-0.5 h-5 w-5 flex-shrink-0 text-indigo-600" />
                         <div className="flex-1">
-                          <h3 className="text-sm font-medium text-purple-900 mb-1">Mathpix AI Conversion</h3>
-                          <p className="text-sm text-purple-700">Upload a DOCX or PDF containing SAT questions. Mathpix will extract text, math formulas, and structure them automatically — then you review before saving.</p>
+                          <h3 className="mb-1 text-sm font-semibold text-slate-900">Mathpix AI Conversion</h3>
+                          <p className="text-sm text-slate-500">Upload a DOCX or PDF containing SAT questions. Mathpix will extract text, math formulas, and structure them automatically — then you review before saving.</p>
                         </div>
                       </div>
                     </div>
 
                     {/* Template Download */}
-                    <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                    <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-start gap-3">
-                        <FiDownload className="text-green-600 mt-0.5 flex-shrink-0" />
-                        <div className="flex-1">
-                          <h3 className="text-sm font-medium text-green-900 mb-1">Download PDF Template</h3>
-                          <p className="text-sm text-green-700 mb-3">Download a sample PDF showing the exact format your questions should follow — including Topic, Difficulty, Options, Answer, and Explanations.</p>
-                          <button
-                            type="button"
-                            onClick={downloadMathpixTemplate}
-                            className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors"
-                          >
-                            <FiDownload className="mr-2" /> Download Template PDF
-                          </button>
+                        <FiDownload className="mt-0.5 flex-shrink-0 text-indigo-600" />
+                        <div>
+                          <h3 className="text-sm font-semibold text-slate-900">Download PDF Template</h3>
+                          <p className="text-sm text-slate-500">Not sure of the format? Download a sample PDF showing Topic, Difficulty, Options, Answer, and Explanations.</p>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                        <select
-                          value={mathpixSubject}
-                          onChange={e => setMathpixSubject(e.target.value)}
-                          className="w-full border border-gray-300 rounded-md px-3 py-2"
-                        >
-                          <option value="Math">Math</option>
-                          <option value="Reading and Writing">Reading and Writing</option>
-                        </select>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={downloadMathpixTemplate}
+                        className="inline-flex flex-shrink-0 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-white"
+                      >
+                        <FiDownload /> Download template PDF
+                      </button>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Upload DOCX or PDF *</label>
-                      <div className="border-2 border-dashed border-purple-300 rounded-md p-6 text-center">
-                        <label className="cursor-pointer">
-                          <span className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md">
-                            <FiUpload className="mr-2" /> Choose File
-                          </span>
-                          <input
-                            type="file"
-                            accept=".pdf,.docx,.doc"
-                            onChange={e => setMathpixFile(e.target.files?.[0] || null)}
-                            className="hidden"
-                          />
-                        </label>
-                        <p className="text-xs text-gray-500 mt-2">PDF or DOCX files. Questions should be numbered (1. 2. 3.) with options labeled A) B) C) D)</p>
-                        {mathpixFile && (
-                          <div className="mt-3 flex items-center justify-center gap-2 text-sm text-gray-600">
-                            <FiFile /> {mathpixFile.name} ({(mathpixFile.size / 1024).toFixed(1)} KB)
-                          </div>
-                        )}
-                      </div>
+                      <label htmlFor="mathpix-subject" className="block text-sm font-medium text-slate-600 mb-1">Subject</label>
+                      <select
+                        id="mathpix-subject"
+                        value={mathpixSubject}
+                        onChange={e => setMathpixSubject(e.target.value)}
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="Math">Math</option>
+                        <option value="Reading and Writing">Reading and Writing</option>
+                      </select>
                     </div>
 
-                    <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-sm text-amber-800">
+                    <div>
+                      <div className="mb-2 flex items-center gap-2.5">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white">3</span>
+                        <h3 className="text-base font-bold text-slate-900">Upload your file</h3>
+                      </div>
+                      <label className="block text-sm font-medium text-slate-600 mb-2">Upload DOCX or PDF <span className="text-rose-500">*</span></label>
+                      <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/40">
+                        <FiUpload className="mb-2 h-8 w-8 text-slate-400" />
+                        <span className="text-sm font-medium text-slate-700">Click to choose a file or drag it here</span>
+                        <span className="mt-1 text-xs text-slate-500">PDF or DOCX files. Questions should be numbered (1. 2. 3.) with options labeled A) B) C) D)</span>
+                        <input
+                          type="file"
+                          accept=".pdf,.docx,.doc"
+                          onChange={e => setMathpixFile(e.target.files?.[0] || null)}
+                          className="hidden"
+                        />
+                        {mathpixFile && (
+                          <span className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm">
+                            <FiFile className="text-indigo-600" /> {mathpixFile.name} ({(mathpixFile.size / 1024).toFixed(1)} KB)
+                          </span>
+                        )}
+                      </label>
+                    </div>
+
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
                       <strong>Required PDF format:</strong>
-                      <ul className="mt-1 list-disc pl-4 space-y-1">
-                        <li>Start each question with <code>## Q1</code>, <code>## Q2</code> etc.</li>
-                        <li>Add <code>Topic: geometry</code> (algebra, quadratics, functions, etc.)</li>
-                        <li>Add <code>Difficulty: Medium</code> (Easy / Medium / Hard)</li>
-                        <li>Label options: <code>A.</code> <code>B.</code> <code>C.</code> <code>D.</code></li>
-                        <li>Mark answer: <code>Correct Answer: B</code></li>
-                        <li>Add <code>## Short Explanation</code> and <code>## Long Explanation</code></li>
+                      <ul className="mt-1 list-disc space-y-1 pl-4">
+                        <li>Start each question with <code className="rounded bg-amber-100 px-1">## Q1</code>, <code className="rounded bg-amber-100 px-1">## Q2</code> etc.</li>
+                        <li>Add <code className="rounded bg-amber-100 px-1">Topic: geometry</code> (algebra, quadratics, functions, etc.)</li>
+                        <li>Add <code className="rounded bg-amber-100 px-1">Difficulty: Medium</code> (Easy / Medium / Hard)</li>
+                        <li>Label options: <code className="rounded bg-amber-100 px-1">A.</code> <code className="rounded bg-amber-100 px-1">B.</code> <code className="rounded bg-amber-100 px-1">C.</code> <code className="rounded bg-amber-100 px-1">D.</code></li>
+                        <li>Mark answer: <code className="rounded bg-amber-100 px-1">Correct Answer: B</code></li>
+                        <li>Add <code className="rounded bg-amber-100 px-1">## Short Explanation</code> and <code className="rounded bg-amber-100 px-1">## Long Explanation</code></li>
                         <li>Download the template above to see a full example</li>
                       </ul>
                     </div>
 
                     {mathpixConverting && (
-                      <div className="space-y-2 p-4 bg-purple-50 rounded-md">
-                        <div className="flex items-center gap-3">
-                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-purple-600 border-t-transparent flex-shrink-0"></div>
-                          <span className="text-sm text-purple-800 font-medium">{mathpixStatus || 'Processing...'}</span>
+                      <div className="space-y-2 rounded-xl border border-indigo-100 bg-indigo-50 p-4" role="alert">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="flex items-center gap-3 text-sm font-medium text-indigo-800">
+                            <span className="h-5 w-5 flex-shrink-0 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                            {mathpixStatus || 'Processing...'}
+                          </span>
+                          {mathpixProgress > 0 && <span className="text-sm font-semibold text-indigo-700">{mathpixProgress}%</span>}
                         </div>
                         {mathpixProgress > 0 && (
-                          <div className="w-full bg-purple-100 rounded-full h-2">
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-indigo-100">
                             <div
-                              className="h-2 bg-purple-600 rounded-full transition-all duration-500"
+                              className="h-2 rounded-full bg-indigo-600 transition-all duration-500"
                               style={{ width: `${mathpixProgress}%` }}
                             />
                           </div>
@@ -1215,28 +1238,39 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                       </div>
                     )}
 
-                    <button
-                      type="submit"
-                      disabled={!mathpixFile || mathpixConverting || (!isTutor && !selectedQuestionBank)}
-                      className="w-full bg-purple-600 text-white py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-700 transition-colors"
-                    >
-                      {mathpixConverting ? 'Converting...' : 'Convert & Preview Questions'}
-                    </button>
+                    <div>
+                      {!bankSelected && <p className="mb-2 text-xs text-rose-600" role="alert">Select a question bank above before converting.</p>}
+                      {!mathpixFile && <p className="mb-2 text-xs text-slate-500">Choose a PDF or DOCX file to enable conversion.</p>}
+                      <button
+                        type="submit"
+                        disabled={!mathpixFile || mathpixConverting || (!isTutor && !selectedQuestionBank)}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2.5 font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {mathpixConverting && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />}
+                        {mathpixConverting ? 'Converting...' : 'Convert & Preview Questions'}
+                      </button>
+                    </div>
                   </form>
                 )}
               </div>
             ) : (
               <form onSubmit={handleSingleQuestionSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white">2</span>
+                  <h2 className="text-lg font-bold text-slate-900">Fill in the Question Details</h2>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Subject *</label>
+                    <label htmlFor="sq-subject" className="block text-sm font-medium text-slate-600 mb-1">Subject <span className="text-rose-500">*</span></label>
                     <select
+                      id="sq-subject"
                       value={singleQuestion.subject}
                       onChange={(e) => {
                         const val = e.target.value
                         setSingleQuestion({ ...singleQuestion, subject: val, mathTopic: '', mathSubtopic: '', readingWritingTopic: '' })
                       }}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="Math">Math</option>
                       <option value="Reading and Writing">Reading and Writing</option>
@@ -1245,16 +1279,17 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                 </div>
 
                 {singleQuestion.subject === 'Math' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Math Topic</label>
+                      <label htmlFor="sq-math-topic" className="block text-sm font-medium text-slate-600 mb-1">Math Topic</label>
                       <select
+                        id="sq-math-topic"
                         value={singleQuestion.mathTopic}
                         onChange={(e) => {
                           const v = e.target.value
                           setSingleQuestion({ ...singleQuestion, mathTopic: v, mathSubtopic: '' })
                         }}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                       >
                         <option value="">Select Math Topic</option>
                         {Object.entries(mathSubtopics).map(([key, topic]) => (
@@ -1264,11 +1299,12 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                     </div>
                     {singleQuestion.mathTopic && Object.keys(mathSubtopics[singleQuestion.mathTopic]?.subtopics || {}).length > 0 && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Math Subtopic</label>
+                        <label htmlFor="sq-math-subtopic" className="block text-sm font-medium text-slate-600 mb-1">Math Subtopic</label>
                         <select
+                          id="sq-math-subtopic"
                           value={singleQuestion.mathSubtopic}
                           onChange={(e) => setSingleQuestion({ ...singleQuestion, mathSubtopic: e.target.value })}
-                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                         >
                           <option value="">Select Math Subtopic</option>
                           {Object.entries(mathSubtopics[singleQuestion.mathTopic]?.subtopics || {}).map(([key, sub]) => (
@@ -1281,13 +1317,14 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                 )}
 
                 {singleQuestion.subject === 'Reading and Writing' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+                      <label htmlFor="sq-rw-topic" className="block text-sm font-medium text-slate-600 mb-1">Topic</label>
                       <select
+                        id="sq-rw-topic"
                         value={singleQuestion.readingWritingTopic}
                         onChange={(e) => setSingleQuestion({ ...singleQuestion, readingWritingTopic: e.target.value })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                       >
                         <option value="">Select Topic</option>
                         {Object.entries(readingWritingTopics).map(([key, label]) => (
@@ -1298,13 +1335,14 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty *</label>
+                    <label htmlFor="sq-difficulty" className="block text-sm font-medium text-slate-600 mb-1">Difficulty <span className="text-rose-500">*</span></label>
                     <select
+                      id="sq-difficulty"
                       value={singleQuestion.difficulty}
                       onChange={(e) => setSingleQuestion({ ...singleQuestion, difficulty: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="Easy">Easy</option>
                       <option value="Medium">Medium</option>
@@ -1312,11 +1350,12 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Question Type *</label>
+                    <label htmlFor="sq-type" className="block text-sm font-medium text-slate-600 mb-1">Question Type <span className="text-rose-500">*</span></label>
                     <select
+                      id="sq-type"
                       value={singleQuestion.questionType}
                       onChange={(e) => setSingleQuestion({ ...singleQuestion, questionType: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="single">Single Question</option>
                       <option value="passage-based">Passage-based</option>
@@ -1325,79 +1364,98 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Question Title (Optional)</label>
+                  <label htmlFor="sq-title" className="block text-sm font-medium text-slate-600 mb-1">Question Title <span className="text-xs font-normal text-slate-400">(optional)</span></label>
                   <input
+                    id="sq-title"
                     type="text"
                     value={singleQuestion.title}
                     onChange={(e) => setSingleQuestion({ ...singleQuestion, title: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 
                 {singleQuestion.questionType === 'passage-based' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Passage Text *</label>
+                    <label htmlFor="sq-passage" className="block text-sm font-medium text-slate-600 mb-1">Passage Text <span className="text-rose-500">*</span></label>
                     <textarea
+                      id="sq-passage"
                       value={singleQuestion.passageText}
                       onChange={(e) => setSingleQuestion({ ...singleQuestion, passageText: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                       rows={6}
                     />
+                    <p className="mt-1 text-xs text-slate-500">The reading passage students will see before the question.</p>
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Question Paragraph (Optional)</label>
+                  <label htmlFor="sq-paragraph" className="block text-sm font-medium text-slate-600 mb-1">Question Paragraph <span className="text-xs font-normal text-slate-400">(optional)</span></label>
                   <textarea
+                    id="sq-paragraph"
                     value={singleQuestion.questionParagraph}
                     onChange={(e) => setSingleQuestion({ ...singleQuestion, questionParagraph: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     rows={3}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Question Text</label>
+                  <label htmlFor="sq-text" className="block text-sm font-medium text-slate-600 mb-1">Question Text <span className="text-rose-500">*</span></label>
                   <textarea
+                    id="sq-text"
                     value={singleQuestion.questionText}
                     onChange={(e) => setSingleQuestion({ ...singleQuestion, questionText: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     rows={3}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Question Image (optional)</label>
-                  <input type="file" accept="image/*" onChange={(e) => setSingleQuestion({ ...singleQuestion, questionImage: e.target.files?.[0] || null })} />
+                  <label htmlFor="sq-image" className="block text-sm font-medium text-slate-600 mb-2">Question Image <span className="text-xs font-normal text-slate-400">(optional)</span></label>
+                  <label htmlFor="sq-image" className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/40">
+                    <FiImage className="mb-2 h-7 w-7 text-slate-400" />
+                    <span className="text-sm font-medium text-slate-700">Click to choose an image or drag it here</span>
+                    <input id="sq-image" type="file" accept="image/*" onChange={(e) => setSingleQuestion({ ...singleQuestion, questionImage: e.target.files?.[0] || null })} className="hidden" />
+                    {singleQuestion.questionImage && (
+                      <span className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm">
+                        <FiFile className="text-indigo-600" /> {singleQuestion.questionImage.name}
+                      </span>
+                    )}
+                  </label>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  {singleQuestion.options.map((option, index) => (
-                    <div key={index}>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Option {String.fromCharCode(65 + index)}</label>
-                      <input
-                        type="text"
-                        value={option}
-                        onChange={(e) => {
-                          const newOptions = [...singleQuestion.options]
-                          newOptions[index] = e.target.value
-                          setSingleQuestion({ ...singleQuestion, options: newOptions })
-                        }}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
-                        required
-                      />
-                    </div>
-                  ))}
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">Answer Options <span className="text-rose-500">*</span></label>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {singleQuestion.options.map((option, index) => (
+                      <div key={index}>
+                        <label htmlFor={`sq-option-${index}`} className="mb-1 block text-xs font-medium text-slate-500">Option {String.fromCharCode(65 + index)} <span className="text-rose-500">*</span></label>
+                        <input
+                          id={`sq-option-${index}`}
+                          type="text"
+                          value={option}
+                          onChange={(e) => {
+                            const newOptions = [...singleQuestion.options]
+                            newOptions[index] = e.target.value
+                            setSingleQuestion({ ...singleQuestion, options: newOptions })
+                          }}
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
+                          required
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Correct Answer</label>
+                    <label htmlFor="sq-answer" className="block text-sm font-medium text-slate-600 mb-1">Correct Answer <span className="text-rose-500">*</span></label>
                     <select
+                      id="sq-answer"
                       value={singleQuestion.correctAnswer}
                       onChange={(e) => setSingleQuestion({ ...singleQuestion, correctAnswer: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="A">A</option>
                       <option value="B">B</option>
@@ -1406,78 +1464,101 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
+                    <label htmlFor="sq-tags" className="block text-sm font-medium text-slate-600 mb-1">Tags <span className="text-xs font-normal text-slate-400">(comma-separated)</span></label>
                     <input
+                      id="sq-tags"
                       type="text"
                       value={singleQuestion.tags}
                       onChange={(e) => setSingleQuestion({ ...singleQuestion, tags: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     />
+                    <p className="mt-1 text-xs text-slate-500">e.g. algebra, linear-equations</p>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Explanation</label>
+                  <label htmlFor="sq-explanation" className="block text-sm font-medium text-slate-600 mb-1">Explanation</label>
                   <textarea
+                    id="sq-explanation"
                     value={singleQuestion.explanation}
                     onChange={(e) => setSingleQuestion({ ...singleQuestion, explanation: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     rows={3}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Short Explanation</label>
+                  <label htmlFor="sq-short" className="block text-sm font-medium text-slate-600 mb-1">Short Explanation</label>
                   <textarea
+                    id="sq-short"
                     value={singleQuestion.shortExplanation}
                     onChange={(e) => setSingleQuestion({ ...singleQuestion, shortExplanation: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     rows={2}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Long Explanation</label>
+                  <label htmlFor="sq-long" className="block text-sm font-medium text-slate-600 mb-1">Long Explanation</label>
                   <textarea
+                    id="sq-long"
                     value={singleQuestion.longExplanation}
                     onChange={(e) => setSingleQuestion({ ...singleQuestion, longExplanation: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     rows={4}
                   />
                 </div>
 
-                <button type="submit" disabled={!isTutor && !selectedQuestionBank} className="w-full bg-blue-600 text-white py-2 rounded-md">Add Question</button>
+                <div className="border-t border-slate-100 pt-4">
+                  {!bankSelected && <p className="mb-2 text-xs text-rose-600" role="alert">Select a question bank above before adding the question.</p>}
+                  <button type="submit" disabled={!isTutor && !selectedQuestionBank} className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2.5 font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50">
+                    <FiPlus /> Add Question
+                  </button>
+                </div>
               </form>
             )}
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm mt-6">
-          <div className="p-6 border-b"><h2 className="text-xl font-semibold">Upload History</h2></div>
+        <div className="mt-6 rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <div className="border-b border-slate-100 p-6">
+            <h2 className="text-lg font-bold text-slate-900">Upload History</h2>
+            <p className="mt-1 text-sm text-slate-500">A record of your recent uploads.</p>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">File</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Questions</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">File</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Questions</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
-                {uploadHistory.map((upload, index) => (
-                  <tr key={upload.id || upload._id || index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(upload.createdAt).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{upload.fileName || upload.title || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{upload.questionCount || 1}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${upload.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {upload.status === 'success' ? <FiCheck className="inline mr-1" /> : <FiX className="inline mr-1" />}
-                        {upload.status}
-                      </span>
+              <tbody className="divide-y divide-slate-100">
+                {uploadHistory.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center">
+                      <FiFile className="mx-auto mb-2 h-8 w-8 text-slate-300" />
+                      <p className="text-sm font-medium text-slate-600">No uploads yet</p>
+                      <p className="mt-1 text-xs text-slate-400">Your uploaded files and questions will appear here.</p>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  uploadHistory.map((upload, index) => (
+                    <tr key={upload.id || upload._id || index} className="transition-colors hover:bg-indigo-50/40">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-700">{upload.createdAt ? new Date(upload.createdAt).toLocaleDateString() : '—'}</td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-900">{upload.fileName || upload.title || '-'}</td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-700">{upload.questionCount || 1}</td>
+                      <td className="whitespace-nowrap px-6 py-4">
+                        <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${upload.status === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                          {upload.status === 'success' ? <FiCheck className="mr-1 inline" /> : <FiX className="mr-1 inline" />}
+                          {upload.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

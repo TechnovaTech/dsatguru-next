@@ -35,23 +35,23 @@ const CustomToolbar = ({ date, view, onNavigate, onView, onAddEvent }) => {
   }
 
   return (
-    <div className="flex items-center justify-between p-4 border-b bg-white">
+    <div className="flex items-center justify-between border-b border-slate-100 bg-white p-4">
       <div className="flex items-center gap-4">
         <button
           onClick={goToToday}
-          className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50"
+          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
         >
           Today
         </button>
         <div className="flex items-center gap-1">
-          <button onClick={goToBack} className="p-1 hover:bg-gray-100 rounded-full">
-            <FiChevronLeft size={20} className="text-gray-600" />
+          <button onClick={goToBack} aria-label="Previous" className="rounded-full p-1 transition-colors hover:bg-slate-100">
+            <FiChevronLeft size={20} className="text-slate-600" />
           </button>
-          <button onClick={goToNext} className="p-1 hover:bg-gray-100 rounded-full">
-            <FiChevronRight size={20} className="text-gray-600" />
+          <button onClick={goToNext} aria-label="Next" className="rounded-full p-1 transition-colors hover:bg-slate-100">
+            <FiChevronRight size={20} className="text-slate-600" />
           </button>
         </div>
-        <span className="text-lg font-semibold text-gray-800">
+        <span className="text-lg font-bold text-slate-900">
             {moment(date).format('MMMM YYYY')}
         </span>
       </div>
@@ -60,13 +60,13 @@ const CustomToolbar = ({ date, view, onNavigate, onView, onAddEvent }) => {
         <div className="relative">
           <button
             onClick={() => setShowViewMenu(!showViewMenu)}
-            className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
           >
             {viewLabel[view] || view}
             <FiChevronDown />
           </button>
           {showViewMenu && (
-            <div className="absolute right-0 top-full mt-1 w-32 bg-white border rounded shadow-lg z-50 py-1">
+            <div className="absolute right-0 top-full z-50 mt-1 w-32 rounded-xl border border-slate-100 bg-white py-1 shadow-xl">
               {['month', 'week', 'day', 'agenda'].map((v) => (
                 <button
                   key={v}
@@ -74,7 +74,7 @@ const CustomToolbar = ({ date, view, onNavigate, onView, onAddEvent }) => {
                     onView(v)
                     setShowViewMenu(false)
                   }}
-                  className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${view === v ? 'font-bold text-blue-600' : 'text-gray-700'}`}
+                  className={`block w-full px-4 py-2 text-left text-sm transition-colors hover:bg-indigo-50/40 ${view === v ? 'font-bold text-indigo-600' : 'text-slate-600'}`}
                 >
                   {viewLabel[v]}
                 </button>
@@ -82,10 +82,10 @@ const CustomToolbar = ({ date, view, onNavigate, onView, onAddEvent }) => {
             </div>
           )}
         </div>
-        
+
         <button
           onClick={onAddEvent}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700 shadow-sm"
+          className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
         >
           <FiPlus size={16} />
           New
@@ -114,26 +114,26 @@ const MiniCalendar = ({ date, onNavigate }) => {
   const weekDays = moment.weekdaysMin()
 
   return (
-    <div className="w-64 p-4 border-r bg-gray-50 flex flex-col h-full hidden md:flex">
+    <div className="hidden h-full w-64 flex-col border-r border-slate-100 bg-slate-50 p-4 md:flex">
         <div className="mb-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="flex items-center gap-2 text-xl font-bold text-slate-900">
                 <FiCalendar className="text-indigo-600"/> Calendar
             </h2>
         </div>
-      <div className="mb-4 flex justify-between items-center">
-        <span className="font-semibold text-gray-700">{currentMonth.format('MMMM YYYY')}</span>
+      <div className="mb-4 flex items-center justify-between">
+        <span className="font-semibold text-slate-600">{currentMonth.format('MMMM YYYY')}</span>
         <div className="flex gap-1">
-          <button onClick={() => setCurrentMonth(prev => prev.clone().subtract(1, 'month'))} className="p-1 hover:bg-gray-200 rounded">
-            <FiChevronLeft size={16} />
+          <button onClick={() => setCurrentMonth(prev => prev.clone().subtract(1, 'month'))} aria-label="Previous month" className="rounded-lg p-1 transition-colors hover:bg-slate-200">
+            <FiChevronLeft size={16} className="text-slate-600" />
           </button>
-          <button onClick={() => setCurrentMonth(prev => prev.clone().add(1, 'month'))} className="p-1 hover:bg-gray-200 rounded">
-            <FiChevronRight size={16} />
+          <button onClick={() => setCurrentMonth(prev => prev.clone().add(1, 'month'))} aria-label="Next month" className="rounded-lg p-1 transition-colors hover:bg-slate-200">
+            <FiChevronRight size={16} className="text-slate-600" />
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center mb-2">
+      <div className="mb-2 grid grid-cols-7 gap-1 text-center">
         {weekDays.map(d => (
-          <div key={d} className="text-xs font-medium text-gray-500">{d.charAt(0)}</div>
+          <div key={d} className="text-xs font-semibold text-slate-500">{d.charAt(0)}</div>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1 text-center">
@@ -141,15 +141,15 @@ const MiniCalendar = ({ date, onNavigate }) => {
           const isCurrentMonth = d.isSame(currentMonth, 'month')
           const isSelected = d.isSame(date, 'day')
           const isToday = d.isSame(moment(), 'day')
-          
+
           return (
             <button
               key={i}
               onClick={() => onNavigate('DATE', d.toDate())}
               className={`
-                h-8 w-8 text-sm rounded-full flex items-center justify-center
-                ${!isCurrentMonth ? 'text-gray-300' : 'text-gray-700'}
-                ${isSelected ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'hover:bg-gray-200'}
+                flex h-8 w-8 items-center justify-center rounded-full text-sm transition-colors
+                ${!isCurrentMonth ? 'text-slate-300' : 'text-slate-600'}
+                ${isSelected ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'hover:bg-slate-200'}
                 ${isToday && !isSelected ? 'border border-indigo-600 font-bold' : ''}
               `}
             >
@@ -158,11 +158,11 @@ const MiniCalendar = ({ date, onNavigate }) => {
           )
         })}
       </div>
-      
+
       <div className="mt-8">
-        <div className="flex items-center gap-2 mb-2">
-            <input type="checkbox" checked readOnly className="text-indigo-600 rounded focus:ring-indigo-500" />
-            <span className="text-sm font-medium text-gray-700">Calendar</span>
+        <div className="mb-2 flex items-center gap-2">
+            <input type="checkbox" checked readOnly className="rounded text-indigo-600 focus:ring-indigo-500" />
+            <span className="text-sm font-medium text-slate-600">Calendar</span>
         </div>
       </div>
     </div>
@@ -192,7 +192,7 @@ export default function CourseCalendar({ events, onAddEvent, onEventClick }) {
   }
 
   return (
-    <div className="flex h-[700px] bg-white border rounded-lg overflow-hidden shadow-sm">
+    <div className="flex h-[700px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
       <MiniCalendar date={date} onNavigate={handleNavigate} />
       
       <div className="flex-1 flex flex-col min-w-0">

@@ -2,25 +2,27 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../../lib/db'
 import TestSession from '../../../../../../lib/models/TestSession'
 import User from '../../../../../../lib/models/User'
-import { getTokenFromRequest, verifyToken } from '../../../../../../lib/auth'
+// Side-effect imports: register Test and Question schemas so .populate('testId')
+// and .populate('responses.questionId') resolve on cold start.
+import '../../../../../../lib/models/Test'
+import '../../../../../../lib/models/Question'
+import { requireRole } from '../../../../../../lib/auth'
+import { ROLES, STAFF_ROLES } from '../../../../../../lib/constants/roles'
 
 export async function GET(request, { params }) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-
-    if (!decoded || !['Tutor', 'TutorAdmin', 'Admin'].includes(decoded.role)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     const { id: studentId } = params
 
     const student = await User.findById(studentId).lean()
     if (!student) return NextResponse.json({ error: 'Student not found' }, { status: 404 })
 
-    if (decoded.role === 'Tutor' && !(student.assignedTutors || []).map(id => id.toString()).includes(decoded.userId)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    if (decoded.role === ROLES.TUTOR && !(student.assignedTutors || []).map(id => id.toString()).includes(decoded.userId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // Fetch ALL completed sessions for this student (all test types)

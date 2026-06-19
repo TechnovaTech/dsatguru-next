@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import TestSession from '../../../../../lib/models/TestSession'
 import Test from '../../../../../lib/models/Test'
+// Imported so Mongoose has the schema registered before Test.populate('questions');
+// otherwise the populate throws MissingSchemaError.
+import Question from '../../../../../lib/models/Question'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 
 export async function GET(request, { params }) {

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../components/AuthContext'
 import { useRouter } from 'next/navigation'
-import { FiBook, FiClock, FiTarget, FiTrendingUp, FiBookmark, FiVideo, FiMessageSquare, FiPlay, FiUsers, FiExternalLink, FiEdit, FiDatabase, FiCalendar, FiActivity, FiBarChart, FiBell } from 'react-icons/fi'
+import { FiBook, FiClock, FiTarget, FiTrendingUp, FiBookmark, FiVideo, FiMessageSquare, FiPlay, FiUsers, FiExternalLink, FiEdit, FiDatabase, FiCalendar, FiActivity, FiBarChart, FiBell, FiAward, FiGrid } from 'react-icons/fi'
 import { FaCalculator } from 'react-icons/fa'
 import axios from 'axios'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
@@ -11,6 +11,7 @@ export default function Dashboard() {
   const { user, logout } = useAuth()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [enrolledCourses, setEnrolledCourses] = useState([])
   const [enrolledQuestionBanks, setEnrolledQuestionBanks] = useState([])
   const [stats, setStats] = useState({
@@ -53,6 +54,7 @@ export default function Dashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
+      setError(null)
       const token = localStorage.getItem('token')
       const [enrollmentsRes, sessionsRes, analyticsRes] = await Promise.all([
         axios.get('/api/enrollment', { headers: token ? { Authorization: `Bearer ${token}` } : {} }),
@@ -82,7 +84,7 @@ export default function Dashboard() {
         studyHours: analyticsData.studyHours || 0,
         latestScores: analyticsData.latestScores || { math: 400, rw: 400 }
       })
-      
+
       // Process Recent Activity from Sessions
       const sessions = sessionsRes.data.sessions || sessionsRes.data || []
       const recent = sessions.slice(0, 5).map(session => {
@@ -116,7 +118,7 @@ export default function Dashboard() {
         }
       })
       setRecentActivity(recent)
-      
+
       // Count assigned-but-not-completed tests per category
       const allSessions = sessions
       const assignedRW = allSessions.filter(s => s.status === 'Assigned' && s.testId?.isTutorTest && s.testId?.subject === 'Reading and Writing' && !s.testId?.isModuleTest).length
@@ -149,6 +151,7 @@ export default function Dashboard() {
 
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
+      setError("Couldn't load your dashboard data.")
     } finally {
       setLoading(false)
     }
@@ -156,162 +159,335 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500"></div>
       </div>
     )
   }
 
-  if (!user) return <div>Loading...</div>
+  if (!user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500"></div>
+      </div>
+    )
+  }
+
+  const totalScore = (stats.latestScores?.math || 0) + (stats.latestScores?.rw || 0)
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 space-y-8">
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl px-6 py-4 text-white flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold flex-shrink-0">
-            {user?.name?.[0]?.toUpperCase() || 'S'}
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl space-y-6">
+        {/* Header */}
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+              <FiGrid size={18} />
+            </span>
+            <div>
+              <h1 className="text-2xl font-extrabold text-slate-900 lg:text-3xl">
+                Welcome back, {user?.name || 'Student'}
+              </h1>
+              <p className="mt-1 text-sm text-slate-500">
+                Success is the sum of small efforts repeated day in and day out.
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-bold leading-tight">Welcome back, {user?.name || 'Student'}!</h1>
-            <p className="text-blue-100 text-xs mt-0.5">&quot;Success is the sum of small efforts repeated day in and day out.&quot;</p>
-          </div>
-        </div>
-        <div className="flex items-center flex-shrink-0">
-          <button onClick={() => router.push('/dashboard/messages')}
-            className="relative bg-white text-blue-600 p-2.5 rounded-xl shadow-md hover:shadow-lg transition-all">
+          <button
+            onClick={() => router.push('/dashboard/messages')}
+            className="relative rounded-lg border border-slate-300 p-2.5 text-slate-600 transition-colors hover:bg-slate-50"
+            aria-label="Messages"
+          >
             <FiBell size={20} />
             {unreadMessages > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 shadow-lg border-2 border-white">
+              <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full border-2 border-white bg-rose-500 px-1 text-[10px] font-bold text-white shadow">
                 {unreadMessages > 99 ? '99+' : unreadMessages}
               </span>
             )}
           </button>
         </div>
-      </div>
 
-      {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg p-6 shadow-md">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Questions Attempted</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalAttempted}</p>
-            </div>
-            <FiTarget className="text-blue-600" size={24} />
+        {error && (
+          <div role="alert" className="flex items-center justify-between gap-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3">
+            <span className="text-sm font-medium text-rose-700">{error} Please try again.</span>
+            <button
+              onClick={fetchDashboardData}
+              className="rounded-lg bg-rose-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-rose-700"
+            >
+              Retry
+            </button>
           </div>
-        </div>
-        <div className="bg-white rounded-lg p-6 shadow-md">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Accuracy</p>
-              <p className="text-2xl font-bold text-green-600">{stats.accuracy}%</p>
-            </div>
-            <FiTrendingUp className="text-green-600" size={24} />
-          </div>
-        </div>
-        <div className="bg-white rounded-lg p-6 shadow-md">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Correct Answers</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.correctAnswers}</p>
-            </div>
-            <FiBook className="text-blue-600" size={24} />
-          </div>
-        </div>
-        <div className="bg-white rounded-lg p-6 shadow-md">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Study Hours</p>
-              <p className="text-2xl font-bold text-purple-600">{stats.studyHours}h</p>
-            </div>
-            <FiClock className="text-purple-600" size={24} />
-          </div>
-        </div>
-      </div>
-
-      {/* Test Quick Access */}
-      <div className="grid grid-cols-5 gap-4">
-        {[
-          { label: 'Tutor R&W', path: '/dashboard/tutor/rw', count: testCounts.rw, icon: <FiBookmark size={20} />, iconBg: 'bg-violet-50 text-violet-600' },
-          { label: 'Tutor Math', path: '/dashboard/tutor/math', count: testCounts.math, icon: <FiTarget size={20} />, iconBg: 'bg-blue-50 text-blue-600' },
-          { label: 'Tutor Module Tests', path: '/dashboard/tutor/module-tests', count: testCounts.module, icon: <FiTrendingUp size={20} />, iconBg: 'bg-indigo-50 text-indigo-600' },
-          { label: 'Admin Test', path: '/dashboard/admin-tests', count: testCounts.admin, icon: <FiBarChart size={20} />, iconBg: 'bg-slate-50 text-slate-600' },
-          { label: 'Adaptive Test', path: '/dashboard/adaptive-tests', count: testCounts.adaptive, icon: <FiActivity size={20} />, iconBg: 'bg-teal-50 text-teal-600' },
-        ].map(({ label, path, count, icon, iconBg }) => (
-          <button key={path} onClick={() => router.push(path)}
-            className="relative bg-white rounded-xl border border-gray-200 p-5 flex flex-col items-center gap-3 hover:shadow-md transition-all group">
-            {count > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow">
-                {count}
-              </span>
-            )}
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform ${iconBg}`}>
-              {icon}
-            </div>
-            <span className="text-sm font-semibold text-gray-700 text-center leading-tight">{label}</span>
-            {count > 0 ? (
-              <span className="text-xs text-red-500 font-semibold">{count} pending</span>
-            ) : (
-              <span className="text-xs text-gray-400">No pending</span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Performance Graph */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-base font-semibold text-gray-800">Performance Overview</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Average score % across completed tests per category</p>
-          </div>
-          <span className="text-xs text-gray-400 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">Avg. Score %</span>
-        </div>
-        {performanceData.every(d => d.tests === 0) ? (
-          <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-            <FiBarChart size={36} className="mb-3 text-gray-300" />
-            <p className="text-sm font-medium">No completed tests yet</p>
-            <p className="text-xs mt-1">Complete tests to see your performance graph</p>
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={performanceData} barSize={48} margin={{ top: 20, right: 10, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} axisLine={false} tickLine={false} />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `${v}%`} />
-              <Tooltip
-                cursor={{ fill: '#f8fafc' }}
-                content={({ active, payload }) => {
-                  if (!active || !payload?.length) return null
-                  const d = payload[0].payload
-                  return (
-                    <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3 text-sm">
-                      <p className="font-semibold text-gray-800 mb-1">{d.name}</p>
-                      <p className="text-gray-600">Avg Score: <span className="font-bold text-gray-900">{d.score}%</span></p>
-                      <p className="text-gray-400 text-xs">{d.tests} test{d.tests !== 1 ? 's' : ''} completed</p>
-                    </div>
-                  )
-                }}
-              />
-              <Bar dataKey="score" radius={[6, 6, 0, 0]}>
-                {performanceData.map((entry, i) => <Cell key={i} fill={entry.fill} fillOpacity={entry.tests === 0 ? 0.2 : 1} />)}
-                <LabelList dataKey="score" position="top" formatter={v => v > 0 ? `${v}%` : ''} style={{ fontSize: 12, fontWeight: 600, fill: '#374151' }} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
         )}
-        <div className="flex items-center gap-6 mt-4 pt-4 border-t border-gray-100">
-          {performanceData.map((d, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: d.fill }} />
-              <span className="text-xs text-gray-500">{d.name}</span>
-              <span className="text-xs font-semibold text-gray-700">{d.tests} done</span>
+
+        {/* Quick Stats Cards */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Questions Attempted</p>
+                <p className="mt-1 text-3xl font-extrabold text-slate-900">{stats.totalAttempted ?? 0}</p>
+              </div>
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-500 text-white">
+                <FiTarget size={20} />
+              </span>
             </div>
-          ))}
+          </div>
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Accuracy</p>
+                <p className="mt-1 text-3xl font-extrabold text-slate-900">{stats.accuracy ?? 0}%</p>
+              </div>
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500 text-white">
+                <FiTrendingUp size={20} />
+              </span>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Correct Answers</p>
+                <p className="mt-1 text-3xl font-extrabold text-slate-900">{stats.correctAnswers ?? 0}</p>
+              </div>
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-500 text-white">
+                <FiBook size={20} />
+              </span>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Study Hours</p>
+                <p className="mt-1 text-3xl font-extrabold text-slate-900">{stats.studyHours ?? 0}h</p>
+              </div>
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500 text-white">
+                <FiClock size={20} />
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Latest SAT Scores */}
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+          <div className="mb-5 flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+              <FiAward size={18} />
+            </span>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Latest SAT Score</h2>
+              <p className="mt-0.5 text-xs text-slate-500">Your most recent scaled section scores</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-slate-100 bg-slate-50 p-5 text-center">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total</p>
+              <p className="mt-1 text-3xl font-extrabold text-indigo-600">{totalScore || '—'}</p>
+              <p className="mt-1 text-xs text-slate-400">out of 1600</p>
+            </div>
+            <div className="rounded-xl border border-slate-100 bg-slate-50 p-5 text-center">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Reading &amp; Writing</p>
+              <p className="mt-1 text-3xl font-extrabold text-violet-600">{stats.latestScores?.rw ?? '—'}</p>
+              <p className="mt-1 text-xs text-slate-400">out of 800</p>
+            </div>
+            <div className="rounded-xl border border-slate-100 bg-slate-50 p-5 text-center">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Math</p>
+              <p className="mt-1 text-3xl font-extrabold text-emerald-600">{stats.latestScores?.math ?? '—'}</p>
+              <p className="mt-1 text-xs text-slate-400">out of 800</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Test Quick Access */}
+        <div>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">Your Tests</h2>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            {[
+              { label: 'Tutor R&W', path: '/dashboard/tutor/rw', count: testCounts.rw, icon: <FiBookmark size={20} />, iconBg: 'bg-violet-100 text-violet-600' },
+              { label: 'Tutor Math', path: '/dashboard/tutor/math', count: testCounts.math, icon: <FiTarget size={20} />, iconBg: 'bg-indigo-100 text-indigo-600' },
+              { label: 'Tutor Module Tests', path: '/dashboard/tutor/module-tests', count: testCounts.module, icon: <FiTrendingUp size={20} />, iconBg: 'bg-blue-100 text-blue-600' },
+              { label: 'Admin Test', path: '/dashboard/admin-tests', count: testCounts.admin, icon: <FiBarChart size={20} />, iconBg: 'bg-slate-100 text-slate-600' },
+              { label: 'Adaptive Test', path: '/dashboard/adaptive-tests', count: testCounts.adaptive, icon: <FiActivity size={20} />, iconBg: 'bg-emerald-100 text-emerald-600' },
+            ].map(({ label, path, count, icon, iconBg }) => (
+              <button
+                key={path}
+                onClick={() => router.push(path)}
+                className="group relative flex flex-col items-center gap-3 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md"
+              >
+                {count > 0 && (
+                  <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white shadow">
+                    {count}
+                  </span>
+                )}
+                <div className={`flex h-11 w-11 items-center justify-center rounded-xl transition-transform group-hover:scale-110 ${iconBg}`}>
+                  {icon}
+                </div>
+                <span className="text-center text-sm font-semibold leading-tight text-slate-700">{label}</span>
+                {count > 0 ? (
+                  <span className="rounded-full bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-600">{count} pending</span>
+                ) : (
+                  <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-400">No pending</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Performance Graph */}
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                <FiBarChart size={18} />
+              </span>
+              <div>
+                <h2 className="text-base font-bold text-slate-900">Performance Overview</h2>
+                <p className="mt-0.5 text-xs text-slate-500">Average score % across completed tests per category</p>
+              </div>
+            </div>
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500">Avg. Score %</span>
+          </div>
+          {performanceData.every(d => d.tests === 0) ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-slate-50 text-slate-300">
+                <FiBarChart size={26} />
+              </div>
+              <h3 className="text-sm font-semibold text-slate-500">No completed tests yet</h3>
+              <p className="mt-1 text-sm text-slate-400">Complete tests to see your performance graph.</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={performanceData} barSize={48} margin={{ top: 20, right: 10, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `${v}%`} />
+                <Tooltip
+                  cursor={{ fill: '#f8fafc' }}
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null
+                    const d = payload[0].payload
+                    return (
+                      <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm shadow-lg">
+                        <p className="mb-1 font-semibold text-slate-800">{d.name}</p>
+                        <p className="text-slate-600">Avg Score: <span className="font-bold text-slate-900">{d.score}%</span></p>
+                        <p className="text-xs text-slate-400">{d.tests} test{d.tests !== 1 ? 's' : ''} completed</p>
+                      </div>
+                    )
+                  }}
+                />
+                <Bar dataKey="score" radius={[6, 6, 0, 0]}>
+                  {performanceData.map((entry, i) => <Cell key={i} fill={entry.fill} fillOpacity={entry.tests === 0 ? 0.2 : 1} />)}
+                  <LabelList dataKey="score" position="top" formatter={v => v > 0 ? `${v}%` : ''} style={{ fontSize: 12, fontWeight: 600, fill: '#374151' }} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+          <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-100 pt-4">
+            {performanceData.map((d, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="h-3 w-3 flex-shrink-0 rounded-sm" style={{ backgroundColor: d.fill }} />
+                <span className="text-xs text-slate-500">{d.name}</span>
+                <span className="text-xs font-semibold text-slate-700">{d.tests} done</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <div className="flex items-center gap-2.5 border-b border-slate-100 px-6 py-5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+              <FiClock size={18} />
+            </span>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Recent Activity</h2>
+              <p className="mt-0.5 text-xs text-slate-500">Your last few test sessions</p>
+            </div>
+          </div>
+          {recentActivity.length === 0 ? (
+            <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-slate-50 text-slate-300">
+                <FiActivity size={26} />
+              </div>
+              <h3 className="text-sm font-semibold text-slate-500">No activity yet</h3>
+              <p className="mt-1 text-sm text-slate-400">Your completed test sessions will appear here.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] text-left">
+                <thead className="border-b border-slate-100 bg-slate-50">
+                  <tr>
+                    <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Test / Topic</th>
+                    <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Type</th>
+                    <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Attempted</th>
+                    <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Score</th>
+                    <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {recentActivity.map((item) => (
+                    <tr key={item.id} className="text-sm transition-colors hover:bg-indigo-50/40">
+                      <td className="px-6 py-4 font-medium text-slate-900">{item.topic || '—'}</td>
+                      <td className="px-6 py-4">
+                        <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">{item.type || '—'}</span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">{item.attempted ?? 0}</td>
+                      <td className="px-6 py-4 font-semibold text-slate-700">{item.score ?? 0}</td>
+                      <td className="px-6 py-4 text-slate-500">{item.date || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Enrolled Courses */}
+        <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <div className="flex items-center gap-2.5 border-b border-slate-100 px-6 py-5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+              <FiBook size={18} />
+            </span>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">My Courses</h2>
+              <p className="mt-0.5 text-xs text-slate-500">Courses you are currently enrolled in</p>
+            </div>
+          </div>
+          {enrolledCourses.length === 0 ? (
+            <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-slate-50 text-slate-300">
+                <FiBook size={26} />
+              </div>
+              <h3 className="text-sm font-semibold text-slate-500">No enrolled courses</h3>
+              <p className="mt-1 text-sm text-slate-400">Browse the catalog to enroll in a course.</p>
+              <button
+                onClick={() => router.push('/dashboard/courses')}
+                className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+              >
+                Browse Courses
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
+              {enrolledCourses.map((course) => (
+                <button
+                  key={course.id}
+                  onClick={() => router.push(`/dashboard/courses/${course.id}`)}
+                  className="group flex flex-col rounded-xl border border-slate-100 bg-slate-50 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md"
+                >
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 transition-transform group-hover:scale-110">
+                    <FiBook size={18} />
+                  </div>
+                  <h3 className="text-sm font-semibold text-slate-900">{course.title || '—'}</h3>
+                  <p className="mt-1 line-clamp-2 text-xs text-slate-500">{course.description || 'No description available.'}</p>
+                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600">
+                    Open course <FiExternalLink size={12} />
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-
     </div>
   )
 }

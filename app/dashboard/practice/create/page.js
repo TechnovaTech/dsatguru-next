@@ -10,6 +10,7 @@ export default function CreatePracticePage() {
   const bankId = searchParams.get('bankId')
 
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [startingSession, setStartingSession] = useState(false)
   const [showTutorial, setShowTutorial] = useState(false)
   const [practiceOptions, setPracticeOptions] = useState({
@@ -37,16 +38,21 @@ export default function CreatePracticePage() {
   }, [])
 
   const loadInitialData = async () => {
+    setLoading(true)
+    setError('')
     try {
-      setLoading(true)
       if (bankId) {
-        try {
-          const res = await axios.get(`/api/questions?bankId=${encodeURIComponent(bankId)}`)
-          const questions = res.data?.data || res.data?.questions || []
-          const total = Array.isArray(questions) ? questions.length : 100
-          setPracticeOptions((prev) => ({ ...prev, totalQuestions: total }))
-        } catch {}
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+        const res = await axios.get(`/api/questions?bankId=${encodeURIComponent(bankId)}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+        const questions = Array.isArray(res.data) ? res.data : (res.data?.data || res.data?.questions || [])
+        const total = Array.isArray(questions) ? questions.length : 100
+        setPracticeOptions((prev) => ({ ...prev, totalQuestions: total }))
       }
+    } catch (err) {
+      console.error('Error loading practice options:', err)
+      setError("Couldn't load practice options.")
     } finally {
       setLoading(false)
     }
@@ -123,6 +129,17 @@ export default function CreatePracticePage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {error && (
+          <div role="alert" className="mb-6 flex items-center justify-between gap-4 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3">
+            <span className="text-sm font-medium">{error} Please try again.</span>
+            <button
+              onClick={loadInitialData}
+              className="bg-red-600 text-white text-sm font-semibold px-4 py-1.5 rounded hover:bg-red-700 transition-colors flex-shrink-0"
+            >
+              Retry
+            </button>
+          </div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-3 space-y-6">
             <div className="bg-white rounded-lg shadow-sm border">

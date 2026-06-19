@@ -1,17 +1,19 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import TestSession from '../../../../../lib/models/TestSession'
-import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
+// Side-effect imports: register User and Test schemas so .populate('userId') /
+// .populate('testId') resolve on cold start.
+import '../../../../../lib/models/User'
+import '../../../../../lib/models/Test'
+import { requireRole } from '../../../../../lib/auth'
+import { ADMIN_ROLES } from '../../../../../lib/constants/roles'
 
 export async function GET(request) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     console.log(`[Admin Test Results API] User role: ${decoded.role}, userId: ${decoded.userId}`)
 
@@ -22,6 +24,7 @@ export async function GET(request) {
       .populate('userId', 'name email')
       .populate('testId')
       .sort({ completedAt: -1 })
+      .limit(500)
       .lean()
 
     // Filter for admin tests (practiceMode='admin')
@@ -38,7 +41,7 @@ export async function GET(request) {
       testId: session.testId._id,
       studentName: session.userId?.name || 'Unknown',
       studentEmail: session.userId?.email || 'N/A',
-      testTitle: session.testId.title,
+      testTitle: session.testId.title || 'Unknown Test',
       subject: session.testId.subject || 'N/A',
       completedAt: session.completedAt || session.updatedAt,
       totalScore: session.totalScore || 0,

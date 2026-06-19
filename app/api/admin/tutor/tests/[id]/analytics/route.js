@@ -3,17 +3,18 @@ import { connectDB } from '../../../../../../../lib/db'
 import TestSession from '../../../../../../../lib/models/TestSession'
 import Test from '../../../../../../../lib/models/Test'
 import Question from '../../../../../../../lib/models/Question'
-import { getTokenFromRequest, verifyToken } from '../../../../../../../lib/auth'
+// Side-effect import: registers the User schema so .populate('userId') resolves
+// on cold start. (Test and Question are already imported above for .populate('questions').)
+import '../../../../../../../lib/models/User'
+import { requireRole } from '../../../../../../../lib/auth'
+import { ROLES, STAFF_ROLES } from '../../../../../../../lib/constants/roles'
 
 export async function GET(request, { params }) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    
-    if (!decoded || (decoded.role !== 'Admin' && decoded.role !== 'Tutor')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     const testId = params.id
 
@@ -21,6 +22,12 @@ export async function GET(request, { params }) {
     const test = await Test.findById(testId).populate('questions')
     if (!test) {
       return NextResponse.json({ error: 'Test not found' }, { status: 404 })
+    }
+
+    // Tutors can only view analytics for tests they own
+    if (decoded.role === ROLES.TUTOR &&
+        !(test.assignedTutors || []).map(id => String(id)).includes(decoded.userId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // Get all completed sessions for this test

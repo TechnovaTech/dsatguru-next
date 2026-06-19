@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import Course from '../../../../lib/models/Course'
-import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
+import { requireRole } from '../../../../lib/auth'
+import { STAFF_ROLES } from '../../../../lib/constants/roles'
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
     await connectDB()
     const banks = await Course.find({ type: 'question_bank' }).sort({ createdAt: -1 })
     const formatted = await Promise.all(banks.map(async (course) => {
@@ -27,12 +31,10 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
     const body = await request.json()
     const bank = await Course.create({ ...body, type: 'question_bank' })
     return NextResponse.json(bank, { status: 201 })

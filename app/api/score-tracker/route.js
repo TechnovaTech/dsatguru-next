@@ -1,26 +1,24 @@
 import { NextResponse } from 'next/server'
-import jwt from 'jsonwebtoken'
 import dbConnect from '@/lib/db'
+import { verifyToken, getTokenFromRequest } from '@/lib/auth'
 import ScoreTracker from '@/lib/models/ScoreTracker'
 import TestSession from '@/lib/models/TestSession'
+import Test from '@/lib/models/Test'
 
-async function getUserId(request) {
-  const auth = request.headers.get('authorization') || ''
-  const token = auth.replace('Bearer ', '')
-  if (!token) return null
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    return decoded.userId || decoded.id || decoded._id
-  } catch { return null }
+function getUserId(request) {
+  const decoded = verifyToken(getTokenFromRequest(request))
+  if (!decoded) return null
+  return decoded.userId || decoded.id || decoded._id
 }
 
 export async function GET(request) {
-  await dbConnect()
-  const userId = await getUserId(request)
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  try {
+    await dbConnect()
+    const userId = getUserId(request)
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   // Fetch all completed sessions for this user that are admin-assigned
-  const sessions = await TestSession.find({ userId, status: 'Completed' })
+  const sessions = await TestSession.find({ userId, $or: [{ status: 'Completed' }, { state: 'COMPLETED' }] })
     .populate({
       path: 'testId',
       match: { practiceMode: 'admin' },
@@ -105,35 +103,46 @@ export async function GET(request) {
     }
   })
 
-  return NextResponse.json({ rows })
+    return NextResponse.json({ rows })
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch score tracker' }, { status: 500 })
+  }
 }
 
 export async function POST(request) {
-  await dbConnect()
-  const userId = await getUserId(request)
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  try {
+    await dbConnect()
+    const userId = getUserId(request)
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await request.json()
-  const { _id, sessionId, ...fields } = body
+    const body = await request.json()
+    const { _id, sessionId, ...fields } = body
 
-  if (_id) {
-    const updated = await ScoreTracker.findOneAndUpdate(
-      { _id, userId },
-      { $set: { ...fields, userId } },
-      { new: true }
-    )
-    return NextResponse.json({ row: updated })
+    if (_id) {
+      const updated = await ScoreTracker.findOneAndUpdate(
+        { _id, userId },
+        { $set: { ...fields, userId } },
+        { new: true }
+      )
+      return NextResponse.json({ row: updated })
+    }
+
+    const row = await ScoreTracker.create({ ...fields, sessionId: sessionId || null, userId })
+    return NextResponse.json({ row }, { status: 201 })
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to save score tracker' }, { status: 500 })
   }
-
-  const row = await ScoreTracker.create({ ...fields, sessionId: sessionId || null, userId })
-  return NextResponse.json({ row }, { status: 201 })
 }
 
 export async function DELETE(request) {
-  await dbConnect()
-  const userId = await getUserId(request)
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { id } = await request.json()
-  await ScoreTracker.findOneAndDelete({ _id: id, userId })
-  return NextResponse.json({ success: true })
+  try {
+    await dbConnect()
+    const userId = getUserId(request)
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { id } = await request.json()
+    await ScoreTracker.findOneAndDelete({ _id: id, userId })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to delete score tracker' }, { status: 500 })
+  }
 }

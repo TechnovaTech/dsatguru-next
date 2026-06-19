@@ -1,24 +1,15 @@
 import { NextResponse } from 'next/server'
-import jwt from 'jsonwebtoken'
 import dbConnect from '@/lib/db'
 import ErrorLog from '@/lib/models/ErrorLog'
 import User from '@/lib/models/User'
-
-async function getAdminId(request) {
-  const auth = request.headers.get('authorization') || ''
-  const token = auth.replace('Bearer ', '')
-  if (!token) return null
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    if (!['Admin', 'TutorAdmin'].includes(decoded.role)) return null
-    return decoded.userId || decoded.id || decoded._id
-  } catch { return null }
-}
+import { requireRole } from '@/lib/auth'
+import { STAFF_ROLES, ADMIN_ROLES } from '@/lib/constants/roles'
 
 export async function GET(request) {
+  const auth = requireRole(request, STAFF_ROLES)
+  if (auth.error) return auth.error
+  const { decoded } = auth
   await dbConnect()
-  const adminId = await getAdminId(request)
-  if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
     const logs = await ErrorLog.find({})
@@ -31,9 +22,10 @@ export async function GET(request) {
 }
 
 export async function PATCH(request) {
+  const auth = requireRole(request, ADMIN_ROLES)
+  if (auth.error) return auth.error
+  const { decoded } = auth
   await dbConnect()
-  const adminId = await getAdminId(request)
-  if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
     const { id, tutorAction } = await request.json()

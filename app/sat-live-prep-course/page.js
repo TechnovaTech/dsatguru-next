@@ -6,7 +6,7 @@ const program = {
   examLabel: 'Digital SAT',
   title: 'Digital SAT Live Prep Course',
   highlightTag: 'Comprehensive Prep',
-  heroImage: '/hero-2.png',
+  heroArt: '/art/prog-liveprep.png',
   seoTitle: 'SAT Live Online Classes | SAT Prep',
   seoDescription: 'Enroll in live online SAT courses with expert instructors, interactive sessions, real-time doubt solving, and structured SAT exam preparation.',
   overview: 'A complete preparation program that builds strong fundamentals, test-taking strategies, and confidence through live interactive sessions.',

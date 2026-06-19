@@ -1,17 +1,19 @@
 'use client'
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { FiCalendar, FiCheckCircle, FiList, FiTarget, FiTrendingUp, FiSave, FiCheck, FiAlertCircle, FiArrowRight } from 'react-icons/fi'
 
 function getStatus(total, target) {
-  if (total === 0) return { emoji: '—', label: '—', color: 'text-gray-400' }
-  if (total >= target) return { emoji: '🟢', label: 'On Track', color: 'text-green-600' }
-  if (total >= target * 0.7) return { emoji: '🟡', label: 'At Risk', color: 'text-yellow-600' }
-  return { emoji: '🔴', label: 'Behind', color: 'text-red-600' }
+  if (total === 0) return { label: '—', badge: 'bg-slate-100 text-slate-500' }
+  if (total >= target) return { label: 'On Track', badge: 'bg-emerald-100 text-emerald-700' }
+  if (total >= target * 0.7) return { label: 'At Risk', badge: 'bg-amber-100 text-amber-700' }
+  return { label: 'Behind', badge: 'bg-rose-100 text-rose-700' }
 }
 
 export default function StudentDailyTracker() {
   const [rows, setRows] = useState([])
   const [target, setTarget] = useState(20)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [noPlan, setNoPlan] = useState(false)
@@ -19,12 +21,12 @@ export default function StudentDailyTracker() {
   const [testSessions, setTestSessions] = useState([])
   const saveTimer = useRef(null)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      try {
-        const token = localStorage.getItem('token')
-        const headers = { Authorization: `Bearer ${token}` }
+  const fetchData = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const token = localStorage.getItem('token')
+      const headers = { Authorization: `Bearer ${token}` }
 
         // 1. Fetch Study Plan for Target Calculation
         const planRes = await fetch('/api/study-plan', { headers })
@@ -35,7 +37,7 @@ export default function StudentDailyTracker() {
           if (planData) {
             const today = new Date()
             today.setHours(0, 0, 0, 0)
-            const exam = new Date(planData.examDate)
+            const exam = planData.examDate ? new Date(planData.examDate) : today
             const current = planData.currentScore || 0
             const targetScore = planData.targetScore || 1600
             const daysUntilExam = Math.ceil((exam - today) / 86400000)
@@ -137,14 +139,18 @@ export default function StudentDailyTracker() {
           setRows(mergedRows)
           setTarget(calculatedTarget)
           if (data.startDate) setDateRange({ startDate: data.startDate, examDate: data.examDate })
+        } else {
+          setError("Couldn't load your daily tracker.")
         }
       } catch (err) {
         console.error('Failed to fetch data', err)
+        setError("Couldn't load your daily tracker.")
       } finally {
         setLoading(false)
       }
-    }
+  }
 
+  useEffect(() => {
     fetchData()
   }, [])
 
@@ -205,133 +211,192 @@ export default function StudentDailyTracker() {
   const daysWithData = computed.filter(r => r.total > 0).length
   const onTrackDays = computed.filter(r => r.total > 0 && r.total >= target).length
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading tracker...</div>
-
-  if (noPlan) return (
-    <div className="p-8 text-center">
-      <p className="text-xl font-semibold text-gray-700 mb-2">No Study Plan Found</p>
-      <p className="text-gray-500 mb-4">Please create a study plan first to use the Daily Tracker.</p>
-      <a href="/dashboard/study-plan" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Go to Study Plan</a>
+  if (loading) return (
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-center py-32">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500" />
+      </div>
     </div>
   )
 
+  if (error) return (
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-col items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-rose-700 sm:flex-row sm:items-center sm:justify-between">
+          <span className="flex items-center gap-2 text-sm font-medium">
+            <FiAlertCircle className="h-5 w-5 shrink-0" /> {error} Please try again.
+          </span>
+          <button
+            onClick={fetchData}
+            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  if (noPlan) return (
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-white px-6 py-20 text-center shadow-sm">
+          <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
+            <FiCalendar className="h-6 w-6" />
+          </span>
+          <h2 className="text-lg font-bold text-slate-900">No Study Plan Found</h2>
+          <p className="mt-1 max-w-md text-sm text-slate-500">Please create a study plan first to use the Daily Tracker.</p>
+          <a
+            href="/dashboard/study-plan"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+          >
+            Go to Study Plan <FiArrowRight className="h-4 w-4" />
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+
+  const stats = [
+    { label: 'Total Done', value: totalDone, icon: FiTrendingUp, chip: 'bg-indigo-500' },
+    { label: 'Days Logged', value: daysWithData, icon: FiList, chip: 'bg-violet-500' },
+    { label: 'On Track Days', value: onTrackDays, icon: FiCheckCircle, chip: 'bg-emerald-500' },
+  ]
+
   return (
-    <div className="p-6 min-h-screen bg-gray-50">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">📅 Daily Practice Tracker</h1>
-          <p className="text-gray-500 mt-1 text-sm">Log Math &amp; Reading/Writing questions daily. Auto-saves as you type.</p>
-          {dateRange.startDate && (
-            <p className="text-xs text-blue-500 mt-1">
-              📆 {new Date(dateRange.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} → Exam: {new Date(dateRange.examDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ({rows.length} days)
-            </p>
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900 lg:text-3xl">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                <FiCalendar className="h-5 w-5" />
+              </span>
+              Daily Practice Tracker
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">Log Math &amp; Reading/Writing questions daily. Auto-saves as you type.</p>
+            {dateRange.startDate && (
+              <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-600">
+                <FiCalendar className="h-3.5 w-3.5" />
+                {new Date(dateRange.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                <FiArrowRight className="h-3 w-3" />
+                Exam: {dateRange.examDate ? new Date(dateRange.examDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'} ({rows.length} days)
+              </p>
+            )}
+          </div>
+          {(saving || saved) && (
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${saving ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+              {saving ? <><FiSave className="h-3.5 w-3.5" /> Saving…</> : <><FiCheck className="h-3.5 w-3.5" /> Saved</>}
+            </span>
           )}
         </div>
-        <span className="text-xs text-gray-400">
-          {saving ? '💾 Saving...' : saved ? '✅ Saved' : ''}
-        </span>
-      </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <p className="text-xs text-gray-500 uppercase tracking-wide">Total Done</p>
-          <p className="text-2xl font-bold text-blue-600 mt-1">{totalDone}</p>
+        <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+          {stats.map(s => (
+            <div key={s.label} className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white ${s.chip}`}>
+                <s.icon className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-2xl font-extrabold text-slate-900">{s.value}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{s.label}</p>
+              </div>
+            </div>
+          ))}
+          <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white">
+              <FiTarget className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <input
+                type="number"
+                min={1}
+                value={target}
+                onChange={e => updateTarget(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && updateTarget(e.target.value, true)}
+                className="w-20 border-b-2 border-amber-200 bg-transparent text-2xl font-extrabold text-slate-900 focus:border-amber-400 focus:outline-none"
+              />
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Daily Target</p>
+            </div>
+          </div>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <p className="text-xs text-gray-500 uppercase tracking-wide">Days Logged</p>
-          <p className="text-2xl font-bold text-purple-600 mt-1">{daysWithData}</p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <p className="text-xs text-gray-500 uppercase tracking-wide">On Track Days</p>
-          <p className="text-2xl font-bold text-green-600 mt-1">{onTrackDays}</p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border flex flex-col gap-1">
-          <p className="text-xs text-gray-500 uppercase tracking-wide">Daily Target</p>
-          <input
-            type="number"
-            min={1}
-            value={target}
-            onChange={e => updateTarget(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && updateTarget(e.target.value, true)}
-            className="text-2xl font-bold text-orange-500 w-20 border-b border-orange-300 focus:outline-none bg-transparent"
-          />
-        </div>
-      </div>
 
-      <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-800 text-white">
-              <th className="px-3 py-3 text-center font-semibold w-12">Day</th>
-              <th className="px-3 py-3 text-center font-semibold w-24">Date</th>
-              <th className="px-3 py-3 text-center font-semibold w-24">Math<br/><span className="font-normal text-gray-300 text-xs">Done</span></th>
-              <th className="px-3 py-3 text-center font-semibold w-32">Reading &amp; Writing<br/><span className="font-normal text-gray-300 text-xs">Done</span></th>
-              <th className="px-3 py-3 text-center font-semibold w-24">Total<br/><span className="font-normal text-gray-300 text-xs">Done</span></th>
-              <th className="px-3 py-3 text-center font-semibold w-24">Daily<br/><span className="font-normal text-gray-300 text-xs">Target</span></th>
-              <th className="px-3 py-3 text-center font-semibold w-32">On Track?</th>
-              <th className="px-3 py-3 text-center font-semibold w-28">Running<br/><span className="font-normal text-gray-300 text-xs">Total</span></th>
-              <th className="px-3 py-3 text-center font-semibold">Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {computed.map((row, idx) => {
-              const status = getStatus(row.total, target)
-              const isEven = idx % 2 === 0
-              return (
-                <tr key={idx} className={`border-b transition-colors hover:bg-blue-50 ${isEven ? 'bg-white' : 'bg-gray-50'}`}>
-                  <td className="px-3 py-2 text-center text-gray-500 font-medium">{row.day}</td>
-                  <td className="px-3 py-2 text-center text-gray-700 font-medium">{row.date}</td>
-                  <td className="px-2 py-1 text-center">
-                    <input 
-                      type="number" 
-                      min={0} 
-                      value={rows[idx].math} 
-                      onChange={e => update(idx, 'math', e.target.value)} 
-                      onKeyDown={e => e.key === 'Enter' && update(idx, 'math', e.target.value, true)}
-                      placeholder="0"
-                      className="w-16 text-center border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 bg-blue-50 text-blue-700 font-semibold" 
-                    />
-                  </td>
-                  <td className="px-2 py-1 text-center">
-                    <input 
-                      type="number" 
-                      min={0} 
-                      value={rows[idx].reading} 
-                      onChange={e => update(idx, 'reading', e.target.value)} 
-                      onKeyDown={e => e.key === 'Enter' && update(idx, 'reading', e.target.value, true)}
-                      placeholder="0"
-                      className="w-20 text-center border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-300 bg-green-50 text-green-700 font-semibold" 
-                    />
-                  </td>
-                  <td className="px-3 py-2 text-center font-bold text-gray-800">{row.total || 0}</td>
-                  <td className="px-3 py-2 text-center text-gray-500">{target}</td>
-                  <td className={`px-3 py-2 text-center font-semibold ${status.color}`}>{status.emoji} {status.label}</td>
-                  <td className="px-3 py-2 text-center font-semibold text-gray-700">{row.running}</td>
-                  <td className="px-2 py-1">
-                    <input 
-                      type="text" 
-                      value={rows[idx].notes} 
-                      onChange={e => update(idx, 'notes', e.target.value)} 
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') {
-                          update(idx, 'notes', e.target.value, true)
-                        }
-                      }}
-                      placeholder="Add note…"
-                      className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-gray-300 text-gray-600" 
-                    />
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+        <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-100 bg-slate-50 text-slate-500">
+                <th className="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider">Day</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider">Date</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider">Math Done</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider">Reading &amp; Writing Done</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider">Total Done</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider">Daily Target</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider">On Track?</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider">Running Total</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider">Notes</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {computed.map((row, idx) => {
+                const status = getStatus(row.total, target)
+                return (
+                  <tr key={idx} className="transition-colors hover:bg-indigo-50/40">
+                    <td className="px-4 py-2.5 text-center font-medium text-slate-400">{row.day}</td>
+                    <td className="px-4 py-2.5 text-center font-medium text-slate-700">{row.date}</td>
+                    <td className="px-3 py-2 text-center">
+                      <input
+                        type="number"
+                        min={0}
+                        value={rows[idx].math}
+                        onChange={e => update(idx, 'math', e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && update(idx, 'math', e.target.value, true)}
+                        placeholder="0"
+                        className="w-16 rounded-lg border border-indigo-100 bg-indigo-50 px-2 py-1 text-center font-semibold text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                      />
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <input
+                        type="number"
+                        min={0}
+                        value={rows[idx].reading}
+                        onChange={e => update(idx, 'reading', e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && update(idx, 'reading', e.target.value, true)}
+                        placeholder="0"
+                        className="w-20 rounded-lg border border-emerald-100 bg-emerald-50 px-2 py-1 text-center font-semibold text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                      />
+                    </td>
+                    <td className="px-4 py-2.5 text-center font-bold text-slate-900">{row.total || 0}</td>
+                    <td className="px-4 py-2.5 text-center text-slate-500">{target}</td>
+                    <td className="px-4 py-2.5 text-center">
+                      <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium ${status.badge}`}>{status.label}</span>
+                    </td>
+                    <td className="px-4 py-2.5 text-center font-semibold text-slate-700">{row.running}</td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        value={rows[idx].notes}
+                        onChange={e => update(idx, 'notes', e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            update(idx, 'notes', e.target.value, true)
+                          }
+                        }}
+                        placeholder="Add note…"
+                        className="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                      />
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
 
-      <div className="mt-4 flex gap-6 text-sm text-gray-500">
-        <span>🟢 On Track — met daily target</span>
-        <span>🟡 At Risk — ≥70% of target</span>
-        <span>🔴 Behind — &lt;70% of target</span>
+        <div className="mt-4 flex flex-wrap gap-3 text-xs text-slate-500">
+          <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> On Track — met daily target</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-amber-500" /> At Risk — ≥70% of target</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" /> Behind — &lt;70% of target</span>
+        </div>
       </div>
     </div>
   )

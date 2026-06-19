@@ -2,8 +2,11 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 import TestSession from '../../../../../lib/models/TestSession'
+import Test from '../../../../../lib/models/Test'
 import Question from '../../../../../lib/models/Question'
-import RedoQueue from '../../../../../lib/models/RedoQueue'
+import { gradeAndScore } from '../../../../../lib/scoring/satScale'
+import { buildAdaptiveModule } from '../../../../../lib/adaptive'
+import { syncWrongAnswers } from '../../../../../lib/learningLoop'
 
 export async function POST(request, { params }) {
   try {
@@ -34,49 +37,43 @@ export async function POST(request, { params }) {
     const accuracy = baseAnsweredCount > 0 ? baseCorrectCount / baseAnsweredCount : 0
 
     if (session.state === 'IN_PROGRESS_BASE') {
-      let adaptiveDifficulty = 'Easy'
-      if (accuracy >= 0.75) adaptiveDifficulty = 'Hard'
-      else if (accuracy >= 0.5) adaptiveDifficulty = 'Medium'
       const usedIds = responseIds
-      const adaptiveQuestions = await Question.find({
-        questionBankId: session.questionBankId,
-        testType: 'Adaptive',
-        difficulty: adaptiveDifficulty,
-        isActive: true,
-        _id: { $nin: usedIds }
-      }).select('_id').limit(baseTarget)
-      session.adaptiveAssignedQuestionIds = adaptiveQuestions.map(q => q._id)
+
+      // Single source of truth for Module-1 -> Module-2 routing (customConfig band +
+      // distribution, with legacy single-difficulty fallback). Shared with answer/route.js.
+      const test = session.testId ? await Test.findById(session.testId).select('customConfig').lean() : null
+      const adaptiveIds = await buildAdaptiveModule({ session, test, accuracy, usedIds })
+
+      session.adaptiveAssignedQuestionIds = adaptiveIds
       session.state = 'IN_PROGRESS_ADAPTIVE'
       await session.save()
-      return NextResponse.json({ success: true, next: 'adaptive', adaptiveCount: adaptiveQuestions.length })
+      return NextResponse.json({ success: true, next: 'adaptive', adaptiveCount: adaptiveIds.length })
     } else if (session.state === 'IN_PROGRESS_ADAPTIVE') {
       session.state = 'COMPLETED'
       session.status = 'Completed'
+      session.completedAt = new Date()
       session.endTime = new Date()
+
+      // Server-authoritative scaled score from the full response set (re-graded from the bank).
+      const scoreQs = await Question.find({ _id: { $in: responseIds } }).select('subject correctAnswer')
+      const scoreMap = new Map(scoreQs.map(q => [String(q._id), q]))
+      const scored = gradeAndScore(session.responses, scoreMap)
+      session.responses = (session.responses || []).map((r, i) => {
+        const obj = typeof r.toObject === 'function' ? r.toObject() : { ...r }
+        obj.isCorrect = scored.flags[i]
+        return obj
+      })
+      session.correctAnswers = scored.correctAnswers
+      session.rwScore = scored.rwScore
+      session.mathScore = scored.mathScore
+      session.totalScore = scored.totalScore
+      session.result = { math: scored.mathScore, readingWriting: scored.rwScore, total: scored.totalScore }
+
       await session.save()
 
-      // Auto-add wrong answers to RedoQueue
-      const wrongResponses = (session.responses || []).filter(r => r.isCorrect === false)
-      if (wrongResponses.length) {
-        const wrongQIds = wrongResponses.map(r => r.questionId)
-        const wrongQuestions = await Question.find({ _id: { $in: wrongQIds } }).select('content questionId subject skill domain difficulty tags')
-        const qMap = new Map(wrongQuestions.map(q => [String(q._id), q]))
-        const existing = await RedoQueue.find({ userId: session.userId, questionId: { $in: wrongQIds } }).select('questionId')
-        const alreadyIn = new Set(existing.map(e => String(e.questionId)))
-        const redoDue = new Date(); redoDue.setDate(redoDue.getDate() + 3)
-        const toInsert = wrongResponses
-          .filter(r => !alreadyIn.has(String(r.questionId)))
-          .map(r => {
-            const q = qMap.get(String(r.questionId))
-            if (!q) return null
-            const section = String(q.subject || '').toLowerCase().includes('math') ? 'Math' : 'Reading & Writing'
-            const diffMap = { Easy: 'Easy', Medium: 'Medium', Hard: 'Hard' }
-            let topic = q.skill || q.domain || ''
-            if (!topic) { try { topic = JSON.parse(q.tags || '[]')[0] || '' } catch { topic = '' } }
-            return { userId: session.userId, questionId: r.questionId, testSessionId: session._id, section, topic, questionDescription: q.questionId ? `${q.questionId} — ${(q.content || '').slice(0, 80)}` : (q.content || '').slice(0, 80), difficulty: diffMap[q.difficulty] || 'Medium', redoDueDate: redoDue, status: 'Pending' }
-          }).filter(Boolean)
-        if (toInsert.length) await RedoQueue.insertMany(toInsert)
-      }
+      // Auto-populate ErrorLog from wrong answers so the redo page can see them
+      // (the redo UI reads ErrorLog, not RedoQueue). Idempotent + non-fatal.
+      await syncWrongAnswers(session.userId, session)
 
       return NextResponse.json({ success: true, next: 'completed' })
     }

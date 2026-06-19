@@ -2,6 +2,7 @@ import './globals.css'
 import Script from 'next/script'
 import { AuthProvider } from './components/AuthContext'
 import { CourseProvider } from './components/CourseContext'
+import { UIProvider } from './components/ui/UIProvider'
 import AppShell from './components/AppShell'
 
 const BASE_URL = 'https://www.dsatguru.com'
@@ -48,7 +49,9 @@ export default function RootLayout({ children }) {
         </Script>
         <AuthProvider>
           <CourseProvider>
-            <AppShell>{children}</AppShell>
+            <UIProvider>
+              <AppShell>{children}</AppShell>
+            </UIProvider>
           </CourseProvider>
         </AuthProvider>
       </body>

@@ -2,9 +2,11 @@
 import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck, FiAlertCircle } from 'react-icons/fi'
+import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck, FiAlertCircle, FiClipboard } from 'react-icons/fi'
+import { useConfirm } from '../../../components/ui/UIProvider'
 
 export default function AdminTestSheets() {
+  const confirm = useConfirm()
   const router = useRouter()
   const [tests, setTests] = useState([])
   const [loading, setLoading] = useState(true)
@@ -119,7 +121,7 @@ export default function AdminTestSheets() {
   }
 
   const handleDeleteTest = async (testId) => {
-    if (!confirm('Are you sure you want to delete this test?')) return
+    if (!(await confirm({ message: 'Are you sure you want to delete this test?', tone: 'danger', confirmText: 'Delete' }))) return
     
     try {
       const token = localStorage.getItem('token')
@@ -274,103 +276,121 @@ export default function AdminTestSheets() {
   })
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6 flex justify-between items-center">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Test Sheets</h1>
-            <p className="text-gray-600">View and manage all custom Admin tests</p>
+            <h1 className="text-2xl font-extrabold text-slate-900 lg:text-3xl">Admin Test Sheets</h1>
+            <p className="mt-1 text-sm text-slate-500">View and manage all custom Admin tests</p>
           </div>
-          <button onClick={() => router.push('/admin/admin-tests/create-test')} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+          <button onClick={() => router.push('/admin/admin-tests/create-test')} className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700">
             <FiEdit /> Create New Test
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg flex items-center gap-2 border border-red-100">
+          <div className="mb-4 flex items-center gap-2 rounded-lg border border-rose-100 bg-rose-50 p-4 text-rose-700">
             <FiX /> {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg flex items-center gap-2 border border-green-100">
+          <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 p-4 text-emerald-700">
             <FiCheck /> {success}
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="mb-4 grid grid-cols-1 gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm md:grid-cols-2">
           <div className="relative">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search test titles..." className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
+            <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <label htmlFor="test-search" className="sr-only">Search test titles</label>
+            <input id="test-search" type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search test titles..." className="w-full rounded-lg border border-slate-300 py-2 pl-10 pr-3 outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" />
           </div>
-          <select value={filterMode} onChange={(e) => setFilterMode(e.target.value)} className="p-2 border rounded-lg">
-            <option value="all">All Modes</option>
-            <option value="timed">Timed Only</option>
-            <option value="untimed">Untimed Only</option>
-          </select>
+          <div>
+            <label htmlFor="test-filter-mode" className="sr-only">Filter by mode</label>
+            <select id="test-filter-mode" value={filterMode} onChange={(e) => setFilterMode(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500">
+              <option value="all">All Modes</option>
+              <option value="timed">Timed Only</option>
+              <option value="untimed">Untimed Only</option>
+            </select>
+          </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mode</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Questions</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created At</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {loading ? (
-                <tr><td colSpan={5} className="px-6 py-4 text-center text-gray-500">Loading tests...</td></tr>
-              ) : filteredTests.length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-4 text-center text-gray-500">No tests found</td></tr>
-              ) : (
-                filteredTests.map((test) => (
-                  <tr key={test._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{test.title}</td>
-                    <td className="px-6 py-4 text-sm">
-                      {test.isTimed ? <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs font-medium"><FiClock /> {test.duration}m</span> : <span className="px-2 py-0.5 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">Untimed</span>}
-                    </td>
-                    <td className="px-6 py-4 text-sm">{test.questions?.length || 0} Qs</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{new Date(test.createdAt).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 text-sm">
-                      <div className="flex gap-2">
-                        <button onClick={() => handleViewTest(test)} className="text-blue-600 hover:bg-blue-50 p-1.5 rounded" title="View"><FiEye /></button>
-                        <button onClick={() => handleEditTest(test)} className="text-green-600 hover:bg-green-50 p-1.5 rounded" title="Edit"><FiEdit /></button>
-                        <button onClick={() => handleOpenAssignToStudentModal(test)} className="text-purple-600 hover:bg-purple-50 p-1.5 rounded" title="Assign"><FiUserPlus /></button>
-                        <button onClick={() => handleDeleteTest(test._id)} className="text-red-600 hover:bg-red-50 p-1.5 rounded" title="Delete"><FiTrash /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px] text-left">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50">
+                  <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Title</th>
+                  <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Mode</th>
+                  <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Questions</th>
+                  <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Created At</th>
+                  <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {loading ? (
+                  <tr><td colSpan={5} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500" />
+                      <p className="mt-3 text-sm text-slate-500">Loading tests...</p>
+                    </div>
+                  </td></tr>
+                ) : filteredTests.length === 0 ? (
+                  <tr><td colSpan={5} className="px-6 py-12 text-center">
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400"><FiClipboard size={22} /></div>
+                    <h3 className="text-base font-semibold text-slate-600">No tests found</h3>
+                    <p className="mt-1 text-sm text-slate-400">Create a new test to get started.</p>
+                  </td></tr>
+                ) : (
+                  filteredTests.map((test) => (
+                    <tr key={test._id} className="transition-colors hover:bg-indigo-50/40">
+                      <td className="px-6 py-4 text-sm font-medium text-slate-900">{test.title}</td>
+                      <td className="px-6 py-4 text-sm">
+                        {test.isTimed ? <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700"><FiClock /> {test.duration}m</span> : <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Untimed</span>}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-700">{test.questions?.length || 0} Qs</td>
+                      <td className="px-6 py-4 text-sm text-slate-500">{test.createdAt ? new Date(test.createdAt).toLocaleDateString() : '—'}</td>
+                      <td className="px-6 py-4 text-sm">
+                        <div className="flex gap-2">
+                          <button onClick={() => handleViewTest(test)} className="rounded p-1.5 text-indigo-600 transition-colors hover:bg-indigo-50" title="View"><FiEye /></button>
+                          <button onClick={() => handleEditTest(test)} className="rounded p-1.5 text-emerald-600 transition-colors hover:bg-emerald-50" title="Edit"><FiEdit /></button>
+                          <button onClick={() => handleOpenAssignToStudentModal(test)} className="rounded p-1.5 text-indigo-600 transition-colors hover:bg-indigo-50" title="Assign"><FiUserPlus /></button>
+                          <button onClick={() => handleDeleteTest(test._id)} className="rounded p-1.5 text-rose-600 transition-colors hover:bg-rose-50" title="Delete"><FiTrash /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* View/Edit Modal */}
         {showViewModal && viewingTest && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full h-[90vh] flex flex-col overflow-hidden">
-              <div className="p-4 border-b flex items-center justify-between bg-gray-50">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+            <div className="flex h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 p-4">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">{isEditMode ? 'Edit Test' : viewingTest.title}</h3>
-                  <p className="text-sm text-gray-500">Question {currentQuestionIndex + 1} of {testQuestions.length}</p>
+                  <h3 className="text-lg font-bold text-slate-900">{isEditMode ? 'Edit Test' : viewingTest.title}</h3>
+                  <p className="text-sm text-slate-500">Question {currentQuestionIndex + 1} of {testQuestions.length}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   {isEditMode && (
-                    <button onClick={handleSaveTestEdits} disabled={savingTest} className="px-4 py-2 bg-green-600 text-white rounded-lg flex items-center gap-2">
+                    <button onClick={handleSaveTestEdits} disabled={savingTest} className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50">
                       <FiSave /> {savingTest ? 'Saving...' : 'Save Changes'}
                     </button>
                   )}
-                  <button onClick={() => setShowViewModal(false)} className="text-gray-400 hover:text-gray-600"><FiX size={24} /></button>
+                  <button onClick={() => setShowViewModal(false)} aria-label="Close" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"><FiX size={20} /></button>
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto p-6">
                 {loadingQuestions ? (
-                  <div className="h-full flex items-center justify-center">Loading questions...</div>
+                  <div className="flex h-full flex-col items-center justify-center">
+                    <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500" />
+                    <p className="mt-3 text-sm text-slate-500">Loading questions...</p>
+                  </div>
                 ) : (
                   (() => {
                     const q = testQuestions[currentQuestionIndex]
@@ -389,45 +409,45 @@ export default function AdminTestSheets() {
                       options = { A: q.optionA || '', B: q.optionB || '', C: q.optionC || '', D: q.optionD || '' }
                     }
                     return (
-                      <div className="max-w-4xl mx-auto space-y-6">
+                      <div className="mx-auto max-w-4xl space-y-6">
                         <div className="flex justify-end">
                           {isEditMode && (
                             isEditing
-                              ? <button onClick={() => setEditingQuestionId(null)} className="px-4 py-2 bg-green-600 text-white rounded-lg">Done Editing</button>
-                              : <button onClick={() => setEditingQuestionId(q.id || q._id)} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Edit Question</button>
+                              ? <button onClick={() => setEditingQuestionId(null)} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">Done Editing</button>
+                              : <button onClick={() => setEditingQuestionId(q.id || q._id)} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700">Edit Question</button>
                           )}
                         </div>
 
                         {/* Metadata */}
-                        <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 text-sm">
+                        <div className="grid grid-cols-3 gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">
                           <div>
-                            <span className="text-xs font-semibold text-gray-500 uppercase">Difficulty</span>
-                            <p className={`font-bold mt-1 ${q.difficulty === 'Easy' ? 'text-green-600' : q.difficulty === 'Medium' ? 'text-yellow-600' : 'text-red-600'}`}>{q.difficulty}</p>
+                            <span className="text-xs font-semibold uppercase text-slate-500">Difficulty</span>
+                            <p className={`mt-1 font-bold ${q.difficulty === 'Easy' ? 'text-emerald-600' : q.difficulty === 'Medium' ? 'text-amber-600' : 'text-rose-600'}`}>{q.difficulty}</p>
                           </div>
                           <div>
-                            <span className="text-xs font-semibold text-gray-500 uppercase">Subject</span>
-                            <p className="font-medium text-gray-900 mt-1">{q.subject}</p>
+                            <span className="text-xs font-semibold uppercase text-slate-500">Subject</span>
+                            <p className="mt-1 font-medium text-slate-900">{q.subject}</p>
                           </div>
                           <div>
-                            <span className="text-xs font-semibold text-gray-500 uppercase">Question ID</span>
-                            <p className="font-mono text-gray-900 mt-1 text-xs">{q.questionId || (q.id || q._id || '').toString().slice(-8)}</p>
+                            <span className="text-xs font-semibold uppercase text-slate-500">Question ID</span>
+                            <p className="mt-1 font-mono text-xs text-slate-900">{q.questionId || (q.id || q._id || '').toString().slice(-8)}</p>
                           </div>
                         </div>
 
                         {/* Context Paragraph */}
                         {q.questionParagraph && (
-                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <span className="text-xs font-semibold text-blue-700 uppercase">Context Paragraph</span>
-                            <div className="mt-2 text-sm text-gray-700">{renderWithImages(q.questionParagraph)}</div>
+                          <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+                            <span className="text-xs font-semibold uppercase text-indigo-700">Context Paragraph</span>
+                            <div className="mt-2 text-sm text-slate-700">{renderWithImages(q.questionParagraph)}</div>
                           </div>
                         )}
 
                         {/* Question Content */}
                         <div className="space-y-2">
-                          <span className="text-sm font-semibold text-gray-700">Question</span>
+                          <span className="text-sm font-semibold text-slate-700">Question</span>
                           {isEditing
-                            ? <textarea className="w-full p-3 border rounded font-mono" rows={6} value={q.content} onChange={e => handleQuestionFieldChange(q.id || q._id, 'content', e.target.value)} />
-                            : <div className="p-4 bg-white border border-gray-200 rounded-lg text-gray-900">{renderWithImages(q.content)}</div>
+                            ? <textarea aria-label="Question content" className="w-full rounded-lg border border-slate-300 p-3 font-mono outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={6} value={q.content} onChange={e => handleQuestionFieldChange(q.id || q._id, 'content', e.target.value)} />
+                            : <div className="rounded-lg border border-slate-200 bg-white p-4 text-slate-900">{renderWithImages(q.content)}</div>
                           }
                         </div>
 
@@ -437,27 +457,27 @@ export default function AdminTestSheets() {
                           if (optKeys.length > 0) {
                             return (
                               <div className="space-y-2">
-                                <span className="text-sm font-semibold text-gray-700">Answer Options</span>
+                                <span className="text-sm font-semibold text-slate-700">Answer Options</span>
                                 {optKeys.map(key => {
                                   const optText = options[key] || options[key.toLowerCase()] || ''
                                   const isCorrect = q.correctAnswer === key
                                   return (
-                                    <div key={key} className={`p-3 border-2 rounded-lg ${isCorrect ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white'}`}>
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <span className={`font-bold text-sm ${isCorrect ? 'text-green-700' : 'text-gray-600'}`}>{key}.</span>
-                                        {isCorrect && <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded">Correct Answer</span>}
+                                    <div key={key} className={`rounded-lg border-2 p-3 ${isCorrect ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+                                      <div className="mb-1 flex items-center gap-2">
+                                        <span className={`text-sm font-bold ${isCorrect ? 'text-emerald-700' : 'text-slate-600'}`}>{key}.</span>
+                                        {isCorrect && <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Correct Answer</span>}
                                       </div>
                                       {isEditing
-                                        ? <textarea className="w-full p-2 border rounded text-sm" rows={2} value={optText} onChange={e => handleOptionChange(q.id || q._id, key, e.target.value)} />
-                                        : <div className="text-sm text-gray-700 [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain">{renderWithImages(optText)}</div>
+                                        ? <textarea aria-label={`Option ${key}`} className="w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={2} value={optText} onChange={e => handleOptionChange(q.id || q._id, key, e.target.value)} />
+                                        : <div className="text-sm text-slate-700 [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain">{renderWithImages(optText)}</div>
                                       }
                                     </div>
                                   )
                                 })}
                                 {isEditing && (
                                   <div className="mt-2">
-                                    <span className="text-sm font-semibold text-gray-700">Correct Answer</span>
-                                    <select value={q.correctAnswer || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'correctAnswer', e.target.value)} className="w-full mt-1 p-2 border border-gray-300 rounded-lg">
+                                    <label htmlFor="correct-answer-select" className="text-sm font-semibold text-slate-700">Correct Answer</label>
+                                    <select id="correct-answer-select" value={q.correctAnswer || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'correctAnswer', e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-2 outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500">
                                       <option value="A">A</option>
                                       <option value="B">B</option>
                                       <option value="C">C</option>
@@ -469,11 +489,11 @@ export default function AdminTestSheets() {
                             )
                           }
                           return (
-                            <div className="p-4 border-2 border-green-500 bg-green-50 rounded-lg">
-                              <span className="text-xs font-semibold text-green-700 uppercase">Correct Answer (Fill-in-the-Blank)</span>
+                            <div className="rounded-lg border-2 border-emerald-500 bg-emerald-50 p-4">
+                              <span className="text-xs font-semibold uppercase text-emerald-700">Correct Answer (Fill-in-the-Blank)</span>
                               {isEditing
-                                ? <input type="text" value={q.correctAnswer || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'correctAnswer', e.target.value)} className="w-full mt-2 p-2 border border-gray-300 rounded-lg" placeholder="Enter correct answer..." />
-                                : <p className="text-lg font-bold text-green-900 mt-1">{q.correctAnswer}</p>
+                                ? <input type="text" aria-label="Correct answer" value={q.correctAnswer || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'correctAnswer', e.target.value)} className="mt-2 w-full rounded-lg border border-slate-300 p-2 outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" placeholder="Enter correct answer..." />
+                                : <p className="mt-1 text-lg font-bold text-emerald-900">{q.correctAnswer}</p>
                               }
                             </div>
                           )
@@ -481,24 +501,24 @@ export default function AdminTestSheets() {
 
                         {/* Explanations */}
                         <div className="space-y-3">
-                          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <span className="text-xs font-semibold text-yellow-700 uppercase">Short Explanation</span>
+                          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                            <span className="text-xs font-semibold uppercase text-amber-700">Short Explanation</span>
                             {isEditing
-                              ? <textarea className="w-full mt-2 p-2 border rounded text-sm" rows={3} value={q.shortExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'shortExplanation', e.target.value)} placeholder="Add short explanation..." />
-                              : <div className="mt-2 text-sm text-gray-700 min-h-[24px]">{q.shortExplanation ? renderWithImages(q.shortExplanation) : <span className="text-gray-400 italic">No short explanation added</span>}</div>
+                              ? <textarea aria-label="Short explanation" className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={3} value={q.shortExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'shortExplanation', e.target.value)} placeholder="Add short explanation..." />
+                              : <div className="mt-2 min-h-[24px] text-sm text-slate-700">{q.shortExplanation ? renderWithImages(q.shortExplanation) : <span className="italic text-slate-400">No short explanation added</span>}</div>
                             }
                           </div>
-                          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                            <span className="text-xs font-semibold text-purple-700 uppercase">Long Explanation</span>
+                          <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+                            <span className="text-xs font-semibold uppercase text-indigo-700">Long Explanation</span>
                             {isEditing
-                              ? <textarea className="w-full mt-2 p-2 border rounded text-sm" rows={5} value={q.longExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'longExplanation', e.target.value)} placeholder="Add long explanation..." />
-                              : <div className="mt-2 text-sm text-gray-700 min-h-[24px]">{q.longExplanation ? renderWithImages(q.longExplanation) : <span className="text-gray-400 italic">No long explanation added</span>}</div>
+                              ? <textarea aria-label="Long explanation" className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={5} value={q.longExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'longExplanation', e.target.value)} placeholder="Add long explanation..." />
+                              : <div className="mt-2 min-h-[24px] text-sm text-slate-700">{q.longExplanation ? renderWithImages(q.longExplanation) : <span className="italic text-slate-400">No long explanation added</span>}</div>
                             }
                           </div>
                           {q.explanation && !q.shortExplanation && !q.longExplanation && !isEditing && (
-                            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                              <span className="text-xs font-semibold text-gray-700 uppercase">Explanation</span>
-                              <div className="mt-2 text-sm text-gray-700">{renderWithImages(q.explanation)}</div>
+                            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                              <span className="text-xs font-semibold uppercase text-slate-700">Explanation</span>
+                              <div className="mt-2 text-sm text-slate-700">{renderWithImages(q.explanation)}</div>
                             </div>
                           )}
                         </div>
@@ -507,9 +527,9 @@ export default function AdminTestSheets() {
                   })()
                 )}
               </div>
-              <div className="p-4 border-t bg-gray-50 flex justify-between">
-                <button disabled={currentQuestionIndex === 0} onClick={() => setCurrentQuestionIndex(prev => prev - 1)} className="px-6 py-2 border rounded-lg disabled:opacity-50 flex items-center gap-2"><FiArrowLeft /> Previous</button>
-                <button disabled={currentQuestionIndex === testQuestions.length - 1} onClick={() => setCurrentQuestionIndex(prev => prev + 1)} className="px-6 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 flex items-center gap-2">Next <FiArrowLeft className="rotate-180" /></button>
+              <div className="flex justify-between border-t border-slate-100 bg-slate-50 p-4">
+                <button disabled={currentQuestionIndex === 0} onClick={() => setCurrentQuestionIndex(prev => prev - 1)} className="flex items-center gap-2 rounded-lg border border-slate-300 px-6 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50"><FiArrowLeft /> Previous</button>
+                <button disabled={currentQuestionIndex === testQuestions.length - 1} onClick={() => setCurrentQuestionIndex(prev => prev + 1)} className="flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50">Next <FiArrowLeft className="rotate-180" /></button>
               </div>
             </div>
           </div>
@@ -517,40 +537,59 @@ export default function AdminTestSheets() {
 
         {/* Assign to Student Modal */}
         {showAssignToStudentModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full h-[80vh] flex flex-col overflow-hidden">
-              <div className="p-4 border-b flex items-center justify-between bg-gray-50">
-                <h3 className="font-bold">Assign "{assignToStudentTest.title}" to Students</h3>
-                <button onClick={() => setShowAssignToStudentModal(false)}><FiX size={24} /></button>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+            <div className="flex h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 p-4">
+                <h3 className="font-bold text-slate-900">Assign "{assignToStudentTest.title}" to Students</h3>
+                <button onClick={() => setShowAssignToStudentModal(false)} aria-label="Close" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"><FiX size={20} /></button>
               </div>
-              <div className="p-4 bg-white border-b flex gap-3">
+              <div className="flex gap-3 border-b border-slate-100 bg-white p-4">
                 <div className="relative flex-1">
-                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input type="text" value={studentSearch} onChange={e => setStudentSearch(e.target.value)} placeholder="Search students..." className="w-full pl-10 pr-4 py-2 border rounded-lg" />
+                  <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <label htmlFor="assign-student-search" className="sr-only">Search students</label>
+                  <input id="assign-student-search" type="text" value={studentSearch} onChange={e => setStudentSearch(e.target.value)} placeholder="Search students..." className="w-full rounded-lg border border-slate-300 py-2 pl-10 pr-3 outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" />
                 </div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={assignShowExplanation} onChange={e => setAssignShowExplanation(e.target.checked)} />
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input type="checkbox" checked={assignShowExplanation} onChange={e => setAssignShowExplanation(e.target.checked)} className="accent-indigo-600" />
                   Show Explanations
                 </label>
               </div>
               <div className="flex-1 overflow-y-auto p-4">
-                {loadingAllStudents ? <div>Loading students...</div> : (
-                  <div className="space-y-2">
-                    {allStudents.filter(s => s.name.toLowerCase().includes(studentSearch.toLowerCase())).map(student => {
-                      const isAssigned = (studentAssignedTests[student._id] || []).map(id => id.toString()).includes(assignToStudentTest._id)
+                {loadingAllStudents ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500" />
+                    <p className="mt-3 text-sm text-slate-500">Loading students...</p>
+                  </div>
+                ) : (
+                  (() => {
+                    const visibleStudents = allStudents.filter(s => s.name.toLowerCase().includes(studentSearch.toLowerCase()))
+                    if (visibleStudents.length === 0) {
                       return (
-                        <div key={student._id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                          <div>
-                            <p className="font-medium">{student.name}</p>
-                            <p className="text-xs text-gray-500">{student.email}</p>
-                          </div>
-                          <button onClick={() => handleToggleTestForStudent(student._id, assignToStudentTest._id)} className={`px-4 py-1.5 rounded-lg text-sm font-medium ${isAssigned ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-600 text-white'}`}>
-                            {isAssigned ? 'Unassign' : 'Assign'}
-                          </button>
+                        <div className="py-12 text-center">
+                          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400"><FiUserPlus size={22} /></div>
+                          <p className="text-sm font-medium text-slate-500">No students found.</p>
                         </div>
                       )
-                    })}
-                  </div>
+                    }
+                    return (
+                      <div className="space-y-2">
+                        {visibleStudents.map(student => {
+                          const isAssigned = (studentAssignedTests[student._id] || []).map(id => id.toString()).includes(assignToStudentTest._id)
+                          return (
+                            <div key={student._id} className="flex items-center justify-between rounded-lg border border-slate-200 p-3 transition-colors hover:bg-indigo-50/40">
+                              <div>
+                                <p className="font-medium text-slate-900">{student.name}</p>
+                                <p className="text-xs text-slate-400">{student.email}</p>
+                              </div>
+                              <button onClick={() => handleToggleTestForStudent(student._id, assignToStudentTest._id)} className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${isAssigned ? 'border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}>
+                                {isAssigned ? 'Unassign' : 'Assign'}
+                              </button>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  })()
                 )}
               </div>
             </div>

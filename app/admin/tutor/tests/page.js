@@ -3,8 +3,10 @@ import { renderContent as renderWithImages } from '../../../components/admin/Lat
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck } from 'react-icons/fi'
+import { useConfirm } from '../../../components/ui/UIProvider'
 
 export default function TutorTestSheets() {
+  const confirm = useConfirm()
   const router = useRouter()
   const [tests, setTests] = useState([])
   const [loading, setLoading] = useState(true)
@@ -445,7 +447,7 @@ export default function TutorTestSheets() {
   }
 
   const handleDeleteTest = async (testId) => {
-    if (!confirm('Are you sure you want to delete this test?')) return
+    if (!(await confirm({ message: 'Are you sure you want to delete this test?', tone: 'danger', confirmText: 'Delete' }))) return
     
     try {
       const token = localStorage.getItem('token')
@@ -638,7 +640,7 @@ export default function TutorTestSheets() {
     if (test.subject !== activeTab) return false
     
     // Filter by search term
-    if (searchTerm && !test.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+    if (searchTerm && !(test.title || '').toLowerCase().includes(searchTerm.toLowerCase())) {
       return false
     }
     
@@ -787,7 +789,7 @@ export default function TutorTestSheets() {
                         {test.questions?.length || 0} questions
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {new Date(test.createdAt).toLocaleDateString()}
+                        {test.createdAt ? new Date(test.createdAt).toLocaleDateString() : '—'}
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <div className="flex items-center gap-2">

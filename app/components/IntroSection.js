@@ -2,36 +2,41 @@
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 
+const stats = [
+  { number: '4,000+', label: 'Practice Questions', color: 'from-indigo-600 to-indigo-700' },
+  { number: '10+', label: 'Years Experience', color: 'from-blue-600 to-blue-700' },
+  { number: '99%+', label: 'Success Rate', color: 'from-emerald-500 to-teal-500' },
+]
+
 export default function IntroSection() {
   return (
-    <section className="w-full bg-gradient-to-br from-blue-50 to-white py-16 px-4 sm:px-6 lg:px-16">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12">
+    <section className="relative w-full overflow-hidden bg-white px-4 py-20 sm:px-6 lg:px-16">
+      <div className="pointer-events-none absolute -right-24 top-1/4 h-72 w-72 rounded-full bg-indigo-200/40 blur-3xl" />
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-14 lg:flex-row">
+        {/* Image */}
         <motion.div
           initial={{ opacity: 0, x: -40 }}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7, ease: 'easeOut' }}
           viewport={{ once: true }}
-          className="w-full lg:w-1/2 flex justify-center"
+          className="flex w-full justify-center lg:w-1/2"
         >
-          <div className="relative w-full max-w-md rounded-2xl overflow-hidden shadow-2xl">
-            <Image
-              src="/hero-2.png"
-              alt="SAT Preparation - DSATGURU"
-              width={600}
-              height={480}
-              className="w-full h-auto object-cover"
-              priority
-            />
-            <div className="absolute bottom-5 left-5 bg-white rounded-xl shadow-lg px-4 py-3 flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg">10+</div>
-              <div>
-                <div className="text-xs font-bold text-gray-800">Years of Experience</div>
-                <div className="text-xs text-gray-500">Trusted SAT Prep</div>
-              </div>
+          <div className="relative w-full max-w-md">
+            <div className="absolute -inset-3 rounded-[2rem] bg-gradient-to-tr from-indigo-400/25 via-blue-400/20 to-sky-400/25 blur-xl" />
+            <div className="relative overflow-hidden rounded-[1.75rem] border border-white/60 bg-white shadow-2xl">
+              <Image
+                src="/70f38349-b4a8-4414-b6d0-d1f119675428.png"
+                alt="10+ Years Experience - DSATGURU"
+                width={1402}
+                height={1122}
+                className="h-auto w-full object-contain"
+                priority
+              />
             </div>
           </div>
         </motion.div>
 
+        {/* Text */}
         <motion.div
           initial={{ opacity: 0, x: 40 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -39,26 +44,37 @@ export default function IntroSection() {
           viewport={{ once: true }}
           className="w-full lg:w-1/2"
         >
-          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight mb-5">
+          <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-indigo-600">
+            Smarter SAT Prep
+          </span>
+          <h2 className="mt-5 text-3xl font-extrabold leading-tight text-slate-900 md:text-4xl">
             Get Closer to Your Dream College with{' '}
-            <span className="text-blue-600">Smarter SAT Preparation</span>
-          </h1>
-          <p className="text-base text-gray-600 leading-relaxed mb-5">
-            An innovative SAT preparation platform, empowering students with personalized SAT exam prep, advanced study tools, and proven strategies. We offer structured courses, live and online classes, adaptive practice tests, and over 4,000 realistic questions to strengthen your weak areas and maximize your score.
+            <span className="dg-gradient-text">Smarter SAT Preparation</span>
+          </h2>
+          <p className="mt-5 text-base leading-relaxed text-slate-600">
+            An innovative SAT preparation platform, empowering students with personalized SAT exam prep, advanced study
+            tools, and proven strategies. We offer structured courses, live and online classes, adaptive practice tests,
+            and over 4,000 realistic questions to strengthen your weak areas and maximize your score.
           </p>
-          <p className="text-base text-gray-600 leading-relaxed mb-8">
-            With over 10 years of experience, we focus on what truly matters — helping students make the most of their limited time and achieve their highest college-bound potential.
+          <p className="mt-4 text-base leading-relaxed text-slate-600">
+            With over 10 years of experience, we focus on what truly matters — helping students make the most of their
+            limited time and achieve their highest college-bound potential.
           </p>
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { number: '4,000+', label: 'Practice Questions' },
-              { number: '10+', label: 'Years Experience' },
-              { number: '99%+', label: 'Success Rate' },
-            ].map((stat, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-sm border border-blue-100 p-4 text-center">
-                <div className="text-2xl font-extrabold text-blue-600">{stat.number}</div>
-                <div className="text-xs text-gray-500 mt-1">{stat.label}</div>
-              </div>
+          <div className="mt-8 grid grid-cols-3 gap-4">
+            {stats.map((stat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.12 }}
+                viewport={{ once: true }}
+                className="group rounded-2xl border border-slate-100 bg-white p-4 text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+              >
+                <div className={`bg-gradient-to-r ${stat.color} bg-clip-text text-2xl font-extrabold text-transparent`}>
+                  {stat.number}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">{stat.label}</div>
+              </motion.div>
             ))}
           </div>
         </motion.div>

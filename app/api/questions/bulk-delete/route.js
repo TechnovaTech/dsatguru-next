@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import Question from '../../../../lib/models/Question'
-import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
+import { requireRole } from '../../../../lib/auth'
+import { ADMIN_ROLES } from '../../../../lib/constants/roles'
 import { unlink } from 'fs/promises'
 import path from 'path'
 
@@ -27,17 +28,10 @@ async function deleteImagesFromContent(content) {
 
 export async function POST(request) {
   try {
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+
     await connectDB()
-    
-    const token = getTokenFromRequest(request)
-    if (!token) {
-      return NextResponse.json({ error: 'No token provided' }, { status: 401 })
-    }
-    
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
 
     const { questionIds } = await request.json()
     

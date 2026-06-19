@@ -1,10 +1,12 @@
 'use client'
 import { renderContent as renderWithImages } from '../../../../components/admin/LatexRenderer'
+import { useToast } from '../../../../components/ui/UIProvider'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { FiClock, FiCheckCircle, FiArrowRight, FiAlertTriangle, FiMoreVertical, FiHelpCircle, FiBookOpen, FiSlash, FiGrid, FiLayers, FiEdit2 } from 'react-icons/fi'
 
 export default function TakeTestPage() {
+  const toast = useToast()
   const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams()
@@ -326,7 +328,7 @@ export default function TakeTestPage() {
       }
     } catch (error) {
       console.error('Failed to enter fullscreen:', error)
-      alert('Please allow fullscreen mode to start the test.')
+      toast.error('Please allow fullscreen mode to start the test.')
     }
   }
 
@@ -387,7 +389,7 @@ export default function TakeTestPage() {
 
         // Block deleted/inactive tests — they must not load (prevents full-bank fallback)
         if (testData.isActive === false) {
-          alert('This test is no longer available. It may have been removed by your tutor.')
+          toast.error('This test is no longer available. It may have been removed by your tutor.')
           setLoading(false)
           setCheckingHistory(false)
           router.push(returnUrl || '/dashboard/tests')
@@ -398,7 +400,7 @@ export default function TakeTestPage() {
         if (historyRes.ok) {
           const historyData = await historyRes.json()
           const sessions = historyData.sessions || historyData || []
-          const testSessions = sessions.filter(s => String(s.testId) === String(testId))
+          const testSessions = sessions.filter(s => String(s.testId?._id || s.testId) === String(testId))
           // Only block if completed AND no InProgress session exists (reattempt resets to InProgress)
           const hasInProgress = testSessions.some(s => s.status === 'InProgress') || !!sessionId
           const alreadyCompleted = !hasInProgress && testSessions.some(s => 
@@ -491,7 +493,7 @@ export default function TakeTestPage() {
                  if ((!subtopics || subtopics.length === 0) && (testData.isTutorTest === true)) {
                      console.error('Tutor test has no assigned questions — refusing to load full bank.')
                      finalQuestions = []
-                     alert('This test is no longer available (its questions could not be loaded). Please contact your tutor.')
+                     toast.error('This test is no longer available (its questions could not be loaded). Please contact your tutor.')
                  } else if (!subtopics || subtopics.length === 0) {
                      console.log("Tutor mode: No subtopics defined, using all questions from test")
                  } else {
@@ -528,7 +530,7 @@ export default function TakeTestPage() {
                      
                      if (finalQuestions.length === 0) {
                          console.warn(`No questions found matching topics: ${subtopics.join(', ')}`)
-                         alert(`No questions found matching the topic: ${subtopics[0]}. Please contact admin to add questions with this tag.`)
+                         toast.error(`No questions found matching the topic: ${subtopics[0]}. Please contact admin to add questions with this tag.`)
                      }
                  }
             }
@@ -647,7 +649,7 @@ export default function TakeTestPage() {
     
     if (filteredQuestions.length === 0) {
       console.error(`No questions found for subject: ${subject}`)
-      alert(`No questions available for ${subject}. Please add questions to the question bank.`)
+      toast.error(`No questions available for ${subject}. Please add questions to the question bank.`)
       return
     }
     
@@ -659,7 +661,7 @@ export default function TakeTestPage() {
       selectedQuestions = shuffleArray(filteredQuestions)
       
       if (selectedQuestions.length === 0) {
-        alert(`No questions available for ${subject}.`)
+        toast.error(`No questions available for ${subject}.`)
         router.push(returnUrl)
         return
       }
@@ -696,7 +698,7 @@ export default function TakeTestPage() {
       // Check if we have enough questions
       if (selectedQuestions.length < questionCount) {
         console.warn(`Not enough questions: need ${questionCount}, have ${selectedQuestions.length}`)
-        alert(`Not enough questions available for ${subject}. Need ${questionCount} questions but only ${selectedQuestions.length} available with current filters.`)
+        toast.error(`Not enough questions available for ${subject}. Need ${questionCount} questions but only ${selectedQuestions.length} available with current filters.`)
         router.push(returnUrl)
         return
       }
@@ -1114,6 +1116,11 @@ export default function TakeTestPage() {
                   // Route: /dashboard/tests/[id]/results?session_id=SESSION_ID
                   const finalSessionId = sessionId || responseData.session._id
                   setCompletedSessionId(finalSessionId)
+                  // Prefer the server-computed score (authoritative) over the local estimate
+                  const serverScore = responseData.session?.totalScore
+                  if (serverScore !== undefined && serverScore !== null) {
+                    setFinalScore(prev => ({ ...(prev || {}), total: serverScore }))
+                  }
                   // router.push(`/dashboard/tests/${testId}/results?session_id=${finalSessionId}&returnUrl=${encodeURIComponent(returnUrl)}`)
              }
          } catch (e) {
@@ -1128,14 +1135,14 @@ export default function TakeTestPage() {
     if (test.sections?.rw) {
       const rw1 = moduleScores.rw_module1 || 0
       const rw2 = moduleScores.rw_module2 || 0
-      rwScore = Math.round(((rw1 + rw2) / 54) * 800)
+      rwScore = Math.max(200, Math.min(800, Math.round(((rw1 + rw2) / 54) * 800)))
     }
     
     // Calculate Math score
     if (test.sections?.math) {
       const math1 = moduleScores.math_module1 || 0
       const math2 = moduleScores.math_module2 || 0
-      mathScore = Math.round(((math1 + math2) / 44) * 800)
+      mathScore = Math.max(200, Math.min(800, Math.round(((math1 + math2) / 44) * 800)))
     }
     
     const total = rwScore + mathScore
@@ -1149,7 +1156,7 @@ export default function TakeTestPage() {
       
       if (!token) {
         console.error('No authentication token found')
-        alert('Session not saved: Please log in again')
+        toast.error('Session not saved: Please log in again')
         return
       }
       
@@ -1221,14 +1228,27 @@ export default function TakeTestPage() {
       if (response.ok) {
         console.log('✅ Test session saved successfully:', responseData)
         setCompletedSessionId(responseData.session._id)
+        // Prefer the server-computed scores (authoritative) over the local estimate.
+        // Set ALL of finalScore (total + per-section) so the transient completion
+        // screen matches the canonical score shown on the analysis page.
+        const serverSession = responseData.session || {}
+        const serverTotal = serverSession.totalScore
+        if (serverTotal !== undefined && serverTotal !== null) {
+          setFinalScore(prev => ({
+            ...(prev || {}),
+            total: serverTotal,
+            ...(serverSession.rwScore !== undefined && serverSession.rwScore !== null ? { rwScore: serverSession.rwScore } : {}),
+            ...(serverSession.mathScore !== undefined && serverSession.mathScore !== null ? { mathScore: serverSession.mathScore } : {})
+          }))
+        }
         // router.push(`/dashboard/tests/${testId}/results?returnUrl=${encodeURIComponent(returnUrl)}`)
       } else {
         console.error('❌ Failed to save test session:', responseData)
-        alert(`Failed to save test: ${responseData.error || 'Unknown error'}`)
+        toast.error(`Failed to save test: ${responseData.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('❌ Error saving test session:', error)
-      alert('Failed to save test session. Please check console for details.')
+      toast.error('Failed to save test session. Please check console for details.')
     }
   }
 
@@ -1573,7 +1593,7 @@ export default function TakeTestPage() {
   return (
     <div ref={testContainerRef} className="h-screen flex flex-col bg-white">
       {/* Top Header */}
-      <div className="bg-white border-b px-6 py-3 flex items-center justify-between z-50 relative">
+      <div className="bg-white border-b px-6 py-3 flex flex-wrap gap-2 items-center justify-between z-50 relative">
         <div className="text-base font-bold text-gray-900">
           Section 1, Module {currentModule}: {currentSection === 'rw' ? 'Reading and Writing' : 'Math'}
         </div>
@@ -1717,8 +1737,8 @@ export default function TakeTestPage() {
       </div>
 
       {/* Main Split Content */}
-      <div className={`flex-1 flex overflow-hidden ${assistiveTechMode ? 'assistive-mode' : ''}`}>
-        
+      <div className={`flex-1 flex flex-col md:flex-row md:overflow-hidden ${assistiveTechMode ? 'assistive-mode' : ''}`}>
+
         {/* Line Reader Overlay */}
         {lineReaderActive && (
           <div className="absolute inset-0 z-40 pointer-events-none">
@@ -1741,14 +1761,14 @@ export default function TakeTestPage() {
         )}
 
         {/* Left Side - Passage + Question + (Tutor: Options) */}
-        <div className="w-1/2 h-full overflow-y-auto p-8 bg-gray-50 relative border-r border-gray-300">
+        <div className="w-full md:w-1/2 h-auto md:h-full overflow-y-auto p-4 md:p-8 bg-gray-50 relative border-b md:border-r md:border-b-0 border-gray-300">
           {/* Watermark */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-gray-300 text-6xl font-bold transform -rotate-45 opacity-30 select-none">
               www.dsatguru.com
             </div>
           </div>
-          
+
           {/* Content */}
           <div className="relative z-10">
             {/* Passage/Context */}
@@ -1772,7 +1792,7 @@ export default function TakeTestPage() {
         </div>
 
         {/* Right Side */}
-        <div className="w-1/2 h-full overflow-y-auto p-8 bg-gray-50 relative">
+        <div className="w-full md:w-1/2 h-auto md:h-full overflow-y-auto p-4 md:p-8 bg-gray-50 relative">
           {/* Watermark */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-gray-300 text-6xl font-bold transform -rotate-45 opacity-30 select-none">
@@ -2235,7 +2255,7 @@ export default function TakeTestPage() {
               <button
                 onClick={async () => {
                   if (!flagNote.trim()) {
-                    alert('Please enter a note')
+                    toast.info('Please enter a note')
                     return
                   }
                   try {
@@ -2257,10 +2277,10 @@ export default function TakeTestPage() {
                     })
                     setShowFlagModal(false)
                     setFlagNote('')
-                    alert('Question flagged successfully!')
+                    toast.success('Question flagged successfully!')
                   } catch (error) {
                     console.error('Error flagging question:', error)
-                    alert('Failed to flag question')
+                    toast.error('Failed to flag question')
                   }
                 }}
                 className="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700"

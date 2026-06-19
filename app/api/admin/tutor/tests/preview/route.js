@@ -1,17 +1,15 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../../lib/db'
 import Question from '../../../../../../lib/models/Question'
-import { getTokenFromRequest, verifyToken } from '../../../../../../lib/auth'
+import { requireRole } from '../../../../../../lib/auth'
+import { STAFF_ROLES } from '../../../../../../lib/constants/roles'
 
 export async function POST(request) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    
-    if (!decoded || (decoded.role !== 'Admin' && decoded.role !== 'Tutor')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     const { subject, totalQuestions, topicConfig, difficultyConfig } = await request.json()
 

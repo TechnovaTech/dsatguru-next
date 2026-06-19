@@ -1,207 +1,246 @@
 'use client'
 import Link from 'next/link'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../components/AuthContext'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { FiGrid, FiHelpCircle, FiCalendar, FiUsers, FiMessageSquare, FiBarChart, FiDollarSign, FiSettings, FiLogOut, FiBookOpen, FiTarget, FiClipboard, FiTrendingUp, FiUpload, FiDatabase, FiFileText, FiCheckSquare, FiChevronDown, FiChevronRight, FiActivity, FiEdit, FiList, FiAward, FiMonitor, FiAlertCircle, FiZap } from 'react-icons/fi'
+import {
+  FiGrid, FiUsers, FiBookOpen, FiDatabase, FiClipboard, FiCheckSquare, FiList, FiSettings,
+  FiLogOut, FiChevronDown, FiMenu, FiX, FiSun, FiMoon,
+} from 'react-icons/fi'
+
+const ADMIN_SECTIONS = [
+  { id: 'dashboard', label: 'Dashboard', icon: FiGrid, path: '/admin/dashboard' },
+  {
+    id: 'students', label: 'Students', icon: FiUsers, items: [
+      { label: 'Master Dashboard', path: '/admin/master-dashboard' },
+      { label: 'Students Observation', path: '/admin/students-observation' },
+      { label: 'Student Analysis', path: '/admin/student-analysis' },
+      { label: 'User Management', path: '/admin/users' },
+      { label: 'User Result Management', path: '/admin/user-results' },
+    ],
+  },
+  {
+    id: 'courses', label: 'Courses', icon: FiBookOpen, items: [
+      { label: 'Manage Courses', path: '/admin/manage-courses' },
+      { label: 'Course & Question Bank', path: '/admin/courses' },
+      { label: 'Study Plan Management', path: '/admin/study-plan' },
+    ],
+  },
+  {
+    id: 'questions', label: 'Questions', icon: FiDatabase, items: [
+      { label: 'SAT Question Upload', path: '/admin/sat-question-upload' },
+      { label: 'Question Bank Management', path: '/admin/question-bank' },
+    ],
+  },
+  {
+    id: 'tests', label: 'Tests', icon: FiClipboard, items: [
+      { label: 'Test Management', path: '/admin/test-management' },
+      { label: 'Adaptive Results', path: '/admin/adaptive-tests/results' },
+      { label: 'Demo Test', path: '/admin/demo-test' },
+      { label: 'Test Session Monitoring', path: '/admin/test-sessions' },
+    ],
+  },
+  {
+    id: 'tutor', label: 'Tutor', icon: FiCheckSquare, items: [
+      { label: 'Tutor Question Bank', path: '/admin/tutor/question-bank' },
+      { label: 'Tutor Test Creation', path: '/admin/tutor/create-test' },
+      { label: 'Tutor Test Sheets', path: '/admin/tutor/tests' },
+      { label: 'Tutor & Students', path: '/admin/tutor/users' },
+      { label: 'Tutor Test Results', path: '/admin/tutor/results' },
+      { label: 'Create Module Test', path: '/admin/tutor/module-tests/create' },
+      { label: 'Module Test Sheets', path: '/admin/tutor/module-tests' },
+      { label: 'Module Test Results', path: '/admin/tutor/module-tests/results' },
+    ],
+  },
+  {
+    id: 'admin-tests', label: 'Admin Tests', icon: FiList, align: 'right', items: [
+      { label: 'Question Bank', path: '/admin/admin-tests/question-bank' },
+      { label: 'Create Test', path: '/admin/admin-tests/create-test' },
+      { label: 'Test Sheets', path: '/admin/admin-tests/test-sheets' },
+      { label: 'Result Analysis', path: '/admin/admin-tests/results' },
+    ],
+  },
+  {
+    id: 'more', label: 'More', icon: FiSettings, align: 'right', items: [
+      { label: 'Communication', path: '/admin/communication' },
+      { label: 'Messages', path: '/admin/messages' },
+      { label: 'Comparison Table', path: '/admin/comparison' },
+      { label: 'Payments', path: '/admin/payments' },
+      { label: 'Settings', path: '/admin/settings' },
+    ],
+  },
+]
+
+const TUTOR_SECTIONS = [
+  {
+    id: 'tutor', label: 'Tutor Tests', icon: FiCheckSquare, items: [
+      { label: 'Tutor Question Bank', path: '/admin/tutor/question-bank' },
+      { label: 'Tutor Test Creation', path: '/admin/tutor/create-test' },
+      { label: 'Tutor Test Sheets', path: '/admin/tutor/tests' },
+      { label: 'Tutor & Students', path: '/admin/tutor/users' },
+      { label: 'Tutor Test Results', path: '/admin/tutor/results' },
+    ],
+  },
+  {
+    id: 'module', label: 'Module Tests', icon: FiList, items: [
+      { label: 'Create Module Test', path: '/admin/tutor/module-tests/create' },
+      { label: 'Module Test Sheets', path: '/admin/tutor/module-tests' },
+      { label: 'Module Test Results', path: '/admin/tutor/module-tests/results' },
+    ],
+  },
+]
 
 export default function AdminLayout({ children }) {
   const { user, logout, loading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
-  const [openSubmenu, setOpenSubmenu] = useState({})
+  const [openMenu, setOpenMenu] = useState(null)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [dark, setDark] = useState(false)
 
   useEffect(() => {
-    if (!loading) {
-      if (!user || !['Admin', 'TutorAdmin'].includes(user.role)) {
-        router.push('/login')
-      } else if (user.role === 'TutorAdmin') {
-        setOpenSubmenu(prev => ({ ...prev, 'tutor-tests': true, 'tutor-module-tests': true }))
-      }
+    if (!loading && (!user || !['Admin', 'TutorAdmin'].includes(user.role))) {
+      router.push('/login')
     }
-  }, [user, loading, router, pathname])
+  }, [user, loading, router])
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <FiGrid />, path: '/admin/dashboard' },
-    { id: 'master-dashboard', label: 'Master Dashboard', icon: <FiAward />, path: '/admin/master-dashboard' },
-    { id: 'students-observation', label: 'Students Observation', icon: <FiAlertCircle />, path: '/admin/students-observation' },
-    { id: 'manage-courses', label: 'Manage Courses', icon: <FiBookOpen />, path: '/admin/manage-courses' },
-    { id: 'courses', label: 'Course & Question Bank', icon: <FiBookOpen />, path: '/admin/courses' },
-    { id: 'sat-question-upload', label: 'SAT Question Upload', icon: <FiUpload />, path: '/admin/sat-question-upload' },
-    { id: 'question-bank', label: 'Question Bank Management', icon: <FiDatabase />, path: '/admin/question-bank' },
-    { id: 'study-plan', label: 'Study Plan Management', icon: <FiTarget />, path: '/admin/study-plan' },
-    {
-      id: 'adaptive-tests',
-      label: 'Adaptive Test Management',
-      icon: <FiClipboard />,
-      path: '#',
-      submenu: [
-        { id: 'adaptive-test-management', label: 'Test Management', path: '/admin/test-management', icon: <FiClipboard /> },
-        { id: 'adaptive-results', label: 'Student Results', path: '/admin/adaptive-tests/results', icon: <FiAward /> }
-      ]
-    },
-    {
-      id: 'tutor-tests',
-      label: 'Tutor Tests',
-      icon: <FiCheckSquare />,
-      path: '#',
-      submenu: [
-        { id: 'tutor-question-bank', label: 'Tutor Question Bank', path: '/admin/tutor/question-bank', icon: <FiDatabase /> },
-        { id: 'tutor-create-test', label: 'Tutor Test Creation', path: '/admin/tutor/create-test', icon: <FiEdit /> },
-        { id: 'tutor-test-sheets', label: 'Tutor Test Sheets', path: '/admin/tutor/tests', icon: <FiFileText /> },
-        { id: 'tutor-users', label: 'Tutor and Students', path: '/admin/tutor/users', icon: <FiUsers /> },
-        { id: 'tutor-results', label: 'Tutor Test Results', path: '/admin/tutor/results', icon: <FiAward /> }
-      ]
-    },
-    {
-      id: 'tutor-module-tests',
-      label: 'Tutor Module Tests',
-      icon: <FiMonitor />,
-      path: '#',
-      submenu: [
-        { id: 'module-create-test', label: 'Create Module Test', path: '/admin/tutor/module-tests/create', icon: <FiEdit /> },
-        { id: 'module-test-sheets', label: 'Module Test Sheets', path: '/admin/tutor/module-tests', icon: <FiFileText /> },
-        { id: 'module-test-results', label: 'Module Test Results', path: '/admin/tutor/module-tests/results', icon: <FiAward /> }
-      ]
-    },
-    { 
-      id: 'admin-tests', 
-      label: 'Admin Tests', 
-      icon: <FiList />, 
-      path: '#',
-      submenu: [
-        { id: 'admin-question-bank', label: 'Question Bank', path: '/admin/admin-tests/question-bank', icon: <FiDatabase /> },
-        { id: 'admin-create-test', label: 'Create Test', path: '/admin/admin-tests/create-test', icon: <FiEdit /> },
-        { id: 'admin-test-sheets', label: 'Test Sheets', path: '/admin/admin-tests/test-sheets', icon: <FiFileText /> },
-        { id: 'admin-results', label: 'Result Analysis', path: '/admin/admin-tests/results', icon: <FiAward /> }
-      ]
-    },
-    { id: 'demo-test', label: 'Demo Test', icon: <FiZap />, path: '/admin/demo-test' },
-    { id: 'test-sessions', label: 'Test Session Monitoring', icon: <FiBarChart />, path: '/admin/test-sessions' },
-    { id: 'user-results', label: 'User Result Management', icon: <FiUsers />, path: '/admin/user-results' },
-    { id: 'student-analysis', label: 'Student Analysis', icon: <FiActivity />, path: '/admin/student-analysis' },
-    { id: 'users', label: 'User Management', icon: <FiUsers />, path: '/admin/users' },
-    { id: 'communication', label: 'Communication', icon: <FiMessageSquare />, path: '/admin/communication' },
-    { id: 'messages', label: 'Messages', icon: <FiMessageSquare />, path: '/admin/messages' },
-    { id: 'comparison', label: 'Comparison Table', icon: <FiFileText />, path: '/admin/comparison' },
-    { id: 'payments', label: 'Payments', icon: <FiDollarSign />, path: '/admin/payments' },
-    { id: 'settings', label: 'Settings', icon: <FiSettings />, path: '/admin/settings' }
-  ]
+  useEffect(() => { setMobileOpen(false); setOpenMenu(null) }, [pathname])
 
-  const filteredMenuItems = menuItems.filter(item => {
-    if (user?.role === 'TutorAdmin') {
-      return item.id === 'tutor-tests' || item.id === 'tutor-module-tests'
-    }
-    return true
+  // Load saved theme (admin panel only)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('adminTheme') === 'dark') setDark(true)
+  }, [])
+
+  const toggleTheme = () => setDark((d) => {
+    const next = !d
+    if (typeof window !== 'undefined') localStorage.setItem('adminTheme', next ? 'dark' : 'light')
+    return next
   })
-
-  // Convert submenu to main menu items for TutorAdmin
-  const getMenuItems = () => {
-    if (user?.role === 'TutorAdmin') {
-      const tutorTestsItem = menuItems.find(item => item.id === 'tutor-tests')
-      const moduleTestsItem = menuItems.find(item => item.id === 'tutor-module-tests')
-      const items = []
-      if (tutorTestsItem?.submenu) {
-        items.push(...tutorTestsItem.submenu.map(sub => ({ id: sub.id, label: sub.label, icon: sub.icon || <FiCheckSquare />, path: sub.path })))
-      }
-      if (moduleTestsItem?.submenu) {
-        items.push({ id: 'tutor-module-tests-divider', label: '— Module Tests —', icon: <FiMonitor />, path: '#', isDivider: true })
-        items.push(...moduleTestsItem.submenu.map(sub => ({ id: sub.id, label: sub.label, icon: sub.icon || <FiMonitor />, path: sub.path })))
-      }
-      return items
-    }
-
-    // Admin sees normal menu with submenus
-    return filteredMenuItems
-  }
-
-  const displayMenuItems = getMenuItems()
-
-  const handleLogout = async () => {
-    await logout()
-    router.push('/login')
-  }
-
-  const toggleSubmenu = (id) => {
-    setOpenSubmenu(prev => ({ ...prev, [id]: !prev[id] }))
-  }
 
   if (loading) return null
   if (!user || !['Admin', 'TutorAdmin'].includes(user.role)) return null
 
+  const sections = user.role === 'TutorAdmin' ? TUTOR_SECTIONS : ADMIN_SECTIONS
+  const handleLogout = async () => { await logout(); router.push('/login') }
+
+  const isActive = (sec) => {
+    if (sec.path) return pathname === sec.path
+    return sec.items?.some((it) => pathname === it.path || pathname.startsWith(it.path + '/'))
+  }
+
+  const navBtn = 'flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors'
+
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      <div className="w-64 h-screen bg-white shadow-lg overflow-y-auto">
-        <div className="p-6 border-b">
-          <a href="https://dsatguru.com" className="block">
-            <h1 className="text-xl font-bold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer">
-              DSATGURU {user?.role === 'TutorAdmin' ? 'Tutor Admin' : user?.role}
-            </h1>
-          </a>
-          <p className="text-sm text-gray-600 mt-1">Welcome, {user?.name}</p>
-          <div className="mt-2">
-            <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${
-              user?.role === 'Admin' ? 'bg-purple-100 text-purple-700' :
-              user?.role === 'TutorAdmin' ? 'bg-blue-100 text-blue-700' :
-              'bg-gray-100 text-gray-700'
-            }`}>
-              {user?.role === 'TutorAdmin' ? 'Tutor Admin' : user?.role}
+    <div className={`min-h-screen bg-slate-50 ${dark ? 'admin-dark' : ''}`}>
+      {/* ===== Top navbar ===== */}
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 shadow-sm backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 lg:px-6">
+          {/* Brand */}
+          <Link href="/admin/dashboard" className="flex flex-shrink-0 items-center gap-2">
+            <span className="text-lg font-extrabold text-slate-900">
+              DSAT<span className="dg-gradient-text">GURU</span>
             </span>
-          </div>
-        </div>
-        <nav className="p-4">
-          {displayMenuItems.map((item) => (
-            <div key={item.id}>
-              {item.isDivider ? (
-                <div className="px-4 py-2 mt-2 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100">Module Tests</div>
-              ) : item.submenu && user?.role === 'Admin' ? (
-                <>
-                  <button 
-                    onClick={() => toggleSubmenu(item.id)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg mb-2 text-left transition-colors ${
-                      (item.id === 'tutor-tests' && pathname.startsWith('/admin/tutor') && !pathname.startsWith('/admin/tutor/module-tests')) ||
-                      (item.id === 'tutor-module-tests' && pathname.startsWith('/admin/tutor/module-tests')) ||
-                      (item.id === 'admin-tests' && pathname.startsWith('/admin/admin-tests')) ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${user.role === 'Admin' ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
+              {user.role === 'TutorAdmin' ? 'Tutor Admin' : user.role}
+            </span>
+          </Link>
+
+          {/* Desktop nav */}
+          <nav className="hidden flex-1 items-center justify-center gap-1 xl:flex">
+            {sections.map((sec) => {
+              const active = isActive(sec)
+              if (sec.path) {
+                return (
+                  <Link key={sec.id} href={sec.path} className={`${navBtn} ${active ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`}>
+                    <sec.icon size={15} /> {sec.label}
+                  </Link>
+                )
+              }
+              return (
+                <div key={sec.id} className="relative">
+                  <button
+                    onClick={() => setOpenMenu((m) => (m === sec.id ? null : sec.id))}
+                    className={`${navBtn} ${active || openMenu === sec.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`}
                   >
-                    <div className="flex items-center gap-3">
-                      {item.icon}
-                      {item.label}
-                    </div>
-                    {openSubmenu[item.id] ? <FiChevronDown /> : <FiChevronRight />}
+                    <sec.icon size={15} /> {sec.label}
+                    <FiChevronDown size={13} className={`transition-transform ${openMenu === sec.id ? 'rotate-180' : ''}`} />
                   </button>
-                  {openSubmenu[item.id] && (
-                    <div className="ml-8 space-y-1 mb-2">
-                      {item.submenu.map(sub => (
-                        <Link 
-                          key={sub.id} 
-                          href={sub.path}
-                          className={`block px-4 py-2 text-sm rounded-lg transition-colors ${
-                            pathname === sub.path ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-50'
-                          }`}
+                  {openMenu === sec.id && (
+                    <div className={`absolute top-full ${sec.align === 'right' ? 'right-0' : 'left-0'} z-[60] mt-2 w-60 overflow-hidden rounded-xl border border-slate-100 bg-white py-1.5 shadow-xl`}>
+                      {sec.items.map((it) => (
+                        <Link
+                          key={it.path}
+                          href={it.path}
+                          onClick={() => setOpenMenu(null)}
+                          className={`block px-4 py-2 text-sm transition-colors ${pathname === it.path ? 'bg-indigo-50 font-semibold text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600'}`}
                         >
-                          {sub.label}
+                          {it.label}
                         </Link>
                       ))}
                     </div>
                   )}
-                </>
-              ) : (
-                <Link href={item.path} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 text-left transition-colors ${pathname === item.path ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}> 
-                  {item.icon}
-                  {item.label}
-                </Link>
-              )}
-            </div>
-          ))}
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mt-8 text-red-600 hover:bg-red-50 transition-colors">
-            <FiLogOut />
-            Logout
-          </button>
-        </nav>
-      </div>
-      <div className="flex-1 overflow-auto">{children}</div>
+                </div>
+              )
+            })}
+          </nav>
+
+          {/* Right */}
+          <div className="flex flex-shrink-0 items-center gap-3">
+            <span className="hidden text-sm text-slate-500 sm:block">Hi, <span className="font-semibold text-slate-800">{user.name?.split(' ')[0]}</span></span>
+            <button
+              onClick={toggleTheme}
+              title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label="Toggle theme"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:bg-slate-100"
+            >
+              {dark ? <FiSun size={18} /> : <FiMoon size={18} />}
+            </button>
+            <button onClick={handleLogout} className="hidden items-center gap-1.5 rounded-lg bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100 sm:flex">
+              <FiLogOut size={15} /> Logout
+            </button>
+            <button onClick={() => setMobileOpen((o) => !o)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 xl:hidden">
+              {mobileOpen ? <FiX size={20} /> : <FiMenu size={20} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile menu */}
+        {mobileOpen && (
+          <div className="max-h-[80vh] overflow-y-auto border-t border-slate-100 bg-white px-4 py-4 xl:hidden">
+            {sections.map((sec) => (
+              <div key={sec.id} className="mb-3">
+                {sec.path ? (
+                  <Link href={sec.path} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold ${isActive(sec) ? 'bg-indigo-50 text-indigo-700' : 'text-slate-800'}`}>
+                    <sec.icon size={15} /> {sec.label}
+                  </Link>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-400">
+                      <sec.icon size={13} /> {sec.label}
+                    </div>
+                    <div className="space-y-0.5">
+                      {sec.items.map((it) => (
+                        <Link key={it.path} href={it.path} className={`block rounded-lg py-2 pl-9 pr-3 text-sm ${pathname === it.path ? 'bg-indigo-50 font-semibold text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>
+                          {it.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+            <button onClick={handleLogout} className="mt-2 flex w-full items-center gap-2 rounded-lg bg-rose-50 px-3 py-2.5 text-sm font-semibold text-rose-600">
+              <FiLogOut size={15} /> Logout
+            </button>
+          </div>
+        )}
+      </header>
+
+      {/* click-outside backdrop for dropdowns */}
+      {openMenu && <div className="fixed inset-0 z-40" onClick={() => setOpenMenu(null)} />}
+
+      {/* Content */}
+      <main>{children}</main>
     </div>
   )
 }

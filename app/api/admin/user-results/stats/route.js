@@ -2,13 +2,17 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import TestSession from '../../../../../lib/models/TestSession'
 import User from '../../../../../lib/models/User'
+import { requireRole } from '../../../../../lib/auth'
+import { ROLES, STAFF_ROLES } from '../../../../../lib/constants/roles'
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
     await connectDB()
-    
+
     const completed = await TestSession.countDocuments({ state: 'COMPLETED' })
-    const totalStudents = await User.countDocuments({ role: 'student' })
+    const totalStudents = await User.countDocuments({ role: ROLES.STUDENT })
     
     const avgScores = await TestSession.aggregate([
       { $match: { state: 'COMPLETED', totalScore: { $ne: null } } },

@@ -1,17 +1,15 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import Test from '../../../../../lib/models/Test'
-import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
+import { requireRole } from '../../../../../lib/auth'
+import { ADMIN_ROLES } from '../../../../../lib/constants/roles'
 
 export async function PUT(request) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     const { testId, customQuestions } = await request.json()
 

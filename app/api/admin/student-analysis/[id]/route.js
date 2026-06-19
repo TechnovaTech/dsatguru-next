@@ -6,11 +6,19 @@ import User from '../../../../../lib/models/User'
 import TestSession from '../../../../../lib/models/TestSession'
 import Test from '../../../../../lib/models/Test'
 import Question from '../../../../../lib/models/Question'
+import { requireRole } from '../../../../../lib/auth'
+import { STAFF_ROLES } from '../../../../../lib/constants/roles'
 
 export async function GET(request, { params }) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
     await connectDB()
     const { id } = params
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ error: 'Invalid user id' }, { status: 400 })
+    }
 
     // 1. Fetch User
     const user = await User.findById(id).select('name email role').lean()
@@ -21,7 +29,7 @@ export async function GET(request, { params }) {
     // 2. Fetch all sessions for this user with test details
     // We will do aggregation to get question details for deep analysis
     const analysis = await TestSession.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(id), status: 'Completed' } }, // Only completed tests? User asked for "all dat student give"
+      { $match: { userId: new mongoose.Types.ObjectId(id), $or: [{ status: 'Completed' }, { state: 'COMPLETED' }] } }, // Only completed tests? User asked for "all dat student give"
       // Let's include all tests but maybe filter by status in the UI or separate stats. 
       // User asked for "types practice counter", "scores". Usually implies completed.
       // But let's stick to Completed for scores/accuracy.
@@ -64,6 +72,10 @@ export async function GET(request, { params }) {
           testType: '$test.testType',
           sectionsMath: '$test.sections.math',
           sectionsRw: '$test.sections.rw',
+          // Stored scaled scores (200-800 sections / 400-1600 total) for this session.
+          sessionTotalScore: '$totalScore',
+          sessionRwScore: '$rwScore',
+          sessionMathScore: '$mathScore',
           questionSubject: '$question.subject',
           questionTopic: '$question.skill',
           questionDomain: '$question.domain',
@@ -136,7 +148,11 @@ export async function GET(request, { params }) {
           subject: record.testSubject,
           total: 0,
           correct: 0,
-          type: tType
+          type: tType,
+          // Stored scaled scores so a tutor sees the 200-800 / 400-1600 trend.
+          scaledTotal: Number(record.sessionTotalScore || 0) || null,
+          scaledRw: Number(record.sessionRwScore || 0) || null,
+          scaledMath: Number(record.sessionMathScore || 0) || null
         }
 
         // Update Practice Counts (only once per session)
@@ -196,13 +212,25 @@ export async function GET(request, { params }) {
     })).sort((a, b) => b.score - a.score)
 
     // Format Session History for Chart
-    const performanceHistory = Object.values(sessionsMap)
+    const sortedSessions = Object.values(sessionsMap)
       .sort((a, b) => new Date(a.date) - new Date(b.date))
-      .map(s => ({
-        date: new Date(s.date).toLocaleDateString(),
-        score: s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0,
-        subject: s.subject
-      }))
+    const performanceHistory = sortedSessions.map(s => ({
+      date: new Date(s.date).toLocaleDateString(),
+      score: s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0,
+      subject: s.subject,
+      // Scaled SAT scores (200-800 sections / 400-1600 total) for the trend chart.
+      scaledTotal: s.scaledTotal,
+      scaledRw: s.scaledRw,
+      scaledMath: s.scaledMath
+    }))
+
+    // Latest available scaled scores (most recent session that has them) for the score cards.
+    const latestScaled = [...sortedSessions].reverse().find(s => s.scaledTotal) || {}
+    const scaledScores = {
+      total: latestScaled.scaledTotal || null,
+      rw: latestScaled.scaledRw || null,
+      math: latestScaled.scaledMath || null
+    }
 
     return NextResponse.json({
       user,
@@ -210,7 +238,8 @@ export async function GET(request, { params }) {
       subjectStats,
       topicStats: topicChartData,
       difficultyStats,
-      performanceHistory
+      performanceHistory,
+      scaledScores
     })
 
   } catch (error) {

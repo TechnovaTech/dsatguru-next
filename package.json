@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "set NODE_OPTIONS=--dns-result-order=ipv4first && next dev",
-    "build": "set NODE_OPTIONS=--max-old-space-size=4096 && next build",
+    "dev": "cross-env NODE_OPTIONS=--dns-result-order=ipv4first next dev",
+    "build": "cross-env NODE_OPTIONS=--max-old-space-size=4096 next build",
     "start": "next start",
     "lint": "next lint",
     "seed": "node scripts/seed.js",
@@ -50,6 +50,7 @@
     "yup": "^1.6.1"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.5.7"
   }

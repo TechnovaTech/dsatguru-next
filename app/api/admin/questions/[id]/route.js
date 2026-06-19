@@ -1,13 +1,22 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import Question from '../../../../../lib/models/Question'
-import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
+import { requireRole } from '../../../../../lib/auth'
+import { STAFF_ROLES, ADMIN_ROLES } from '../../../../../lib/constants/roles'
 
 export async function GET(request, { params }) {
   try {
+    // Admin endpoint exposes the full question incl. answer key — restrict to staff.
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+
     await connectDB()
     const question = await Question.findById(params.id)
     if (!question) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    let parsedOptions = []
+    try { parsedOptions = question.options ? JSON.parse(question.options) : [] } catch (e) { parsedOptions = [] }
+    let parsedTags = []
+    try { parsedTags = question.tags ? JSON.parse(question.tags) : [] } catch (e) { parsedTags = [] }
     const data = {
       id: question._id,
       title: question.title,
@@ -21,8 +30,8 @@ export async function GET(request, { params }) {
       testType: question.testType,
       type: question.type,
       correctAnswer: question.correctAnswer,
-      options: question.options ? JSON.parse(question.options) : [],
-      tags: question.tags ? JSON.parse(question.tags) : [],
+      options: parsedOptions,
+      tags: parsedTags,
       points: question.points,
       imageUrl: question.imageUrl,
       isActive: question.isActive,
@@ -37,12 +46,10 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
     const body = await request.json()
     
     console.log('🔧 API PUT /api/admin/questions/[id] - Received Data:', {
@@ -96,12 +103,10 @@ export async function PUT(request, { params }) {
 
 export async function PATCH(request, { params }) {
   try {
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
     const body = await request.json()
     const updated = await Question.findByIdAndUpdate(params.id, { isActive: !!body.isActive }, { new: true })
     if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -113,12 +118,10 @@ export async function PATCH(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
     const updated = await Question.findByIdAndUpdate(params.id, { isActive: false }, { new: true })
     if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     return NextResponse.json({ success: true })

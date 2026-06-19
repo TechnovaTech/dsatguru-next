@@ -3,7 +3,8 @@ import { connectDB } from '../../../../../lib/db'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 import TestSession from '../../../../../lib/models/TestSession'
 import Question from '../../../../../lib/models/Question'
-import { toScaledScore } from '../../../../../lib/scoring/satScale'
+import { toScaledScore, answersMatch } from '../../../../../lib/scoring/satScale'
+import { STAFF_ROLES } from '../../../../../lib/constants/roles'
 
 export async function GET(request, { params }) {
   try {
@@ -18,32 +19,36 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
     const isOwner = String(session.userId) === String(decoded.userId)
-    const isAdmin = decoded.role === 'Admin'
-    if (!isOwner && !isAdmin) {
+    const isStaff = STAFF_ROLES.includes(decoded.role)
+    if (!isOwner && !isStaff) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const responseIds = (session.responses || []).map(r => r.questionId)
-    const questions = await Question.find({ _id: { $in: responseIds } }).select('subject tags')
+    const questions = await Question.find({ _id: { $in: responseIds } }).select('subject tags correctAnswer')
     const qMap = new Map(questions.map(q => [String(q._id), q]))
 
     let mathRaw = 0
     let rwRaw = 0
     let mathTotal = 0
     let rwTotal = 0
+    let correctCount = 0
     const topicStats = {}
 
     for (const r of session.responses || []) {
       const q = qMap.get(String(r.questionId))
       if (!q) continue
-      const isMath = String(q.subject).toLowerCase() === 'math'
+      // Re-grade authoritatively against the bank rather than trusting stored isCorrect.
+      const isCorrect = answersMatch(q.correctAnswer, r.selectedAnswer)
+      if (isCorrect) correctCount += 1
+      const isMath = String(q.subject || '').toLowerCase().includes('math')
       const isRW = !isMath
       if (isMath) {
         mathTotal += 1
-        if (r.isCorrect) mathRaw += 1
+        if (isCorrect) mathRaw += 1
       } else if (isRW) {
         rwTotal += 1
-        if (r.isCorrect) rwRaw += 1
+        if (isCorrect) rwRaw += 1
       }
       let tags = []
       try {
@@ -58,15 +63,14 @@ export async function GET(request, { params }) {
         topicStats[key] = { total: 0, correct: 0 }
       }
       topicStats[key].total += 1
-      if (r.isCorrect) topicStats[key].correct += 1
+      if (isCorrect) topicStats[key].correct += 1
     }
 
     const mathScaled = toScaledScore(mathRaw, mathTotal || 1)
     const rwScaled = toScaledScore(rwRaw, rwTotal || 1)
     const totalScaled = (mathScaled || 200) + (rwScaled || 200)
-    const accuracy = Number(session.answeredQuestions || 0) > 0
-      ? (Number(session.correctAnswers || 0) / Number(session.answeredQuestions || 0))
-      : 0
+    const answeredCount = (session.responses || []).length
+    const accuracy = answeredCount > 0 ? (correctCount / answeredCount) : 0
 
     const topicAccuracy = Object.entries(topicStats).map(([key, v]) => ({
       topic: key.includes('::') ? key.split('::')[0] : key,
@@ -76,11 +80,11 @@ export async function GET(request, { params }) {
       correct: v.correct
     }))
 
-    session.result = { math: mathScaled, readingWriting: rwScaled, total: totalScaled }
-    await session.save()
+    // GET must be side-effect free: compute and return without persisting.
+    const result = { math: mathScaled, readingWriting: rwScaled, total: totalScaled }
 
     return NextResponse.json({
-      result: session.result,
+      result,
       accuracy,
       timeSpent: Number(session.timeSpent || 0),
       topicAccuracy

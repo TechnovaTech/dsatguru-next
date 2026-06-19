@@ -2,13 +2,16 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../lib/db'
 import Question from '../../../lib/models/Question'
 import Course from '../../../lib/models/Course'
-import User from '../../../lib/models/User'
-import { verifyToken, getTokenFromRequest, hashPassword } from '../../../lib/auth'
+import { verifyToken, getTokenFromRequest, requireRole } from '../../../lib/auth'
 import { generateQuestionId } from '../../../lib/idGenerator'
+import { ROLES, ADMIN_ROLES } from '../../../lib/constants/roles'
+import { stripAnswerFields } from '../../../lib/serializers/question'
+import { logger } from '../../../lib/logger'
 
 export async function GET(request) {
   try {
     await connectDB()
+    const decoded = verifyToken(getTokenFromRequest(request))
     const { searchParams } = new URL(request.url)
     const subject = searchParams.get('subject')
     const difficulty = searchParams.get('difficulty')
@@ -25,15 +28,19 @@ export async function GET(request) {
     
     // Handle fetching by IDs
     if (ids) {
+      if (!decoded) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
       const idArray = ids.split(',').filter(id => id.trim())
       const questions = await Question.find({ _id: { $in: idArray } })
         .populate('createdBy', 'name')
         .sort({ createdAt: -1 })
       
+      const isStudent = decoded.role === ROLES.STUDENT
       return NextResponse.json(questions.map(q => {
-        const data = q.toObject ? q.toObject() : { ...q }
+        let data = q.toObject ? q.toObject() : { ...q }
         data.id = data._id.toString()
-        
+
         // Parse options if string
         if (typeof data.options === 'string' && data.options.trim()) {
           try {
@@ -42,7 +49,9 @@ export async function GET(request) {
             data.options = {}
           }
         }
-        
+
+        // Students never receive answer keys / explanations; staff keep them.
+        if (isStudent) data = stripAnswerFields(data)
         return data
       }))
     }
@@ -238,24 +247,22 @@ export async function GET(request) {
       ]
     }
     
+    // Question content (incl. correctAnswer) requires authentication; only the public
+    // "question-banks" listing above is open.
+    if (!decoded) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const questions = await Question.find(filter)
       .populate('createdBy', 'name')
       .sort({ createdAt: -1 })
-    
-    console.log('🔍 GET /api/questions - Raw data from MongoDB:', {
-      totalQuestions: questions.length,
-      sampleRawData: questions.slice(0, 2).map(q => ({
-        questionId: q.questionId,
-        _id: q._id.toString(),
-        remarkFromDB: q.remark,
-        remarkExists: !!q.remark,
-        remarkType: typeof q.remark
-      }))
-    })
-    
+
+    logger.debug('GET /api/questions - fetched', questions.length, 'questions')
+
+    const isStudent = decoded.role === ROLES.STUDENT
     const questionsData = questions.map(q => {
       // Return the full question object but ensure options and tags are parsed if they are strings
-      const data = q.toObject ? q.toObject() : { ...q }
+      let data = q.toObject ? q.toObject() : { ...q }
       
       // Ensure IDs are consistent
       data.id = data._id.toString()
@@ -295,22 +302,15 @@ export async function GET(request) {
       
       // Ensure remark field is included
       data.remark = data.remark || ''
-      
+
+      // Students never receive answer keys / explanations; staff keep them.
+      if (isStudent) data = stripAnswerFields(data)
+
       return data
     })
-    
-    console.log('📤 GET /api/questions - Returning questions:', {
-      totalQuestions: questionsData.length,
-      questionsWithRemarks: questionsData.filter(q => q.remark && q.remark.trim()).length,
-      sampleData: questionsData.slice(0, 3).map(q => ({
-        questionId: q.questionId,
-        id: q.id,
-        remark: q.remark || '(empty)',
-        remarkExists: !!q.remark,
-        remarkLength: (q.remark || '').length
-      }))
-    })
-    
+
+    logger.debug('GET /api/questions - returning', questionsData.length, 'questions')
+
     return NextResponse.json(questionsData)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch questions' }, { status: 500 })
@@ -319,28 +319,14 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
+
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    
+
     const questionData = await request.json()
-    
-    // Find or create admin user
-    let adminUser = await User.findOne({ role: 'Admin' })
-    if (!adminUser) {
-      const hashedPassword = await hashPassword('admin123')
-      adminUser = await User.create({
-        name: 'System Admin',
-        email: 'admin@dsatguru.com',
-        password: hashedPassword,
-        role: 'Admin'
-      })
-    }
-    
+
     const question = await Question.create({
       ...questionData,
       questionId: generateQuestionId(
@@ -349,7 +335,7 @@ export async function POST(request) {
         questionData.difficulty,
         Math.floor(10000 + Math.random() * 90000) // Random 5-digit for manual creation
       ),
-      createdBy: adminUser._id,
+      createdBy: decoded.userId,
       options: JSON.stringify(questionData.options || []),
       tags: JSON.stringify(questionData.tags || []),
       isTutor: questionData.isTutor || false,

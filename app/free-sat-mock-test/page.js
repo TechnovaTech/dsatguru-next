@@ -6,7 +6,7 @@ const program = {
   examLabel: 'Digital SAT',
   title: 'Free Digital SAT Mock Test',
   highlightTag: 'Exam Day Simulation',
-  heroImage: '/hero-1.png',
+  heroArt: '/art/prog-mock.png',
   seoTitle: 'Free SAT Mock Test Online | Real Exam Simulation',
   seoDescription: 'Try our free SAT mock test online featuring real exam simulation, full-length digital exams, smart analytics, and detailed performance reports.',
   overview: 'High-fidelity mock tests that simulate the actual testing experience so you know exactly what to expect on test day.',

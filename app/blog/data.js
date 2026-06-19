@@ -902,41 +902,6 @@ export const blogPosts = [
       },
     ],
   },
-  {
-    slug: 'digital-sat-practice-tests-right-way',
-    title: 'Are You Using Digital SAT Practice Tests the Right Way?',
-    category: 'Practice Strategy',
-    readingTime: '6 min read',
-    date: 'Nov 30, 2025',
-    author: 'DSATGURU Mentors',
-    image: '/hero-1.png',
-    imageAlt: 'Student reviewing Digital SAT practice test results on laptop',
-    badgeColor: 'bg-indigo-100 text-indigo-700',
-    thumbnailTone: 'from-indigo-500 via-blue-500 to-sky-500',
-    summary:
-      'Simply taking test after test is not enough. Learn a simple review routine that turns each practice test into real score growth.',
-    heroText:
-      'Practice tests measure your progress, but detailed review creates your progress. The difference is in what you do after you see your score.',
-    sections: [
-      {
-        heading: 'Step 1: Mark Questions by Confidence',
-        body: 'During the test, quickly mark each question as Confident, Unsure, or Guess. This helps you later understand whether mistakes are from concept gaps or decision-making under pressure.',
-      },
-      {
-        heading: 'Step 2: Build a Mistake Log',
-        body: 'After the test, categorize every missed or lucky guess by concept. Patterns will appear in topics like linear functions, punctuation, or graph interpretation.',
-      },
-      {
-        heading: 'Step 3: Convert Patterns into Practice Sets',
-        body: 'Use question banks or custom quizzes to target your top three recurring mistake types. This is where most of your score gains will come from.',
-      },
-    ],
-    keyTakeaways: [
-      'Always spend more time reviewing a practice test than taking it.',
-      'Label mistakes by concept, not just by question number.',
-      'Use follow-up practice to attack your top three weak areas.',
-    ],
-  },
 ]
 
 export function getAllPosts() {

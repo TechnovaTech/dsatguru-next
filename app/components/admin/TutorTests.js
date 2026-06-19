@@ -34,99 +34,95 @@ export default function TutorTests() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-            {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="h-16 bg-gray-200 rounded"></div>
-            ))}
-          </div>
+      <div className="min-h-screen bg-slate-50 p-6">
+        <div className="max-w-7xl mx-auto flex flex-col items-center justify-center py-24">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+          <p className="mt-4 text-sm text-slate-500">Loading tutor sessions...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <FiCheckSquare className="text-blue-600" />
+          <h1 className="text-2xl lg:text-3xl font-extrabold text-slate-900 flex items-center gap-2">
+            <FiCheckSquare className="text-indigo-600" />
             Tutor Tests
           </h1>
           <button
             onClick={fetchSessions}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors"
           >
             <FiRefreshCw /> Refresh
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden">
           {sessions.length === 0 ? (
-            <div className="p-8 text-center">
-              <FiUsers className="mx-auto text-4xl text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">No Tutor Sessions Found</h3>
-              <p className="text-gray-500">There are no completed tutor mode tests yet.</p>
+            <div className="py-12 text-center">
+              <FiUsers className="mx-auto text-4xl text-slate-400 mb-4" />
+              <h3 className="text-lg font-semibold text-slate-600 mb-2">No Tutor Sessions Found</h3>
+              <p className="text-slate-400 text-sm">There are no completed tutor mode tests yet.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-slate-50 border-b border-slate-100">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Test Title</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Student</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Test Title</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Subject</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Score</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-slate-100">
                   {sessions.map((session) => (
-                    <tr key={session._id} className="hover:bg-gray-50">
+                    <tr key={session._id} className="hover:bg-indigo-50/40 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{session.studentName}</div>
-                        <div className="text-sm text-gray-500">{session.studentEmail}</div>
+                        <div className="text-sm font-medium text-slate-900">{session.studentName}</div>
+                        <div className="text-sm text-slate-500">{session.studentEmail}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{session.testTitle}</div>
+                        <div className="text-sm text-slate-900">{session.testTitle || 'Untitled Test'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                          session.subject === 'Math' 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-purple-100 text-purple-800'
+                          session.subject === 'Math'
+                            ? 'bg-blue-50 text-blue-700'
+                            : 'bg-indigo-50 text-indigo-700'
                         }`}>
                           {session.subject}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(session.completedAt).toLocaleString()}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                        {session.completedAt ? new Date(session.completedAt).toLocaleString() : '—'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-blue-600">
+                        <div className="text-sm font-semibold text-indigo-600">
                           {session.totalScore} pts
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {session.analysisSubmitted ? (
-                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 flex items-center gap-1 w-fit">
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 flex items-center gap-1 w-fit">
                             <FiCheckSquare className="w-3 h-3" />
                             Analysis Submitted
                           </span>
                         ) : (
-                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-50 text-amber-700">
                             Pending Analysis
                           </span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <Link 
+                        <Link
                           href={`/admin/tutor/results/${session.testId}?sessionId=${session._id}`}
-                          className="text-blue-600 hover:text-blue-900 flex items-center justify-end gap-1"
+                          className="text-indigo-600 hover:text-indigo-800 flex items-center justify-end gap-1"
                         >
                           <FiBarChart /> View Analysis
                         </Link>

@@ -25,28 +25,60 @@ export async function GET(req) {
 
     const studentIds = students.map(s => s._id)
 
-    // Fetch all completed sessions for these students
-    const allSessions = await TestSession.find({
-      userId: { $in: studentIds },
-      status: 'Completed'
-    }).select('userId responses startTime completedAt').lean()
+    // Aggregate per-student totals from completed sessions (one query).
+    const completedAgg = await TestSession.aggregate([
+      { $match: { userId: { $in: studentIds }, status: 'Completed' } },
+      {
+        $project: {
+          userId: 1,
+          responseCount: { $size: { $ifNull: ['$responses', []] } },
+          errorCount: {
+            $size: {
+              $filter: {
+                input: { $ifNull: ['$responses', []] },
+                as: 'r',
+                cond: { $ne: ['$$r.isCorrect', true] }
+              }
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: '$userId',
+          totalQsDone: { $sum: '$responseCount' },
+          totalErrors: { $sum: '$errorCount' }
+        }
+      }
+    ])
 
-    // Fetch today's sessions
-    const todaySessions = await TestSession.find({
-      userId: { $in: studentIds },
-      status: 'Completed',
-      completedAt: { $gte: today, $lte: todayEnd }
-    }).select('userId responses').lean()
+    // Aggregate today's completed question counts per student (one query).
+    const todayAgg = await TestSession.aggregate([
+      {
+        $match: {
+          userId: { $in: studentIds },
+          status: 'Completed',
+          completedAt: { $gte: today, $lte: todayEnd }
+        }
+      },
+      {
+        $project: {
+          userId: 1,
+          responseCount: { $size: { $ifNull: ['$responses', []] } }
+        }
+      },
+      { $group: { _id: '$userId', questionsDoneToday: { $sum: '$responseCount' } } }
+    ])
 
-    // Fetch last active session per student
-    const lastActiveSessions = await TestSession.find({
-      userId: { $in: studentIds }
-    }).sort({ updatedAt: -1 }).select('userId updatedAt').lean()
+    // Last active (max updatedAt) per student (one query).
+    const lastActiveAgg = await TestSession.aggregate([
+      { $match: { userId: { $in: studentIds } } },
+      { $group: { _id: '$userId', updatedAt: { $max: '$updatedAt' } } }
+    ])
 
     const lastActiveMap = {}
-    for (const s of lastActiveSessions) {
-      const uid = s.userId.toString()
-      if (!lastActiveMap[uid]) lastActiveMap[uid] = s.updatedAt
+    for (const s of lastActiveAgg) {
+      lastActiveMap[s._id.toString()] = s.updatedAt
     }
 
     // Aggregate per student
@@ -59,18 +91,17 @@ export async function GET(req) {
       }
     }
 
-    for (const session of allSessions) {
-      const uid = session.userId.toString()
+    for (const row of completedAgg) {
+      const uid = row._id.toString()
       if (!statsMap[uid]) continue
-      const responses = session.responses || []
-      statsMap[uid].totalQsDone += responses.length
-      statsMap[uid].totalErrors += responses.filter(r => !r.isCorrect).length
+      statsMap[uid].totalQsDone = row.totalQsDone || 0
+      statsMap[uid].totalErrors = row.totalErrors || 0
     }
 
-    for (const session of todaySessions) {
-      const uid = session.userId.toString()
+    for (const row of todayAgg) {
+      const uid = row._id.toString()
       if (!statsMap[uid]) continue
-      statsMap[uid].questionsDoneToday += (session.responses || []).length
+      statsMap[uid].questionsDoneToday = row.questionsDoneToday || 0
     }
 
     const DAILY_TARGET = 30 // default daily target
@@ -130,7 +161,11 @@ export async function PUT(req) {
     }
 
     await dbConnect()
-    const { studentId, tutorNotes } = await req.json()
+    const body = await req.json().catch(() => ({}))
+    const { studentId, tutorNotes } = body || {}
+    if (!studentId) {
+      return NextResponse.json({ error: 'studentId required' }, { status: 400 })
+    }
     await User.findByIdAndUpdate(studentId, { tutorNotes })
     return NextResponse.json({ success: true })
   } catch (err) {

@@ -1,18 +1,15 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import Course from '../../../../../lib/models/Course'
-import { verifyToken, getTokenFromRequest } from '../../../../../lib/auth'
+import { requireRole } from '../../../../../lib/auth'
+import { ADMIN_ROLES } from '../../../../../lib/constants/roles'
 
 export async function POST(request) {
   try {
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    
-    if (!decoded || decoded.role !== 'Admin') {
-      console.error('Unauthorized delete attempt:', decoded)
-      return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 401 })
-    }
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     const { courseId, meetingId } = await request.json()
     console.log('Delete Request:', { courseId, meetingId })

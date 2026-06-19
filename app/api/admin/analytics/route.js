@@ -5,17 +5,16 @@ import Course, { CourseEnrollment, QuestionBankEnrollment } from '../../../../li
 import Question from '../../../../lib/models/Question'
 import TestSession from '../../../../lib/models/TestSession'
 import Payment from '../../../../lib/models/Payment'
-import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
+import { requireRole } from '../../../../lib/auth'
+import { ADMIN_ROLES } from '../../../../lib/constants/roles'
 
 export async function GET(request) {
   try {
     await connectDB()
 
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
 
     const [studentsCount, tutorsCount, adminsCount, coursesCount, questionsCount, sessionsCount] = await Promise.all([
       User.countDocuments({ role: 'Student' }),
@@ -33,8 +32,8 @@ export async function GET(request) {
     const totalEnrollments = courseEnrollmentsCount + qbEnrollmentsCount
 
     const scoreAgg = await TestSession.aggregate([
-      { $match: { score: { $ne: null } } },
-      { $group: { _id: null, avgScore: { $avg: '$score' } } }
+      { $match: { totalScore: { $ne: null } } },
+      { $group: { _id: null, avgScore: { $avg: '$totalScore' } } }
     ])
     const averageScore = scoreAgg?.[0]?.avgScore || 0
 

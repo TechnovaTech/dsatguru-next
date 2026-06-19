@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
 import TestSession from '../../../../lib/models/TestSession'
+import User from '../../../../lib/models/User'
 import Question from '../../../../lib/models/Question'
+import { gradeAndScore } from '../../../../lib/scoring/satScale'
+import { canRevealAnswers, stripAnswerFields } from '../../../../lib/serializers/question'
+import { STAFF_ROLES } from '../../../../lib/constants/roles'
+import { syncWrongAnswers } from '../../../../lib/learningLoop'
 
 export async function GET(request, { params }) {
   try {
@@ -16,7 +21,7 @@ export async function GET(request, { params }) {
     if (!session) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
-    if (String(session.userId) !== String(decoded.userId) && decoded.role !== 'Admin' && decoded.role !== 'Tutor') {
+    if (String(session.userId) !== String(decoded.userId) && !STAFF_ROLES.includes(decoded.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -92,10 +97,20 @@ export async function GET(request, { params }) {
         adaptiveQuestions = formattedQuestions.filter(q => session.adaptiveAssignedQuestionIds.map(id => String(id)).includes(String(q._id)))
     }
 
+    // Hide answers from a student still taking this test; reveal on completion or to staff.
+    const sessionCompleted = session.state === 'COMPLETED' || session.status === 'Completed'
+    const revealAnswers = canRevealAnswers({ role: decoded.role, sessionCompleted })
+    const visibleQuestions = revealAnswers ? formattedQuestions : formattedQuestions.map(stripAnswerFields)
+    const visibleAdaptive = revealAnswers ? adaptiveQuestions : adaptiveQuestions.map(stripAnswerFields)
+
+    const sessionUser = await User.findById(session.userId).select('name email').lean()
+
     return NextResponse.json({
       _id: session._id,
       id: session._id,
       userId: session.userId,
+      studentName: sessionUser?.name || null,
+      studentEmail: sessionUser?.email || null,
       testId: session.testId,
       questionBankId: session.questionBankId,
       subject: session.subject,
@@ -117,8 +132,8 @@ export async function GET(request, { params }) {
       startTime: session.startTime,
       endTime: session.endTime,
       adaptiveAssignedQuestionIds: session.adaptiveAssignedQuestionIds,
-      adaptiveQuestions,
-      questions: formattedQuestions, // Include all questions used
+      adaptiveQuestions: visibleAdaptive,
+      questions: visibleQuestions, // Include all questions used
       responses: (session.responses || []).map(r => ({
         questionId: r.questionId,
         selectedAnswer: r.selectedAnswer,
@@ -157,7 +172,7 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
 
-    if (String(session.userId) !== String(decoded.userId) && decoded.role !== 'Admin' && decoded.role !== 'Tutor') {
+    if (String(session.userId) !== String(decoded.userId) && !STAFF_ROLES.includes(decoded.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -167,9 +182,8 @@ export async function PUT(request, { params }) {
     if (sessionData.responses) session.responses = sessionData.responses
     if (sessionData.moduleScores) session.moduleScores = sessionData.moduleScores
     if (sessionData.moduleAnswers) session.moduleAnswers = sessionData.moduleAnswers
-    if (sessionData.rwScore !== undefined) session.rwScore = sessionData.rwScore
-    if (sessionData.mathScore !== undefined) session.mathScore = sessionData.mathScore
-    if (sessionData.totalScore !== undefined) session.totalScore = sessionData.totalScore
+    // Client-supplied totalScore/rwScore/mathScore are never persisted; scores are
+    // always derived server-side via gradeAndScore on completion (see below).
     if (sessionData.totalQuestions !== undefined) session.totalQuestions = sessionData.totalQuestions
     if (sessionData.answeredQuestions !== undefined) session.answeredQuestions = sessionData.answeredQuestions
     if (sessionData.correctAnswers !== undefined) session.correctAnswers = sessionData.correctAnswers
@@ -180,9 +194,29 @@ export async function PUT(request, { params }) {
     if (sessionData.autoSubmitted !== undefined) session.autoSubmitted = sessionData.autoSubmitted
     if (sessionData.autoSubmitReason) session.autoSubmitReason = sessionData.autoSubmitReason
 
-    // For Tutor mode, we might want to ensure testId matches if provided, but usually it shouldn't change
-    
+    // Server-authoritative scoring: only re-grade and write scores when the session is
+    // completing. Scores are always derived from gradeAndScore, never from the client.
+    const isCompleting = sessionData.status === 'Completed' || sessionData.state === 'COMPLETED'
+    if (isCompleting && Array.isArray(sessionData.responses) && sessionData.responses.length) {
+      const qIds = sessionData.responses.map(r => r.questionId)
+      const qs = await Question.find({ _id: { $in: qIds } }).select('subject correctAnswer')
+      const qMap = new Map(qs.map(q => [String(q._id), q]))
+      const scored = gradeAndScore(sessionData.responses, qMap)
+      session.responses = sessionData.responses.map((r, i) => ({ ...r, isCorrect: scored.flags[i] }))
+      session.correctAnswers = scored.correctAnswers
+      session.rwScore = scored.rwScore
+      session.mathScore = scored.mathScore
+      session.totalScore = scored.totalScore
+      session.result = { math: scored.mathScore, readingWriting: scored.rwScore, total: scored.totalScore }
+    }
+
     await session.save()
+
+    // Auto-populate ErrorLog from wrong answers so the redo page can see them
+    // (the redo UI reads ErrorLog, not RedoQueue). Idempotent + non-fatal.
+    if (session.status === 'Completed' || session.state === 'COMPLETED') {
+      await syncWrongAnswers(session.userId, session)
+    }
 
     return NextResponse.json({ message: 'Session updated', session })
   } catch (error) {

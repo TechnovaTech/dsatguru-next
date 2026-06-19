@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import User from '../../../../lib/models/User'
-import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
+import { requireRole } from '../../../../lib/auth'
+import { STAFF_ROLES, ADMIN_ROLES } from '../../../../lib/constants/roles'
 import bcrypt from 'bcryptjs'
 
 export async function GET(request) {
   try {
+    const auth = requireRole(request, STAFF_ROLES)
+    if (auth.error) return auth.error
+    const { decoded } = auth
+
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || !['Admin', 'TutorAdmin', 'Tutor'].includes(decoded.role)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    
+
     // Get role filter from query params
     const { searchParams } = new URL(request.url)
     const roleFilter = searchParams.get('role')
@@ -32,6 +32,7 @@ export async function GET(request) {
       .sort({ createdAt: -1 })
       .select('-password')
       .populate('assignedTutors', 'name email')
+      .limit(500)
       .lean()
     
     // If fetching tutors, add student count for each
@@ -57,12 +58,10 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
 
     const { name, email, password, role } = await request.json()
     
@@ -70,8 +69,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Name, email and password are required' }, { status: 400 })
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email })
+    // Check if user already exists (coerce email to a string to block NoSQL injection)
+    const existingUser = await User.findOne({ email: String(email).toLowerCase() })
     if (existingUser) {
       return NextResponse.json({ error: 'User with this email already exists' }, { status: 400 })
     }

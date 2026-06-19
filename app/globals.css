@@ -84,3 +84,293 @@
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-in-out;
 }
+
+/* =====================================================================
+   MODERN PUBLIC SITE — design utilities & animations (scoped under .dg)
+   These classes are only used by the redesigned public website and do
+   not affect the admin/dashboard panels.
+   ===================================================================== */
+
+/* Brand font scope */
+.dg {
+  font-family: var(--font-jakarta), 'Poppins', system-ui, sans-serif;
+}
+.dg-serif {
+  font-family: var(--font-playfair), Georgia, 'Times New Roman', serif;
+}
+
+/* ---- Animated aurora blobs ---- */
+@keyframes dg-blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -40px) scale(1.1); }
+  66% { transform: translate(-20px, 25px) scale(0.95); }
+}
+.dg-blob { animation: dg-blob 18s ease-in-out infinite; }
+.dg-blob-slow { animation: dg-blob 26s ease-in-out infinite; }
+
+/* ---- Floating ---- */
+@keyframes dg-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+.dg-float { animation: dg-float 6s ease-in-out infinite; }
+.dg-float-slow { animation: dg-float 9s ease-in-out infinite; }
+
+/* ---- Animated gradient text / backgrounds ---- */
+@keyframes dg-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.dg-animate-gradient {
+  background-size: 200% 200%;
+  animation: dg-gradient 6s ease infinite;
+}
+.dg-gradient-text {
+  background-image: linear-gradient(90deg, #4338ca, #2563eb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---- Marquee ---- */
+@keyframes dg-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.dg-marquee { animation: dg-marquee 28s linear infinite; }
+.dg-marquee:hover { animation-play-state: paused; }
+
+/* ---- Shine sweep on buttons/cards ---- */
+@keyframes dg-shine {
+  0% { transform: translateX(-120%); }
+  60%, 100% { transform: translateX(220%); }
+}
+.dg-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(110deg, transparent, rgba(255,255,255,0.45), transparent);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+.dg-shine:hover::after { animation: dg-shine 0.9s ease; }
+
+/* ---- Glass card (frosted; best over colored/gradient backgrounds) ---- */
+.dg-glass-card {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* ---- Sheen sweep on hover (cards) ---- */
+.dg-sheen { position: relative; overflow: hidden; }
+.dg-sheen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-130%) skewX(-12deg);
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.5) 50%, transparent 65%);
+  pointer-events: none;
+  z-index: 1;
+}
+.dg-sheen:hover::before { animation: dg-sweep 0.85s ease; }
+@keyframes dg-sweep {
+  0% { transform: translateX(-130%) skewX(-12deg); }
+  100% { transform: translateX(130%) skewX(-12deg); }
+}
+
+/* ---- Soft glow on hover ---- */
+.dg-hover-glow { transition: box-shadow 0.4s ease, transform 0.4s ease; }
+.dg-hover-glow:hover { box-shadow: 0 22px 55px rgba(79, 70, 229, 0.22); }
+
+/* ---- Gentle entrance pop ---- */
+@keyframes dg-pop {
+  0% { opacity: 0; transform: translateY(14px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.dg-pop { animation: dg-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ---- Glow pulse ---- */
+@keyframes dg-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.dg-glow { animation: dg-glow 4s ease-in-out infinite; }
+
+/* ---- Slow spin (for conic rings) ---- */
+@keyframes dg-spin-slow { to { transform: rotate(360deg); } }
+.dg-spin-slow { animation: dg-spin-slow 14s linear infinite; }
+
+/* ---- Glass card ---- */
+.dg-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+.dg-glass-dark {
+  background: rgba(17, 24, 39, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ---- Hide scrollbar (marquee rows) ---- */
+.dg-no-scrollbar::-webkit-scrollbar { display: none; }
+.dg-no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ---- Grid background ---- */
+.dg-grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(99,102,241,0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99,102,241,0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* ---- Respect reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .dg-blob, .dg-blob-slow, .dg-float, .dg-float-slow,
+  .dg-animate-gradient, .dg-gradient-text, .dg-marquee,
+  .dg-glow, .dg-spin-slow {
+    animation: none !important;
+  }
+}
+
+/* =====================================================================
+   Admin panel DARK MODE (scoped — never affects the public website)
+   Toggled by adding `.admin-dark` to the admin layout root.
+   Layered palette: deep page bg → lighter surfaces with visible borders
+   and real shadows for elevation (not a flat black sheet).
+   ===================================================================== */
+.admin-dark {
+  color-scheme: dark;
+  background-color: #0b1120 !important;
+  color: #e5e9f2;
+}
+
+/* Surfaces (page → card → elevated, each a step lighter) */
+.admin-dark .bg-slate-50 { background-color: #0b1120 !important; }
+.admin-dark .bg-white { background-color: #1a2336 !important; }
+.admin-dark .bg-white\/90 { background-color: rgba(20, 28, 46, 0.88) !important; }
+.admin-dark .bg-white\/85 { background-color: rgba(20, 28, 46, 0.82) !important; }
+.admin-dark .bg-slate-50\/80 { background-color: rgba(255, 255, 255, 0.04) !important; }
+.admin-dark .bg-slate-100 { background-color: #2a3650 !important; }
+
+/* Visible borders & dividers (give cards definition) */
+.admin-dark .border-slate-100 { border-color: #2c3a55 !important; }
+.admin-dark .border-slate-200 { border-color: #33425e !important; }
+.admin-dark .border-slate-50 { border-color: #243049 !important; }
+.admin-dark .divide-slate-50 > :not([hidden]) ~ :not([hidden]) { border-color: #243049 !important; }
+.admin-dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: #2c3a55 !important; }
+
+/* Elevation — real shadows so cards/modals lift off the background */
+.admin-dark .shadow-sm { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45) !important; }
+.admin-dark .shadow,
+.admin-dark .shadow-md { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important; }
+.admin-dark .shadow-lg { box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55) !important; }
+.admin-dark .shadow-xl { box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6) !important; }
+.admin-dark .shadow-2xl { box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7) !important; }
+.admin-dark .hover\:shadow-md:hover { box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55) !important; }
+.admin-dark .hover\:shadow-lg:hover { box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6) !important; }
+.admin-dark .hover\:shadow-xl:hover { box-shadow: 0 18px 40px rgba(0, 0, 0, 0.65) !important; }
+
+/* Text */
+.admin-dark .text-slate-900 { color: #f1f5f9 !important; }
+.admin-dark .text-slate-800 { color: #e5e9f2 !important; }
+.admin-dark .text-slate-700 { color: #cdd6e4 !important; }
+.admin-dark .text-slate-600 { color: #b6c1d4 !important; }
+.admin-dark .text-slate-500 { color: #93a1ba !important; }
+.admin-dark .text-slate-400 { color: #6b7a93 !important; }
+.admin-dark .text-slate-300 { color: #56657f !important; }
+
+/* Hover states */
+.admin-dark .hover\:bg-slate-50:hover { background-color: #232f47 !important; }
+.admin-dark .hover\:bg-slate-100:hover { background-color: #2a3650 !important; }
+.admin-dark .hover\:bg-indigo-50:hover { background-color: rgba(99, 102, 241, 0.2) !important; }
+.admin-dark .hover\:bg-indigo-50\/40:hover { background-color: rgba(99, 102, 241, 0.13) !important; }
+
+/* Inputs */
+.admin-dark .bg-slate-50 input,
+.admin-dark input, .admin-dark textarea, .admin-dark select { color: #e5e9f2 !important; }
+.admin-dark .focus\:bg-white:focus { background-color: #232f47 !important; }
+.admin-dark input::placeholder, .admin-dark textarea::placeholder { color: #6b7a93 !important; }
+
+/* Soft colored chips/badges → translucent on dark */
+.admin-dark .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.2) !important; }
+.admin-dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.17) !important; }
+.admin-dark .bg-rose-50 { background-color: rgba(244, 63, 94, 0.17) !important; }
+.admin-dark .bg-violet-50 { background-color: rgba(139, 92, 246, 0.2) !important; }
+.admin-dark .bg-blue-50 { background-color: rgba(59, 130, 246, 0.17) !important; }
+.admin-dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.17) !important; }
+.admin-dark .bg-teal-50 { background-color: rgba(20, 184, 166, 0.17) !important; }
+.admin-dark .bg-sky-50 { background-color: rgba(14, 165, 233, 0.17) !important; }
+
+/* Mid-tone text used on chips/icons → lightened for contrast */
+.admin-dark .text-indigo-700 { color: #a5b4fc !important; }
+.admin-dark .text-indigo-600 { color: #818cf8 !important; }
+.admin-dark .text-emerald-700 { color: #6ee7b7 !important; }
+.admin-dark .text-emerald-600 { color: #34d399 !important; }
+.admin-dark .text-rose-700 { color: #fda4af !important; }
+.admin-dark .text-rose-600 { color: #fb7185 !important; }
+.admin-dark .text-violet-700 { color: #c4b5fd !important; }
+.admin-dark .text-blue-700 { color: #93c5fd !important; }
+.admin-dark .text-blue-600 { color: #60a5fa !important; }
+.admin-dark .text-amber-700 { color: #fcd34d !important; }
+.admin-dark .text-amber-600 { color: #fbbf24 !important; }
+
+/* ---- gray-* mirror (some admin pages use gray instead of slate) ---- */
+.admin-dark .bg-gray-50 { background-color: #0b1120 !important; }
+.admin-dark .bg-gray-100 { background-color: #2a3650 !important; }
+.admin-dark .bg-gray-200 { background-color: #2a3650 !important; }
+.admin-dark .border-gray-100 { border-color: #2c3a55 !important; }
+.admin-dark .border-gray-200 { border-color: #33425e !important; }
+.admin-dark .border-gray-300 { border-color: #3a4a68 !important; }
+.admin-dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #2c3a55 !important; }
+.admin-dark .text-gray-900 { color: #f1f5f9 !important; }
+.admin-dark .text-gray-800 { color: #e5e9f2 !important; }
+.admin-dark .text-gray-700 { color: #cdd6e4 !important; }
+.admin-dark .text-gray-600 { color: #b6c1d4 !important; }
+.admin-dark .text-gray-500 { color: #93a1ba !important; }
+.admin-dark .text-gray-400 { color: #6b7a93 !important; }
+.admin-dark .text-gray-300 { color: #56657f !important; }
+.admin-dark .hover\:bg-gray-50:hover { background-color: #232f47 !important; }
+.admin-dark .hover\:bg-gray-100:hover { background-color: #2a3650 !important; }
+.admin-dark .hover\:bg-gray-200:hover { background-color: #2a3650 !important; }
+
+/* ---- colored -100 chips/boxes (difficulty cards, badges) ---- */
+.admin-dark .bg-emerald-100, .admin-dark .bg-green-100 { background-color: rgba(16, 185, 129, 0.18) !important; }
+.admin-dark .bg-rose-100, .admin-dark .bg-red-100 { background-color: rgba(244, 63, 94, 0.18) !important; }
+.admin-dark .bg-amber-100, .admin-dark .bg-yellow-100 { background-color: rgba(245, 158, 11, 0.18) !important; }
+.admin-dark .bg-blue-100 { background-color: rgba(59, 130, 246, 0.18) !important; }
+.admin-dark .bg-indigo-100 { background-color: rgba(99, 102, 241, 0.2) !important; }
+.admin-dark .bg-violet-100, .admin-dark .bg-purple-100 { background-color: rgba(139, 92, 246, 0.2) !important; }
+.admin-dark .bg-orange-100 { background-color: rgba(249, 115, 22, 0.18) !important; }
+.admin-dark .bg-teal-100 { background-color: rgba(20, 184, 166, 0.18) !important; }
+
+/* ---- extra mid-tone text (green/red/blue/purple/yellow/orange families) ---- */
+.admin-dark .text-green-700, .admin-dark .text-green-800 { color: #6ee7b7 !important; }
+.admin-dark .text-green-600 { color: #34d399 !important; }
+.admin-dark .text-red-700, .admin-dark .text-red-800 { color: #fda4af !important; }
+.admin-dark .text-red-600 { color: #fb7185 !important; }
+.admin-dark .text-blue-800 { color: #bfdbfe !important; }
+.admin-dark .text-purple-800, .admin-dark .text-purple-700 { color: #c4b5fd !important; }
+.admin-dark .text-purple-600 { color: #a78bfa !important; }
+.admin-dark .text-yellow-700, .admin-dark .text-yellow-600 { color: #fcd34d !important; }
+.admin-dark .text-orange-600 { color: #fb923c !important; }
+
+/* ---- Recharts (student analysis charts) ---- */
+.admin-dark .recharts-text { fill: #93a1ba !important; }
+.admin-dark .recharts-cartesian-grid line { stroke: rgba(255, 255, 255, 0.08) !important; }
+.admin-dark .recharts-cartesian-axis-line,
+.admin-dark .recharts-cartesian-axis-tick-line { stroke: rgba(255, 255, 255, 0.12) !important; }
+.admin-dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: #1a2336 !important;
+  border-color: #33425e !important;
+  color: #e5e9f2 !important;
+}

@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import TestSession from '../../../../../lib/models/TestSession'
+// Side-effect imports: register User and Test schemas so .populate('userId') /
+// .populate('testId') resolve on cold start.
+import '../../../../../lib/models/User'
+import '../../../../../lib/models/Test'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 
 export async function GET(request) {
@@ -22,6 +26,7 @@ export async function GET(request) {
       .populate('userId', 'name email assignedTutor')
       .populate('testId')
       .sort({ completedAt: -1 })
+      .limit(500)
       .lean()
 
     console.log(`[Tutor Results API] Total completed sessions: ${allSessions.length}`)
@@ -64,7 +69,7 @@ export async function GET(request) {
       testId: session.testId._id,
       studentName: session.userId?.name || 'Unknown',
       studentEmail: session.userId?.email || 'N/A',
-      testTitle: session.testId.title,
+      testTitle: session.testId.title || 'Unknown Test',
       topic: session.testId.subject || 'N/A',
       subject: session.testId.subject || 'N/A',
       completedAt: session.completedAt || session.updatedAt,

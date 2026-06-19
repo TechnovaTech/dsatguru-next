@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import Question from '../../../../lib/models/Question'
-import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
+import { getTokenFromRequest, verifyToken, requireRole } from '../../../../lib/auth'
+import { ADMIN_ROLES } from '../../../../lib/constants/roles'
+import { canRevealAnswers } from '../../../../lib/serializers/question'
 import { unlink } from 'fs/promises'
 import path from 'path'
 
@@ -27,17 +29,10 @@ async function deleteImagesFromContent(content) {
 
 export async function DELETE(request, { params }) {
   try {
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+
     await connectDB()
-    
-    const token = getTokenFromRequest(request)
-    if (!token) {
-      return NextResponse.json({ error: 'No token provided' }, { status: 401 })
-    }
-    
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
 
     const { id } = params
     
@@ -81,33 +76,47 @@ export async function DELETE(request, { params }) {
 
 export async function GET(request, { params }) {
   try {
+    const decoded = verifyToken(getTokenFromRequest(request))
+    if (!decoded) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     await connectDB()
-    
+
     const { id } = params
-    
+
     const question = await Question.findById(id).populate('createdBy', 'name')
     
     if (!question) {
       return NextResponse.json({ error: 'Question not found' }, { status: 404 })
     }
     
-    return NextResponse.json({
-      success: true,
-      data: {
-        id: question._id,
-        questionId: question.questionId,
-        title: question.title,
-        content: question.content,
-        explanation: question.explanation,
-        subject: question.subject,
-        difficulty: question.difficulty,
-        type: question.type,
-        correctAnswer: question.correctAnswer,
-        options: question.options ? JSON.parse(question.options) : [],
-        tags: question.tags ? JSON.parse(question.tags) : [],
-        isActive: question.isActive
-      }
-    })
+    // Only staff may see answer key / explanation (no session context here to review).
+    const revealAnswers = canRevealAnswers({ role: decoded.role })
+
+    let parsedOptions = []
+    try { parsedOptions = question.options ? JSON.parse(question.options) : [] } catch (e) { parsedOptions = [] }
+    let parsedTags = []
+    try { parsedTags = question.tags ? JSON.parse(question.tags) : [] } catch (e) { parsedTags = [] }
+
+    const data = {
+      id: question._id,
+      questionId: question.questionId,
+      title: question.title,
+      content: question.content,
+      subject: question.subject,
+      difficulty: question.difficulty,
+      type: question.type,
+      options: parsedOptions,
+      tags: parsedTags,
+      isActive: question.isActive
+    }
+    if (revealAnswers) {
+      data.explanation = question.explanation
+      data.correctAnswer = question.correctAnswer
+    }
+
+    return NextResponse.json({ success: true, data })
   } catch (error) {
     console.error('Get question error:', error)
     return NextResponse.json({ 

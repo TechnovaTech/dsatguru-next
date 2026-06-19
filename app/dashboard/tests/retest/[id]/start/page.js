@@ -2,8 +2,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { FiCheckCircle, FiArrowRight } from 'react-icons/fi'
+import { useToast } from '../../../../../components/ui/UIProvider'
 
 export default function RetestStartPage() {
+  const toast = useToast()
   const router = useRouter()
   const params = useParams()
   const sessionId = params.id
@@ -23,16 +25,28 @@ export default function RetestStartPage() {
   const [moduleScores, setModuleScores] = useState({})
   const [showQuestionNav, setShowQuestionNav] = useState(false)
   const [markedQuestions, setMarkedQuestions] = useState(new Set())
+  const [expired, setExpired] = useState(false)
   const testContainerRef = useRef(null)
 
   useEffect(() => {
+    // The retest set is passed via localStorage and is lost on a hard refresh. Rather than
+    // redirecting to a blank/broken page, show a clear "retest expired" message with a way back.
     const retestQuestions = localStorage.getItem('retestQuestions')
     if (retestQuestions) {
-      const questions = JSON.parse(retestQuestions)
-      setAllQuestions(questions)
+      try {
+        const questions = JSON.parse(retestQuestions)
+        if (Array.isArray(questions) && questions.length > 0) {
+          setAllQuestions(questions)
+        } else {
+          setExpired(true)
+        }
+      } catch {
+        setExpired(true)
+      }
       setLoading(false)
     } else {
-      router.push('/dashboard/tests/retest')
+      setExpired(true)
+      setLoading(false)
     }
   }, [])
 
@@ -62,7 +76,7 @@ export default function RetestStartPage() {
     )
     
     if (filteredQuestions.length === 0) {
-      alert(`Not enough ${subject} questions for retest`)
+      toast.error(`Not enough ${subject} questions for retest`)
       router.push('/dashboard/tests/retest')
       return
     }
@@ -77,7 +91,7 @@ export default function RetestStartPage() {
     }
     
     if (selectedQuestions.length < questionCount) {
-      alert(`Not enough questions for ${subject} Module ${moduleNum}`)
+      toast.error(`Not enough questions for ${subject} Module ${moduleNum}`)
       router.push('/dashboard/tests/retest')
       return
     }
@@ -178,6 +192,31 @@ export default function RetestStartPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    )
+  }
+
+  if (expired) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+          <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-12 h-12 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Retest Expired</h2>
+          <p className="text-gray-600 mb-6">
+            This retest session is no longer available (it may have been lost on a page refresh).
+            Please restart it from the Retest Dashboard.
+          </p>
+          <button
+            onClick={() => router.push('/dashboard/tests/retest')}
+            className="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+          >
+            Back to Retest Dashboard
+          </button>
+        </div>
       </div>
     )
   }
@@ -315,7 +354,7 @@ export default function RetestStartPage() {
 
   return (
     <div ref={testContainerRef} className="h-screen flex flex-col bg-white">
-      <div className="bg-white border-b px-6 py-3 flex items-center justify-between">
+      <div className="bg-white border-b px-6 py-3 flex flex-wrap gap-2 items-center justify-between">
         <div className="text-base font-bold text-gray-900">
           🔄 Retest - Section 1, Module {currentModule}: {currentSection === 'rw' ? 'Reading and Writing' : 'Math'}
         </div>
@@ -325,8 +364,8 @@ export default function RetestStartPage() {
         <div></div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
-        <div className="w-1/2 overflow-y-auto p-8 bg-gray-50 relative border-r border-gray-300">
+      <div className="flex-1 flex flex-col md:flex-row md:overflow-hidden">
+        <div className="w-full md:w-1/2 overflow-y-auto p-4 md:p-8 bg-gray-50 relative border-b md:border-r md:border-b-0 border-gray-300">
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-gray-300 text-6xl font-bold transform -rotate-45 opacity-30 select-none">
               www.dsatguru.com
@@ -350,13 +389,13 @@ export default function RetestStartPage() {
           </div>
         </div>
 
-        <div className="w-1/2 overflow-y-auto p-8 bg-gray-50 relative">
+        <div className="w-full md:w-1/2 overflow-y-auto p-4 md:p-8 bg-gray-50 relative">
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-gray-300 text-6xl font-bold transform -rotate-45 opacity-30 select-none">
               www.dsatguru.com
             </div>
           </div>
-          
+
           <div className="max-w-2xl mx-auto relative z-10">
             <div className="flex items-center gap-4 mb-6">
               <div className="bg-orange-600 text-white w-12 h-12 rounded flex items-center justify-center font-bold text-lg">

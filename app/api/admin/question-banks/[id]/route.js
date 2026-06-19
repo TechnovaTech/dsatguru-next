@@ -2,16 +2,15 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import Course from '../../../../../lib/models/Course'
 import Question from '../../../../../lib/models/Question'
-import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
+import { requireRole } from '../../../../../lib/auth'
+import { ADMIN_ROLES } from '../../../../../lib/constants/roles'
 
 export async function DELETE(request, { params }) {
   try {
+    const auth = requireRole(request, ADMIN_ROLES)
+    if (auth.error) return auth.error
+
     await connectDB()
-    const token = getTokenFromRequest(request)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'Admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
 
     // Delete all questions in this bank first
     await Question.deleteMany({ questionBankId: params.id })

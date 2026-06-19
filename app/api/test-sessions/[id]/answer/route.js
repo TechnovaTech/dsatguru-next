@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 import TestSession from '../../../../../lib/models/TestSession'
+import Test from '../../../../../lib/models/Test'
 import Question from '../../../../../lib/models/Question'
+import { answersMatch } from '../../../../../lib/scoring/satScale'
+import { buildAdaptiveModule } from '../../../../../lib/adaptive'
 import mongoose from 'mongoose'
 
 export async function POST(request, { params }) {
@@ -40,7 +43,7 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Question not found' }, { status: 404 })
     }
 
-    const isCorrect = String(selectedOption).toUpperCase() === String(question.correctAnswer).toUpperCase()
+    const isCorrect = answersMatch(question.correctAnswer, selectedOption)
     session.responses.push({
       questionId: qId,
       selectedAnswer: selectedOption,
@@ -72,20 +75,12 @@ export async function POST(request, { params }) {
 
     if (baseAnsweredCount >= baseTarget && (session.state === 'IN_PROGRESS_BASE' || session.state === 'CREATED')) {
       const accuracy = baseAnsweredCount > 0 ? baseCorrectCount / baseAnsweredCount : 0
-      let adaptiveDifficulty = 'Easy'
-      if (accuracy >= 0.75) adaptiveDifficulty = 'Hard'
-      else if (accuracy >= 0.5) adaptiveDifficulty = 'Medium'
-
       const usedIds = responseIds
-      const adaptiveQuestions = await Question.find({
-        questionBankId: session.questionBankId,
-        testType: 'Adaptive',
-        difficulty: adaptiveDifficulty,
-        isActive: true,
-        _id: { $nin: usedIds }
-      }).select('_id').limit(baseTarget)
 
-      session.adaptiveAssignedQuestionIds = adaptiveQuestions.map(q => q._id)
+      // Single source of truth for Module-1 -> Module-2 routing (customConfig band +
+      // distribution, with legacy single-difficulty fallback). Shared with submit/route.js.
+      const test = session.testId ? await Test.findById(session.testId).select('customConfig').lean() : null
+      session.adaptiveAssignedQuestionIds = await buildAdaptiveModule({ session, test, accuracy, usedIds })
       session.state = 'IN_PROGRESS_ADAPTIVE'
     }
 

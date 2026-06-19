@@ -72,57 +72,15 @@ const nextConfig = {
         destination: '/sat-study-guide',
         permanent: true,
       },
-      // Old PSAT program URLs to new SEO-friendly URLs
-      {
-        source: '/programs/psat',
-        destination: '/psat',
-        permanent: true,
-      },
-      {
-        source: '/programs/psat/live-bootcamp-course',
-        destination: '/psat/bootcamp-courses',
-        permanent: true,
-      },
-      {
-        source: '/programs/psat/live-prep-course',
-        destination: '/psat/live-prep-course',
-        permanent: true,
-      },
-      {
-        source: '/programs/psat/individual-tutoring',
-        destination: '/psat/individual-tutoring',
-        permanent: true,
-      },
-      {
-        source: '/programs/psat/reading-and-writing-section',
-        destination: '/psat/reading-writing',
-        permanent: true,
-      },
-      {
-        source: '/programs/psat/math-section',
-        destination: '/psat/math',
-        permanent: true,
-      },
-      {
-        source: '/programs/psat/practice-test',
-        destination: '/free-psat-practice-test',
-        permanent: true,
-      },
-      {
-        source: '/programs/psat/mock-test',
-        destination: '/free-psat-mock-test',
-        permanent: true,
-      },
-      {
-        source: '/programs/psat/diagnostic-test',
-        destination: '/free-psat-diagnostic-test',
-        permanent: true,
-      },
-      {
-        source: '/programs/psat/study-guide',
-        destination: '/psat-study-guide',
-        permanent: true,
-      },
+      // PSAT removed — redirect any old PSAT URL to home
+      { source: '/programs/psat', destination: '/', permanent: true },
+      { source: '/programs/psat/:path*', destination: '/', permanent: true },
+      { source: '/psat', destination: '/', permanent: true },
+      { source: '/psat/:path*', destination: '/', permanent: true },
+      { source: '/psat-study-guide', destination: '/', permanent: true },
+      { source: '/free-psat-diagnostic-test', destination: '/', permanent: true },
+      { source: '/free-psat-mock-test', destination: '/', permanent: true },
+      { source: '/free-psat-practice-test', destination: '/', permanent: true },
       // Blog URL redirects
       {
         source: '/blog/digital-sat-study-plan-8-weeks',

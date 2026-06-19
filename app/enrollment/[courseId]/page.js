@@ -2,14 +2,19 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { FaCheckCircle, FaClock, FaUsers, FaPlay, FaChalkboardTeacher, FaCertificate, FaBookOpen, FaPercent } from 'react-icons/fa'
+import Image from 'next/image'
+import {
+  FaChalkboardTeacher, FaCertificate, FaBookOpen, FaClock, FaRegCalendarCheck, FaQuoteLeft,
+} from 'react-icons/fa'
+import { FiCheck, FiArrowRight, FiStar } from 'react-icons/fi'
 import { useCourses } from '../../components/CourseContext'
 import { useAuth } from '../../components/AuthContext'
 import FloatingContactButtons from '../../components/FloatingContactButtons'
-
+import { useToast } from '../../components/ui/UIProvider'
 import axios from 'axios'
 
 export default function EnrollmentPage() {
+  const toast = useToast()
   const { courseId } = useParams()
   const router = useRouter()
   const { courses, loading: coursesLoading, refreshCourses } = useCourses()
@@ -19,11 +24,9 @@ export default function EnrollmentPage() {
   const [showScheduleModal, setShowScheduleModal] = useState(false)
   const [selectedSchedule, setSelectedSchedule] = useState(null)
 
-
   useEffect(() => {
     if (courses.length > 0) {
-      const foundCourse = courses.find(c => c.courseId === courseId || c.id === courseId)
-      console.log('Found course for enrollment:', foundCourse)
+      const foundCourse = courses.find((c) => c.courseId === courseId || c.id === courseId)
       setCourse(foundCourse)
     }
   }, [courseId, courses])
@@ -41,54 +44,42 @@ export default function EnrollmentPage() {
       router.push(`/login?returnTo=/enrollment/${courseId}`)
       return
     }
-
     if (course.discountedPrice > 0 || course.originalPrice > 0) {
       try {
         setEnrollLoading(true)
         const token = localStorage.getItem('token')
-        const response = await axios.post('/api/create-payment-intent', {
-          courseId: course.id,
-          amount: course.discountedPrice || course.originalPrice,
-          courseTitle: course.title
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        
+        const response = await axios.post(
+          '/api/create-payment-intent',
+          { courseId: course.id, amount: course.discountedPrice || course.originalPrice, courseTitle: course.title, scheduleId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
         window.location.href = response.data.url
       } catch (error) {
-        alert('Payment setup failed')
+        toast.error('Payment setup failed')
         setEnrollLoading(false)
       }
     } else {
-      // Free course enrollment
       try {
         setEnrollLoading(true)
-        const response = await axios.post('/api/enrollment', {
-          courseId,
-          scheduleId
-        })
-        
+        const response = await axios.post('/api/enrollment', { courseId, scheduleId })
         if (response.data.success) {
-          alert('Enrollment successful!')
+          toast.success('Enrollment successful!')
           router.push('/dashboard/courses')
         }
       } catch (error) {
         console.error('Enrollment error:', error)
-        alert('Failed to enroll. Please try again.')
+        toast.error('Failed to enroll. Please try again.')
       } finally {
         setEnrollLoading(false)
       }
     }
   }
 
-
-
   const handleScheduleSelection = () => {
     if (!user) {
       router.push(`/login?returnTo=/enrollment/${courseId}`)
       return
     }
-    
     if (course.courseSchedules?.length === 1) {
       handleEnroll(course.courseSchedules[0].id)
     } else if (course.courseSchedules?.length > 1) {
@@ -100,10 +91,10 @@ export default function EnrollmentPage() {
 
   if (coursesLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="dg flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading course details...</p>
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-600" />
+          <p className="mt-4 text-slate-500">Loading course details...</p>
         </div>
       </div>
     )
@@ -111,14 +102,11 @@ export default function EnrollmentPage() {
 
   if (!course) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="dg flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Course Not Found</h2>
-          <p className="text-gray-600 mb-6">The course you&apos;re looking for doesn&apos;t exist.</p>
-          <button
-            onClick={() => router.push('/')}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-          >
+          <h2 className="mb-4 text-2xl font-bold text-slate-800">Course Not Found</h2>
+          <p className="mb-6 text-slate-500">The course you&apos;re looking for doesn&apos;t exist.</p>
+          <button onClick={() => router.push('/')} className="rounded-full bg-indigo-600 px-6 py-2.5 font-semibold text-white hover:bg-indigo-700">
             Go Home
           </button>
         </div>
@@ -126,339 +114,308 @@ export default function EnrollmentPage() {
     )
   }
 
+  const hasPrice = course.originalPrice > 0 || course.discountedPrice > 0
+  const benefits = [
+    { icon: <FaChalkboardTeacher size={24} />, title: 'Expert Instructors', desc: 'Learn from experienced educators with proven track records of helping students achieve exceptional DSAT/PSAT scores.', grad: 'from-indigo-600 to-indigo-700' },
+    { icon: <FaCertificate size={24} />, title: 'Score Guarantee', desc: "We're confident in our methods. Complete all course requirements and we guarantee a significant score improvement.", grad: 'from-blue-600 to-blue-700' },
+    { icon: <FaBookOpen size={24} />, title: 'Comprehensive Materials', desc: 'Access to extensive practice materials, realistic practice tests, and detailed explanations for all questions.', grad: 'from-teal-600 to-teal-700' },
+  ]
+
   return (
-    <section className="w-full bg-gradient-to-b from-blue-50 to-white">
+    <section className="dg w-full bg-white text-slate-900">
       <FloatingContactButtons />
-      
-      {/* Hero Section */}
-      <div className="relative w-full min-h-[70vh] overflow-hidden bg-gray-900">
-        <div className="absolute inset-0 flex md:justify-end justify-center">
-          <img
-            src={course.bannerImageUrl || '/hero-3.png'}
-            alt="Background"
-            className="w-full md:w-1/2 h-full object-cover opacity-30 object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-blue-700/10 md:via-blue-700/10 to-blue-500/10"></div>
+
+      {/* ===== HERO ===== */}
+      <div className="relative -mt-28 overflow-hidden">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-indigo-50/80 via-white to-white" />
+          <div className="absolute -right-24 -top-24 h-[32rem] w-[32rem] rounded-full bg-indigo-200/40 blur-3xl" />
+          <div className="absolute -left-20 top-1/3 h-80 w-80 rounded-full bg-blue-200/30 blur-3xl" />
+          <div className="absolute inset-0 dg-grid-bg opacity-[0.5] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
         </div>
-        <div className="relative z-10 max-w-7xl mx-auto w-full h-full flex items-center justify-center md:justify-start px-6 min-h-[70vh]">
-          <div className="w-full md:w-1/2 space-y-6 text-white text-center md:text-left">
-            <div className="relative inline-block uppercase tracking-wider text-xs px-4 py-3 border-2 border-white/80 rounded-full overflow-hidden bg-white/10">
-              <span className="relative z-10 text-white">
-                Let&apos;s Score Higher!
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
-            </div>
-            <h1 className="text-3xl md:text-5xl font-bold whitespace-pre-line leading-tight">
+
+        <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-12 px-6 pb-16 pt-36 lg:grid-cols-2 lg:gap-10">
+          {/* Left */}
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-wider text-indigo-600 shadow-sm backdrop-blur">
+              <FiStar /> Let&apos;s Score Higher!
+            </span>
+            <h1 className="mt-5 whitespace-pre-line text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-900 md:text-5xl">
               {course.title}
             </h1>
-            <p className="mt-4 text-gray-300 text-md md:text-lg whitespace-pre-line">
-              {course.subtitle}
-            </p>
-            <ul className="mt-6 space-y-2 text-gray-300 text-sm">
-              {course.included?.map((item, idx) => (
-                <li
-                  key={idx}
-                  className="flex items-center gap-2 justify-center md:justify-start"
-                >
-                  <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-500 text-white rounded-full text-xs font-bold">{idx + 1}</span>
-                  <span>{item}</span>
+            {course.subtitle && (
+              <p className="mt-4 whitespace-pre-line text-lg font-medium text-slate-500">{course.subtitle}</p>
+            )}
+
+            <ul className="mt-7 grid gap-2.5">
+              {course.included?.slice(0, 4).map((item, idx) => (
+                <li key={idx} className="flex items-center gap-3 text-sm font-medium text-slate-700">
+                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                    <FiCheck size={12} />
+                  </span>
+                  {item}
                 </li>
               ))}
             </ul>
-            <div className="mt-6 flex justify-center md:justify-start">
+
+            <div className="mt-8 flex flex-wrap items-center gap-5">
+              {hasPrice && (
+                <div className="flex items-end gap-2">
+                  {course.originalPrice ? <span className="pb-1 text-sm text-slate-400 line-through">${course.originalPrice}</span> : null}
+                  <span className="text-4xl font-extrabold text-slate-900">${course.discountedPrice || course.originalPrice}</span>
+                </div>
+              )}
               <button
                 onClick={handleScheduleSelection}
                 disabled={enrollLoading}
-                className="px-6 py-3 rounded-md bg-transparent border-2 border-blue-300 cursor-pointer hover:bg-white/10 transition text-white text-sm font-semibold shadow-lg"
+                className="dg-shine group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-indigo-600 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5 hover:bg-indigo-700 disabled:opacity-60"
               >
                 {enrollLoading ? 'Processing...' : 'Enroll Now'}
+                <FiArrowRight className="transition-transform group-hover:translate-x-1" />
               </button>
             </div>
-            <p className="text-gray-400 mt-2 text-sm">
-              {course.enrollmentNote}
-            </p>
+            {course.enrollmentNote && <p className="mt-3 text-sm text-slate-500">{course.enrollmentNote}</p>}
           </div>
+
+          {/* Right — created branded graphic */}
+          <motion.div
+            initial={{ opacity: 1, scale: 0.97 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="relative mx-auto w-full max-w-md lg:max-w-none"
+          >
+            <div className="absolute -inset-3 rounded-[2.5rem] bg-gradient-to-tr from-indigo-400/25 to-blue-400/25 blur-2xl" />
+            <Image
+              src="/course-hero-art.png"
+              alt={`${course.title} — score growth with DSATGURU`}
+              width={900}
+              height={980}
+              priority
+              className="relative w-full rounded-[2rem] shadow-2xl shadow-indigo-900/20"
+            />
+          </motion.div>
         </div>
       </div>
 
-      {/* Overview Section */}
-      <div className="max-w-7xl mx-auto py-20 px-6 md:px-12">
-        <div className="grid md:grid-cols-3 gap-12">
-          {/* Left Overview */}
-          <div id="course-overview" className="bg-white p-10 rounded-3xl shadow-xl md:col-span-2 scroll-mt-24 relative overflow-hidden">
-            <div className="absolute inset-0 bg-blue-100 opacity-0 transition-opacity duration-1000" id="overview-highlight"></div>
-            <div className="relative z-10">
-            <h2 className="text-3xl font-bold text-blue-800 mb-8">
-              Course Overview
-            </h2>
-            <p className="text-gray-700 mb-8">{course.description}</p>
-            <ul className="space-y-5 text-gray-700">
-              {course.included?.map((item, idx) => (
-                <li key={idx} className="flex gap-3 items-start">
-                  <span className="inline-flex items-center justify-center w-5 h-5 bg-green-500 text-white rounded-full text-xs font-bold">{idx + 1}</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-            </div>
-          </div>
-
-          {/* Right Cards */}
-          <div className="flex flex-col gap-8 h-full">
-            {[
-              {
-                icon: <FaChalkboardTeacher size={32} />,
-                title: 'Expert Instructors',
-                desc: 'Learn from experienced educators with proven track records of helping students achieve exceptional DSAT/PSAT scores.',
-              },
-              {
-                icon: <FaCertificate size={32} />,
-                title: 'Score Guarantee',
-                desc: 'We\'re confident in our methods. Complete all course requirements and we guarantee a significant score improvement.',
-              },
-              {
-                icon: <FaBookOpen size={32} />,
-                title: 'Comprehensive Materials',
-                desc: 'Access to extensive practice materials, realistic practice tests, and detailed explanations for all questions.',
-              },
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: idx * 0.2 }}
-                className="flex gap-4 bg-gradient-to-br h-full items-center from-blue-100 via-blue-50 to-white/30 p-6 rounded-2xl shadow hover:shadow-lg transition"
-              >
-                <div className="text-blue-600 self-start mt-0 md:mt-4">
-                  {item.icon}
-                </div>
-                <div>
-                  <h4 className="font-semibold text-lg text-blue-800">
-                    {item.title}
-                  </h4>
-                  <p className="text-gray-600 text-sm mt-1">{item.desc}</p>
-                </div>
-              </motion.div>
+      {/* ===== OVERVIEW + BENEFITS ===== */}
+      <div className="mx-auto grid max-w-7xl gap-8 px-6 py-16 lg:grid-cols-3 lg:px-12">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="rounded-3xl border border-slate-100 bg-white p-8 shadow-lg lg:col-span-2"
+        >
+          <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-indigo-600">
+            Course Overview
+          </span>
+          <h2 className="mt-4 text-2xl font-extrabold text-slate-900 md:text-3xl">
+            What you&apos;ll <span className="dg-gradient-text">master</span>
+          </h2>
+          {course.description && <p className="mt-4 leading-relaxed text-slate-600">{course.description}</p>}
+          <ul className="mt-6 grid gap-3.5 sm:grid-cols-2">
+            {course.included?.map((item, idx) => (
+              <li key={idx} className="flex items-start gap-3 rounded-xl bg-slate-50 p-3.5">
+                <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-blue-600 text-white">
+                  <FiCheck size={11} />
+                </span>
+                <span className="text-sm text-slate-700">{item}</span>
+              </li>
             ))}
-          </div>
+          </ul>
+        </motion.div>
+
+        <div className="flex flex-col gap-5">
+          {benefits.map((b, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, x: 24 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: idx * 0.12 }}
+              className="group flex gap-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"
+            >
+              <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${b.grad} text-white shadow-lg transition-transform group-hover:scale-110`}>
+                {b.icon}
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900">{b.title}</h4>
+                <p className="mt-1 text-sm leading-relaxed text-slate-600">{b.desc}</p>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
-      <div className="max-w-7xl mx-auto pb-20 px-6 md:px-12">
-        <div className="grid md:grid-cols-5 gap-10 md:gap-12">
-          {/* Left Info Boxes */}
-          <div className="flex flex-col gap-8 md:col-span-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Offer Card */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                viewport={{ once: true }}
-                className="flex flex-col bg-gradient-to-br from-blue-700/70 to-blue-500/90 text-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition h-full"
-              >
-                <div className="flex flex-col items-center text-center flex-1 justify-center">
-                  <div className="w-16 h-16 mb-4 rounded-full bg-white flex items-center justify-center">
-                    <FaPercent size={28} className="text-blue-700" />
-                  </div>
-                  <h5 className="text-2xl font-bold mb-2">Special Offer</h5>
-                  <p className="text-sm line-through">
-                    ${course.originalPrice}
-                  </p>
-                  <p className="text-3xl font-extrabold mt-1">
-                    ${course.discountedPrice}
-                  </p>
-                  <p className="text-xs mt-1">{course.priceNote}</p>
-                </div>
 
+      {/* ===== PRICING + INFO + SCHEDULES ===== */}
+      <div className="mx-auto grid max-w-7xl gap-8 px-6 pb-16 lg:grid-cols-5 lg:px-12">
+        <div className="flex flex-col gap-6 lg:col-span-3">
+          <div className="grid gap-6 sm:grid-cols-2">
+            {/* Offer card */}
+            {hasPrice && (
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="relative flex flex-col overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 to-blue-600 p-8 text-white shadow-xl"
+              >
+                <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
+                <div className="relative flex flex-1 flex-col items-center justify-center text-center">
+                  <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-2xl font-extrabold">%</div>
+                  <h5 className="text-xl font-bold">Special Offer</h5>
+                  {course.originalPrice ? <p className="mt-2 text-sm text-white/80 line-through">${course.originalPrice}</p> : null}
+                  <p className="text-4xl font-extrabold">${course.discountedPrice || course.originalPrice}</p>
+                  {course.priceNote && <p className="mt-1 text-xs text-white/80">{course.priceNote}</p>}
+                </div>
                 <button
                   onClick={handleScheduleSelection}
                   disabled={enrollLoading}
-                  className="cursor-pointer mt-6 bg-white text-blue-700 font-bold px-6 py-3 rounded-full text-sm hover:bg-blue-100 transition w-full"
+                  className="relative mt-6 w-full rounded-full bg-white py-3 text-sm font-bold text-indigo-600 transition-transform hover:-translate-y-0.5 disabled:opacity-60"
                 >
                   {enrollLoading ? 'Processing...' : 'Enroll Now'}
                 </button>
               </motion.div>
+            )}
 
-              {/* Right Two Cards */}
-              <div className="flex flex-col justify-between h-full gap-4">
-                {/* Class Duration Card */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  viewport={{ once: true }}
-                  className="flex flex-col flex-1 bg-white rounded-xl shadow p-6 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <h5 className="text-lg font-bold text-gray-800">
-                      Class Duration
-                    </h5>
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <FaClock size={20} className="text-blue-600" />
-                    </div>
-                  </div>
-                  <div className="flex-1 flex flex-col justify-center gap-1">
-                    <p className="text-gray-800 text-base text-sm font-medium">
-                      Multiple Sessions
-                    </p>
-                    <p className="text-gray-500 text-xs mt-1">
-                      Comprehensive course with regular classes
-                    </p>
-                  </div>
-                </motion.div>
-
-                {/* Class Format Card */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  viewport={{ once: true }}
-                  className="flex flex-col flex-1 bg-white rounded-xl shadow p-6 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <h5 className="text-lg font-bold text-gray-800">
-                      Class Format
-                    </h5>
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <FaChalkboardTeacher
-                        size={20}
-                        className="text-green-600"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex-1 flex flex-col justify-center gap-1">
-                    <p className="text-gray-800 text-base text-sm font-medium">
-                      Live Online Classes
-                    </p>
-                    <p className="text-gray-500 text-xs mt-1">
-                      Interactive sessions with expert instructors
-                    </p>
-                  </div>
-                </motion.div>
+            {/* Duration + Format */}
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-1 flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                <div className="mb-3 flex items-center justify-between">
+                  <h5 className="font-bold text-slate-800">Class Duration</h5>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-600"><FaClock size={18} /></span>
+                </div>
+                <p className="text-sm font-medium text-slate-800">Multiple Sessions</p>
+                <p className="mt-1 text-xs text-slate-500">Comprehensive course with regular classes</p>
+              </div>
+              <div className="flex flex-1 flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                <div className="mb-3 flex items-center justify-between">
+                  <h5 className="font-bold text-slate-800">Class Format</h5>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><FaChalkboardTeacher size={18} /></span>
+                </div>
+                <p className="text-sm font-medium text-slate-800">Live Online Classes</p>
+                <p className="mt-1 text-xs text-slate-500">Interactive sessions with expert instructors</p>
               </div>
             </div>
-
-            {/* Course Schedules (List) */}
-            {course.courseSchedules?.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                viewport={{ once: true }}
-                className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition"
-              >
-                <h5 className="text-lg font-bold text-gray-800 mb-6">
-                  Upcoming Schedules
-                </h5>
-                <ul className="space-y-4">
-                  {course.courseSchedules.map((schedule, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
-                      <span className="text-green-500 mt-1">✔</span>
-                      <div>
-                        <p className="font-semibold text-gray-700">
-                          {schedule.batchTag}
-                        </p>
-                        <ul className="ml-4 list-disc text-sm text-gray-600 mt-1 space-y-1">
-                          {schedule.labels?.map((label, lidx) => (
-                            <li key={lidx}>{label.replace(/[()]/g, '')}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-            )}
           </div>
 
-          {/* Right Testimonial Card */}
-          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden md:col-span-2 flex flex-col">
+          {/* Schedules */}
+          {course.courseSchedules?.length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
               viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="rounded-3xl border border-slate-100 bg-white p-8 shadow-lg"
             >
-              {/* Image Top */}
-              <div className="w-full h-64 overflow-hidden">
-                <img
-                  src={course.bannerImageUrl || '/hero-3.png'}
-                  alt="Student Testimonial"
-                  className="w-full h-full object-cover object-center"
-                />
+              <div className="mb-5 flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 text-white"><FaRegCalendarCheck size={18} /></span>
+                <h5 className="text-lg font-bold text-slate-800">Upcoming Schedules</h5>
               </div>
-
-              {/* Testimonial Content */}
-              <div className="p-8 flex flex-col gap-4">
-                <h3 className="text-xl font-bold text-blue-700 text-center">
-                  What Students Say
-                </h3>
-                <p className="text-gray-700 text-sm md:text-base leading-relaxed text-center">
-                  &quot;Our students have seen significant improvements in their scores after taking this course.&quot;
-                </p>
-                <div className="border-t pt-4 mt-4">
-                  <p className="text-sm text-blue-600 font-semibold text-center">
-                    DSAT/PSAT Student
-                  </p>
-                </div>
-              </div>
+              <ul className="space-y-4">
+                {course.courseSchedules.map((schedule, idx) => (
+                  <li key={idx} className="flex items-start gap-3 rounded-xl bg-slate-50 p-4">
+                    <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><FiCheck size={11} /></span>
+                    <div>
+                      <p className="font-semibold text-slate-800">{schedule.batchTag}</p>
+                      <ul className="ml-1 mt-1 space-y-1 text-sm text-slate-500">
+                        {schedule.labels?.map((label, lidx) => (
+                          <li key={lidx}>{label.replace(/[()]/g, '')}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </motion.div>
-          </div>
+          )}
         </div>
 
-        {/* Motivational CTA Section */}
-        <div className="mt-20 bg-gradient-to-r from-blue-100 via-blue-50 to-white rounded-2xl shadow-md p-10 text-center">
-          <motion.h3
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            className="text-2xl md:text-3xl font-bold text-blue-800"
-          >
-            Ready to Boost Your Score?
-          </motion.h3>
-          <p className="text-gray-600 mt-4 max-w-2xl mx-auto">
-            Enroll in our DSAT/PSAT Programs and get expert training, real
-            practice tests, and a clear strategy to success. Join today and see
-            the difference!
+        {/* Testimonial / trust card */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="relative flex flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 to-indigo-900 p-8 text-white shadow-2xl lg:col-span-2"
+        >
+          <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-indigo-500/30 blur-3xl" />
+          <div className="relative">
+            <FaQuoteLeft className="text-indigo-300" size={28} />
+            <p className="mt-5 text-lg font-medium leading-relaxed">
+              &quot;Our students consistently see significant score improvements after completing this course — with expert
+              guidance every step of the way.&quot;
+            </p>
+            <div className="mt-5 flex gap-1 text-amber-400">
+              {[...Array(5)].map((_, i) => <FiStar key={i} fill="currentColor" />)}
+            </div>
+            <p className="mt-3 text-sm font-semibold text-indigo-200">DSAT/PSAT Students</p>
+          </div>
+          <div className="relative mt-8 grid grid-cols-3 gap-3 border-t border-white/10 pt-6 text-center">
+            {[['4,000+', 'Questions'], ['99%', 'Success'], ['+260', 'Avg Gain']].map(([n, l]) => (
+              <div key={l}>
+                <div className="text-xl font-extrabold">{n}</div>
+                <div className="text-[11px] text-indigo-200">{l}</div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* ===== CTA ===== */}
+      <div className="mx-auto max-w-7xl px-6 pb-20 lg:px-12">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-700 to-blue-700 px-8 py-14 text-center text-white shadow-2xl"
+        >
+          <div className="pointer-events-none absolute -left-10 top-0 h-48 w-48 rounded-full bg-white/15 blur-2xl" />
+          <div className="pointer-events-none absolute -right-10 bottom-0 h-48 w-48 rounded-full bg-blue-300/20 blur-2xl" />
+          <h3 className="relative text-2xl font-extrabold md:text-3xl">Ready to Boost Your Score?</h3>
+          <p className="relative mx-auto mt-3 max-w-2xl text-sm text-white/90 md:text-base">
+            Enroll in our DSAT/PSAT programs and get expert training, real practice tests, and a clear strategy to
+            success. Join today and see the difference!
           </p>
           <button
             onClick={handleScheduleSelection}
             disabled={enrollLoading}
-            className="cursor-pointer mt-6 px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-full shadow-lg hover:from-blue-700 hover:to-blue-900 font-semibold transition"
+            className="relative mt-7 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-indigo-600 shadow-lg transition-transform hover:-translate-y-0.5 disabled:opacity-60"
           >
-            {enrollLoading ? 'Processing...' : 'Enroll Now'}
+            {enrollLoading ? 'Processing...' : 'Enroll Now'} <FiArrowRight />
           </button>
-        </div>
+        </motion.div>
       </div>
-
-
 
       {/* Schedule Selection Modal */}
       {showScheduleModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-bold mb-4">Select Schedule</h3>
-            <div className="space-y-3 mb-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+            <h3 className="mb-4 text-lg font-bold text-slate-900">Select Schedule</h3>
+            <div className="mb-6 space-y-3">
               {course.courseSchedules?.map((schedule) => (
                 <button
                   key={schedule.id}
                   onClick={() => setSelectedSchedule(schedule.id)}
-                  className={`w-full p-3 rounded-lg border text-left transition ${
-                    selectedSchedule === schedule.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-300 hover:border-gray-400'
+                  className={`w-full rounded-xl border p-3 text-left transition ${
+                    selectedSchedule === schedule.id ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  <div className="font-semibold">{schedule.day}</div>
-                  <div className="text-sm text-gray-600">{schedule.time}</div>
+                  <div className="font-semibold text-slate-800">{schedule.batchTag}</div>
+                  {schedule.labels?.length > 0 && (
+                    <ul className="mt-1 space-y-0.5 text-sm text-slate-500">
+                      {schedule.labels.map((label, lidx) => (
+                        <li key={lidx}>{label.replace(/[()]/g, '')}</li>
+                      ))}
+                    </ul>
+                  )}
                 </button>
               ))}
             </div>
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowScheduleModal(false)}
-                className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
+              <button onClick={() => setShowScheduleModal(false)} className="flex-1 rounded-full border border-slate-200 py-2.5 font-semibold text-slate-700 hover:bg-slate-50">
                 Cancel
               </button>
               <button
@@ -469,7 +426,7 @@ export default function EnrollmentPage() {
                   }
                 }}
                 disabled={!selectedSchedule}
-                className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="flex-1 rounded-full bg-indigo-600 py-2.5 font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
               >
                 Enroll
               </button>

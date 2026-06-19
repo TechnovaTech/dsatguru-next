@@ -1,234 +1,191 @@
 'use client'
-import { useAuth } from '../components/AuthContext'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
-import { useEffect } from 'react'
-import { FiMenu, FiX, FiGrid, FiBook, FiLogOut, FiTarget, FiBarChart, FiDatabase, FiDollarSign, FiFileText, FiChevronDown, FiChevronRight, FiClipboard, FiPieChart, FiActivity, FiClock, FiVideo, FiUser, FiCalendar, FiMessageSquare, FiZap, FiLayers } from 'react-icons/fi'
-import { TbMathSymbols } from 'react-icons/tb'
-import { useState } from 'react'
-import { FiAlertCircle } from 'react-icons/fi'
+import { useAuth } from '../components/AuthContext'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import {
+  FiGrid, FiFileText, FiBook, FiBarChart2, FiBookOpen, FiMoreHorizontal,
+  FiUser, FiLogOut, FiChevronDown, FiMenu, FiX,
+} from 'react-icons/fi'
 
-const navItems = [
-  { name: "Dashboard", icon: <FiGrid />, path: "/dashboard" },
-  { name: "Profile", icon: <FiUser />, path: "/dashboard/profile" },
-  { 
-    name: "Practice Tests", 
-    icon: <FiFileText />, 
-    path: "/dashboard/tests",
-    children: [
-      { name: "Create Practice", icon: <FiFileText />, path: "/dashboard/tests/create" },
-      { name: "Practice History", icon: <FiClock />, path: "/dashboard/tests/history" },
-    ]
+const SECTIONS = [
+  { id: 'dashboard', label: 'Dashboard', icon: FiGrid, path: '/dashboard' },
+  {
+    id: 'tests', label: 'Tests', icon: FiFileText, items: [
+      { label: 'Create Practice', path: '/dashboard/tests/create' },
+      { label: 'Practice History', path: '/dashboard/tests/history' },
+      { label: 'Adaptive Tests', path: '/dashboard/adaptive-tests' },
+      { label: 'Admin Tests', path: '/dashboard/admin-tests' },
+      { label: 'Retest', path: '/dashboard/tests/retest' },
+    ],
   },
   {
-    name: "Tutor Test",
-    icon: <FiBook />,
-    path: "/dashboard/tutor",
-    children: [
-      { name: "Tutor Math", icon: <FiActivity />, path: "/dashboard/tutor/math" },
-      { name: "Tutor Read and Write", icon: <FiPieChart />, path: "/dashboard/tutor/rw" },
-    ]
+    id: 'tutor', label: 'Tutor', icon: FiBook, items: [
+      { label: 'Tutor Math', path: '/dashboard/tutor/math' },
+      { label: 'Tutor Reading & Writing', path: '/dashboard/tutor/rw' },
+      { label: 'Module Tests', path: '/dashboard/tutor/module-tests' },
+    ],
   },
   {
-    name: "Tutor Module Tests",
-    icon: <FiLayers />,
-    path: "/dashboard/tutor/module-tests"
+    id: 'progress', label: 'Progress', icon: FiBarChart2, items: [
+      { label: 'Analytics', path: '/dashboard/analytics' },
+      { label: 'Score Tracker', path: '/dashboard/score-tracker' },
+      { label: 'Daily Tracker', path: '/dashboard/daily-tracker' },
+      { label: 'Study Plan', path: '/dashboard/study-plan' },
+      { label: 'Error Log', path: '/dashboard/error-log' },
+      { label: 'My Redo Queue', path: '/dashboard/redo-queue' },
+    ],
   },
   {
-    name: "Admin Tests",
-    icon: <FiClipboard />,
-    path: "/dashboard/admin-tests"
+    id: 'learn', label: 'Learn', icon: FiBookOpen, items: [
+      { label: 'Live Classes', path: '/dashboard/live-classes' },
+      { label: 'Live Courses', path: '/dashboard/courses' },
+      { label: 'Question Banks', path: '/dashboard/question-banks' },
+      { label: 'Formula Sheet', path: '/dashboard/formula-sheet' },
+    ],
   },
-  { name: "Adaptive Tests", icon: <FiZap />, path: "/dashboard/adaptive-tests" },
-  { name: "Live Classes", icon: <FiVideo />, path: "/dashboard/live-classes" },
-  { name: "Live Courses", icon: <FiBook />, path: "/dashboard/courses" },
-  { name: "Question Banks", icon: <FiDatabase />, path: "/dashboard/question-banks" },
-  { name: "Study Plan", icon: <FiTarget />, path: "/dashboard/study-plan" },
-  { name: "Daily Tracker", icon: <FiCalendar />, path: "/dashboard/daily-tracker" },
-  { name: "Score Tracker", icon: <FiActivity />, path: "/dashboard/score-tracker" },
-  { 
-    name: "Errors & Redo", 
-    icon: <FiAlertCircle />, 
-    children: [
-      { name: "Error Log", icon: <FiAlertCircle />, path: "/dashboard/error-log" },
-      { name: "My Redo Queue", icon: <FiActivity />, path: "/dashboard/redo-queue" },
-    ]
+  {
+    id: 'more', label: 'More', icon: FiMoreHorizontal, align: 'right', items: [
+      { label: 'Profile', path: '/dashboard/profile' },
+      { label: 'Messages', path: '/dashboard/messages' },
+      { label: 'Announcements', path: '/dashboard/announcements' },
+      { label: 'Payments', path: '/dashboard/payments' },
+    ],
   },
-  { name: "Analytics", icon: <FiBarChart />, path: "/dashboard/analytics" },
-  { name: "Payments", icon: <FiDollarSign />, path: "/dashboard/payments" },
-  { name: "Formula Sheet", icon: <TbMathSymbols />, path: "/dashboard/formula-sheet" },
-  { name: "Messages", icon: <FiMessageSquare />, path: "/dashboard/messages" },
 ]
 
 export default function DashboardLayout({ children }) {
   const { user, logout, loading } = useAuth()
   const router = useRouter()
-  const [isOpen, setIsOpen] = useState(false)
-  const [expandedItems, setExpandedItems] = useState(['Practice Tests', 'Performance'])
+  const pathname = usePathname()
+  const [openMenu, setOpenMenu] = useState(null)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
-  const toggleExpand = (name, e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setExpandedItems(prev => 
-      prev.includes(name) 
-        ? prev.filter(item => item !== name)
-        : [...prev, name]
-    )
-  }
-  
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login')
-    }
+    if (!loading && !user) router.push('/login')
   }, [user, loading, router])
 
-  if (loading || !user) return <div>Loading...</div>
+  useEffect(() => { setMobileOpen(false); setOpenMenu(null) }, [pathname])
 
-  const initials = user?.name
-    ?.split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase()
-
-  const handleLogout = async () => {
-    await logout()
+  if (loading || !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500" />
+      </div>
+    )
   }
 
-  return (
-    <div className="flex min-h-screen bg-gray-50 font-[Poppins] overflow-hidden">
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
-          onClick={() => setIsOpen(false)}
-        ></div>
-      )}
+  const initials = (user?.name || '?').split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+  const handleLogout = async () => { await logout(); router.push('/login') }
 
-      <aside className={`h-screen fixed z-50 md:static top-0 left-0 bg-white text-gray-800 w-64 p-6 space-y-6 flex flex-col justify-between overflow-y-auto transform transition-transform duration-300 ease-in-out shadow-lg ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
-        <div>
-          <div className="flex items-center justify-between gap-3 mb-8">
-            <Link href="/" className="flex items-center gap-2">
-              <Image
-                src="/logo (2).png"
-                alt="DSATGURU"
-                width={151}
-                height={64}
-                priority
-                className="object-contain h-10 w-auto"
-              />
+  const isActive = (sec) => {
+    if (sec.path) return pathname === sec.path
+    return sec.items?.some((it) => pathname === it.path || pathname.startsWith(it.path + '/'))
+  }
+  const navBtn = 'flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors'
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* ===== Top navbar ===== */}
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 shadow-sm backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 lg:px-6">
+          {/* Brand */}
+          <Link href="/dashboard" className="flex flex-shrink-0 items-center gap-2">
+            <span className="text-lg font-extrabold text-slate-900">DSAT<span className="dg-gradient-text">GURU</span></span>
+            <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-700">Student</span>
+          </Link>
+
+          {/* Desktop nav */}
+          <nav className="hidden flex-1 items-center justify-center gap-1 lg:flex">
+            {SECTIONS.map((sec) => {
+              const active = isActive(sec)
+              if (sec.path) {
+                return (
+                  <Link key={sec.id} href={sec.path} className={`${navBtn} ${active ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`}>
+                    <sec.icon size={15} /> {sec.label}
+                  </Link>
+                )
+              }
+              return (
+                <div key={sec.id} className="relative">
+                  <button
+                    onClick={() => setOpenMenu((m) => (m === sec.id ? null : sec.id))}
+                    className={`${navBtn} ${active || openMenu === sec.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`}
+                  >
+                    <sec.icon size={15} /> {sec.label}
+                    <FiChevronDown size={13} className={`transition-transform ${openMenu === sec.id ? 'rotate-180' : ''}`} />
+                  </button>
+                  {openMenu === sec.id && (
+                    <div className={`absolute top-full ${sec.align === 'right' ? 'right-0' : 'left-0'} z-[60] mt-2 w-60 overflow-hidden rounded-xl border border-slate-100 bg-white py-1.5 shadow-xl`}>
+                      {sec.items.map((it) => (
+                        <Link
+                          key={it.path}
+                          href={it.path}
+                          onClick={() => setOpenMenu(null)}
+                          className={`block px-4 py-2 text-sm transition-colors ${pathname === it.path ? 'bg-indigo-50 font-semibold text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600'}`}
+                        >
+                          {it.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </nav>
+
+          {/* Right */}
+          <div className="flex flex-shrink-0 items-center gap-3">
+            <Link href="/dashboard/profile" className="hidden items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-100 sm:flex">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold text-white">{initials}</span>
+              <span className="text-sm font-medium text-slate-700">{user.name?.split(' ')[0]}</span>
             </Link>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-gray-600 hover:text-gray-800 md:hidden"
-            >
-              <FiX size={24} />
+            <button onClick={handleLogout} className="hidden items-center gap-1.5 rounded-lg bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100 sm:flex">
+              <FiLogOut size={15} /> Logout
+            </button>
+            <button onClick={() => setMobileOpen((o) => !o)} aria-label="Toggle menu" className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 lg:hidden">
+              {mobileOpen ? <FiX size={20} /> : <FiMenu size={20} />}
             </button>
           </div>
-          <nav className="space-y-3">
-            {navItems.map((item) => (
-              <div key={item.name}>
-                {item.children ? (
-                  <div
-                    className="flex items-center justify-between px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-blue-100 cursor-pointer"
-                    onClick={(e) => toggleExpand(item.name, e)}
-                  >
-                    <div className="flex items-center gap-3">
-                      {item.icon} {item.name}
-                    </div>
-                    {expandedItems.includes(item.name) ? <FiChevronDown /> : <FiChevronRight />}
-                  </div>
-                ) : (
-                  <Link
-                    href={item.path}
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-blue-100"
-                  >
-                    {item.icon} {item.name}
-                  </Link>
-                )}
+        </div>
 
-                {item.children && expandedItems.includes(item.name) && (
-                  <div className="ml-4 space-y-1 mt-1 border-l-2 border-gray-100 pl-2">
-                    {item.children.map((child) => (
-                      child.children ? (
-                        <div key={child.name}>
-                          <div
-                            className="flex items-center justify-between px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-blue-50 text-gray-600 hover:text-blue-700 cursor-pointer"
-                            onClick={(e) => toggleExpand(child.name, e)}
-                          >
-                            <div className="flex items-center gap-3">
-                              {child.icon} {child.name}
-                            </div>
-                            {expandedItems.includes(child.name) ? <FiChevronDown /> : <FiChevronRight />}
-                          </div>
-                          {expandedItems.includes(child.name) && (
-                            <div className="ml-4 space-y-1 mt-1 border-l-2 border-gray-100 pl-2">
-                              {child.children.map((subChild) => (
-                                <Link
-                                  key={subChild.name}
-                                  href={subChild.path}
-                                  onClick={() => setIsOpen(false)}
-                                  className="flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-blue-50 text-gray-600 hover:text-blue-700"
-                                >
-                                  {subChild.name}
-                                </Link>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <Link
-                          key={child.name}
-                          href={child.path}
-                          onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-blue-50 text-gray-600 hover:text-blue-700"
-                        >
-                          {child.icon} {child.name}
+        {/* Mobile menu */}
+        {mobileOpen && (
+          <div className="max-h-[80vh] overflow-y-auto border-t border-slate-100 bg-white px-4 py-4 lg:hidden">
+            {SECTIONS.map((sec) => (
+              <div key={sec.id} className="mb-3">
+                {sec.path ? (
+                  <Link href={sec.path} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold ${isActive(sec) ? 'bg-indigo-50 text-indigo-700' : 'text-slate-800'}`}>
+                    <sec.icon size={15} /> {sec.label}
+                  </Link>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-400">
+                      <sec.icon size={13} /> {sec.label}
+                    </div>
+                    <div className="space-y-0.5">
+                      {sec.items.map((it) => (
+                        <Link key={it.path} href={it.path} className={`block rounded-lg py-2 pl-9 pr-3 text-sm ${pathname === it.path ? 'bg-indigo-50 font-semibold text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>
+                          {it.label}
                         </Link>
-                      )
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             ))}
-          </nav>
-        </div>
-
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <div 
-            className="flex items-center gap-3 mb-3 cursor-pointer hover:bg-gray-50 rounded-lg p-2 -mx-2 transition-colors"
-            onClick={() => router.push('/dashboard/profile')}
-          >
-            <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
-              {initials}
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-800">{user?.name}</p>
-              <p className="text-xs text-gray-500">{user?.email}</p>
-              <span className="inline-block mt-1 px-2 py-0.5 text-xs font-semibold rounded-full bg-orange-100 text-orange-700">
-                Student
-              </span>
-            </div>
+            <button onClick={handleLogout} className="mt-2 flex w-full items-center gap-2 rounded-lg bg-rose-50 px-3 py-2.5 text-sm font-semibold text-rose-600">
+              <FiLogOut size={15} /> Logout
+            </button>
           </div>
-          <button onClick={handleLogout} className="w-full flex items-center gap-2 text-sm font-medium px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all">
-            <FiLogOut /> Logout
-          </button>
-        </div>
-      </aside>
+        )}
+      </header>
 
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="md:hidden flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 shadow-sm sticky top-0 z-30">
-          <h1 className="text-lg font-semibold text-gray-800">Dashboard</h1>
-          <button onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-          </button>
-        </header>
+      {/* click-outside backdrop for dropdowns */}
+      {openMenu && <div className="fixed inset-0 z-40" onClick={() => setOpenMenu(null)} />}
 
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
-      </div>
+      {/* Content */}
+      <main>{children}</main>
     </div>
   )
 }
