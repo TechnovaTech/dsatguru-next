@@ -18,7 +18,7 @@ export default function AppShell({ children }) {
 
   useEffect(() => {
     let active = true
-    fetch('/api/settings/public')
+    fetch('/api/settings/public', { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => { if (active) { setMaint(d); setMaintLoaded(true) } })
       .catch(() => { if (active) setMaintLoaded(true) })
