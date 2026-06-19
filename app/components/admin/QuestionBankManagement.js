@@ -746,7 +746,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
               <table className="min-w-full">
                 <thead className="bg-slate-50 border-b border-slate-100">
                   <tr>
-                    <th className="px-6 py-3 text-left">
+                    <th className="px-3 py-3 text-left">
                       <input
                         type="checkbox"
                         checked={(() => { const fq = getFilteredQuestions(); return fq.length > 0 && fq.every(q => selectedQuestions.includes(q.id)) })()}
@@ -754,14 +754,14 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                         className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                       />
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Question ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Subject</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Difficulty</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Question Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Topic/Subtopic</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Remark</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Question ID</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Subject</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Difficulty</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Question Type</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Topic/Subtopic</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Remark</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -805,7 +805,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       const parsedTags = typeof q.tags === 'string' ? JSON.parse(q.tags) : (Array.isArray(q.tags) ? q.tags : [])
                       return (
                         <tr key={q.id || q._id} className="hover:bg-indigo-50/40 transition-colors">
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-4">
                             <input
                               type="checkbox"
                               checked={selectedQuestions.includes(q.id)}
@@ -813,12 +813,12 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                               className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                             />
                           </td>
-                          <td className="px-6 py-4 text-sm">
+                          <td className="px-4 py-4 text-sm">
                             <div className="font-mono text-slate-900">{q.questionId || `Q-${index + 1}`}</div>
                             <div className="text-xs text-slate-500">#{serialNumber}</div>
                           </td>
-                          <td className="px-6 py-4 text-sm text-slate-700">{q.subject}</td>
-                          <td className="px-6 py-4 text-sm">
+                          <td className="px-4 py-4 text-sm text-slate-700">{q.subject}</td>
+                          <td className="px-4 py-4 text-sm">
                             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                               q.difficulty === 'Easy' ? 'bg-emerald-50 text-emerald-700' :
                               q.difficulty === 'Medium' ? 'bg-amber-50 text-amber-700' :
@@ -828,29 +828,29 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                               {q.difficulty}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-slate-700">{q.type || 'MultipleChoice'}</td>
-                          <td className="px-6 py-4 text-sm text-slate-700">{parsedTags.join(', ') || '-'}</td>
-                          <td className="px-6 py-4 text-sm text-slate-600 max-w-xs truncate" title={q.remark || ''}>
+                          <td className="px-4 py-4 text-sm text-slate-700">{q.type || 'MultipleChoice'}</td>
+                          <td className="px-4 py-4 text-sm text-slate-700 max-w-[150px] truncate" title={parsedTags.join(', ')}>{parsedTags.join(', ') || '-'}</td>
+                          <td className="px-4 py-4 text-sm text-slate-600 max-w-xs truncate" title={q.remark || ''}>
                             {q.remark || <span className="text-slate-400 italic">-</span>}
                           </td>
-                          <td className="px-6 py-4 text-sm">
+                          <td className="px-4 py-4 text-sm">
                             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${q.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
                               {q.isActive ? 'Active' : 'Inactive'}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm">
-                            <div className="flex items-center gap-2">
-                              <button className="inline-flex items-center px-2 py-1 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors" onClick={() => handleOpenEdit(q)}>
-                                <FiEdit className="mr-1" /> Edit
+                          <td className="px-4 py-4 text-sm">
+                            <div className="flex items-center gap-1">
+                              <button title="Edit" aria-label="Edit" className="rounded-lg p-1.5 text-indigo-600 transition-colors hover:bg-indigo-50 hover:text-indigo-800" onClick={() => handleOpenEdit(q)}>
+                                <FiEdit className="h-4 w-4" />
                               </button>
-                              <button className="inline-flex items-center px-2 py-1 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors" onClick={() => setPreview(q)}>
-                                <FiPreview className="mr-1" /> Preview
+                              <button title="Preview" aria-label="Preview" className="rounded-lg p-1.5 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-800" onClick={() => setPreview(q)}>
+                                <FiPreview className="h-4 w-4" />
                               </button>
-                              <button className="inline-flex items-center px-2 py-1 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-colors" onClick={() => toggleActive(q)}>
-                                {q.isActive ? <><FiX className="mr-1" /> Disable</> : <><FiCheck className="mr-1" /> Enable</>}
+                              <button title={q.isActive ? 'Disable' : 'Enable'} aria-label={q.isActive ? 'Disable' : 'Enable'} className="rounded-lg p-1.5 text-amber-600 transition-colors hover:bg-amber-50 hover:text-amber-800" onClick={() => toggleActive(q)}>
+                                {q.isActive ? <FiX className="h-4 w-4" /> : <FiCheck className="h-4 w-4" />}
                               </button>
-                              <button className="inline-flex items-center px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors" onClick={() => softDelete(q)}>
-                                <FiTrash className="mr-1" /> Delete
+                              <button title="Delete" aria-label="Delete" className="rounded-lg p-1.5 text-red-600 transition-colors hover:bg-red-50 hover:text-red-800" onClick={() => softDelete(q)}>
+                                <FiTrash className="h-4 w-4" />
                               </button>
                             </div>
                           </td>
@@ -878,7 +878,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
               }
 
               return (
-                <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-white sticky bottom-0 z-10 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
+                <div className="px-4 py-4 border-t border-slate-100 flex items-center justify-between bg-white sticky bottom-0 z-10 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
                   <div className="text-sm text-slate-500">
                     Page {safePage} of {totalPages} &nbsp;·&nbsp; {filteredQs.length} questions
                   </div>
@@ -1426,33 +1426,33 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
             <table className="min-w-full">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Total</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Active</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Draft</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Created</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Type</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Total</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Active</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Draft</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Created</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredBanks.map(bank => (
                   <tr key={bank.id} className="hover:bg-indigo-50/40 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{bank.title}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{bank.title}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${bank.questionBankType === 'Mathematics' ? 'bg-indigo-50 text-indigo-700' : 'bg-violet-50 text-violet-700'}`}>
                         {bank.questionBankType || 'Reading and Writing'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{bank.totalQuestions}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{bank.activeQuestions}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{bank.draftQuestions}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-700">{bank.totalQuestions}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-700">{bank.activeQuestions}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-700">{bank.draftQuestions}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${bank.status === 'Active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{bank.status}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{bank.createdAt ? new Date(bank.createdAt).toLocaleDateString() : '—'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-700">{bank.createdAt ? new Date(bank.createdAt).toLocaleDateString() : '—'}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm">
                       <div className="flex items-center gap-2">
                         <button className="inline-flex items-center px-3 py-1 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors" onClick={() => setBankAndView(bank)}>
                           <FiEye className="mr-1" /> View
@@ -1571,24 +1571,24 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       <table className="min-w-full">
                         <thead className="bg-slate-50 border-b border-slate-100">
                           <tr>
-                            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">User</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Email</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Role</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Access Type</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Granted Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
+                            <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">User</th>
+                            <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Email</th>
+                            <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Role</th>
+                            <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Access Type</th>
+                            <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Granted Date</th>
+                            <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                           {bankAccess.map(access => (
                             <tr key={access.userId} className="hover:bg-indigo-50/40 transition-colors">
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
+                              <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
                                 {access.userName || 'Unknown User'}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
+                              <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-700">
                                 {access.userEmail || 'N/A'}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <td className="px-4 py-4 whitespace-nowrap text-sm">
                                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                                   access.userRole === 'Admin' ? 'bg-rose-50 text-rose-700' :
                                   access.userRole === 'Tutor' ? 'bg-blue-50 text-blue-700' :
@@ -1597,7 +1597,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                                   {access.userRole || 'Student'}
                                 </span>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <td className="px-4 py-4 whitespace-nowrap text-sm">
                                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                                   access.accessType === 'stripe' ? 'bg-violet-50 text-violet-700' :
                                   'bg-amber-50 text-amber-700'
@@ -1605,10 +1605,10 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                                   {access.accessType === 'stripe' ? 'Stripe Payment' : 'Admin Granted'}
                                 </span>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
+                              <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-700">
                                 {access.grantedAt ? new Date(access.grantedAt).toLocaleDateString() : '—'}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <td className="px-4 py-4 whitespace-nowrap text-sm">
                                 {access.accessType !== 'stripe' && (
                                   <button
                                     onClick={() => revokeAccess(access.userId)}
