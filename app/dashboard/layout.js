@@ -7,6 +7,7 @@ import {
   FiGrid, FiFileText, FiBook, FiBarChart2, FiBookOpen, FiMoreHorizontal,
   FiUser, FiLogOut, FiChevronDown, FiMenu, FiX,
 } from 'react-icons/fi'
+import BugReportWidget from '../components/BugReportWidget'
 
 const SECTIONS = [
   { id: 'dashboard', label: 'Dashboard', icon: FiGrid, path: '/dashboard' },
@@ -136,6 +137,7 @@ export default function DashboardLayout({ children }) {
 
           {/* Right */}
           <div className="flex flex-shrink-0 items-center gap-3">
+            <BugReportWidget />
             <Link href="/dashboard/profile" className="hidden items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-100 sm:flex">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold text-white">{initials}</span>
               <span className="text-sm font-medium text-slate-700">{user.name?.split(' ')[0]}</span>

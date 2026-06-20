@@ -64,6 +64,7 @@ const ADMIN_SECTIONS = [
     id: 'more', label: 'More', icon: FiSettings, align: 'right', items: [
       { label: 'Communication', path: '/admin/communication' },
       { label: 'Messages', path: '/admin/messages' },
+      { label: 'Bug Reports', path: '/admin/bug-reports' },
       { label: 'Comparison Table', path: '/admin/comparison' },
       { label: 'Payments', path: '/admin/payments' },
       { label: 'Settings', path: '/admin/settings' },
@@ -97,6 +98,7 @@ export default function AdminLayout({ children }) {
   const [openMenu, setOpenMenu] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [dark, setDark] = useState(false)
+  const [bugUnread, setBugUnread] = useState(0)
 
   useEffect(() => {
     if (!loading && (!user || !['Admin', 'TutorAdmin'].includes(user.role))) {
@@ -110,6 +112,23 @@ export default function AdminLayout({ children }) {
   useEffect(() => {
     if (typeof window !== 'undefined' && localStorage.getItem('adminTheme') === 'dark') setDark(true)
   }, [])
+
+  // Poll the unread bug-report count for the nav badge.
+  useEffect(() => {
+    if (!user || !['Admin', 'TutorAdmin'].includes(user.role)) return
+    let alive = true
+    const load = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) return
+        const res = await fetch('/api/bug-reports/unread-count', { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' })
+        if (res.ok && alive) { const d = await res.json(); setBugUnread(d.count || 0) }
+      } catch { /* ignore */ }
+    }
+    load()
+    const t = setInterval(load, 20000)
+    return () => { alive = false; clearInterval(t) }
+  }, [user])
 
   const toggleTheme = () => setDark((d) => {
     const next = !d
@@ -164,6 +183,7 @@ export default function AdminLayout({ children }) {
                   >
                     <sec.icon size={15} /> {sec.label}
                     <FiChevronDown size={13} className={`transition-transform ${openMenu === sec.id ? 'rotate-180' : ''}`} />
+                    {sec.id === 'more' && bugUnread > 0 && <span className="ml-0.5 h-2 w-2 rounded-full bg-rose-500" />}
                   </button>
                   {openMenu === sec.id && (
                     <div className={`absolute top-full ${sec.align === 'right' ? 'right-0' : 'left-0'} z-[60] mt-2 w-60 overflow-hidden rounded-xl border border-slate-100 bg-white py-1.5 shadow-xl`}>
@@ -175,6 +195,9 @@ export default function AdminLayout({ children }) {
                           className={`block px-4 py-2 text-sm transition-colors ${pathname === it.path ? 'bg-indigo-50 font-semibold text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600'}`}
                         >
                           {it.label}
+                          {it.path === '/admin/bug-reports' && bugUnread > 0 && (
+                            <span className="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">{bugUnread > 99 ? '99+' : bugUnread}</span>
+                          )}
                         </Link>
                       ))}
                     </div>
