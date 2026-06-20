@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import Test from '../../../../../lib/models/Test'
-import { requireRole } from '../../../../../lib/auth'
-import { STAFF_ROLES, ADMIN_ROLES } from '../../../../../lib/constants/roles'
+import { requireAuth, requireRole } from '../../../../../lib/auth'
+import { ADMIN_ROLES } from '../../../../../lib/constants/roles'
 
 export async function GET(request, { params }) {
   try {
-    const auth = requireRole(request, STAFF_ROLES)
+    // Any authenticated user can READ a test — students take their assigned tests
+    // through this endpoint (scoring is server-authoritative on submit). Editing and
+    // deleting below remain admin-only.
+    const auth = requireAuth(request)
     if (auth.error) return auth.error
     const { decoded } = auth
     await connectDB()
