@@ -1,10 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { FiSend, FiUsers, FiMail, FiMessageSquare, FiBell, FiTrash2, FiX } from 'react-icons/fi'
-import { useConfirm } from '../ui/UIProvider'
+import { useConfirm, useToast } from '../ui/UIProvider'
 
 export default function Communication() {
   const confirm = useConfirm()
+  const toast = useToast()
   const [announcements, setAnnouncements] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -54,8 +55,13 @@ export default function Communication() {
         const data = await res.json().catch(() => ({}))
         throw new Error(data.error || 'Failed to create announcement')
       }
+      const data = await res.json().catch(() => ({}))
       setShowModal(false)
       await fetchAnnouncements()
+      const n = data?.emailSent || 0
+      toast.success(n > 0
+        ? `Announcement posted and emailed to ${n} user${n === 1 ? '' : 's'}.`
+        : 'Announcement posted.')
     } catch (err) {
       setError(err.message || 'Failed to create announcement')
     } finally {

@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import Announcement from '../../../../lib/models/Announcement'
-// Side-effect import: registers the 'User' schema so .populate('createdBy')
+// Default import also registers the 'User' schema so .populate('createdBy')
 // can't throw MissingSchemaError on a cold start.
-import '../../../../lib/models/User'
+import User from '../../../../lib/models/User'
 import { requireRole } from '../../../../lib/auth'
 import { STAFF_ROLES, ADMIN_ROLES } from '../../../../lib/constants/roles'
+import { sendAnnouncementEmails } from '../../../../lib/email'
 
 // List all announcements (staff: Admin, Tutor, TutorAdmin), newest-first
 export async function GET(request) {
@@ -57,7 +58,32 @@ export async function POST(request) {
       .populate('createdBy', 'name email')
       .lean()
 
-    return NextResponse.json(populated, { status: 201 })
+    // Email the announcement to its target audience. The web view always works;
+    // email is best-effort and never fails the request.
+    let emailSent = 0
+    try {
+      const roleFilter = normalizedAudience === 'students'
+        ? { role: 'Student' }
+        : normalizedAudience === 'tutors'
+          ? { role: { $in: ['Tutor', 'TutorAdmin'] } }
+          : {} // 'all' — every active account
+      const recipients = await User.find({
+        ...roleFilter,
+        isActive: { $ne: false },
+        email: { $nin: [null, ''] },
+      }).select('email').lean()
+      const emails = recipients.map((u) => u.email).filter(Boolean)
+      const result = await sendAnnouncementEmails({
+        title: announcement.title,
+        body: announcement.body,
+        recipients: emails,
+      })
+      emailSent = result.sent || 0
+    } catch (e) {
+      console.error('Announcement email send failed:', e?.message)
+    }
+
+    return NextResponse.json({ ...populated, emailSent }, { status: 201 })
   } catch (error) {
     console.error('Create announcement error:', error)
     return NextResponse.json({ error: 'Failed to create announcement' }, { status: 500 })
