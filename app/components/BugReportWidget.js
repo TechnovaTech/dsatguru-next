@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import {
   FiAlertCircle, FiX, FiSend, FiImage, FiArrowLeft, FiPlus, FiClock, FiCheckCircle, FiLoader,
 } from 'react-icons/fi'
@@ -24,6 +25,7 @@ function fmtTime(d) {
 export default function BugReportWidget() {
   const toast = useToast()
   const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false) // portal only after mount (SSR-safe)
   const [view, setView] = useState('list') // 'list' | 'thread'
   const [reports, setReports] = useState([])
   const [active, setActive] = useState(null) // report object, or null = composing new
@@ -75,6 +77,8 @@ export default function BugReportWidget() {
       }
     } catch { /* ignore */ }
   }, [authHeaders, fetchUnread, fetchList])
+
+  useEffect(() => { setMounted(true) }, [])
 
   // Poll the badge while mounted.
   useEffect(() => {
@@ -174,7 +178,7 @@ export default function BugReportWidget() {
         )}
       </button>
 
-      {open && (
+      {open && mounted && createPortal(
         <div className="fixed inset-0 z-[120] flex justify-end">
           <div className="absolute inset-0 bg-slate-900/40" onClick={() => setOpen(false)} />
           <div className="relative flex h-full w-full max-w-md flex-col bg-slate-50 shadow-2xl">
@@ -337,7 +341,8 @@ export default function BugReportWidget() {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )
