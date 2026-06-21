@@ -194,20 +194,35 @@ export async function PUT(request, { params }) {
     if (sessionData.autoSubmitted !== undefined) session.autoSubmitted = sessionData.autoSubmitted
     if (sessionData.autoSubmitReason) session.autoSubmitReason = sessionData.autoSubmitReason
 
-    // Server-authoritative scoring: only re-grade and write scores when the session is
-    // completing. Scores are always derived from gradeAndScore, never from the client.
+    // A session is completing if EITHER field says so. Force BOTH `status` and `state`
+    // together so analytics/results (which filter on `state`) can never miss a completion
+    // again — this status-vs-state split was the root of "completed tests show 0 data".
+    // Scores are always derived server-side via gradeAndScore, never from the client.
     const isCompleting = sessionData.status === 'Completed' || sessionData.state === 'COMPLETED'
-    if (isCompleting && Array.isArray(sessionData.responses) && sessionData.responses.length) {
-      const qIds = sessionData.responses.map(r => r.questionId)
-      const qs = await Question.find({ _id: { $in: qIds } }).select('subject correctAnswer')
-      const qMap = new Map(qs.map(q => [String(q._id), q]))
-      const scored = gradeAndScore(sessionData.responses, qMap)
-      session.responses = sessionData.responses.map((r, i) => ({ ...r, isCorrect: scored.flags[i] }))
-      session.correctAnswers = scored.correctAnswers
-      session.rwScore = scored.rwScore
-      session.mathScore = scored.mathScore
-      session.totalScore = scored.totalScore
-      session.result = { math: scored.mathScore, readingWriting: scored.rwScore, total: scored.totalScore }
+    if (isCompleting) {
+      session.status = 'Completed'
+      session.state = 'COMPLETED'
+      if (!session.completedAt) session.completedAt = sessionData.completedAt || new Date()
+      if (!session.endTime) session.endTime = sessionData.endTime || new Date()
+
+      // Re-grade from the question bank. Prefer responses in this payload; otherwise fall
+      // back to whatever is already on the session, so a completion call without responses
+      // still produces a correct score.
+      const toGrade = (Array.isArray(sessionData.responses) && sessionData.responses.length)
+        ? sessionData.responses
+        : (session.responses || [])
+      if (toGrade.length) {
+        const qIds = toGrade.map(r => r.questionId)
+        const qs = await Question.find({ _id: { $in: qIds } }).select('subject correctAnswer')
+        const qMap = new Map(qs.map(q => [String(q._id), q]))
+        const scored = gradeAndScore(toGrade, qMap)
+        session.responses = toGrade.map((r, i) => ({ ...(typeof r.toObject === 'function' ? r.toObject() : r), isCorrect: scored.flags[i] }))
+        session.correctAnswers = scored.correctAnswers
+        session.rwScore = scored.rwScore
+        session.mathScore = scored.mathScore
+        session.totalScore = scored.totalScore
+        session.result = { math: scored.mathScore, readingWriting: scored.rwScore, total: scored.totalScore }
+      }
     }
 
     await session.save()

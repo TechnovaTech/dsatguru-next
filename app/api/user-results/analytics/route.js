@@ -64,10 +64,15 @@ export async function GET(request) {
 
     const userId = decoded.userId
     
-    // Fetch all sessions for the user
-    const sessions = await TestSession.find({ 
+    // Fetch all sessions for the user. Count a session if EITHER completion field says so
+    // (some completion paths historically set only `status`, leaving `state='CREATED'`),
+    // plus active sessions so live stats include in-progress responses.
+    const sessions = await TestSession.find({
       userId,
-      state: { $in: ['COMPLETED', 'IN_PROGRESS_BASE', 'IN_PROGRESS_ADAPTIVE'] } // Include in-progress? Maybe just completed for stats? Let's include all responses.
+      $or: [
+        { state: { $in: ['COMPLETED', 'IN_PROGRESS_BASE', 'IN_PROGRESS_ADAPTIVE'] } },
+        { status: 'Completed' }
+      ]
     }).lean()
 
     // Fetch all questions to map IDs to tags/subjects
@@ -109,7 +114,7 @@ export async function GET(request) {
     let latestRWScore = 0
 
     // Find latest scores from completed sessions
-    const completedSessions = sessions.filter(s => s.state === 'COMPLETED').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    const completedSessions = sessions.filter(s => s.state === 'COMPLETED' || s.status === 'Completed').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     
     const latestMathSession = completedSessions.find(s => (s.mathScore > 0 || (s.result && s.result.math > 0)))
     if (latestMathSession) {
