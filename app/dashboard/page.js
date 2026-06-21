@@ -19,7 +19,7 @@ export default function Dashboard() {
     correctAnswers: 0,
     accuracy: 0,
     studyHours: 0,
-    latestScores: { math: 400, rw: 400 }
+    latestScores: { math: null, rw: null }
   })
   const [recentActivity, setRecentActivity] = useState([])
   const [bookmarks, setBookmarks] = useState([])
@@ -82,7 +82,7 @@ export default function Dashboard() {
         correctAnswers: analyticsData.correctAnswers || 0,
         accuracy: analyticsData.accuracy || 0,
         studyHours: analyticsData.studyHours || 0,
-        latestScores: analyticsData.latestScores || { math: 400, rw: 400 }
+        latestScores: analyticsData.latestScores || { math: null, rw: null }
       })
 
       // Process Recent Activity from Sessions
@@ -173,7 +173,10 @@ export default function Dashboard() {
     )
   }
 
-  const totalScore = (stats.latestScores?.math || 0) + (stats.latestScores?.rw || 0)
+  // Total only when BOTH sections exist (a real /1600 SAT); otherwise show — so a
+  // student who has only done one section never sees a misleading partial total.
+  const _ls = stats.latestScores || {}
+  const totalScore = (_ls.math != null && _ls.rw != null) ? _ls.math + _ls.rw : null
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
@@ -281,7 +284,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="rounded-xl border border-slate-100 bg-slate-50 p-5 text-center">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total</p>
-              <p className="mt-1 text-3xl font-extrabold text-indigo-600">{totalScore || '—'}</p>
+              <p className="mt-1 text-3xl font-extrabold text-indigo-600">{totalScore ?? '—'}</p>
               <p className="mt-1 text-xs text-slate-400">out of 1600</p>
             </div>
             <div className="rounded-xl border border-slate-100 bg-slate-50 p-5 text-center">

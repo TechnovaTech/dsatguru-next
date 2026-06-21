@@ -3,6 +3,7 @@ import { connectDB } from '../../../../lib/db'
 import TestSession from '../../../../lib/models/TestSession'
 import Question from '../../../../lib/models/Question'
 import { verifyToken, getTokenFromRequest } from '../../../../lib/auth'
+import { toScaledScore } from '../../../../lib/scoring/satScale'
 
 const DOMAIN_MAPPING = {
   Math: {
@@ -110,27 +111,37 @@ export async function GET(request) {
     let totalQuestions = 0
     let correctAnswers = 0
     let totalTimeSpent = 0 // in seconds
-    let latestMathScore = 0
-    let latestRWScore = 0
+    let latestMathScore = null
+    let latestRWScore = null
 
     // Find latest scores from completed sessions
     const completedSessions = sessions.filter(s => s.state === 'COMPLETED' || s.status === 'Completed').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     
-    // The "Latest SAT Score" must reflect a test the student actually answered — skip
-    // empty/abandoned submissions (0 answered) so the card shows their real last score,
-    // not the 200 floor of a blank attempt.
+    // The card must reflect tests the student actually answered — skip empty/abandoned
+    // (0-answered) submissions so a blank attempt's 200 floor never shows.
     const wasAnswered = (s) => (s.answeredQuestions > 0) ||
       (Array.isArray(s.responses) && s.responses.some(r => r.selectedAnswer != null && String(r.selectedAnswer).trim() !== ''))
-    const answeredCompleted = completedSessions.filter(wasAnswered)
 
-    const latestMathSession = answeredCompleted.find(s => (s.mathScore > 0 || (s.result && s.result.math > 0)))
-    if (latestMathSession) {
-      latestMathScore = latestMathSession.mathScore || latestMathSession.result?.math || 0
+    // Break a session into per-section raw/total from the question bank's subjects, then
+    // scale. We only surface a section score for sessions that actually CONTAINED that
+    // section, so a student who has only done Reading & Writing shows RW and leaves Math
+    // blank (—) — never a fake 200 floor for a section they never attempted.
+    const sectionOf = (session) => {
+      let mr = 0, mt = 0, rr = 0, rt = 0
+      for (const r of (session.responses || [])) {
+        const qd = questionMap[String(r.questionId)]
+        if (!qd) continue
+        const isMath = String(qd.subject || '').toLowerCase().includes('math')
+        if (isMath) { mt++; if (r.isCorrect) mr++ } else { rt++; if (r.isCorrect) rr++ }
+      }
+      return { mathTotal: mt, rwTotal: rt, mathScore: toScaledScore(mr, mt), rwScore: toScaledScore(rr, rt) }
     }
 
-    const latestRWSession = answeredCompleted.find(s => (s.rwScore > 0 || (s.result && s.result.readingWriting > 0)))
-    if (latestRWSession) {
-      latestRWScore = latestRWSession.rwScore || latestRWSession.result?.readingWriting || 0
+    for (const s of completedSessions.filter(wasAnswered)) {
+      const sec = sectionOf(s)
+      if (latestMathScore === null && sec.mathTotal > 0) latestMathScore = sec.mathScore
+      if (latestRWScore === null && sec.rwTotal > 0) latestRWScore = sec.rwScore
+      if (latestMathScore !== null && latestRWScore !== null) break
     }
 
 
