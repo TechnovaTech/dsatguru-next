@@ -116,12 +116,19 @@ export async function GET(request) {
     // Find latest scores from completed sessions
     const completedSessions = sessions.filter(s => s.state === 'COMPLETED' || s.status === 'Completed').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     
-    const latestMathSession = completedSessions.find(s => (s.mathScore > 0 || (s.result && s.result.math > 0)))
+    // The "Latest SAT Score" must reflect a test the student actually answered — skip
+    // empty/abandoned submissions (0 answered) so the card shows their real last score,
+    // not the 200 floor of a blank attempt.
+    const wasAnswered = (s) => (s.answeredQuestions > 0) ||
+      (Array.isArray(s.responses) && s.responses.some(r => r.selectedAnswer != null && String(r.selectedAnswer).trim() !== ''))
+    const answeredCompleted = completedSessions.filter(wasAnswered)
+
+    const latestMathSession = answeredCompleted.find(s => (s.mathScore > 0 || (s.result && s.result.math > 0)))
     if (latestMathSession) {
       latestMathScore = latestMathSession.mathScore || latestMathSession.result?.math || 0
     }
-    
-    const latestRWSession = completedSessions.find(s => (s.rwScore > 0 || (s.result && s.result.readingWriting > 0)))
+
+    const latestRWSession = answeredCompleted.find(s => (s.rwScore > 0 || (s.result && s.result.readingWriting > 0)))
     if (latestRWSession) {
       latestRWScore = latestRWSession.rwScore || latestRWSession.result?.readingWriting || 0
     }
