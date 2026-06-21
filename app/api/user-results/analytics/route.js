@@ -5,6 +5,10 @@ import Question from '../../../../lib/models/Question'
 import { verifyToken, getTokenFromRequest } from '../../../../lib/auth'
 import { toScaledScore } from '../../../../lib/scoring/satScale'
 
+// Always read fresh per-user data — never serve a cached analytics response.
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 const DOMAIN_MAPPING = {
   Math: {
     'Algebra': [
