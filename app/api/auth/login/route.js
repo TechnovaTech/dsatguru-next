@@ -4,6 +4,7 @@ import User from '../../../../lib/models/User'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { rateLimit, clientIp } from '../../../../lib/rateLimit'
+import ActivityLog from '../../../../lib/models/ActivityLog'
 
 export async function POST(request) {
   try {
@@ -43,6 +44,19 @@ export async function POST(request) {
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     )
+
+    // Record the login for the admin activity timeline (best-effort, never blocks login).
+    try {
+      await ActivityLog.create({
+        userId: user._id,
+        userName: user.name,
+        userEmail: user.email,
+        type: 'login',
+        action: 'Logged in',
+        ip: clientIp(request),
+        userAgent: request.headers.get('user-agent') || '',
+      })
+    } catch (e) { /* ignore logging failures */ }
 
     return NextResponse.json({
       message: 'Login successful',

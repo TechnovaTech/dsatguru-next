@@ -16,6 +16,7 @@ const ADMIN_SECTIONS = [
       { label: 'Students Observation', path: '/admin/students-observation' },
       { label: 'Student Analysis', path: '/admin/student-analysis' },
       { label: 'User Management', path: '/admin/users' },
+      { label: 'User Activity', path: '/admin/user-activity' },
       { label: 'User Result Management', path: '/admin/user-results' },
     ],
   },
