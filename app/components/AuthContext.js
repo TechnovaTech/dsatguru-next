@@ -1,6 +1,7 @@
 'use client'
 import { createContext, useContext, useState, useEffect } from 'react'
 import axios from 'axios'
+import { logActivity } from '../../lib/clientActivity'
 
 const AuthContext = createContext()
 
@@ -31,6 +32,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   const logout = () => {
+    logActivity('logout', 'Logged out') // reads the token synchronously before we clear it
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     setUser(null)

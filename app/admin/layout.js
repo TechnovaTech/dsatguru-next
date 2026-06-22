@@ -1,7 +1,8 @@
 'use client'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '../components/AuthContext'
+import { logActivity, prettyPath } from '../../lib/clientActivity'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   FiGrid, FiUsers, FiBookOpen, FiDatabase, FiClipboard, FiCheckSquare, FiList, FiSettings,
@@ -108,6 +109,15 @@ export default function AdminLayout({ children }) {
   }, [user, loading, router])
 
   useEffect(() => { setMobileOpen(false); setOpenMenu(null) }, [pathname])
+
+  // Record every admin page visit.
+  const lastPath = useRef(null)
+  useEffect(() => {
+    if (user && pathname && pathname !== lastPath.current) {
+      lastPath.current = pathname
+      logActivity('page_view', 'Visited ' + prettyPath(pathname), { path: pathname })
+    }
+  }, [pathname, user])
 
   // Load saved theme (admin panel only)
   useEffect(() => {

@@ -2,7 +2,8 @@
 import Link from 'next/link'
 import { useAuth } from '../components/AuthContext'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { logActivity, prettyPath } from '../../lib/clientActivity'
 import {
   FiGrid, FiFileText, FiBook, FiBarChart2, FiBookOpen, FiMoreHorizontal,
   FiUser, FiLogOut, FiChevronDown, FiMenu, FiX,
@@ -67,6 +68,15 @@ export default function DashboardLayout({ children }) {
   }, [user, loading, router])
 
   useEffect(() => { setMobileOpen(false); setOpenMenu(null) }, [pathname])
+
+  // Record every page the student visits (one entry per navigation).
+  const lastPath = useRef(null)
+  useEffect(() => {
+    if (user && pathname && pathname !== lastPath.current) {
+      lastPath.current = pathname
+      logActivity('page_view', 'Visited ' + prettyPath(pathname), { path: pathname })
+    }
+  }, [pathname, user])
 
   if (loading || !user) {
     return (

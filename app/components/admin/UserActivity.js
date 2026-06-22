@@ -2,13 +2,18 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
-  FiSearch, FiLogIn, FiCheckCircle, FiAlertTriangle, FiClock, FiFileText, FiLoader, FiActivity, FiUser,
+  FiSearch, FiLogIn, FiLogOut, FiEye, FiPlay, FiCheckCircle, FiAlertTriangle, FiClock, FiFileText, FiLoader, FiActivity, FiUser,
 } from 'react-icons/fi'
 
 const TYPE_META = {
   login: { icon: FiLogIn, cls: 'bg-emerald-50 text-emerald-600', dot: 'bg-emerald-500' },
+  logout: { icon: FiLogOut, cls: 'bg-slate-100 text-slate-500', dot: 'bg-slate-400' },
+  page_view: { icon: FiEye, cls: 'bg-sky-50 text-sky-600', dot: 'bg-sky-500' },
+  test_start: { icon: FiPlay, cls: 'bg-indigo-50 text-indigo-600', dot: 'bg-indigo-500' },
+  test_resume: { icon: FiPlay, cls: 'bg-indigo-50 text-indigo-600', dot: 'bg-indigo-500' },
   completed: { icon: FiCheckCircle, cls: 'bg-indigo-50 text-indigo-600', dot: 'bg-indigo-500' },
   autosubmit: { icon: FiAlertTriangle, cls: 'bg-rose-50 text-rose-600', dot: 'bg-rose-500' },
+  violation: { icon: FiAlertTriangle, cls: 'bg-rose-50 text-rose-600', dot: 'bg-rose-500' },
   inprogress: { icon: FiClock, cls: 'bg-amber-50 text-amber-600', dot: 'bg-amber-500' },
   assigned: { icon: FiFileText, cls: 'bg-slate-100 text-slate-500', dot: 'bg-slate-400' },
 }
