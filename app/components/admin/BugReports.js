@@ -101,8 +101,9 @@ export default function BugReports() {
         method: 'POST', headers: authHeaders(true),
         body: JSON.stringify({ text: body, attachments: files }),
       })
-      const d = await res.json()
+      const d = await res.json().catch(() => ({}))
       if (res.ok) { setActive(d); setText(''); setFiles([]); fetchList() }
+      else if (res.status === 403) toast.error('Not an admin session — log out and sign in as admin (you may be logged in as a student in another tab).')
       else toast.error(d.error || 'Could not send reply')
     } catch { toast.error('Something went wrong') } finally { setSending(false) }
   }
@@ -113,8 +114,9 @@ export default function BugReports() {
       const res = await fetch(`/api/bug-reports/${active._id}`, {
         method: 'PATCH', headers: authHeaders(true), body: JSON.stringify({ status }),
       })
-      const d = await res.json()
+      const d = await res.json().catch(() => ({}))
       if (res.ok) { setActive(d); fetchList(); toast.success('Status updated') }
+      else if (res.status === 403) toast.error('Not an admin session — log out and sign in as admin (you may be logged in as a student in another tab).')
       else toast.error(d.error || 'Could not update status')
     } catch { toast.error('Something went wrong') }
   }
