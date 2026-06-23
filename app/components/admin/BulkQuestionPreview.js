@@ -244,8 +244,10 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4" onClick={onCancel}>
-      {/* Hidden global image input shared across all fields */}
-      <input ref={imgInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageFileChange} />
+      {/* Hidden global image input shared across all fields. stopPropagation: the
+          programmatic .click() must not bubble to the backdrop's onCancel (which would
+          close the whole modal before the file picker could be used). */}
+      <input ref={imgInputRef} type="file" accept="image/*" className="hidden" onClick={(e) => e.stopPropagation()} onChange={handleImageFileChange} />
       <div className="bg-white rounded-2xl shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <div>
