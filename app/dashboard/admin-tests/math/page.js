@@ -2,9 +2,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiPlay, FiFileText, FiClock, FiCheckCircle, FiRefreshCw, FiInbox, FiLoader, FiAward, FiTarget, FiCalendar } from 'react-icons/fi'
+import { useToast } from '@/app/components/ui/UIProvider'
+import { canReattempt, reattemptSession } from '@/lib/reattempt'
 
 export default function AdminMathPage() {
   const router = useRouter()
+  const toast = useToast()
   const [stats, setStats] = useState({ domains: [] })
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
@@ -321,18 +324,29 @@ export default function AdminMathPage() {
 
                       <div className="flex items-center gap-3">
                         {isCompleted ? (
-                          <button
-                            onClick={() => {
-                              router.push(`/dashboard/tests/${session.testId?._id}/results?session_id=${session._id}&returnUrl=/dashboard/admin-tests/math`)
-                            }}
-                            className={`rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors ${
-                              session.analysisSubmitted
-                                ? 'bg-emerald-600 hover:bg-emerald-700'
-                                : 'bg-indigo-600 hover:bg-indigo-700'
-                            }`}
-                          >
-                            {session.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
-                          </button>
+                          <>
+                            {canReattempt(session) && (
+                              <button
+                                onClick={async () => { try { router.push(await reattemptSession(session, { returnUrl: '/dashboard/admin-tests/math', moduleTest: false })) } catch { toast.error('Could not start a reattempt. Please try again.') } }}
+                                title="This test was auto-submitted — let the student take it again"
+                                className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm transition-colors hover:bg-blue-100"
+                              >
+                                <FiRefreshCw className="h-4 w-4" /> Reattempt
+                              </button>
+                            )}
+                            <button
+                              onClick={() => {
+                                router.push(`/dashboard/tests/${session.testId?._id}/results?session_id=${session._id}&returnUrl=/dashboard/admin-tests/math`)
+                              }}
+                              className={`rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors ${
+                                session.analysisSubmitted
+                                  ? 'bg-emerald-600 hover:bg-emerald-700'
+                                  : 'bg-indigo-600 hover:bg-indigo-700'
+                              }`}
+                            >
+                              {session.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
+                            </button>
+                          </>
                         ) : (
                           <button
                             onClick={() => router.push(`/dashboard/tests/${session.testId?._id}/start?sessionId=${session._id}&returnUrl=/dashboard/admin-tests/math`)}

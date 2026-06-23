@@ -4,11 +4,14 @@ import { useRouter } from 'next/navigation'
 import {
   FiPlay, FiFileText, FiClock, FiLayers, FiTarget, FiList,
   FiCalendar, FiCheckCircle, FiAlertCircle, FiInbox, FiActivity,
-  FiBarChart2, FiAward,
+  FiBarChart2, FiAward, FiRefreshCw,
 } from 'react-icons/fi'
+import { useToast } from '@/app/components/ui/UIProvider'
+import { canReattempt, reattemptSession } from '@/lib/reattempt'
 
 export default function AdaptiveTestsPage() {
   const router = useRouter()
+  const toast = useToast()
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -202,6 +205,15 @@ export default function AdaptiveTestsPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 transition-colors"
             >
               <FiPlay className="h-4 w-4" /> Resume
+            </button>
+          )}
+          {isCompleted && canReattempt(session) && (
+            <button
+              onClick={async () => { try { router.push(await reattemptSession(session, { returnUrl, moduleTest: false })) } catch { toast.error('Could not start a reattempt. Please try again.') } }}
+              title="This test was auto-submitted — let the student take it again"
+              className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+            >
+              <FiRefreshCw className="h-4 w-4" /> Reattempt
             </button>
           )}
           {isCompleted && (

@@ -1,10 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlay, FiFileText, FiCheckCircle, FiLayers, FiClock, FiAlertCircle, FiTarget, FiAward } from 'react-icons/fi'
+import { FiPlay, FiFileText, FiCheckCircle, FiLayers, FiClock, FiAlertCircle, FiTarget, FiAward, FiRefreshCw } from 'react-icons/fi'
+import { useToast } from '@/app/components/ui/UIProvider'
+import { canReattempt, reattemptSession } from '@/lib/reattempt'
 
 export default function ModuleTestsPage({ subject }) {
   const router = useRouter()
+  const toast = useToast()
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -216,12 +219,22 @@ export default function ModuleTestsPage({ subject }) {
                   </div>
                   <div>
                     {effectiveStatus === 'Completed' ? (
-                      <button onClick={() => router.push(`/dashboard/tests/${test?._id}/results?session_id=${resultSession._id}&returnUrl=${returnUrl}`)}
-                        className={`flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-colors ${
-                          resultSession.analysisSubmitted ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'
-                        }`}>
-                        <FiCheckCircle className="h-4 w-4" /> {resultSession.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {canReattempt(resultSession) && (
+                          <button
+                            onClick={async () => { try { router.push(await reattemptSession(resultSession, { returnUrl, moduleTest: true })) } catch { toast.error('Could not start a reattempt. Please try again.') } }}
+                            title="This test was auto-submitted — let the student take it again"
+                            className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100">
+                            <FiRefreshCw className="h-4 w-4" /> Reattempt
+                          </button>
+                        )}
+                        <button onClick={() => router.push(`/dashboard/tests/${test?._id}/results?session_id=${resultSession._id}&returnUrl=${returnUrl}`)}
+                          className={`flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-colors ${
+                            resultSession.analysisSubmitted ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'
+                          }`}>
+                          <FiCheckCircle className="h-4 w-4" /> {resultSession.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
+                        </button>
+                      </div>
                     ) : (
                       <button onClick={() => router.push(`/dashboard/tests/${test?._id}/module-start?sessionId=${session._id}&returnUrl=${returnUrl}`)}
                         className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700">
