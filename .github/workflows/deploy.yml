@@ -1,0 +1,37 @@
+name: Deploy to VPS
+
+# Auto-deploy whenever you push to newdsat (or run it manually from the Actions tab).
+on:
+  push:
+    branches: [newdsat]
+  workflow_dispatch:
+
+# Never run two deploys at the same time.
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull, build, and restart on the VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          # Stop immediately if any command fails — so a broken build never
+          # reaches "pm2 restart" and the live site keeps running the old build.
+          script_stop: true
+          command_timeout: 20m
+          script: |
+            set -e
+            cd /root/dsatguru-next
+            git fetch origin newdsat
+            git reset --hard origin/newdsat
+            npm install --no-audit --no-fund
+            npm run build
+            pm2 restart dsatguru-next
+            pm2 save
+            echo "✅ Deploy complete"
