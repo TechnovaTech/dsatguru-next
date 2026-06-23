@@ -2,11 +2,18 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiPlay, FiFileText, FiClock, FiCheckCircle, FiBookOpen, FiRefreshCw, FiAlertCircle, FiAward, FiCalendar, FiTarget, FiBarChart2 } from 'react-icons/fi'
+import { useToast } from '../../../components/ui/UIProvider'
+
+// Offer a reattempt only for an auto-submitted (violation) attempt that isn't a
+// reassignment and is still the first auto-submit.
+const canReattempt = (s) =>
+  !!s && !s.isReassigned && (s.autoSubmitted || s.autoSubmitReason) && (s.attemptCount || 1) < 2
 
 const fmtDate = (x) => (x ? new Date(x).toLocaleDateString() : '—')
 
 export default function TutorRWPage() {
   const router = useRouter()
+  const toast = useToast()
   const [stats, setStats] = useState({ domains: [] })
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
@@ -82,6 +89,23 @@ export default function TutorRWPage() {
         router.push(`/dashboard/tests/${session.testId._id}/start?sessionId=${session._id}&returnUrl=/dashboard/tutor/rw`)
     } else {
         console.error("Session missing testId", session)
+    }
+  }
+
+  const handleReattempt = async (session) => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`/api/test-sessions/${session._id}/reattempt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        router.push(`/dashboard/tests/${session.testId?._id}/start?sessionId=${session._id}&returnUrl=/dashboard/tutor/rw`)
+      } else {
+        toast.error('Could not start a reattempt. Please try again.')
+      }
+    } catch (e) {
+      toast.error('Could not start a reattempt. Please try again.')
     }
   }
 
@@ -373,17 +397,28 @@ export default function TutorRWPage() {
 
                       <div className="flex items-center gap-3">
                         {isCompleted ? (
-                          <button
-                            onClick={() => router.push(`/dashboard/tests/${session.testId?._id}/results?session_id=${session._id}&returnUrl=/dashboard/tutor/rw`)}
-                            className={`inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors ${
-                              session.analysisSubmitted
-                                ? 'bg-emerald-600 hover:bg-emerald-700'
-                                : 'bg-indigo-600 hover:bg-indigo-700'
-                            }`}
-                          >
-                            <FiBarChart2 className="h-4 w-4" />
-                            {session.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
-                          </button>
+                          <>
+                            {canReattempt(session) && (
+                              <button
+                                onClick={() => handleReattempt(session)}
+                                title="This test was auto-submitted — let the student take it again"
+                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm transition-colors hover:bg-blue-100"
+                              >
+                                <FiRefreshCw className="h-4 w-4" /> Reattempt
+                              </button>
+                            )}
+                            <button
+                              onClick={() => router.push(`/dashboard/tests/${session.testId?._id}/results?session_id=${session._id}&returnUrl=/dashboard/tutor/rw`)}
+                              className={`inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors ${
+                                session.analysisSubmitted
+                                  ? 'bg-emerald-600 hover:bg-emerald-700'
+                                  : 'bg-indigo-600 hover:bg-indigo-700'
+                              }`}
+                            >
+                              <FiBarChart2 className="h-4 w-4" />
+                              {session.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
+                            </button>
+                          </>
                         ) : (
                           <button
                             onClick={() => router.push(`/dashboard/tests/${session.testId?._id}/start?sessionId=${session._id}&returnUrl=/dashboard/tutor/rw`)}
