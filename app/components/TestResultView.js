@@ -804,6 +804,9 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
   }
 
   const hasScaledScore = typeof session?.totalScore === 'number'
+  // SAT scaled score (out of 1600/800) only makes sense for full module tests —
+  // hide it for practice/tutor/admin/adaptive results where it's misleading.
+  const showScaledScore = hasScaledScore && test?.isModuleTest === true
   const scrollToScaledScore = () => {
     scaledScoreRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
@@ -959,7 +962,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                 </div>
                             )}
                             
-                            {hasScaledScore && (
+                            {showScaledScore && (
                                 <button
                                     onClick={scrollToScaledScore}
                                     className="px-4 py-2 border border-purple-200 text-purple-900 text-sm font-bold rounded-lg hover:bg-purple-50"
@@ -1138,8 +1141,8 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
             <div ref={scaledScoreRef} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 scroll-mt-24">
                 <h2 className="text-sm font-bold text-gray-900 mb-4 border-b pb-2">Overall Score</h2>
 
-                {/* Scaled (server-computed) SAT score — the single canonical score */}
-                {hasScaledScore && (
+                {/* Scaled (server-computed) SAT score — module tests only */}
+                {showScaledScore && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div className="bg-purple-900 rounded-xl p-4 text-center">
                             <div className="text-xs font-bold text-purple-200 uppercase mb-1">Total Score</div>
