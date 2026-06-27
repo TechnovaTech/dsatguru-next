@@ -4,6 +4,7 @@ import connectDB from '@/lib/db'
 import ErrorLog from '@/lib/models/ErrorLog'
 // Register the Question model so populate('sourceQuestionId') resolves its schema.
 import Question from '@/lib/models/Question'
+import { answersMatch } from '@/lib/scoring/satScale'
 
 async function getUser(req) {
   const auth = req.headers.get('authorization') || ''
@@ -197,7 +198,7 @@ export async function POST(req) {
 
     total += 1
     const actual = (log.sourceQuestionId?.correctAnswer || '').trim()
-    const isCorrect = chosen.trim() === actual
+    const isCorrect = answersMatch(actual, chosen)
     if (isCorrect) correct += 1
 
     await ErrorLog.updateOne(

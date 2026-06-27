@@ -3,7 +3,7 @@ import { connectDB } from '../../../../lib/db'
 import DemoTest from '../../../../lib/models/DemoTest'
 import DemoTestAttempt from '../../../../lib/models/DemoTestAttempt'
 import Question from '../../../../lib/models/Question'
-import { toScaledScore } from '../../../../lib/scoring/satScale'
+import { toScaledScore, answersMatch } from '../../../../lib/scoring/satScale'
 
 export async function POST(request) {
   try {
@@ -39,7 +39,7 @@ export async function POST(request) {
       if (!q) continue
       const custom = customMap[String(ans.questionId)] || null
       const correctAnswer = custom?.correctAnswer ?? q.correctAnswer
-      const isCorrect = ans.selectedAnswer && String(ans.selectedAnswer).toUpperCase() === String(correctAnswer || '').toUpperCase()
+      const isCorrect = answersMatch(correctAnswer, ans.selectedAnswer)
       const module = ans.module === 'math' ? 'math' : 'rw'
       if (module === 'math') {
         mathTotal++
