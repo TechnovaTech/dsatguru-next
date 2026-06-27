@@ -5,6 +5,7 @@ import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevro
 import ReassignTestModal from './admin/ReassignTestModal'
 import { renderContent } from './admin/LatexRenderer'
 import { useConfirm, useToast } from './ui/UIProvider'
+import { answersMatch } from '../../lib/scoring/satScale'
 
 export default function TestResultView({ testId, sessionId, returnUrl, viewMode, viewAnalysis }) {
   const router = useRouter()
@@ -249,16 +250,23 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                 }
             }
 
+            const mergedCorrectAnswer = q.correctAnswer || revealed.correctAnswer || ''
+            const userAnswerVal = resp ? resp.selectedAnswer : null
+            // Re-derive correctness from the (now customQuestions-aware) revealed answer, so
+            // even sessions graded before the fix display the right correct/incorrect state.
+            const computedIsCorrect = (userAnswerVal != null && String(userAnswerVal).trim() !== '')
+                ? answersMatch(mergedCorrectAnswer, userAnswerVal)
+                : false
             const questionData = {
                 ...q,
                 options,
                 // Merge revealed answer key + explanations from the completed session.
-                correctAnswer: q.correctAnswer || revealed.correctAnswer || '',
+                correctAnswer: mergedCorrectAnswer,
                 explanation: q.explanation || revealed.explanation || '',
                 shortExplanation: q.shortExplanation || revealed.shortExplanation || '',
                 longExplanation: q.longExplanation || revealed.longExplanation || '',
-                userAnswer: resp ? resp.selectedAnswer : null,
-                isCorrect: resp ? resp.isCorrect : false,
+                userAnswer: userAnswerVal,
+                isCorrect: computedIsCorrect,
                 timeSpent: resp ? resp.timeSpent : 0,
                 wasVisited: wasVisited,
                 incorrectReason: resp?.incorrectReason || null,
@@ -1626,6 +1634,26 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                         </div>
                                     )}
                                     
+                                    {/* Explicit correct answer for MCQ when wrong (besides the green option highlight) */}
+                                    {q.options && typeof q.options === 'object' && (q.options.A || q.options.B || q.options.C || q.options.D) && !q.isCorrect && q.userAnswer && q.correctAnswer && (
+                                        <div className="mt-3 p-4 rounded-lg border-2 bg-green-50 border-green-500">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <FiCheckCircle className="w-5 h-5 text-green-600" />
+                                                <span className="font-bold text-green-700">Correct Answer</span>
+                                            </div>
+                                            <div className="text-sm font-semibold text-green-900 [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain">
+                                                {(() => {
+                                                    const ca = String(q.correctAnswer).trim().toUpperCase()
+                                                    const letter = ['A', 'B', 'C', 'D'].includes(ca) ? ca : null
+                                                    const text = letter ? (q.options[letter] || q[`option${letter}`] || '') : q.correctAnswer
+                                                    return letter
+                                                        ? <span>{letter}. {text ? renderContent(text) : null}</span>
+                                                        : renderContent(String(q.correctAnswer))
+                                                })()}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Show "No answer selected" for unattempted questions */}
                                     {!q.userAnswer && (
                                         <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-300 flex items-center gap-2">

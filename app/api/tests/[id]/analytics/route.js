@@ -6,6 +6,8 @@ import Test from '../../../../../lib/models/Test'
 // otherwise the populate throws MissingSchemaError.
 import Question from '../../../../../lib/models/Question'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
+import { answersMatch } from '../../../../../lib/scoring/satScale'
+import { getCustomMap, effectiveCorrectAnswer } from '../../../../../lib/tutorCustomQuestions'
 
 export async function GET(request, { params }) {
   try {
@@ -45,12 +47,13 @@ export async function GET(request, { params }) {
     const questionStats = {}
 
     // Initialize stats for all questions in the test
+    const customMap = getCustomMap(test)
     test.questions.forEach(q => {
       const qId = String(q._id)
       questionStats[qId] = {
         questionId: qId,
         questionContent: q.content,
-        correctAnswer: q.correctAnswer,
+        correctAnswer: effectiveCorrectAnswer(customMap, q._id, q.correctAnswer),
         totalAttempts: 0,
         correctCount: 0,
         incorrectCount: 0,
@@ -70,7 +73,8 @@ export async function GET(request, { params }) {
           if (questionStats[qId]) {
             if (response.selectedAnswer) {
               questionStats[qId].totalAttempts++
-              if (response.isCorrect) {
+              // Re-grade against the effective (tutor-edited) correct answer.
+              if (answersMatch(questionStats[qId].correctAnswer, response.selectedAnswer)) {
                 questionStats[qId].correctCount++
               } else {
                 questionStats[qId].incorrectCount++

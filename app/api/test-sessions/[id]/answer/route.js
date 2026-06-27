@@ -6,6 +6,7 @@ import Test from '../../../../../lib/models/Test'
 import Question from '../../../../../lib/models/Question'
 import { answersMatch } from '../../../../../lib/scoring/satScale'
 import { buildAdaptiveModule } from '../../../../../lib/adaptive'
+import { getCustomMap, effectiveCorrectAnswer } from '../../../../../lib/tutorCustomQuestions'
 import mongoose from 'mongoose'
 
 export async function POST(request, { params }) {
@@ -43,7 +44,11 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Question not found' }, { status: 404 })
     }
 
-    const isCorrect = answersMatch(question.correctAnswer, selectedOption)
+    // Load the test once (customConfig for adaptive routing + customQuestions for grading).
+    const test = session.testId ? await Test.findById(session.testId).select('customConfig isTutorTest customQuestions').lean() : null
+    const customMap = getCustomMap(test)
+    const correctAnswer = effectiveCorrectAnswer(customMap, qId, question.correctAnswer)
+    const isCorrect = answersMatch(correctAnswer, selectedOption)
     session.responses.push({
       questionId: qId,
       selectedAnswer: selectedOption,
@@ -79,7 +84,6 @@ export async function POST(request, { params }) {
 
       // Single source of truth for Module-1 -> Module-2 routing (customConfig band +
       // distribution, with legacy single-difficulty fallback). Shared with submit/route.js.
-      const test = session.testId ? await Test.findById(session.testId).select('customConfig').lean() : null
       session.adaptiveAssignedQuestionIds = await buildAdaptiveModule({ session, test, accuracy, usedIds })
       session.state = 'IN_PROGRESS_ADAPTIVE'
     }

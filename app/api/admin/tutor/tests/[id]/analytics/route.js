@@ -8,6 +8,8 @@ import Question from '../../../../../../../lib/models/Question'
 import '../../../../../../../lib/models/User'
 import { requireRole } from '../../../../../../../lib/auth'
 import { ROLES, STAFF_ROLES } from '../../../../../../../lib/constants/roles'
+import { answersMatch } from '../../../../../../../lib/scoring/satScale'
+import { getCustomMap, effectiveCorrectAnswer } from '../../../../../../../lib/tutorCustomQuestions'
 
 export async function GET(request, { params }) {
   try {
@@ -48,6 +50,7 @@ export async function GET(request, { params }) {
 
     // Aggregate statistics for each question
     const questionStats = {}
+    const customMap = getCustomMap(test)
 
     // Initialize stats — support both flat questions and module-based structure
     const initQuestion = (q) => {
@@ -56,7 +59,7 @@ export async function GET(request, { params }) {
         questionStats[qId] = {
           questionId: qId,
           questionContent: q.content || '',
-          correctAnswer: q.correctAnswer || '',
+          correctAnswer: effectiveCorrectAnswer(customMap, q._id, q.correctAnswer) || '',
           totalAttempts: 0, correctCount: 0, incorrectCount: 0, omittedCount: 0,
           correctPercentage: 0, incorrectPercentage: 0, omittedPercentage: 0
         }
@@ -84,7 +87,9 @@ export async function GET(request, { params }) {
             const answered = response.selectedAnswer || response.answer
             if (answered) {
               questionStats[qId].totalAttempts++
-              if (response.isCorrect) questionStats[qId].correctCount++
+              // Re-grade against the effective (tutor-edited) correct answer so analytics
+              // stays correct even for sessions graded before the customQuestions fix.
+              if (answersMatch(questionStats[qId].correctAnswer, answered)) questionStats[qId].correctCount++
               else questionStats[qId].incorrectCount++
             } else {
               questionStats[qId].omittedCount++

@@ -4,8 +4,10 @@ import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
 import TestSession from '../../../../lib/models/TestSession'
 import User from '../../../../lib/models/User'
 import Question from '../../../../lib/models/Question'
+import Test from '../../../../lib/models/Test'
 import { gradeAndScore } from '../../../../lib/scoring/satScale'
 import { canRevealAnswers, stripAnswerFields } from '../../../../lib/serializers/question'
+import { getCustomMap, effectiveCorrectAnswer } from '../../../../lib/tutorCustomQuestions'
 import { STAFF_ROLES } from '../../../../lib/constants/roles'
 import { syncWrongAnswers } from '../../../../lib/learningLoop'
 
@@ -59,35 +61,41 @@ export async function GET(request, { params }) {
         .select('_id content options subject difficulty questionParagraph imageUrl domain skill correctAnswer optionA optionB optionC optionD explanation shortExplanation longExplanation')
     }
 
+    // Tutor tests may override question content/options/correctAnswer via customQuestions —
+    // apply them so the reveal matches what the tutor authored (and grading uses).
+    const testDoc = session.testId ? await Test.findById(session.testId).select('isTutorTest customQuestions').lean() : null
+    const customMap = getCustomMap(testDoc)
+
     // Transform questions for frontend consistency
     const formattedQuestions = sessionQuestions.map(q => {
       let options = q.options
       if (typeof options === 'string') {
         try { options = JSON.parse(options) } catch (e) { options = {} }
       }
-      
+      const cv = customMap[String(q._id)] || null
+
       return {
         _id: q._id,
         id: q._id,
-         content: q.content,
-         question: q.content, // Alias for some frontend components
-         questionText: q.content, // Alias for results page
-         options: options || {
+         content: cv?.content ?? q.content,
+         question: cv?.content ?? q.content, // Alias for some frontend components
+         questionText: cv?.content ?? q.content, // Alias for results page
+         options: cv?.options ?? (options || {
              A: q.optionA,
             B: q.optionB,
             C: q.optionC,
             D: q.optionD
-        },
-        correctAnswer: q.correctAnswer,
+        }),
+        correctAnswer: effectiveCorrectAnswer(customMap, q._id, q.correctAnswer),
          subject: q.subject,
          difficulty: q.difficulty,
          domain: q.domain || q.subject,
          skill: q.skill,
-         questionParagraph: q.questionParagraph,
-        imageUrl: q.imageUrl,
-        explanation: q.explanation,
-        shortExplanation: q.shortExplanation,
-        longExplanation: q.longExplanation
+         questionParagraph: cv?.questionParagraph ?? q.questionParagraph,
+        imageUrl: cv?.imageUrl ?? q.imageUrl,
+        explanation: cv?.explanation ?? q.explanation,
+        shortExplanation: cv?.shortExplanation ?? q.shortExplanation,
+        longExplanation: cv?.longExplanation ?? q.longExplanation
       }
     })
 
@@ -126,6 +134,9 @@ export async function GET(request, { params }) {
       rwScore: session.rwScore,
       mathScore: session.mathScore,
       totalScore: session.totalScore,
+      // Prefer the stored total; fall back to summing per-question time so older sessions
+      // (where timeSpent was never persisted) still show real minutes instead of 0:00.
+      timeSpent: session.timeSpent || (session.responses || []).reduce((s, r) => s + (Number(r.timeSpent) || 0), 0),
       completedAt: session.completedAt,
       updatedAt: session.updatedAt,
       createdAt: session.createdAt,
@@ -188,6 +199,11 @@ export async function PUT(request, { params }) {
     if (sessionData.answeredQuestions !== undefined) session.answeredQuestions = sessionData.answeredQuestions
     if (sessionData.correctAnswers !== undefined) session.correctAnswers = sessionData.correctAnswers
     if (sessionData.timeSpent !== undefined) session.timeSpent = sessionData.timeSpent
+    // Fallback: if no top-level timeSpent was sent, derive it from per-question times so
+    // the result page never shows 0:00 when the student actually spent time.
+    if ((session.timeSpent == null || session.timeSpent === 0) && Array.isArray(session.responses)) {
+      session.timeSpent = session.responses.reduce((s, r) => s + (Number(r.timeSpent) || 0), 0)
+    }
     if (sessionData.completedAt) session.completedAt = sessionData.completedAt
     if (sessionData.startTime) session.startTime = sessionData.startTime
     if (sessionData.endTime) session.endTime = sessionData.endTime
@@ -214,7 +230,13 @@ export async function PUT(request, { params }) {
       if (toGrade.length) {
         const qIds = toGrade.map(r => r.questionId)
         const qs = await Question.find({ _id: { $in: qIds } }).select('subject correctAnswer')
-        const qMap = new Map(qs.map(q => [String(q._id), q]))
+        // Honor tutor customQuestions when grading (edited correct answers).
+        const gradeTest = session.testId ? await Test.findById(session.testId).select('isTutorTest customQuestions').lean() : null
+        const gradeCustomMap = getCustomMap(gradeTest)
+        const qMap = new Map(qs.map(q => [String(q._id), {
+          subject: q.subject,
+          correctAnswer: effectiveCorrectAnswer(gradeCustomMap, q._id, q.correctAnswer),
+        }]))
         const scored = gradeAndScore(toGrade, qMap)
         session.responses = toGrade.map((r, i) => ({ ...(typeof r.toObject === 'function' ? r.toObject() : r), isCorrect: scored.flags[i] }))
         session.correctAnswers = scored.correctAnswers

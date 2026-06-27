@@ -7,6 +7,7 @@ import TestSession from '../../../../lib/models/TestSession'
 import '../../../../lib/models/Question'
 import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
 import { canRevealAnswers, stripAnswerFields } from '../../../../lib/serializers/question'
+import { getCustomMap, mergeCustomQuestion } from '../../../../lib/tutorCustomQuestions'
 
 export async function GET(request, { params }) {
   try {
@@ -38,6 +39,12 @@ export async function GET(request, { params }) {
     const revealAnswers = canRevealAnswers({ role: decoded.role, sessionCompleted })
 
     const testObj = test.toObject()
+    // Apply the tutor's edited question versions (customQuestions) BEFORE stripping, so
+    // students see/grade against the tutor's correct answer — not the original Question doc.
+    const customMap = getCustomMap(testObj)
+    if (Object.keys(customMap).length && Array.isArray(testObj.questions)) {
+      testObj.questions = testObj.questions.map((q) => mergeCustomQuestion(customMap, q))
+    }
     if (!revealAnswers && Array.isArray(testObj.questions)) {
       testObj.questions = testObj.questions.map(stripAnswerFields)
     }
