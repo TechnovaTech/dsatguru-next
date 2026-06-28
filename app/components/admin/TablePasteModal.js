@@ -4,25 +4,69 @@ import { textToMarkdownTable, detectTableMode } from '../../../lib/markdownTable
 import { renderContent } from './LatexRenderer'
 
 // When copying from a web page / Google Sheet / Docs, the clipboard carries the real table
-// structure as HTML. Parse it directly (exact cells) — far more reliable than guessing.
+// structure as HTML. Parse it into a proper grid honoring colspan AND rowspan, drop decorative
+// group-headers (a header cell that spans multiple columns), and merge multi-row headers into a
+// single clean header row. Far more reliable than guessing from plain text.
 function htmlTableToTabs(html) {
   try {
     const doc = new DOMParser().parseFromString(html, 'text/html')
     const table = doc.querySelector('table')
     if (!table) return null
-    const rows = []
-    for (const tr of table.querySelectorAll('tr')) {
-      const cells = []
-      for (const td of tr.querySelectorAll('th, td')) {
-        const text = (td.textContent || '').replace(/\s+/g, ' ').trim()
-        const span = parseInt(td.getAttribute('colspan') || '1', 10) || 1
-        cells.push(text)
-        for (let s = 1; s < span; s++) cells.push('')
+    const trs = [...table.querySelectorAll('tr')]
+    if (!trs.length) return null
+
+    const matrix = []
+    const headerFlag = []
+    const occupied = new Set()
+    const key = (r, c) => r + ':' + c
+
+    for (let r = 0; r < trs.length; r++) {
+      if (!matrix[r]) matrix[r] = []
+      const cells = [...trs[r].children].filter((el) => /^(td|th)$/i.test(el.tagName))
+      let thCount = 0
+      let c = 0
+      for (const cell of cells) {
+        while (occupied.has(key(r, c))) c++
+        const isTh = /^th$/i.test(cell.tagName)
+        if (isTh) thCount++
+        const cs = parseInt(cell.getAttribute('colspan') || '1', 10) || 1
+        const rs = parseInt(cell.getAttribute('rowspan') || '1', 10) || 1
+        const text = (cell.textContent || '').replace(/\s+/g, ' ').trim()
+        // Drop a header cell that spans multiple columns — it's a decorative group label
+        // (e.g. "Singlet Color") that a flat markdown table can't represent.
+        const cellText = (isTh && cs > 1) ? '' : text
+        for (let dr = 0; dr < rs; dr++) {
+          for (let dc = 0; dc < cs; dc++) {
+            const rr = r + dr, cc = c + dc
+            if (!matrix[rr]) matrix[rr] = []
+            matrix[rr][cc] = (dr === 0 && dc === 0) ? cellText : ''
+            occupied.add(key(rr, cc))
+          }
+        }
+        c += cs
       }
-      if (cells.some((c) => c.length)) rows.push(cells)
+      headerFlag[r] = !!trs[r].closest('thead') || (cells.length > 0 && thCount === cells.length)
     }
-    if (!rows.length) return null
-    return rows.map((r) => r.join('\t')).join('\n')
+
+    const cols = Math.max(...matrix.map((row) => row.length))
+    if (!cols) return null
+    const norm = matrix.map((row) => { const x = []; for (let k = 0; k < cols; k++) x[k] = row[k] != null ? row[k] : ''; return x })
+
+    // Leading header rows -> merge into a single header row (column-wise).
+    let h = 0
+    while (h < norm.length && headerFlag[h]) h++
+    let headerRows, bodyRows
+    if (h >= 1) { headerRows = norm.slice(0, h); bodyRows = norm.slice(h) }
+    else { headerRows = [norm[0]]; bodyRows = norm.slice(1) }
+
+    const header = []
+    for (let c = 0; c < cols; c++) {
+      const parts = headerRows.map((row) => row[c]).filter(Boolean)
+      header.push([...new Set(parts)].join(' ').trim())
+    }
+    const out = [header, ...bodyRows].filter((r) => r.some((c) => String(c).length))
+    if (!out.length) return null
+    return out.map((r) => r.join('\t')).join('\n')
   } catch { return null }
 }
 
