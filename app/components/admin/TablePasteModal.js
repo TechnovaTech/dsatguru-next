@@ -3,12 +3,44 @@ import { useState, useEffect } from 'react'
 import { textToMarkdownTable, detectTableMode } from '../../../lib/markdownTable'
 import { renderContent } from './LatexRenderer'
 
+// When copying from a web page / Google Sheet / Docs, the clipboard carries the real table
+// structure as HTML. Parse it directly (exact cells) — far more reliable than guessing.
+function htmlTableToTabs(html) {
+  try {
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    const table = doc.querySelector('table')
+    if (!table) return null
+    const rows = []
+    for (const tr of table.querySelectorAll('tr')) {
+      const cells = []
+      for (const td of tr.querySelectorAll('th, td')) {
+        const text = (td.textContent || '').replace(/\s+/g, ' ').trim()
+        const span = parseInt(td.getAttribute('colspan') || '1', 10) || 1
+        cells.push(text)
+        for (let s = 1; s < span; s++) cells.push('')
+      }
+      if (cells.some((c) => c.length)) rows.push(cells)
+    }
+    if (!rows.length) return null
+    return rows.map((r) => r.join('\t')).join('\n')
+  } catch { return null }
+}
+
 // Paste rows -> live-previewed markdown table -> insert. Shared by the test editors.
 export default function TablePasteModal({ open, onClose, onInsert }) {
   const [raw, setRaw] = useState('')
   const [cols, setCols] = useState(3)
   useEffect(() => { if (open) { setRaw(''); setCols(3) } }, [open])
   if (!open) return null
+
+  // If the pasted clipboard contains an HTML table, capture its exact structure.
+  const handlePaste = (e) => {
+    const html = e.clipboardData && e.clipboardData.getData('text/html')
+    if (html) {
+      const tabs = htmlTableToTabs(html)
+      if (tabs) { e.preventDefault(); setRaw(tabs) }
+    }
+  }
 
   const mode = detectTableMode(raw)
   const autoDetected = mode === 'grid' || mode === 'numeric'
@@ -21,12 +53,13 @@ export default function TablePasteModal({ open, onClose, onInsert }) {
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
         </div>
         <p className="mb-2 text-xs text-gray-500">
-          Paste your table text below. Two ways work: copy straight from a table/sheet (cells keep their Tabs), OR
-          paste one cell per line and pick how many columns. The first row is the header. $...$ math works in cells.
+          Paste your table here. Copying from a web page / Google Sheet / Docs keeps the exact table automatically.
+          From a PDF or plain text it&apos;s rebuilt smartly (data tables auto-detect columns). The first row is the header; $...$ math works in cells.
         </p>
         <textarea
           value={raw}
           onChange={(e) => setRaw(e.target.value)}
+          onPaste={handlePaste}
           rows={7}
           autoFocus
           className="w-full rounded-lg border border-gray-300 p-2 font-mono text-sm outline-none focus:border-indigo-400"
