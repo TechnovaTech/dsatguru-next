@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { textToMarkdownTable, isGridPaste } from '../../../lib/markdownTable'
+import { textToMarkdownTable, detectTableMode } from '../../../lib/markdownTable'
 import { renderContent } from './LatexRenderer'
 
 // Paste rows -> live-previewed markdown table -> insert. Shared by the test editors.
@@ -10,7 +10,8 @@ export default function TablePasteModal({ open, onClose, onInsert }) {
   useEffect(() => { if (open) { setRaw(''); setCols(3) } }, [open])
   if (!open) return null
 
-  const grid = isGridPaste(raw)
+  const mode = detectTableMode(raw)
+  const autoDetected = mode === 'grid' || mode === 'numeric'
   const md = textToMarkdownTable(raw, cols)
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
@@ -32,18 +33,22 @@ export default function TablePasteModal({ open, onClose, onInsert }) {
           placeholder={'Choice\nCheck\nResult\n(a) (5,60.5)\n-17-3(60.5)=-198.5 ≠ 5\nEliminate\n...'}
         />
 
-        <div className="mt-3 flex items-center gap-3">
-          <label className="text-sm font-medium text-gray-700">Columns</label>
-          <input
-            type="number" min={1} max={12} value={cols}
-            onChange={(e) => setCols(Number(e.target.value) || 1)}
-            disabled={grid}
-            className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm outline-none focus:border-indigo-400 disabled:bg-gray-100 disabled:text-gray-400"
-          />
-          <span className="text-xs text-gray-500">
-            {grid ? 'Columns detected automatically from your paste (Tab/space separated).' : 'Cells are grouped into rows of this many columns.'}
-          </span>
-        </div>
+        {autoDetected ? (
+          <div className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
+            ✓ Columns detected automatically{mode === 'numeric' ? ' (label + number columns)' : ''}. Just check the preview below.
+            {mode === 'numeric' && ' If the header looks off, you can tweak its text after inserting.'}
+          </div>
+        ) : (
+          <div className="mt-3 flex items-center gap-3">
+            <label className="text-sm font-medium text-gray-700">Columns</label>
+            <input
+              type="number" min={1} max={12} value={cols}
+              onChange={(e) => setCols(Number(e.target.value) || 1)}
+              className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm outline-none focus:border-indigo-400"
+            />
+            <span className="text-xs text-gray-500">Couldn&apos;t auto-detect — cells are grouped into rows of this many columns.</span>
+          </div>
+        )}
 
         {md && (
           <div className="mt-3">
