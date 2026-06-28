@@ -1127,7 +1127,11 @@ export default function TutorTestSheets() {
                                       <div className="flex items-start gap-2">
                                         <div className="flex items-center gap-1 flex-shrink-0">
                                           <span className={`font-bold text-sm ${q.correctAnswer === letter ? 'text-green-700' : 'text-gray-600'}`}>{letter}.</span>
-                                          {q.correctAnswer === letter && <span className="text-xs font-semibold text-green-700 bg-green-100 px-1.5 py-0.5 rounded">Correct</span>}
+                                          {q.correctAnswer === letter ? (
+                                            <span className="text-xs font-semibold text-green-700 bg-green-100 px-1.5 py-0.5 rounded">Correct</span>
+                                          ) : (isEditing && (
+                                            <button type="button" onClick={() => handleQuestionFieldChange(qId, 'correctAnswer', letter)} className="text-[10px] font-semibold text-indigo-600 border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 rounded hover:bg-indigo-100" title="Mark this option as the correct answer">Set correct</button>
+                                          ))}
                                         </div>
                                         {isEditing ? (
                                           <div className="flex-1">

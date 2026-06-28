@@ -465,7 +465,11 @@ export default function AdminTestSheets() {
                                     <div key={key} className={`rounded-lg border-2 p-3 ${isCorrect ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
                                       <div className="mb-1 flex items-center gap-2">
                                         <span className={`text-sm font-bold ${isCorrect ? 'text-emerald-700' : 'text-slate-600'}`}>{key}.</span>
-                                        {isCorrect && <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Correct Answer</span>}
+                                        {isCorrect ? (
+                                          <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Correct Answer</span>
+                                        ) : (isEditing && (
+                                          <button type="button" onClick={() => handleQuestionFieldChange(q.id || q._id, 'correctAnswer', key)} className="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600 hover:bg-indigo-100" title="Mark this option as the correct answer">Set correct</button>
+                                        ))}
                                       </div>
                                       {isEditing
                                         ? <textarea aria-label={`Option ${key}`} className="w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={2} value={optText} onChange={e => handleOptionChange(q.id || q._id, key, e.target.value)} />
