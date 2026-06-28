@@ -39,15 +39,61 @@ export function renderLatex(text) {
   })
 }
 
-// Full renderer: images + tables + LaTeX
-export function renderContent(text) {
-  if (!text) return null
-  const normalized = text.replace(/<br\s*\/?>/gi, '\n')
-  const imgParts = normalized.split(/(!\[.*?\]\(.*?\))/g)
+// A single GFM table row -> array of cell strings.
+function parseTableRow(line) {
+  let l = line.trim()
+  if (l.startsWith('|')) l = l.slice(1)
+  if (l.endsWith('|')) l = l.slice(0, -1)
+  return l.split(/(?<!\\)\|/).map((c) => c.replace(/\\\|/g, '|').trim())
+}
+
+// Split text into alternating { type:'text' } and { type:'table', rows } blocks.
+function splitTableBlocks(text) {
+  const lines = text.split('\n')
+  const blocks = []
+  let buf = []
+  const flush = () => { if (buf.length) { blocks.push({ type: 'text', value: buf.join('\n') }); buf = [] } }
+  for (let i = 0; i < lines.length;) {
+    const line = lines[i]
+    const next = lines[i + 1]
+    const isSep = next != null && next.includes('|') && /-/.test(next) && /^[\s|:-]+$/.test(next.trim())
+    if (line.includes('|') && isSep) {
+      flush()
+      const rows = [parseTableRow(line)]
+      let k = i + 2
+      while (k < lines.length && lines[k].includes('|') && lines[k].trim()) { rows.push(parseTableRow(lines[k])); k++ }
+      blocks.push({ type: 'table', rows })
+      i = k
+    } else { buf.push(line); i++ }
+  }
+  flush()
+  return blocks
+}
+
+function TableBlock({ rows }) {
+  if (!rows || !rows.length) return null
+  const [head, ...body] = rows
   return (
-    <div className="whitespace-pre-wrap">
-      {imgParts.map((part, idx) => {
-        const imgMatch = part.match(/!\[.*?\]\((.*?)\)/)
+    <div className="my-2 overflow-x-auto">
+      <table className="min-w-full border-collapse text-sm">
+        <thead>
+          <tr>{head.map((c, i) => <th key={i} className="border border-gray-300 bg-gray-50 px-3 py-1.5 text-left font-semibold">{renderLatex(c)}</th>)}</tr>
+        </thead>
+        <tbody>
+          {body.map((r, ri) => <tr key={ri}>{r.map((c, ci) => <td key={ci} className="border border-gray-300 px-3 py-1.5 align-top">{renderLatex(c)}</td>)}</tr>)}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// Render a non-table text segment: images + LaTeX.
+function renderTextSegment(part, key) {
+  const imgParts = part.split(/(!\[.*?\]\(.*?\))/g)
+  return (
+    <span key={key}>
+      {imgParts.map((p, idx) => {
+        const imgMatch = p.match(/!\[.*?\]\((.*?)\)/)
         if (imgMatch) {
           return (
             <div key={idx} className="my-2">
@@ -55,8 +101,20 @@ export function renderContent(text) {
             </div>
           )
         }
-        return <span key={idx}>{renderLatex(part)}</span>
+        return <span key={idx}>{renderLatex(p)}</span>
       })}
+    </span>
+  )
+}
+
+// Full renderer: images + tables + LaTeX
+export function renderContent(text) {
+  if (!text) return null
+  const normalized = text.replace(/<br\s*\/?>/gi, '\n')
+  const blocks = splitTableBlocks(normalized)
+  return (
+    <div className="whitespace-pre-wrap">
+      {blocks.map((b, i) => (b.type === 'table' ? <TableBlock key={i} rows={b.rows} /> : renderTextSegment(b.value, i)))}
     </div>
   )
 }

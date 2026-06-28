@@ -2,7 +2,8 @@
 import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck, FiAlertCircle, FiClipboard, FiUpload } from 'react-icons/fi'
+import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck, FiAlertCircle, FiClipboard, FiUpload, FiGrid } from 'react-icons/fi'
+import TablePasteModal from '../../../components/admin/TablePasteModal'
 import { useConfirm } from '../../../components/ui/UIProvider'
 
 export default function AdminTestSheets() {
@@ -28,6 +29,7 @@ export default function AdminTestSheets() {
   const [editedQuestionsData, setEditedQuestionsData] = useState({})
   const [savingTest, setSavingTest] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [tableInsertFn, setTableInsertFn] = useState(null)
 
   // Assign test to student modal
   const [showAssignToStudentModal, setShowAssignToStudentModal] = useState(false)
@@ -316,6 +318,11 @@ export default function AdminTestSheets() {
     uploadQuestionImage((md) => handleQuestionFieldChange(qId, field, current ? `${current}\n${md}` : md))
   const appendImageToOption = (qId, key, current) =>
     uploadQuestionImage((md) => handleOptionChange(qId, key, current ? `${current}\n${md}` : md))
+  const openTableModal = (onInsert) => setTableInsertFn(() => onInsert)
+  const appendTableToField = (qId, field, current) =>
+    openTableModal((md) => handleQuestionFieldChange(qId, field, current ? `${current}\n${md}` : md))
+  const appendTableToOption = (qId, key, current) =>
+    openTableModal((md) => handleOptionChange(qId, key, current ? `${current}\n${md}` : md))
 
   const filteredTests = tests.filter(test => {
     if (test.isReassigned) return false
@@ -496,7 +503,7 @@ export default function AdminTestSheets() {
                         <div className="space-y-2">
                           <span className="text-sm font-semibold text-slate-700">Question</span>
                           {isEditing
-                            ? <><textarea aria-label="Question content" className="w-full rounded-lg border border-slate-300 p-3 font-mono outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={6} value={q.content} onChange={e => handleQuestionFieldChange(q.id || q._id, 'content', e.target.value)} /><ImagePreview text={q.content || ''} onRemove={(src) => removeImageFromField(q.id || q._id, 'content', q.content || '', src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'content', q.content || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
+                            ? <><textarea aria-label="Question content" className="w-full rounded-lg border border-slate-300 p-3 font-mono outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={6} value={q.content} onChange={e => handleQuestionFieldChange(q.id || q._id, 'content', e.target.value)} /><ImagePreview text={q.content || ''} onRemove={(src) => removeImageFromField(q.id || q._id, 'content', q.content || '', src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'content', q.content || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button><button type="button" onClick={() => appendTableToField(q.id || q._id, 'content', q.content || '')} className="ml-2 mt-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"><FiGrid className="h-3.5 w-3.5" /> Table</button></>
                             : <div className="rounded-lg border border-slate-200 bg-white p-4 text-slate-900">{renderWithImages(q.content)}</div>
                           }
                         </div>
@@ -522,7 +529,7 @@ export default function AdminTestSheets() {
                                         ))}
                                       </div>
                                       {isEditing
-                                        ? <><textarea aria-label={`Option ${key}`} className="w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={2} value={optText} onChange={e => handleOptionChange(q.id || q._id, key, e.target.value)} /><ImagePreview text={optText} onRemove={(src) => removeImageFromOption(q.id || q._id, key, optText, src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToOption(q.id || q._id, key, optText)} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
+                                        ? <><textarea aria-label={`Option ${key}`} className="w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={2} value={optText} onChange={e => handleOptionChange(q.id || q._id, key, e.target.value)} /><ImagePreview text={optText} onRemove={(src) => removeImageFromOption(q.id || q._id, key, optText, src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToOption(q.id || q._id, key, optText)} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button><button type="button" onClick={() => appendTableToOption(q.id || q._id, key, optText)} className="ml-2 mt-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"><FiGrid className="h-3.5 w-3.5" /> Table</button></>
                                         : <div className="text-sm text-slate-700 [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain">{renderWithImages(optText)}</div>
                                       }
                                     </div>
@@ -558,14 +565,14 @@ export default function AdminTestSheets() {
                           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
                             <span className="text-xs font-semibold uppercase text-amber-700">Short Explanation</span>
                             {isEditing
-                              ? <><textarea aria-label="Short explanation" className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={3} value={q.shortExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'shortExplanation', e.target.value)} placeholder="Add short explanation..." /><ImagePreview text={q.shortExplanation || ''} onRemove={(src) => removeImageFromField(q.id || q._id, 'shortExplanation', q.shortExplanation || '', src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'shortExplanation', q.shortExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
+                              ? <><textarea aria-label="Short explanation" className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={3} value={q.shortExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'shortExplanation', e.target.value)} placeholder="Add short explanation..." /><ImagePreview text={q.shortExplanation || ''} onRemove={(src) => removeImageFromField(q.id || q._id, 'shortExplanation', q.shortExplanation || '', src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'shortExplanation', q.shortExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button><button type="button" onClick={() => appendTableToField(q.id || q._id, 'shortExplanation', q.shortExplanation || '')} className="ml-2 mt-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"><FiGrid className="h-3.5 w-3.5" /> Table</button></>
                               : <div className="mt-2 min-h-[24px] text-sm text-slate-700">{q.shortExplanation ? renderWithImages(q.shortExplanation) : <span className="italic text-slate-400">No short explanation added</span>}</div>
                             }
                           </div>
                           <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
                             <span className="text-xs font-semibold uppercase text-indigo-700">Long Explanation</span>
                             {isEditing
-                              ? <><textarea aria-label="Long explanation" className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={5} value={q.longExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'longExplanation', e.target.value)} placeholder="Add long explanation..." /><ImagePreview text={q.longExplanation || ''} onRemove={(src) => removeImageFromField(q.id || q._id, 'longExplanation', q.longExplanation || '', src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'longExplanation', q.longExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
+                              ? <><textarea aria-label="Long explanation" className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={5} value={q.longExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'longExplanation', e.target.value)} placeholder="Add long explanation..." /><ImagePreview text={q.longExplanation || ''} onRemove={(src) => removeImageFromField(q.id || q._id, 'longExplanation', q.longExplanation || '', src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'longExplanation', q.longExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button><button type="button" onClick={() => appendTableToField(q.id || q._id, 'longExplanation', q.longExplanation || '')} className="ml-2 mt-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"><FiGrid className="h-3.5 w-3.5" /> Table</button></>
                               : <div className="mt-2 min-h-[24px] text-sm text-slate-700">{q.longExplanation ? renderWithImages(q.longExplanation) : <span className="italic text-slate-400">No long explanation added</span>}</div>
                             }
                           </div>
@@ -650,6 +657,8 @@ export default function AdminTestSheets() {
           </div>
         )}
       </div>
+
+      <TablePasteModal open={!!tableInsertFn} onClose={() => setTableInsertFn(null)} onInsert={(md) => { if (tableInsertFn) tableInsertFn(md) }} />
     </div>
   )
 }
