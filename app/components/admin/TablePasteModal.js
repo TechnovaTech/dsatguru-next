@@ -1,15 +1,17 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { textToMarkdownTable } from '../../../lib/markdownTable'
+import { textToMarkdownTable, isGridPaste } from '../../../lib/markdownTable'
 import { renderContent } from './LatexRenderer'
 
 // Paste rows -> live-previewed markdown table -> insert. Shared by the test editors.
 export default function TablePasteModal({ open, onClose, onInsert }) {
   const [raw, setRaw] = useState('')
-  useEffect(() => { if (open) setRaw('') }, [open])
+  const [cols, setCols] = useState(3)
+  useEffect(() => { if (open) { setRaw(''); setCols(3) } }, [open])
   if (!open) return null
 
-  const md = textToMarkdownTable(raw)
+  const grid = isGridPaste(raw)
+  const md = textToMarkdownTable(raw, cols)
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div className="w-full max-w-2xl rounded-xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
@@ -18,17 +20,31 @@ export default function TablePasteModal({ open, onClose, onInsert }) {
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
         </div>
         <p className="mb-2 text-xs text-gray-500">
-          Paste rows — one row per line, columns separated by a <b>Tab</b> (when you copy from a table/sheet) or 2+ spaces.
-          The first row becomes the header. You can use $...$ for math inside cells.
+          Paste your table text below. Two ways work: copy straight from a table/sheet (cells keep their Tabs), OR
+          paste one cell per line and pick how many columns. The first row is the header. $...$ math works in cells.
         </p>
         <textarea
           value={raw}
           onChange={(e) => setRaw(e.target.value)}
-          rows={6}
+          rows={7}
           autoFocus
           className="w-full rounded-lg border border-gray-300 p-2 font-mono text-sm outline-none focus:border-indigo-400"
-          placeholder={'Choice\tCheck\tResult\n(a) (5,60.5)\t-17-3(60.5)=-198.5 ≠ 5\tEliminate\n(d) (-32,5)\t-17-3(5)=-32 ✓\tKeep!'}
+          placeholder={'Choice\nCheck\nResult\n(a) (5,60.5)\n-17-3(60.5)=-198.5 ≠ 5\nEliminate\n...'}
         />
+
+        <div className="mt-3 flex items-center gap-3">
+          <label className="text-sm font-medium text-gray-700">Columns</label>
+          <input
+            type="number" min={1} max={12} value={cols}
+            onChange={(e) => setCols(Number(e.target.value) || 1)}
+            disabled={grid}
+            className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm outline-none focus:border-indigo-400 disabled:bg-gray-100 disabled:text-gray-400"
+          />
+          <span className="text-xs text-gray-500">
+            {grid ? 'Columns detected automatically from your paste (Tab/space separated).' : 'Cells are grouped into rows of this many columns.'}
+          </span>
+        </div>
+
         {md && (
           <div className="mt-3">
             <div className="mb-1 text-xs font-semibold text-gray-500">Preview</div>
