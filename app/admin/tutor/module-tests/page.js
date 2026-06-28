@@ -2,7 +2,7 @@
 import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiUsers, FiPlus } from 'react-icons/fi'
+import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiUsers, FiPlus, FiUpload } from 'react-icons/fi'
 import { useConfirm } from '../../../components/ui/UIProvider'
 
 export default function ModuleTestSheets() {
@@ -23,6 +23,7 @@ export default function ModuleTestSheets() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [loadingQuestions, setLoadingQuestions] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
   const [editingQuestionId, setEditingQuestionId] = useState(null)
   const [editedQuestionsData, setEditedQuestionsData] = useState({})
   const [savingTest, setSavingTest] = useState(false)
@@ -226,6 +227,32 @@ export default function ModuleTestSheets() {
     })
   }
 
+  // Pick + upload an image and hand back the markdown to insert (used by the edit modal).
+  const uploadQuestionImage = (onInsert) => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.onchange = async () => {
+      const file = input.files && input.files[0]
+      if (!file) return
+      setUploadingImage(true)
+      try {
+        const token = localStorage.getItem('token')
+        const fd = new FormData()
+        fd.append('file', file)
+        const res = await fetch('/api/admin/upload-image', { method: 'POST', headers: token ? { Authorization: `Bearer ${token}` } : {}, body: fd })
+        const data = await res.json()
+        if (res.ok && data.url) onInsert(`![image](${data.url})`)
+        else alert(data.error || 'Image upload failed')
+      } catch (e) { alert('Image upload failed') } finally { setUploadingImage(false) }
+    }
+    input.click()
+  }
+  const appendImageToField = (qId, field, current) =>
+    uploadQuestionImage((md) => handleQuestionFieldChange(qId, field, current ? `${current}\n${md}` : md))
+  const appendImageToOption = (qId, letter, current) =>
+    uploadQuestionImage((md) => handleOptionChange(qId, letter, current ? `${current}\n${md}` : md))
+
   const filteredTests = tests.filter(test => {
     if (test.isReassigned === true) return false
     if (searchTerm && !(test.title || '').toLowerCase().includes(searchTerm.toLowerCase())) return false
@@ -423,7 +450,7 @@ export default function ModuleTestSheets() {
                           <label className="mb-2 block text-sm font-medium text-slate-700">Question</label>
                           {isEditing ? (
                             <><textarea value={q.content || q.question || ''} onChange={e => handleQuestionFieldChange(qId, 'content', e.target.value)} className="w-full rounded-lg border border-slate-300 p-3 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={4} />
-                            <ImagePreview text={q.content || q.question} /></>
+                            <ImagePreview text={q.content || q.question} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(qId, 'content', q.content || q.question || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
                           ) : (
                             <div className="rounded-lg border border-slate-200 bg-white p-3 text-slate-900">{renderWithImages(q.content || q.question)}</div>
                           )}
@@ -441,10 +468,10 @@ export default function ModuleTestSheets() {
                                       <div className="flex items-start gap-2">
                                         <div className="flex flex-shrink-0 items-center gap-1">
                                           <span className={`text-sm font-bold ${q.correctAnswer === letter ? 'text-emerald-700' : 'text-slate-600'}`}>{letter}.</span>
-                                          {q.correctAnswer === letter && <span className="rounded bg-emerald-100 px-1 text-xs font-semibold text-emerald-700">✓</span>}
+                                          {q.correctAnswer === letter ? <span className="rounded bg-emerald-100 px-1 text-xs font-semibold text-emerald-700">✓</span> : (isEditing && <button type="button" onClick={() => handleQuestionFieldChange(qId, 'correctAnswer', letter)} className="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600 hover:bg-indigo-100" title="Mark as correct">Set correct</button>)}
                                         </div>
                                         {isEditing
-                                          ? <div className="flex-1"><textarea value={optText} onChange={e => handleOptionChange(qId, letter, e.target.value)} className="w-full rounded border border-slate-300 p-2 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={2} /><ImagePreview text={optText} /></div>
+                                          ? <div className="flex-1"><textarea value={optText} onChange={e => handleOptionChange(qId, letter, e.target.value)} className="w-full rounded border border-slate-300 p-2 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={2} /><ImagePreview text={optText} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToOption(qId, letter, optText)} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></div>
                                           : <div className="flex-1 [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain">{renderWithImages(optText)}</div>}
                                       </div>
                                     </div>
@@ -471,14 +498,14 @@ export default function ModuleTestSheets() {
                         <div className="mb-4">
                           <label className="mb-2 block text-sm font-medium text-slate-700">Short Explanation</label>
                           {isEditing
-                            ? <><textarea value={q.shortExplanation || ''} onChange={e => handleQuestionFieldChange(qId, 'shortExplanation', e.target.value)} className="w-full rounded-lg border border-slate-300 p-3 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={3} placeholder="Short explanation..." /><ImagePreview text={q.shortExplanation || ''} /></>
+                            ? <><textarea value={q.shortExplanation || ''} onChange={e => handleQuestionFieldChange(qId, 'shortExplanation', e.target.value)} className="w-full rounded-lg border border-slate-300 p-3 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={3} placeholder="Short explanation..." /><ImagePreview text={q.shortExplanation || ''} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(qId, 'shortExplanation', q.shortExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
                             : <div className="min-h-[44px] rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-sm">{q.shortExplanation ? renderWithImages(q.shortExplanation) : <span className="italic text-slate-400">No short explanation</span>}</div>}
                         </div>
 
                         <div className="mb-4">
                           <label className="mb-2 block text-sm font-medium text-slate-700">Long Explanation</label>
                           {isEditing
-                            ? <><textarea value={q.longExplanation || ''} onChange={e => handleQuestionFieldChange(qId, 'longExplanation', e.target.value)} className="w-full rounded-lg border border-slate-300 p-3 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={5} placeholder="Long explanation..." /><ImagePreview text={q.longExplanation || ''} /></>
+                            ? <><textarea value={q.longExplanation || ''} onChange={e => handleQuestionFieldChange(qId, 'longExplanation', e.target.value)} className="w-full rounded-lg border border-slate-300 p-3 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={5} placeholder="Long explanation..." /><ImagePreview text={q.longExplanation || ''} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(qId, 'longExplanation', q.longExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
                             : <div className="min-h-[44px] rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-sm">{q.longExplanation ? renderWithImages(q.longExplanation) : <span className="italic text-slate-400">No long explanation</span>}</div>}
                         </div>
 

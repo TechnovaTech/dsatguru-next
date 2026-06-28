@@ -2,7 +2,7 @@
 import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck, FiAlertCircle, FiClipboard } from 'react-icons/fi'
+import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck, FiAlertCircle, FiClipboard, FiUpload } from 'react-icons/fi'
 import { useConfirm } from '../../../components/ui/UIProvider'
 
 export default function AdminTestSheets() {
@@ -27,6 +27,7 @@ export default function AdminTestSheets() {
   const [editingQuestionId, setEditingQuestionId] = useState(null)
   const [editedQuestionsData, setEditedQuestionsData] = useState({})
   const [savingTest, setSavingTest] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   // Assign test to student modal
   const [showAssignToStudentModal, setShowAssignToStudentModal] = useState(false)
@@ -267,6 +268,32 @@ export default function AdminTestSheets() {
     setTestQuestions(prev => prev.map(q => (q.id || q._id) === questionId ? { ...q, options: newOptions } : q))
   }
 
+  // Pick + upload an image and insert the markdown into a field (edit modal).
+  const uploadQuestionImage = (onInsert) => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.onchange = async () => {
+      const file = input.files && input.files[0]
+      if (!file) return
+      setUploadingImage(true)
+      try {
+        const token = localStorage.getItem('token')
+        const fd = new FormData()
+        fd.append('file', file)
+        const res = await fetch('/api/admin/upload-image', { method: 'POST', headers: token ? { Authorization: `Bearer ${token}` } : {}, body: fd })
+        const data = await res.json()
+        if (res.ok && data.url) onInsert(`![image](${data.url})`)
+        else alert(data.error || 'Image upload failed')
+      } catch (e) { alert('Image upload failed') } finally { setUploadingImage(false) }
+    }
+    input.click()
+  }
+  const appendImageToField = (qId, field, current) =>
+    uploadQuestionImage((md) => handleQuestionFieldChange(qId, field, current ? `${current}\n${md}` : md))
+  const appendImageToOption = (qId, key, current) =>
+    uploadQuestionImage((md) => handleOptionChange(qId, key, current ? `${current}\n${md}` : md))
+
   const filteredTests = tests.filter(test => {
     if (test.isReassigned) return false
     if (searchTerm && !test.title.toLowerCase().includes(searchTerm.toLowerCase())) return false
@@ -446,7 +473,7 @@ export default function AdminTestSheets() {
                         <div className="space-y-2">
                           <span className="text-sm font-semibold text-slate-700">Question</span>
                           {isEditing
-                            ? <textarea aria-label="Question content" className="w-full rounded-lg border border-slate-300 p-3 font-mono outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={6} value={q.content} onChange={e => handleQuestionFieldChange(q.id || q._id, 'content', e.target.value)} />
+                            ? <><textarea aria-label="Question content" className="w-full rounded-lg border border-slate-300 p-3 font-mono outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={6} value={q.content} onChange={e => handleQuestionFieldChange(q.id || q._id, 'content', e.target.value)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'content', q.content || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
                             : <div className="rounded-lg border border-slate-200 bg-white p-4 text-slate-900">{renderWithImages(q.content)}</div>
                           }
                         </div>
@@ -472,7 +499,7 @@ export default function AdminTestSheets() {
                                         ))}
                                       </div>
                                       {isEditing
-                                        ? <textarea aria-label={`Option ${key}`} className="w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={2} value={optText} onChange={e => handleOptionChange(q.id || q._id, key, e.target.value)} />
+                                        ? <><textarea aria-label={`Option ${key}`} className="w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={2} value={optText} onChange={e => handleOptionChange(q.id || q._id, key, e.target.value)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToOption(q.id || q._id, key, optText)} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
                                         : <div className="text-sm text-slate-700 [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain">{renderWithImages(optText)}</div>
                                       }
                                     </div>
@@ -508,14 +535,14 @@ export default function AdminTestSheets() {
                           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
                             <span className="text-xs font-semibold uppercase text-amber-700">Short Explanation</span>
                             {isEditing
-                              ? <textarea aria-label="Short explanation" className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={3} value={q.shortExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'shortExplanation', e.target.value)} placeholder="Add short explanation..." />
+                              ? <><textarea aria-label="Short explanation" className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={3} value={q.shortExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'shortExplanation', e.target.value)} placeholder="Add short explanation..." /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'shortExplanation', q.shortExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
                               : <div className="mt-2 min-h-[24px] text-sm text-slate-700">{q.shortExplanation ? renderWithImages(q.shortExplanation) : <span className="italic text-slate-400">No short explanation added</span>}</div>
                             }
                           </div>
                           <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
                             <span className="text-xs font-semibold uppercase text-indigo-700">Long Explanation</span>
                             {isEditing
-                              ? <textarea aria-label="Long explanation" className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={5} value={q.longExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'longExplanation', e.target.value)} placeholder="Add long explanation..." />
+                              ? <><textarea aria-label="Long explanation" className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={5} value={q.longExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'longExplanation', e.target.value)} placeholder="Add long explanation..." /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'longExplanation', q.longExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
                               : <div className="mt-2 min-h-[24px] text-sm text-slate-700">{q.longExplanation ? renderWithImages(q.longExplanation) : <span className="italic text-slate-400">No long explanation added</span>}</div>
                             }
                           </div>
