@@ -216,23 +216,46 @@ export default function AdminTestSheets() {
     }
   }
 
+  const persistCustomQuestions = async () => {
+    const token = localStorage.getItem('token')
+    const res = await fetch('/api/admin/admin-tests/update', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ testId: viewingTest._id, customQuestions: editedQuestionsData })
+    })
+    return res.ok
+  }
+
+  // Per-question save persists immediately (no need to also click "Save Changes").
+  const handleSaveQuestion = async () => {
+    setSavingTest(true)
+    try {
+      if (await persistCustomQuestions()) { setEditingQuestionId(null); setSuccess('Question saved'); setTimeout(() => setSuccess(''), 2000) }
+      else setError('Failed to save question')
+    } catch (err) { setError('Failed to save question'); console.error(err) } finally { setSavingTest(false) }
+  }
+
+  // Remove an uploaded image's markdown from a field/option value.
+  const stripImageMarkdown = (text, src) => {
+    if (!text) return text
+    const esc = String(src).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return String(text).replace(new RegExp(`!\\[[^\\]]*\\]\\(${esc}\\)\\n?`, 'g'), '').replace(/\n{3,}/g, '\n\n').trim()
+  }
+  const removeImageFromField = (qId, field, current, src) => handleQuestionFieldChange(qId, field, stripImageMarkdown(current, src))
+  const removeImageFromOption = (qId, key, current, src) => handleOptionChange(qId, key, stripImageMarkdown(current, src))
+
+  const ImagePreview = ({ text, onRemove }) => {
+    if (!text) return null
+    const regex = /!\[(.*?)\]\((.*?)\)/g; const images = []; let m
+    while ((m = regex.exec(text)) !== null) images.push({ alt: m[1], src: m[2] })
+    if (!images.length) return null
+    return <div className="mt-2 rounded border border-dashed border-slate-200 bg-slate-50 p-2"><div className="flex flex-wrap gap-2">{images.map((img, i) => <div key={i} className="relative"><img src={img.src} alt={img.alt} className="h-16 w-auto rounded border bg-white object-contain" />{onRemove && <button type="button" onClick={() => onRemove(img.src)} title="Remove image" className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white shadow hover:bg-red-700">×</button>}</div>)}</div></div>
+  }
+
   const handleSaveTestEdits = async () => {
     setSavingTest(true)
     try {
-      const token = localStorage.getItem('token')
-      const res = await fetch('/api/admin/admin-tests/update', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          testId: viewingTest._id,
-          customQuestions: editedQuestionsData
-        })
-      })
-
-      if (res.ok) {
+      if (await persistCustomQuestions()) {
         setSuccess('Test updated successfully')
         setIsEditMode(false)
         setEditingQuestionId(null)
@@ -440,7 +463,7 @@ export default function AdminTestSheets() {
                         <div className="flex justify-end">
                           {isEditMode && (
                             isEditing
-                              ? <button onClick={() => setEditingQuestionId(null)} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">Done Editing</button>
+                              ? <button onClick={handleSaveQuestion} disabled={savingTest} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50">{savingTest ? 'Saving...' : 'Save Question'}</button>
                               : <button onClick={() => setEditingQuestionId(q.id || q._id)} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700">Edit Question</button>
                           )}
                         </div>
@@ -473,7 +496,7 @@ export default function AdminTestSheets() {
                         <div className="space-y-2">
                           <span className="text-sm font-semibold text-slate-700">Question</span>
                           {isEditing
-                            ? <><textarea aria-label="Question content" className="w-full rounded-lg border border-slate-300 p-3 font-mono outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={6} value={q.content} onChange={e => handleQuestionFieldChange(q.id || q._id, 'content', e.target.value)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'content', q.content || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
+                            ? <><textarea aria-label="Question content" className="w-full rounded-lg border border-slate-300 p-3 font-mono outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={6} value={q.content} onChange={e => handleQuestionFieldChange(q.id || q._id, 'content', e.target.value)} /><ImagePreview text={q.content || ''} onRemove={(src) => removeImageFromField(q.id || q._id, 'content', q.content || '', src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'content', q.content || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
                             : <div className="rounded-lg border border-slate-200 bg-white p-4 text-slate-900">{renderWithImages(q.content)}</div>
                           }
                         </div>
@@ -499,7 +522,7 @@ export default function AdminTestSheets() {
                                         ))}
                                       </div>
                                       {isEditing
-                                        ? <><textarea aria-label={`Option ${key}`} className="w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={2} value={optText} onChange={e => handleOptionChange(q.id || q._id, key, e.target.value)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToOption(q.id || q._id, key, optText)} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
+                                        ? <><textarea aria-label={`Option ${key}`} className="w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={2} value={optText} onChange={e => handleOptionChange(q.id || q._id, key, e.target.value)} /><ImagePreview text={optText} onRemove={(src) => removeImageFromOption(q.id || q._id, key, optText, src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToOption(q.id || q._id, key, optText)} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
                                         : <div className="text-sm text-slate-700 [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain">{renderWithImages(optText)}</div>
                                       }
                                     </div>
@@ -535,14 +558,14 @@ export default function AdminTestSheets() {
                           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
                             <span className="text-xs font-semibold uppercase text-amber-700">Short Explanation</span>
                             {isEditing
-                              ? <><textarea aria-label="Short explanation" className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={3} value={q.shortExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'shortExplanation', e.target.value)} placeholder="Add short explanation..." /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'shortExplanation', q.shortExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
+                              ? <><textarea aria-label="Short explanation" className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={3} value={q.shortExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'shortExplanation', e.target.value)} placeholder="Add short explanation..." /><ImagePreview text={q.shortExplanation || ''} onRemove={(src) => removeImageFromField(q.id || q._id, 'shortExplanation', q.shortExplanation || '', src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'shortExplanation', q.shortExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
                               : <div className="mt-2 min-h-[24px] text-sm text-slate-700">{q.shortExplanation ? renderWithImages(q.shortExplanation) : <span className="italic text-slate-400">No short explanation added</span>}</div>
                             }
                           </div>
                           <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
                             <span className="text-xs font-semibold uppercase text-indigo-700">Long Explanation</span>
                             {isEditing
-                              ? <><textarea aria-label="Long explanation" className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={5} value={q.longExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'longExplanation', e.target.value)} placeholder="Add long explanation..." /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'longExplanation', q.longExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
+                              ? <><textarea aria-label="Long explanation" className="mt-2 w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={5} value={q.longExplanation || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'longExplanation', e.target.value)} placeholder="Add long explanation..." /><ImagePreview text={q.longExplanation || ''} onRemove={(src) => removeImageFromField(q.id || q._id, 'longExplanation', q.longExplanation || '', src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(q.id || q._id, 'longExplanation', q.longExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
                               : <div className="mt-2 min-h-[24px] text-sm text-slate-700">{q.longExplanation ? renderWithImages(q.longExplanation) : <span className="italic text-slate-400">No long explanation added</span>}</div>
                             }
                           </div>

@@ -546,23 +546,21 @@ export default function TutorTestSheets() {
     }
   }
 
+  // Persist all pending question edits (customQuestions) to the backend.
+  const persistCustomQuestions = async () => {
+    const token = localStorage.getItem('token')
+    const res = await fetch('/api/admin/tutor/tests/update', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ testId: viewingTest._id, customQuestions: editedQuestionsData })
+    })
+    return res.ok
+  }
+
   const handleSaveTestEdits = async () => {
     setSavingTest(true)
     try {
-      const token = localStorage.getItem('token')
-      const res = await fetch('/api/admin/tutor/tests/update', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          testId: viewingTest._id,
-          customQuestions: editedQuestionsData
-        })
-      })
-
-      if (res.ok) {
+      if (await persistCustomQuestions()) {
         setSuccess('Test updated successfully')
         setIsEditMode(false)
         setEditingQuestionId(null)
@@ -583,9 +581,35 @@ export default function TutorTestSheets() {
     setEditingQuestionId(questionId)
   }
 
-  const handleSaveQuestion = (questionId) => {
-    setEditingQuestionId(null)
+  // Per-question Save now persists immediately (no need to also click "Save All Changes").
+  const handleSaveQuestion = async (questionId) => {
+    setSavingTest(true)
+    try {
+      if (await persistCustomQuestions()) {
+        setEditingQuestionId(null)
+        setSuccess('Question saved')
+        setTimeout(() => setSuccess(''), 2000)
+      } else {
+        setError('Failed to save question')
+      }
+    } catch (err) {
+      setError('Failed to save question')
+      console.error(err)
+    } finally {
+      setSavingTest(false)
+    }
   }
+
+  // Remove an uploaded image's markdown from a field/option value.
+  const stripImageMarkdown = (text, src) => {
+    if (!text) return text
+    const esc = String(src).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return String(text).replace(new RegExp(`!\\[[^\\]]*\\]\\(${esc}\\)\\n?`, 'g'), '').replace(/\n{3,}/g, '\n\n').trim()
+  }
+  const removeImageFromField = (qId, field, current, src) =>
+    handleQuestionFieldChange(qId, field, stripImageMarkdown(current, src))
+  const removeImageFromOption = (qId, letter, current, src) =>
+    handleOptionChange(qId, letter, stripImageMarkdown(current, src))
 
   const handleQuestionFieldChange = (questionId, field, value) => {
     const currentQuestion = testQuestions.find(q => (q.id || q._id) === questionId)
@@ -998,7 +1022,7 @@ export default function TutorTestSheets() {
                     }
                     const tags = typeof q.tags === 'string' ? JSON.parse(q.tags) : (Array.isArray(q.tags) ? q.tags : [])
                     
-                    const ImagePreview = ({ text }) => {
+                    const ImagePreview = ({ text, onRemove }) => {
                       if (!text) return null
                       const regex = /!\[(.*?)\]\((.*?)\)/g
                       const images = []
@@ -1012,7 +1036,12 @@ export default function TutorTestSheets() {
                           <span className="text-xs text-gray-500 block mb-2">Image Preview:</span>
                           <div className="flex flex-wrap gap-2">
                             {images.map((img, i) => (
-                              <img key={i} src={img.src} alt={img.alt} title={img.alt} className="h-20 w-auto object-contain rounded border bg-white" />
+                              <div key={i} className="relative">
+                                <img src={img.src} alt={img.alt} title={img.alt} className="h-20 w-auto object-contain rounded border bg-white" />
+                                {onRemove && (
+                                  <button type="button" onClick={() => onRemove(img.src)} title="Remove image" className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-white text-xs shadow hover:bg-red-700">×</button>
+                                )}
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -1100,7 +1129,7 @@ export default function TutorTestSheets() {
                                   className="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm"
                                   rows={4}
                                 />
-                                <ImagePreview text={q.content || q.question} />
+                                <ImagePreview text={q.content || q.question} onRemove={(src) => removeImageFromField(qId, 'content', q.content || q.question || '', src)} />
                                 <button type="button" disabled={uploadingImage} onClick={() => appendImageToField(qId, 'content', q.content || q.question || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50">
                                   <FiUpload className="w-3.5 h-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}
                                 </button>
@@ -1141,7 +1170,7 @@ export default function TutorTestSheets() {
                                               className="w-full p-2 border border-gray-300 rounded font-mono text-sm"
                                               rows={2}
                                             />
-                                            <ImagePreview text={optText} />
+                                            <ImagePreview text={optText} onRemove={(src) => removeImageFromOption(qId, letter, optText, src)} />
                                             <button type="button" disabled={uploadingImage} onClick={() => appendImageToOption(qId, letter, optText)} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50">
                                               <FiUpload className="w-3.5 h-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}
                                             </button>
@@ -1216,7 +1245,7 @@ export default function TutorTestSheets() {
                                   rows={3}
                                   placeholder="Add short explanation..."
                                 />
-                                <ImagePreview text={q.shortExplanation || ''} />
+                                <ImagePreview text={q.shortExplanation || ''} onRemove={(src) => removeImageFromField(qId, 'shortExplanation', q.shortExplanation || '', src)} />
                                 <button type="button" disabled={uploadingImage} onClick={() => appendImageToField(qId, 'shortExplanation', q.shortExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50">
                                   <FiUpload className="w-3.5 h-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}
                                 </button>
@@ -1242,7 +1271,7 @@ export default function TutorTestSheets() {
                                   rows={5}
                                   placeholder="Add detailed explanation..."
                                 />
-                                <ImagePreview text={q.longExplanation || ''} />
+                                <ImagePreview text={q.longExplanation || ''} onRemove={(src) => removeImageFromField(qId, 'longExplanation', q.longExplanation || '', src)} />
                                 <button type="button" disabled={uploadingImage} onClick={() => appendImageToField(qId, 'longExplanation', q.longExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50">
                                   <FiUpload className="w-3.5 h-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}
                                 </button>

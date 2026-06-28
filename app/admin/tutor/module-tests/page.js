@@ -181,19 +181,41 @@ export default function ModuleTestSheets() {
     } catch (err) { console.error(err) } finally { setLoadingQuestions(false) }
   }
 
+  const persistCustomQuestions = async () => {
+    const token = localStorage.getItem('token')
+    const res = await fetch('/api/admin/tutor/module-tests/update', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ testId: viewingTest._id, customQuestions: editedQuestionsData })
+    })
+    return res.ok
+  }
+
   const handleSaveTestEdits = async () => {
     setSavingTest(true)
     try {
-      const token = localStorage.getItem('token')
-      const res = await fetch('/api/admin/tutor/module-tests/update', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ testId: viewingTest._id, customQuestions: editedQuestionsData })
-      })
-      if (res.ok) { setSuccess('Saved'); setIsEditMode(false); setEditingQuestionId(null); fetchTests(); setTimeout(() => setSuccess(''), 3000) }
+      if (await persistCustomQuestions()) { setSuccess('Saved'); setIsEditMode(false); setEditingQuestionId(null); fetchTests(); setTimeout(() => setSuccess(''), 3000) }
       else setError('Failed to save')
     } catch { setError('Failed to save') } finally { setSavingTest(false) }
   }
+
+  // Per-question save persists immediately (no need to also click "Save All").
+  const handleSaveQuestion = async () => {
+    setSavingTest(true)
+    try {
+      if (await persistCustomQuestions()) { setEditingQuestionId(null); setSuccess('Question saved'); setTimeout(() => setSuccess(''), 2000) }
+      else setError('Failed to save')
+    } catch { setError('Failed to save') } finally { setSavingTest(false) }
+  }
+
+  // Remove an uploaded image's markdown from a field/option value.
+  const stripImageMarkdown = (text, src) => {
+    if (!text) return text
+    const esc = String(src).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return String(text).replace(new RegExp(`!\\[[^\\]]*\\]\\(${esc}\\)\\n?`, 'g'), '').replace(/\n{3,}/g, '\n\n').trim()
+  }
+  const removeImageFromField = (qId, field, current, src) => handleQuestionFieldChange(qId, field, stripImageMarkdown(current, src))
+  const removeImageFromOption = (qId, letter, current, src) => handleOptionChange(qId, letter, stripImageMarkdown(current, src))
 
   const handleQuestionFieldChange = (questionId, field, value) => {
     setEditedQuestionsData(prev => ({ ...prev, [questionId]: { ...(prev[questionId] || {}), [field]: value } }))
@@ -264,12 +286,12 @@ export default function ModuleTestSheets() {
   const currentModuleQuestions = moduleQuestionsMap[currentModuleTab] || []
   const currentModules = viewingTest?.modules && viewingTest.modules.length > 0 ? viewingTest.modules : [{ subject: viewingTest?.subject, questions: viewingTest?.questions || [] }]
 
-  const ImagePreview = ({ text }) => {
+  const ImagePreview = ({ text, onRemove }) => {
     if (!text) return null
     const regex = /!\[(.*?)\]\((.*?)\)/g; const images = []; let match
     while ((match = regex.exec(text)) !== null) images.push({ alt: match[1], src: match[2] })
     if (!images.length) return null
-    return <div className="mt-2 p-2 bg-gray-50 rounded border border-dashed border-gray-200"><div className="flex flex-wrap gap-2">{images.map((img, i) => <img key={i} src={img.src} alt={img.alt} className="h-16 w-auto object-contain rounded border bg-white" />)}</div></div>
+    return <div className="mt-2 p-2 bg-gray-50 rounded border border-dashed border-gray-200"><div className="flex flex-wrap gap-2">{images.map((img, i) => <div key={i} className="relative"><img src={img.src} alt={img.alt} className="h-16 w-auto object-contain rounded border bg-white" />{onRemove && <button type="button" onClick={() => onRemove(img.src)} title="Remove image" className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-white text-xs shadow hover:bg-red-700">×</button>}</div>)}</div></div>
   }
 
   return (
@@ -434,7 +456,7 @@ export default function ModuleTestSheets() {
                           </div>
                           {isEditMode && (
                             isEditing
-                              ? <button onClick={() => setEditingQuestionId(null)} className="flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700"><FiSave /> Done</button>
+                              ? <button onClick={handleSaveQuestion} disabled={savingTest} className="flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:bg-slate-400"><FiSave /> {savingTest ? 'Saving...' : 'Save'}</button>
                               : <button onClick={() => setEditingQuestionId(qId)} className="flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700"><FiEdit /> Edit</button>
                           )}
                         </div>
@@ -450,7 +472,7 @@ export default function ModuleTestSheets() {
                           <label className="mb-2 block text-sm font-medium text-slate-700">Question</label>
                           {isEditing ? (
                             <><textarea value={q.content || q.question || ''} onChange={e => handleQuestionFieldChange(qId, 'content', e.target.value)} className="w-full rounded-lg border border-slate-300 p-3 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={4} />
-                            <ImagePreview text={q.content || q.question} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(qId, 'content', q.content || q.question || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
+                            <ImagePreview text={q.content || q.question} onRemove={(src) => removeImageFromField(qId, 'content', q.content || q.question || '', src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(qId, 'content', q.content || q.question || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
                           ) : (
                             <div className="rounded-lg border border-slate-200 bg-white p-3 text-slate-900">{renderWithImages(q.content || q.question)}</div>
                           )}
@@ -471,7 +493,7 @@ export default function ModuleTestSheets() {
                                           {q.correctAnswer === letter ? <span className="rounded bg-emerald-100 px-1 text-xs font-semibold text-emerald-700">✓</span> : (isEditing && <button type="button" onClick={() => handleQuestionFieldChange(qId, 'correctAnswer', letter)} className="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600 hover:bg-indigo-100" title="Mark as correct">Set correct</button>)}
                                         </div>
                                         {isEditing
-                                          ? <div className="flex-1"><textarea value={optText} onChange={e => handleOptionChange(qId, letter, e.target.value)} className="w-full rounded border border-slate-300 p-2 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={2} /><ImagePreview text={optText} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToOption(qId, letter, optText)} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></div>
+                                          ? <div className="flex-1"><textarea value={optText} onChange={e => handleOptionChange(qId, letter, e.target.value)} className="w-full rounded border border-slate-300 p-2 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={2} /><ImagePreview text={optText} onRemove={(src) => removeImageFromOption(qId, letter, optText, src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToOption(qId, letter, optText)} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></div>
                                           : <div className="flex-1 [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain">{renderWithImages(optText)}</div>}
                                       </div>
                                     </div>
@@ -498,14 +520,14 @@ export default function ModuleTestSheets() {
                         <div className="mb-4">
                           <label className="mb-2 block text-sm font-medium text-slate-700">Short Explanation</label>
                           {isEditing
-                            ? <><textarea value={q.shortExplanation || ''} onChange={e => handleQuestionFieldChange(qId, 'shortExplanation', e.target.value)} className="w-full rounded-lg border border-slate-300 p-3 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={3} placeholder="Short explanation..." /><ImagePreview text={q.shortExplanation || ''} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(qId, 'shortExplanation', q.shortExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
+                            ? <><textarea value={q.shortExplanation || ''} onChange={e => handleQuestionFieldChange(qId, 'shortExplanation', e.target.value)} className="w-full rounded-lg border border-slate-300 p-3 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={3} placeholder="Short explanation..." /><ImagePreview text={q.shortExplanation || ''} onRemove={(src) => removeImageFromField(qId, 'shortExplanation', q.shortExplanation || '', src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(qId, 'shortExplanation', q.shortExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
                             : <div className="min-h-[44px] rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-sm">{q.shortExplanation ? renderWithImages(q.shortExplanation) : <span className="italic text-slate-400">No short explanation</span>}</div>}
                         </div>
 
                         <div className="mb-4">
                           <label className="mb-2 block text-sm font-medium text-slate-700">Long Explanation</label>
                           {isEditing
-                            ? <><textarea value={q.longExplanation || ''} onChange={e => handleQuestionFieldChange(qId, 'longExplanation', e.target.value)} className="w-full rounded-lg border border-slate-300 p-3 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={5} placeholder="Long explanation..." /><ImagePreview text={q.longExplanation || ''} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(qId, 'longExplanation', q.longExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
+                            ? <><textarea value={q.longExplanation || ''} onChange={e => handleQuestionFieldChange(qId, 'longExplanation', e.target.value)} className="w-full rounded-lg border border-slate-300 p-3 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={5} placeholder="Long explanation..." /><ImagePreview text={q.longExplanation || ''} onRemove={(src) => removeImageFromField(qId, 'longExplanation', q.longExplanation || '', src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToField(qId, 'longExplanation', q.longExplanation || '')} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button></>
                             : <div className="min-h-[44px] rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-sm">{q.longExplanation ? renderWithImages(q.longExplanation) : <span className="italic text-slate-400">No long explanation</span>}</div>}
                         </div>
 
