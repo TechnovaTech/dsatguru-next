@@ -349,20 +349,7 @@ export default function CreateTutorTest() {
     s.email.toLowerCase().includes(studentSearch.toLowerCase())
   )
 
-  const renderWithImages = (text) => {
-    if (!text) return null
-    const stringText = String(text)
-    const regex = /(!\[.*?\]\(.*?\))/g
-    const parts = stringText.split(regex)
-    
-    return parts.map((part, index) => {
-      const match = part.match(/!\[(.*?)\]\((.*?)\)/)
-      if (match) {
-        return <img key={index} src={match[2]} alt={match[1]} className="max-w-full h-auto my-2 rounded border" />
-      }
-      return <span key={index}>{part}</span>
-    })
-  }
+  // renderWithImages comes from the shared LatexRenderer import (images + tables + <br> + LaTeX).
 
   const ImagePreview = ({ text }) => {
     if (!text) return null

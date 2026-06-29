@@ -70,6 +70,13 @@ function splitTableBlocks(text) {
   return blocks
 }
 
+// Render a table cell honoring <br> as a line break, so multi-value cells (e.g. College Board
+// "ways to enter answer": 3.5 / 3.50 / 7/2) stack vertically instead of running together.
+function renderCell(c) {
+  const segs = String(c == null ? '' : c).split(/<br\s*\/?>/gi)
+  return segs.map((s, i) => <span key={i}>{i > 0 && <br />}{renderLatex(s)}</span>)
+}
+
 function TableBlock({ rows }) {
   if (!rows || !rows.length) return null
   const [head, ...body] = rows
@@ -77,18 +84,19 @@ function TableBlock({ rows }) {
     <div className="my-2 overflow-x-auto">
       <table className="min-w-full border-collapse text-sm">
         <thead>
-          <tr>{head.map((c, i) => <th key={i} className="border border-gray-300 bg-gray-50 px-3 py-1.5 text-left font-semibold">{renderLatex(c)}</th>)}</tr>
+          <tr>{head.map((c, i) => <th key={i} className="border border-gray-300 bg-gray-50 px-3 py-1.5 text-left font-semibold">{renderCell(c)}</th>)}</tr>
         </thead>
         <tbody>
-          {body.map((r, ri) => <tr key={ri}>{r.map((c, ci) => <td key={ci} className="border border-gray-300 px-3 py-1.5 align-top">{renderLatex(c)}</td>)}</tr>)}
+          {body.map((r, ri) => <tr key={ri}>{r.map((c, ci) => <td key={ci} className="border border-gray-300 px-3 py-1.5 align-top">{renderCell(c)}</td>)}</tr>)}
         </tbody>
       </table>
     </div>
   )
 }
 
-// Render a non-table text segment: images + LaTeX.
+// Render a non-table text segment: images + LaTeX. <br> becomes a newline (whitespace-pre-wrap).
 function renderTextSegment(part, key) {
+  part = String(part || '').replace(/<br\s*\/?>/gi, '\n')
   const imgParts = part.split(/(!\[.*?\]\(.*?\))/g)
   return (
     <span key={key}>
@@ -110,8 +118,9 @@ function renderTextSegment(part, key) {
 // Full renderer: images + tables + LaTeX
 export function renderContent(text) {
   if (!text) return null
-  const normalized = text.replace(/<br\s*\/?>/gi, '\n')
-  const blocks = splitTableBlocks(normalized)
+  // NOTE: do NOT convert <br> to \n here — that would split table rows that use <br> inside
+  // cells for line breaks. <br> is handled per-block: in cells (renderCell) and text (renderTextSegment).
+  const blocks = splitTableBlocks(text)
   return (
     <div className="whitespace-pre-wrap">
       {blocks.map((b, i) => (b.type === 'table' ? <TableBlock key={i} rows={b.rows} /> : renderTextSegment(b.value, i)))}

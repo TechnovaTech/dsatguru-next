@@ -13,10 +13,12 @@ import { renderContent } from './LatexRenderer'
 function readCellText(cell) {
   try {
     const clone = cell.cloneNode(true)
-    clone.querySelectorAll('br').forEach((br) => br.replaceWith(', '))
-    clone.querySelectorAll('p, div, li, tr').forEach((el) => { el.insertAdjacentText('beforeend', ', ') })
-    const t = (clone.textContent || '').replace(/\s+/g, ' ')
-    return t.replace(/(?:,\s*){2,}/g, ', ').replace(/^[\s,]+|[\s,]+$/g, '').trim()
+    clone.querySelectorAll('br').forEach((br) => br.replaceWith('\n'))
+    clone.querySelectorAll('p, div, li, tr').forEach((el) => { el.insertAdjacentText('beforeend', '\n') })
+    // Each stacked value becomes its own line, joined with <br> so the rendered table cell shows
+    // them on separate lines (e.g. 3.5 / 3.50 / 7/2) instead of mashed into "3.53.507/2".
+    const lines = (clone.textContent || '').split('\n').map((s) => s.replace(/\s+/g, ' ').trim()).filter(Boolean)
+    return lines.join('<br>')
   } catch {
     return (cell.textContent || '').replace(/\s+/g, ' ').trim()
   }
