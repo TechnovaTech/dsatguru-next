@@ -1,9 +1,10 @@
 ﻿'use client'
 import { useEffect, useState, useRef } from 'react'
-import { FiSearch, FiEye, FiArrowLeft, FiPlus, FiEdit, FiX, FiCheck, FiEye as FiPreview, FiTrash, FiSettings, FiUserPlus, FiUserMinus, FiUpload, FiImage, FiUsers } from 'react-icons/fi'
+import { FiSearch, FiEye, FiArrowLeft, FiPlus, FiEdit, FiX, FiCheck, FiEye as FiPreview, FiTrash, FiSettings, FiUserPlus, FiUserMinus, FiUpload, FiImage, FiUsers, FiGrid } from 'react-icons/fi'
 import { useRouter } from 'next/navigation'
 import { renderContent } from './LatexRenderer'
 import { useConfirm, useToast } from '../ui/UIProvider'
+import TablePasteModal from './TablePasteModal'
 
 const ImageUploadButton = ({ onUpload }) => {
   const fileInputRef = useRef(null)
@@ -61,7 +62,7 @@ const ImageUploadButton = ({ onUpload }) => {
   )
 }
 
-const ImagePreview = ({ text }) => {
+const ImagePreview = ({ text, onRemove }) => {
   if (!text) return null
   const regex = /!\[(.*?)\]\((.*?)\)/g
   const images = []
@@ -74,11 +75,23 @@ const ImagePreview = ({ text }) => {
     <div className="flex flex-wrap gap-2 mt-1 p-2 bg-slate-50 rounded-lg border border-dashed border-slate-200">
       <span className="text-xs text-slate-500 w-full">Image Preview:</span>
       {images.map((img, i) => (
-        <img key={i} src={img.src} alt={img.alt} title={img.alt} className="h-20 w-auto object-contain rounded-lg border border-slate-200 bg-white" />
+        <div key={i} className="relative">
+          <img src={img.src} alt={img.alt} title={img.alt} className="h-20 w-auto object-contain rounded-lg border border-slate-200 bg-white" />
+          {onRemove && (
+            <button type="button" onClick={() => onRemove(img.src)} title="Remove image" className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white shadow hover:bg-red-700">×</button>
+          )}
+        </div>
       ))}
     </div>
   )
 }
+
+// Small "Table" button used next to each "Add Image" button in the edit form.
+const TableButton = ({ onClick }) => (
+  <button type="button" onClick={onClick} className="mb-1 flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-600 transition-colors hover:bg-slate-50">
+    <FiGrid /> Table
+  </button>
+)
 
 export default function QuestionBankManagement({ isTutor = false, isAdminTest = false }) {
   const router = useRouter()
@@ -103,6 +116,10 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
   const [accessLoading, setAccessLoading] = useState(false)
   const [selectedQuestions, setSelectedQuestions] = useState([])
   const [isDeleting, setIsDeleting] = useState(false)
+  const [tableInsertFn, setTableInsertFn] = useState(null)
+  const [bulkIds, setBulkIds] = useState(null)
+  const [bulkIndex, setBulkIndex] = useState(0)
+  const [bulkDrafts, setBulkDrafts] = useState({})
   const [currentPage, setCurrentPage] = useState(1)
   const PAGE_SIZE = 50
 
@@ -443,7 +460,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
     )
   }
 
-  const handleOpenEdit = (q) => {
+  const mapQuestionToEdit = (q) => {
     // Safe parse tags
     let tags = []
     try {
@@ -511,75 +528,105 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
     const usedTags = [mathTopic, mathSubtopic, readingWritingTopic].filter(Boolean)
     const otherTags = tags.filter(t => !usedTags.includes(t))
 
-    setEditItem({ 
-      ...q, 
+    return {
+      ...q,
       content: q.content || q.question || '',
-      tags: otherTags, 
+      tags: otherTags,
       options: options,
-      mathTopic, 
-      mathSubtopic, 
+      mathTopic,
+      mathSubtopic,
       readingWritingTopic,
       remark: q.remark || ''
+    }
+  }
+
+  const handleOpenEdit = (q) => setEditItem(mapQuestionToEdit(q))
+
+  // Persist a single edited question (used by both single edit and bulk edit).
+  const persistQuestion = async (item) => {
+    if (!item) return
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    let freeTags = []
+    try { freeTags = typeof item.tags === 'string' ? JSON.parse(item.tags) : (Array.isArray(item.tags) ? item.tags : []) } catch (e) { freeTags = [] }
+    const topicTags = []
+    if (item.subject === 'Math') {
+      if (item.mathTopic) topicTags.push(item.mathTopic)
+      if (item.mathSubtopic) topicTags.push(item.mathSubtopic)
+    } else if (item.subject === 'Reading and Writing') {
+      if (item.readingWritingTopic) topicTags.push(item.readingWritingTopic)
+    }
+    const allTags = [...topicTags, ...freeTags]
+    const payload = {
+      title: item.title || '',
+      questionParagraph: item.questionParagraph || '',
+      content: item.content || '',
+      explanation: item.explanation || '',
+      shortExplanation: item.shortExplanation || '',
+      longExplanation: item.longExplanation || '',
+      subject: item.subject,
+      difficulty: item.difficulty,
+      type: item.type,
+      testType: item.testType || 'Base',
+      correctAnswer: item.correctAnswer || 'A',
+      options: (() => {
+        try { return typeof item.options === 'string' ? JSON.parse(item.options) : (Array.isArray(item.options) ? item.options : ['', '', '', '']) } catch { return ['', '', '', ''] }
+      })(),
+      tags: allTags,
+      points: typeof item.points === 'number' ? item.points : 1,
+      remark: item.remark || ''
+    }
+    await fetch(`/api/admin/questions/${item.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify(payload)
     })
   }
 
   const saveEdit = async () => {
     if (!editItem) return
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-    
-    // Parse current free tags
-    let freeTags = []
-    try {
-        freeTags = typeof editItem.tags === 'string' ? JSON.parse(editItem.tags) : (Array.isArray(editItem.tags) ? editItem.tags : [])
-    } catch (e) {
-        freeTags = []
-    }
-
-    const topicTags = []
-    if (editItem.subject === 'Math') {
-      if (editItem.mathTopic) topicTags.push(editItem.mathTopic)
-      if (editItem.mathSubtopic) topicTags.push(editItem.mathSubtopic)
-    } else if (editItem.subject === 'Reading and Writing') {
-      if (editItem.readingWritingTopic) topicTags.push(editItem.readingWritingTopic)
-    }
-    const allTags = [...topicTags, ...freeTags]
-
-    const payload = {
-      title: editItem.title || '',
-      questionParagraph: editItem.questionParagraph || '',
-      content: editItem.content || '',
-      explanation: editItem.explanation || '',
-      shortExplanation: editItem.shortExplanation || '',
-      longExplanation: editItem.longExplanation || '',
-      subject: editItem.subject,
-      difficulty: editItem.difficulty,
-      type: editItem.type,
-      testType: editItem.testType || 'Base',
-      correctAnswer: editItem.correctAnswer || 'A',
-      options: (() => {
-          try {
-              return typeof editItem.options === 'string' ? JSON.parse(editItem.options) : (Array.isArray(editItem.options) ? editItem.options : ['', '', '', ''])
-          } catch {
-              return ['', '', '', '']
-          }
-      })(),
-      tags: allTags,
-      points: typeof editItem.points === 'number' ? editItem.points : 1,
-      remark: editItem.remark || ''
-    }
-    
-    const response = await fetch(`/api/admin/questions/${editItem.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      body: JSON.stringify(payload)
-    })
-    
-    const result = await response.json()
+    await persistQuestion(editItem)
     setEditItem(null)
     fetchQuestions(selectedBank?.id)
+    toast.success('Question saved')
+  }
+
+  // ---- Image markdown remove + table insert (parity with the test editors) ----
+  const stripImageMarkdown = (text, src) => {
+    if (!text) return text
+    const esc = String(src).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return String(text).replace(new RegExp(`!\\[[^\\]]*\\]\\(${esc}\\)\\n?`, 'g'), '').replace(/\n{3,}/g, '\n\n').trim()
+  }
+  const appendToField = (field, md) => setEditItem(prev => ({ ...prev, [field]: prev?.[field] ? `${prev[field]}\n${md}` : md }))
+  const removeImgFromField = (field, src) => setEditItem(prev => ({ ...prev, [field]: stripImageMarkdown(prev?.[field] || '', src) }))
+  const appendToOption = (idx, md) => setEditItem(prev => { const next = [...(prev.options || [])]; next[idx] = next[idx] ? `${next[idx]}\n${md}` : md; return { ...prev, options: next } })
+  const removeImgFromOption = (idx, src) => setEditItem(prev => { const next = [...(prev.options || [])]; next[idx] = stripImageMarkdown(next[idx] || '', src); return { ...prev, options: next } })
+  const openTable = (onInsert) => setTableInsertFn(() => onInsert)
+
+  // ---- Bulk edit (edit each selected question one-by-one, saved to the bank) ----
+  const startBulkEdit = () => {
+    const ids = getFilteredQuestions().filter(q => selectedQuestions.includes(q.id)).map(q => q.id)
+    if (!ids.length) return
+    setBulkIds(ids)
+    setBulkIndex(0)
+    setBulkDrafts({})
+    setEditItem(mapQuestionToEdit(questions.find(q => q.id === ids[0])))
+  }
+  const bulkGoto = (newIndex) => {
+    if (newIndex < 0 || newIndex >= bulkIds.length) return
+    const curId = bulkIds[bulkIndex]
+    const drafts = { ...bulkDrafts, [curId]: editItem }
+    setBulkDrafts(drafts)
+    const nid = bulkIds[newIndex]
+    setBulkIndex(newIndex)
+    setEditItem(drafts[nid] || mapQuestionToEdit(questions.find(q => q.id === nid)))
+  }
+  const finishBulk = async () => {
+    const drafts = { ...bulkDrafts, [bulkIds[bulkIndex]]: editItem }
+    for (const id of bulkIds) { if (drafts[id]) { try { await persistQuestion(drafts[id]) } catch {} } }
+    setBulkIds(null); setBulkIndex(0); setBulkDrafts({}); setEditItem(null)
+    setSelectedQuestions([])
+    fetchQuestions(selectedBank?.id)
+    toast.success('All selected questions saved')
   }
 
   if (currentView === 'questions' && (selectedBank || isTutor)) {
@@ -724,6 +771,15 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     className="pl-10 pr-4 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
+                {selectedQuestions.length > 0 && (
+                  <button
+                    onClick={startBulkEdit}
+                    className="inline-flex items-center px-4 py-2 border border-indigo-300 rounded-lg text-indigo-700 bg-white hover:bg-indigo-50 transition-colors"
+                  >
+                    <FiEdit className="mr-2" />
+                    Bulk Edit ({selectedQuestions.length})
+                  </button>
+                )}
                 {selectedQuestions.length > 0 && (
                   <button
                     onClick={handleBulkDelete}
@@ -1099,11 +1155,11 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
           )}
 
           {editItem && (
-            <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 overflow-y-auto" onClick={() => setEditItem(null)}>
+            <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 overflow-y-auto" onClick={() => { if (!bulkIds) setEditItem(null) }}>
               <div className="bg-white rounded-2xl shadow-xl max-w-[1500px] w-[95vw] my-4" onClick={(e) => e.stopPropagation()}>
                 <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-slate-900">Edit Question</h3>
-                  <button aria-label="Close edit dialog" className="text-slate-500 hover:text-slate-700 transition-colors" onClick={() => setEditItem(null)}><FiX /></button>
+                  <h3 className="text-lg font-bold text-slate-900">{bulkIds ? `Bulk Edit — Question ${bulkIndex + 1} of ${bulkIds.length}` : 'Edit Question'}</h3>
+                  <button aria-label="Close edit dialog" className="text-slate-500 hover:text-slate-700 transition-colors" onClick={() => { if (bulkIds) finishBulk(); else setEditItem(null) }}><FiX /></button>
                 </div>
                 <div className="p-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   <div>
@@ -1191,7 +1247,10 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                   <div className="md:col-span-2">
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-medium text-slate-600">Passage (Optional)</label>
-                      <ImageUploadButton onUpload={(md) => setEditItem(prev => ({ ...prev, questionParagraph: (prev.questionParagraph || '') + '\n' + md }))} />
+                      <div className="flex gap-1">
+                        <ImageUploadButton onUpload={(md) => appendToField('questionParagraph', md)} />
+                        <TableButton onClick={() => openTable((md) => appendToField('questionParagraph', md))} />
+                      </div>
                     </div>
                     <textarea
                       value={editItem.questionParagraph || ''}
@@ -1200,12 +1259,15 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       placeholder="Enter passage or context here (mainly for Reading/Writing sections)..."
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
-                    <ImagePreview text={editItem.questionParagraph} />
+                    <ImagePreview text={editItem.questionParagraph} onRemove={(src) => removeImgFromField('questionParagraph', src)} />
                   </div>
                   <div className="md:col-span-2">
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-medium text-slate-600">Question</label>
-                      <ImageUploadButton onUpload={(md) => setEditItem(prev => ({ ...prev, content: (prev.content || '') + '\n' + md }))} />
+                      <div className="flex gap-1">
+                        <ImageUploadButton onUpload={(md) => appendToField('content', md)} />
+                        <TableButton onClick={() => openTable((md) => appendToField('content', md))} />
+                      </div>
                     </div>
                     <textarea
                       value={editItem.content || ''}
@@ -1214,12 +1276,15 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       placeholder="Enter the main question text here..."
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
-                    <ImagePreview text={editItem.content} />
+                    <ImagePreview text={editItem.content} onRemove={(src) => removeImgFromField('content', src)} />
                   </div>
                   <div className="md:col-span-2">
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-medium text-slate-600">Explanation</label>
-                      <ImageUploadButton onUpload={(md) => setEditItem(prev => ({ ...prev, explanation: (prev.explanation || '') + '\n' + md }))} />
+                      <div className="flex gap-1">
+                        <ImageUploadButton onUpload={(md) => appendToField('explanation', md)} />
+                        <TableButton onClick={() => openTable((md) => appendToField('explanation', md))} />
+                      </div>
                     </div>
                     <textarea
                       value={editItem.explanation || ''}
@@ -1227,12 +1292,15 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       rows={3}
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
-                    <ImagePreview text={editItem.explanation} />
+                    <ImagePreview text={editItem.explanation} onRemove={(src) => removeImgFromField('explanation', src)} />
                   </div>
                   <div className="md:col-span-2">
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-medium text-slate-600">Short Explanation</label>
-                      <ImageUploadButton onUpload={(md) => setEditItem(prev => ({ ...prev, shortExplanation: (prev.shortExplanation || '') + '\n' + md }))} />
+                      <div className="flex gap-1">
+                        <ImageUploadButton onUpload={(md) => appendToField('shortExplanation', md)} />
+                        <TableButton onClick={() => openTable((md) => appendToField('shortExplanation', md))} />
+                      </div>
                     </div>
                     <textarea
                       value={editItem.shortExplanation || ''}
@@ -1240,12 +1308,15 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       rows={2}
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
-                    <ImagePreview text={editItem.shortExplanation} />
+                    <ImagePreview text={editItem.shortExplanation} onRemove={(src) => removeImgFromField('shortExplanation', src)} />
                   </div>
                   <div className="md:col-span-2">
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-medium text-slate-600">Long Explanation</label>
-                      <ImageUploadButton onUpload={(md) => setEditItem(prev => ({ ...prev, longExplanation: (prev.longExplanation || '') + '\n' + md }))} />
+                      <div className="flex gap-1">
+                        <ImageUploadButton onUpload={(md) => appendToField('longExplanation', md)} />
+                        <TableButton onClick={() => openTable((md) => appendToField('longExplanation', md))} />
+                      </div>
                     </div>
                     <textarea
                       value={editItem.longExplanation || ''}
@@ -1253,7 +1324,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       rows={4}
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
-                    <ImagePreview text={editItem.longExplanation} />
+                    <ImagePreview text={editItem.longExplanation} onRemove={(src) => removeImgFromField('longExplanation', src)} />
                   </div>
                   <div className="md:col-span-4">
                     <label className="block text-xs font-medium text-slate-600 mb-1">Remark (Admin/Tutor Notes)</label>
@@ -1277,11 +1348,10 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                         <div key={idx}>
                           <div className="flex items-center justify-between mb-1">
                             <label className="block text-xs font-medium text-slate-600">Option {String.fromCharCode(65 + idx)}</label>
-                            <ImageUploadButton onUpload={(md) => {
-                                const next = [...opts]
-                                next[idx] = String((next[idx] || '') + ' ' + md)
-                                setEditItem(prev => ({ ...prev, options: next }))
-                            }} />
+                            <div className="flex gap-1">
+                              <ImageUploadButton onUpload={(md) => appendToOption(idx, md)} />
+                              <TableButton onClick={() => openTable((md) => appendToOption(idx, md))} />
+                            </div>
                           </div>
                           <input
                             value={String(opt || '')}
@@ -1292,7 +1362,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                             }}
                             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                           />
-                          <ImagePreview text={String(opt || '')} />
+                          <ImagePreview text={String(opt || '')} onRemove={(src) => removeImgFromOption(idx, src)} />
                         </div>
                       ))
                       })()}
@@ -1321,13 +1391,28 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     />
                   </div>
                 </div>
-                <div className="p-4 border-t border-slate-100 text-right flex gap-2 justify-end">
-                  <button className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 transition-colors" onClick={() => setEditItem(null)}>Cancel</button>
-                  <button className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors" onClick={saveEdit}>Save</button>
-                </div>
+                {bulkIds ? (
+                  <div className="p-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <button disabled={bulkIndex === 0} onClick={() => bulkGoto(bulkIndex - 1)} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-40">← Previous</button>
+                    <span className="text-sm font-medium text-slate-500">Question {bulkIndex + 1} of {bulkIds.length}</span>
+                    <div className="flex gap-2">
+                      <button onClick={finishBulk} className="px-4 py-2 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 transition-colors">Save All &amp; Close</button>
+                      {bulkIndex < bulkIds.length - 1 && (
+                        <button onClick={() => bulkGoto(bulkIndex + 1)} className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">Next →</button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 border-t border-slate-100 text-right flex gap-2 justify-end">
+                    <button className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 transition-colors" onClick={() => setEditItem(null)}>Cancel</button>
+                    <button className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors" onClick={saveEdit}>Save</button>
+                  </div>
+                )}
               </div>
             </div>
           )}
+
+          <TablePasteModal open={!!tableInsertFn} onClose={() => setTableInsertFn(null)} onInsert={(md) => { if (tableInsertFn) tableInsertFn(md) }} />
         </div>
       </div>
     )
