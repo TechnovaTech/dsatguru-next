@@ -1171,6 +1171,15 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                 <div className="flex-1 overflow-y-auto">
                 {modalEditing ? (
                 <div className="p-6 space-y-4">
+                  {bulkIds && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`rounded-full px-3 py-1 text-xs font-medium ${editItem.subject === 'Math' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>{editItem.subject}</span>
+                      <span className={`rounded-full px-3 py-1 text-xs font-medium ${editItem.difficulty === 'Easy' ? 'bg-green-100 text-green-800' : editItem.difficulty === 'Hard' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>{editItem.difficulty}</span>
+                      <span className="rounded border border-slate-300 bg-slate-100 px-2 py-1 font-mono text-xs text-slate-700">ID: {editItem.questionId || String(editItem.id || '').slice(-8)}</span>
+                      {(Array.isArray(editItem.tags) ? editItem.tags : []).map((t, i) => <span key={i} className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">{t}</span>)}
+                      {editItem.remark && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800">💬 {editItem.remark}</span>}
+                    </div>
+                  )}
                   {!bulkIds && (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   <div>
@@ -1256,7 +1265,8 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                   </div>
                   )}
                   {/* Title field removed */}
-                  
+
+                  {!bulkIds && (
                   <div className="md:col-span-4">
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-medium text-slate-600">Passage (Optional)</label>
@@ -1274,6 +1284,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     />
                     <ImagePreview text={editItem.questionParagraph} onRemove={(src) => removeImgFromField('questionParagraph', src)} />
                   </div>
+                  )}
                   <div className="md:col-span-4">
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-medium text-slate-600">Question</label>
@@ -1291,6 +1302,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     />
                     <ImagePreview text={editItem.content} onRemove={(src) => removeImgFromField('content', src)} />
                   </div>
+                  {!bulkIds && (
                   <div className="md:col-span-2">
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-medium text-slate-600">Explanation</label>
@@ -1307,38 +1319,8 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     />
                     <ImagePreview text={editItem.explanation} onRemove={(src) => removeImgFromField('explanation', src)} />
                   </div>
-                  <div className="md:col-span-2">
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-medium text-slate-600">Short Explanation</label>
-                      <div className="flex gap-1">
-                        <ImageUploadButton onUpload={(md) => appendToField('shortExplanation', md)} />
-                        <TableButton onClick={() => openTable((md) => appendToField('shortExplanation', md))} />
-                      </div>
-                    </div>
-                    <textarea
-                      value={editItem.shortExplanation || ''}
-                      onChange={(e) => setEditItem({ ...editItem, shortExplanation: e.target.value })}
-                      rows={2}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
-                    <ImagePreview text={editItem.shortExplanation} onRemove={(src) => removeImgFromField('shortExplanation', src)} />
-                  </div>
-                  <div className="md:col-span-2">
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-medium text-slate-600">Long Explanation</label>
-                      <div className="flex gap-1">
-                        <ImageUploadButton onUpload={(md) => appendToField('longExplanation', md)} />
-                        <TableButton onClick={() => openTable((md) => appendToField('longExplanation', md))} />
-                      </div>
-                    </div>
-                    <textarea
-                      value={editItem.longExplanation || ''}
-                      onChange={(e) => setEditItem({ ...editItem, longExplanation: e.target.value })}
-                      rows={4}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
-                    <ImagePreview text={editItem.longExplanation} onRemove={(src) => removeImgFromField('longExplanation', src)} />
-                  </div>
+                  )}
+                  {!bulkIds && (
                   <div className="md:col-span-4">
                     <label className="block text-xs font-medium text-slate-600 mb-1">Remark (Admin/Tutor Notes)</label>
                     <textarea
@@ -1351,6 +1333,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                   </div>
+                  )}
                   <div className="md:col-span-4">
                     <label className="block text-sm font-medium text-slate-700 mb-2">Answer Options (Multiple Choice)</label>
                     <div className="space-y-3">
@@ -1400,6 +1383,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       <option value="D">D</option>
                     </select>
                   </div>
+                  {!bulkIds && (
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Points</label>
                     <input
@@ -1409,6 +1393,39 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                   </div>
+                  )}
+                  </div>
+                  <div className="md:col-span-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-medium text-slate-600">Short Explanation</label>
+                      <div className="flex gap-1">
+                        <ImageUploadButton onUpload={(md) => appendToField('shortExplanation', md)} />
+                        <TableButton onClick={() => openTable((md) => appendToField('shortExplanation', md))} />
+                      </div>
+                    </div>
+                    <textarea
+                      value={editItem.shortExplanation || ''}
+                      onChange={(e) => setEditItem({ ...editItem, shortExplanation: e.target.value })}
+                      rows={2}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <ImagePreview text={editItem.shortExplanation} onRemove={(src) => removeImgFromField('shortExplanation', src)} />
+                  </div>
+                  <div className="md:col-span-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-medium text-slate-600">Long Explanation</label>
+                      <div className="flex gap-1">
+                        <ImageUploadButton onUpload={(md) => appendToField('longExplanation', md)} />
+                        <TableButton onClick={() => openTable((md) => appendToField('longExplanation', md))} />
+                      </div>
+                    </div>
+                    <textarea
+                      value={editItem.longExplanation || ''}
+                      onChange={(e) => setEditItem({ ...editItem, longExplanation: e.target.value })}
+                      rows={4}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <ImagePreview text={editItem.longExplanation} onRemove={(src) => removeImgFromField('longExplanation', src)} />
                   </div>
                 </div>
                 ) : (
