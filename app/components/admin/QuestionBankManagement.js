@@ -1158,8 +1158,8 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
 
           {editItem && (
             <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 overflow-y-auto" onClick={() => { if (!bulkIds) setEditItem(null) }}>
-              <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full my-4" onClick={(e) => e.stopPropagation()}>
-                <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                <div className="p-4 border-b border-slate-100 flex flex-shrink-0 items-center justify-between">
                   <h3 className="text-lg font-bold text-slate-900">{bulkIds ? `Bulk Edit — Question ${bulkIndex + 1} of ${bulkIds.length}` : 'Edit Question'}</h3>
                   <div className="flex items-center gap-2">
                     <button onClick={() => setModalEditing(v => !v)} className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-300 px-3 py-1.5 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-50">
@@ -1168,6 +1168,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     <button aria-label="Close edit dialog" className="text-slate-500 hover:text-slate-700 transition-colors" onClick={() => { if (bulkIds) finishBulk(); else setEditItem(null) }}><FiX /></button>
                   </div>
                 </div>
+                <div className="flex-1 overflow-y-auto">
                 {modalEditing ? (
                 <div className="p-6 space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -1485,8 +1486,9 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     </div>
                   </div>
                 )}
+                </div>
                 {bulkIds ? (
-                  <div className="p-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <div className="p-4 border-t border-slate-100 flex flex-shrink-0 items-center justify-between gap-2">
                     <button disabled={bulkIndex === 0} onClick={() => bulkGoto(bulkIndex - 1)} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-40">← Previous</button>
                     <span className="text-sm font-medium text-slate-500">Question {bulkIndex + 1} of {bulkIds.length}</span>
                     <div className="flex gap-2">
@@ -1497,7 +1499,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     </div>
                   </div>
                 ) : (
-                  <div className="p-4 border-t border-slate-100 text-right flex gap-2 justify-end">
+                  <div className="p-4 border-t border-slate-100 text-right flex flex-shrink-0 gap-2 justify-end">
                     <button className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 transition-colors" onClick={() => setEditItem(null)}>Cancel</button>
                     <button className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors" onClick={saveEdit}>Save</button>
                   </div>
