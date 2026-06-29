@@ -120,6 +120,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
   const [bulkIds, setBulkIds] = useState(null)
   const [bulkIndex, setBulkIndex] = useState(0)
   const [bulkDrafts, setBulkDrafts] = useState({})
+  const [modalEditing, setModalEditing] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const PAGE_SIZE = 50
 
@@ -540,7 +541,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
     }
   }
 
-  const handleOpenEdit = (q) => setEditItem(mapQuestionToEdit(q))
+  const handleOpenEdit = (q) => { setModalEditing(true); setEditItem(mapQuestionToEdit(q)) }
 
   // Persist a single edited question (used by both single edit and bulk edit).
   const persistQuestion = async (item) => {
@@ -609,6 +610,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
     setBulkIds(ids)
     setBulkIndex(0)
     setBulkDrafts({})
+    setModalEditing(false)
     setEditItem(mapQuestionToEdit(questions.find(q => q.id === ids[0])))
   }
   const bulkGoto = (newIndex) => {
@@ -1159,8 +1161,14 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
               <div className="bg-white rounded-2xl shadow-xl max-w-[1500px] w-[95vw] my-4" onClick={(e) => e.stopPropagation()}>
                 <div className="p-4 border-b border-slate-100 flex items-center justify-between">
                   <h3 className="text-lg font-bold text-slate-900">{bulkIds ? `Bulk Edit — Question ${bulkIndex + 1} of ${bulkIds.length}` : 'Edit Question'}</h3>
-                  <button aria-label="Close edit dialog" className="text-slate-500 hover:text-slate-700 transition-colors" onClick={() => { if (bulkIds) finishBulk(); else setEditItem(null) }}><FiX /></button>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setModalEditing(v => !v)} className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-300 px-3 py-1.5 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-50">
+                      {modalEditing ? <><FiEye /> View</> : <><FiEdit /> Edit</>}
+                    </button>
+                    <button aria-label="Close edit dialog" className="text-slate-500 hover:text-slate-700 transition-colors" onClick={() => { if (bulkIds) finishBulk(); else setEditItem(null) }}><FiX /></button>
+                  </div>
                 </div>
+                {modalEditing ? (
                 <div className="p-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Subject</label>
@@ -1391,6 +1399,83 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     />
                   </div>
                 </div>
+                ) : (
+                  <div className="p-6">
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
+                      <div className="mb-4 flex flex-wrap items-center gap-2">
+                        <span className={`rounded-full px-3 py-1 text-xs font-medium ${editItem.subject === 'Math' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>{editItem.subject}</span>
+                        <span className={`rounded-full px-3 py-1 text-xs font-medium ${editItem.difficulty === 'Easy' ? 'bg-green-100 text-green-800' : editItem.difficulty === 'Hard' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>{editItem.difficulty}</span>
+                        <span className="rounded border border-slate-300 bg-slate-100 px-2 py-1 font-mono text-xs text-slate-700">ID: {editItem.questionId || String(editItem.id || '').slice(-8)}</span>
+                        {(Array.isArray(editItem.tags) ? editItem.tags : []).map((t, i) => <span key={i} className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">{t}</span>)}
+                        {editItem.remark && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800">💬 {editItem.remark}</span>}
+                      </div>
+                      {editItem.questionParagraph && (
+                        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                          <span className="text-xs font-semibold uppercase text-blue-700">Context Paragraph</span>
+                          <div className="mt-2 text-sm text-gray-700">{renderContent(editItem.questionParagraph)}</div>
+                        </div>
+                      )}
+                      <div className="mb-4">
+                        <label className="mb-2 block text-sm font-medium text-gray-700">Question</label>
+                        <div className="rounded-lg border border-slate-200 bg-white p-3 text-slate-900">{renderContent(editItem.content)}</div>
+                      </div>
+                      {(() => {
+                        const opts = Array.isArray(editItem.options) ? editItem.options : []
+                        const hasOpts = opts.some(o => String(o || '').trim())
+                        if (!hasOpts) return (
+                          <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-800">Correct Answer: {editItem.correctAnswer}</div>
+                        )
+                        return (
+                          <>
+                            <div className="mb-4">
+                              <label className="mb-2 block text-sm font-medium text-gray-700">Answer Options</label>
+                              <div className="space-y-2">
+                                {opts.map((opt, idx) => {
+                                  const letter = String.fromCharCode(65 + idx)
+                                  if (!String(opt || '').trim()) return null
+                                  const isCorrect = editItem.correctAnswer === letter
+                                  return (
+                                    <div key={idx} className={`rounded-lg border-2 p-3 ${isCorrect ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+                                      <div className="flex items-start gap-2">
+                                        <div className="flex flex-shrink-0 items-center gap-1">
+                                          <span className={`text-sm font-bold ${isCorrect ? 'text-emerald-700' : 'text-slate-600'}`}>{letter}.</span>
+                                          {isCorrect && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-semibold text-emerald-700">Correct</span>}
+                                        </div>
+                                        <div className="flex-1 [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain">{renderContent(String(opt || ''))}</div>
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                            <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-800">Correct Answer: {editItem.correctAnswer}</div>
+                          </>
+                        )
+                      })()}
+                      {editItem.shortExplanation && (
+                        <div className="mb-4">
+                          <label className="mb-2 block text-sm font-medium text-gray-700">Short Explanation</label>
+                          <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm text-gray-700">{renderContent(editItem.shortExplanation)}</div>
+                        </div>
+                      )}
+                      {editItem.longExplanation && (
+                        <div className="mb-4">
+                          <label className="mb-2 block text-sm font-medium text-gray-700">Long Explanation</label>
+                          <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-4 text-sm text-gray-700">{renderContent(editItem.longExplanation)}</div>
+                        </div>
+                      )}
+                      {!editItem.shortExplanation && !editItem.longExplanation && editItem.explanation && (
+                        <div className="mb-4">
+                          <label className="mb-2 block text-sm font-medium text-gray-700">Explanation</label>
+                          <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm text-gray-700">{renderContent(editItem.explanation)}</div>
+                        </div>
+                      )}
+                      <div className="mt-4 flex justify-end">
+                        <button onClick={() => setModalEditing(true)} className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"><FiEdit /> Edit this question</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {bulkIds ? (
                   <div className="p-4 border-t border-slate-100 flex items-center justify-between gap-2">
                     <button disabled={bulkIndex === 0} onClick={() => bulkGoto(bulkIndex - 1)} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-40">← Previous</button>
