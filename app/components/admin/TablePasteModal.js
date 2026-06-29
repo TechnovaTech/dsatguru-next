@@ -90,6 +90,16 @@ export default function TablePasteModal({ open, onClose, onInsert }) {
   const [raw, setRaw] = useState('')
   const [cols, setCols] = useState(3)
   useEffect(() => { if (open) { setRaw(''); setCols(3) } }, [open])
+  // Esc must close THIS modal first — capture phase + stopImmediatePropagation so it doesn't
+  // fall through to the edit card behind it (which has its own Escape handler).
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); onClose() }
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [open, onClose])
   if (!open) return null
 
   // If the pasted clipboard contains an HTML table, capture its exact structure.
