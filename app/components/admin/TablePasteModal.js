@@ -113,9 +113,14 @@ export default function TablePasteModal({ open, onClose, onInsert }) {
     }
   }
 
-  const mode = detectTableMode(raw)
-  const autoDetected = mode === 'grid' || mode === 'numeric'
-  const md = textToMarkdownTable(raw, cols)
+  // Accept raw HTML table markup pasted as text (e.g. <table>...</table>, or bare <tr> rows),
+  // not just rich-copy from a page — run it through the same DOMParser path.
+  const htmlSource = /<table[\s>]/i.test(raw) ? raw : (/<tr[\s>]/i.test(raw) ? `<table>${raw}</table>` : null)
+  const fromHtml = htmlSource ? htmlTableToTabs(htmlSource) : null
+  const effectiveRaw = fromHtml || raw
+  const mode = detectTableMode(effectiveRaw)
+  const autoDetected = !!fromHtml || mode === 'grid' || mode === 'numeric'
+  const md = textToMarkdownTable(effectiveRaw, cols)
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div className="w-full max-w-2xl rounded-xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
@@ -125,7 +130,7 @@ export default function TablePasteModal({ open, onClose, onInsert }) {
         </div>
         <p className="mb-2 text-xs text-gray-500">
           Paste your table here. Copying from a web page / Google Sheet / Docs keeps the exact table automatically.
-          From a PDF or plain text it&apos;s rebuilt smartly (data tables auto-detect columns). The first row is the header; $...$ math works in cells.
+          You can also paste raw HTML (&lt;table&gt;...&lt;/table&gt;) or a markdown table. From a PDF or plain text it&apos;s rebuilt smartly (data tables auto-detect columns). The first row is the header; $...$ math and &lt;br&gt; line breaks work in cells.
         </p>
         <textarea
           value={raw}
@@ -139,7 +144,7 @@ export default function TablePasteModal({ open, onClose, onInsert }) {
 
         {autoDetected ? (
           <div className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
-            ✓ Columns detected automatically{mode === 'numeric' ? ' (label + number columns)' : ''}. Just check the preview below.
+            ✓ {fromHtml ? 'HTML table parsed' : 'Columns detected automatically'}{mode === 'numeric' ? ' (label + number columns)' : ''}. Just check the preview below.
             {mode === 'numeric' && ' If the header looks off, you can tweak its text after inserting.'}
           </div>
         ) : (
