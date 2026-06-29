@@ -1158,7 +1158,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
 
           {editItem && (
             <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 overflow-y-auto" onClick={() => { if (!bulkIds) setEditItem(null) }}>
-              <div className="bg-white rounded-2xl shadow-xl max-w-[1500px] w-[95vw] my-4" onClick={(e) => e.stopPropagation()}>
+              <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full my-4" onClick={(e) => e.stopPropagation()}>
                 <div className="p-4 border-b border-slate-100 flex items-center justify-between">
                   <h3 className="text-lg font-bold text-slate-900">{bulkIds ? `Bulk Edit — Question ${bulkIndex + 1} of ${bulkIds.length}` : 'Edit Question'}</h3>
                   <div className="flex items-center gap-2">
@@ -1169,7 +1169,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                   </div>
                 </div>
                 {modalEditing ? (
-                <div className="p-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Subject</label>
                     <select value={editItem.subject} onChange={(e) => setEditItem({ ...editItem, subject: e.target.value })} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
