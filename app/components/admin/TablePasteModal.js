@@ -7,6 +7,21 @@ import { renderContent } from './LatexRenderer'
 // structure as HTML. Parse it into a proper grid honoring colspan AND rowspan, drop decorative
 // group-headers (a header cell that spans multiple columns), and merge multi-row headers into a
 // single clean header row. Far more reliable than guessing from plain text.
+// Read a table cell's text WITHOUT mashing multi-value cells together. A cell that stacks
+// several values via <br> or block children (e.g. College Board "ways to enter answer":
+// 3.5 / 3.50 / 7/2) is joined with ", " instead of being concatenated into "3.53.507/2".
+function readCellText(cell) {
+  try {
+    const clone = cell.cloneNode(true)
+    clone.querySelectorAll('br').forEach((br) => br.replaceWith(', '))
+    clone.querySelectorAll('p, div, li, tr').forEach((el) => { el.insertAdjacentText('beforeend', ', ') })
+    const t = (clone.textContent || '').replace(/\s+/g, ' ')
+    return t.replace(/(?:,\s*){2,}/g, ', ').replace(/^[\s,]+|[\s,]+$/g, '').trim()
+  } catch {
+    return (cell.textContent || '').replace(/\s+/g, ' ').trim()
+  }
+}
+
 function htmlTableToTabs(html) {
   try {
     const doc = new DOMParser().parseFromString(html, 'text/html')
@@ -31,7 +46,7 @@ function htmlTableToTabs(html) {
         if (isTh) thCount++
         const cs = parseInt(cell.getAttribute('colspan') || '1', 10) || 1
         const rs = parseInt(cell.getAttribute('rowspan') || '1', 10) || 1
-        const text = (cell.textContent || '').replace(/\s+/g, ' ').trim()
+        const text = readCellText(cell)
         // Drop a header cell that spans multiple columns — it's a decorative group label
         // (e.g. "Singlet Color") that a flat markdown table can't represent.
         const cellText = (isTh && cs > 1) ? '' : text
