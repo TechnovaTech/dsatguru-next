@@ -1171,6 +1171,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                 <div className="flex-1 overflow-y-auto">
                 {modalEditing ? (
                 <div className="p-6 space-y-4">
+                  {!bulkIds && (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Subject</label>
@@ -1253,6 +1254,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     />
                   </div>
                   </div>
+                  )}
                   {/* Title field removed */}
                   
                   <div className="md:col-span-4">
