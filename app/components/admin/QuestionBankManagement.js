@@ -1169,7 +1169,8 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                   </div>
                 </div>
                 {modalEditing ? (
-                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-6 space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Subject</label>
                     <select value={editItem.subject} onChange={(e) => setEditItem({ ...editItem, subject: e.target.value })} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
@@ -1249,6 +1250,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       onChange={(e) => setEditItem({ ...editItem, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
+                  </div>
                   </div>
                   {/* Title field removed */}
                   
@@ -1381,6 +1383,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       })()}
                     </div>
                   </div>
+                  <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Correct Answer</label>
                     <select
@@ -1402,6 +1405,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       onChange={(e) => setEditItem({ ...editItem, points: Number(e.target.value || 1) })}
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
+                  </div>
                   </div>
                 </div>
                 ) : (
