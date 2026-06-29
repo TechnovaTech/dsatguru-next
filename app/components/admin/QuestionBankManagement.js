@@ -1334,6 +1334,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     />
                   </div>
                   )}
+                  {(Array.isArray(editItem.options) && editItem.options.some(o => String(o || '').trim())) && (
                   <div className="md:col-span-4">
                     <label className="block text-sm font-medium text-slate-700 mb-2">Answer Options (Multiple Choice)</label>
                     <div className="space-y-3">
@@ -1369,9 +1370,11 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       })()}
                     </div>
                   </div>
+                  )}
                   <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Correct Answer</label>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Correct Answer{!(Array.isArray(editItem.options) && editItem.options.some(o => String(o || '').trim())) && ' (Fill-in-the-Blank)'}</label>
+                    {(Array.isArray(editItem.options) && editItem.options.some(o => String(o || '').trim())) ? (
                     <select
                       value={editItem.correctAnswer || 'A'}
                       onChange={(e) => setEditItem({ ...editItem, correctAnswer: e.target.value })}
@@ -1382,6 +1385,15 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       <option value="C">C</option>
                       <option value="D">D</option>
                     </select>
+                    ) : (
+                    <input
+                      type="text"
+                      value={editItem.correctAnswer || ''}
+                      onChange={(e) => setEditItem({ ...editItem, correctAnswer: e.target.value })}
+                      placeholder="Enter the correct answer..."
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    )}
                   </div>
                   {!bulkIds && (
                   <div>
