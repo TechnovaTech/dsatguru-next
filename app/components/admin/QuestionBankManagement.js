@@ -1252,7 +1252,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                   </div>
                   {/* Title field removed */}
                   
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-4">
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-medium text-slate-600">Passage (Optional)</label>
                       <div className="flex gap-1">
@@ -1269,7 +1269,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     />
                     <ImagePreview text={editItem.questionParagraph} onRemove={(src) => removeImgFromField('questionParagraph', src)} />
                   </div>
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-4">
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-medium text-slate-600">Question</label>
                       <div className="flex gap-1">
@@ -1346,33 +1346,38 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                   </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-xs font-medium text-slate-600 mb-2">Options</label>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="md:col-span-4">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Answer Options (Multiple Choice)</label>
+                    <div className="space-y-3">
                       {(() => {
-                        // editItem.options is already ensured to be an array of 4 strings in handleOpenEdit
                         const opts = Array.isArray(editItem.options) ? editItem.options : ['', '', '', '']
-                        return opts.map((opt, idx) => (
-                        <div key={idx}>
-                          <div className="flex items-center justify-between mb-1">
-                            <label className="block text-xs font-medium text-slate-600">Option {String.fromCharCode(65 + idx)}</label>
-                            <div className="flex gap-1">
-                              <ImageUploadButton onUpload={(md) => appendToOption(idx, md)} />
-                              <TableButton onClick={() => openTable((md) => appendToOption(idx, md))} />
+                        return opts.map((opt, idx) => {
+                          const letter = String.fromCharCode(65 + idx)
+                          const isCorrect = (editItem.correctAnswer || 'A') === letter
+                          return (
+                            <div key={idx} className={`rounded-lg border-2 p-3 ${isCorrect ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+                              <div className="mb-2 flex items-center gap-2">
+                                <span className={`text-sm font-bold ${isCorrect ? 'text-emerald-700' : 'text-slate-600'}`}>{letter}.</span>
+                                {isCorrect ? (
+                                  <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Correct</span>
+                                ) : (
+                                  <button type="button" onClick={() => setEditItem({ ...editItem, correctAnswer: letter })} className="rounded border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-100">Set correct</button>
+                                )}
+                              </div>
+                              <textarea
+                                value={String(opt || '')}
+                                onChange={(e) => { const next = [...opts]; next[idx] = String(e.target.value); setEditItem({ ...editItem, options: next }) }}
+                                rows={2}
+                                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                              />
+                              <div className="mt-2 flex gap-2">
+                                <ImageUploadButton onUpload={(md) => appendToOption(idx, md)} />
+                                <TableButton onClick={() => openTable((md) => appendToOption(idx, md))} />
+                              </div>
+                              <ImagePreview text={String(opt || '')} onRemove={(src) => removeImgFromOption(idx, src)} />
                             </div>
-                          </div>
-                          <input
-                            value={String(opt || '')}
-                            onChange={(e) => {
-                              const next = [...opts]
-                              next[idx] = String(e.target.value)
-                              setEditItem({ ...editItem, options: next })
-                            }}
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                          />
-                          <ImagePreview text={String(opt || '')} onRemove={(src) => removeImgFromOption(idx, src)} />
-                        </div>
-                      ))
+                          )
+                        })
                       })()}
                     </div>
                   </div>
