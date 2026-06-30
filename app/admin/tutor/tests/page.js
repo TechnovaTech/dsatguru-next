@@ -512,11 +512,19 @@ export default function TutorTestSheets() {
 
   const toast = useToast()
   // Per-row "I've checked this whole sheet" gate. Assign to Student only works once confirmed.
+  // Persisted in localStorage so it survives a page refresh.
   const [verifiedTests, setVerifiedTests] = useState({})
+  useEffect(() => {
+    try { setVerifiedTests(JSON.parse(localStorage.getItem('tutorVerifiedTests') || '{}')) } catch {}
+  }, [])
+  const persistVerified = (next) => {
+    setVerifiedTests(next)
+    try { localStorage.setItem('tutorVerifiedTests', JSON.stringify(next)) } catch {}
+  }
   const toggleVerified = async (test) => {
-    if (verifiedTests[test._id]) { setVerifiedTests(p => ({ ...p, [test._id]: false })); return }
+    if (verifiedTests[test._id]) { persistVerified({ ...verifiedTests, [test._id]: false }); return }
     const ok = await confirm({ title: 'Confirm sheet', message: 'Have you checked everything in this sheet (questions, answers, images)? Confirm to enable Assign to Student.', confirmText: 'Yes, all checked', cancelText: 'Not yet' })
-    if (ok) setVerifiedTests(p => ({ ...p, [test._id]: true }))
+    if (ok) persistVerified({ ...verifiedTests, [test._id]: true })
   }
 
   // Download all questions of a sheet as a JSON file in the same format used for bulk upload,
