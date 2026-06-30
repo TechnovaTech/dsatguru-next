@@ -652,6 +652,12 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
     fetchQuestions(selectedBank?.id)
     toast.success('All selected questions saved')
   }
+  // Number-rail jump: save the current question to the bank, then go to question i.
+  const bulkJump = async (i) => {
+    if (!bulkIds || i === bulkIndex) return
+    try { await persistQuestion(editItem) } catch {}
+    bulkGoto(i)
+  }
 
   if (currentView === 'questions' && (selectedBank || isTutor)) {
     return (
@@ -1190,6 +1196,17 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     <button aria-label="Close edit dialog" className="text-slate-500 hover:text-slate-700 transition-colors" onClick={() => { if (bulkIds) finishBulk(); else setEditItem(null) }}><FiX /></button>
                   </div>
                 </div>
+                <div className="flex-1 flex min-h-0">
+                {bulkIds && (
+                  <nav className="flex w-12 flex-shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-slate-100 bg-slate-50 py-3" aria-label="Jump to question">
+                    {bulkIds.map((_, i) => (
+                      <button key={i} type="button" onClick={() => bulkJump(i)} title={`Save & go to question ${i + 1}`}
+                        className={`h-7 w-7 flex-shrink-0 rounded-lg text-xs font-semibold transition-colors ${i === bulkIndex ? 'bg-indigo-600 text-white' : 'border border-slate-200 bg-white text-slate-600 hover:bg-indigo-50 hover:text-indigo-700'}`}>
+                        {i + 1}
+                      </button>
+                    ))}
+                  </nav>
+                )}
                 <div className="flex-1 overflow-y-auto">
                 {modalEditing ? (
                 <div className="p-6 space-y-4">
@@ -1546,6 +1563,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     </div>
                   </div>
                 )}
+                </div>
                 </div>
                 {bulkIds ? (
                   <div className="p-4 border-t border-slate-100 flex flex-shrink-0 items-center justify-between gap-2">
