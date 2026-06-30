@@ -2,7 +2,7 @@
 import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck, FiUpload, FiGrid } from 'react-icons/fi'
+import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck, FiUpload, FiGrid, FiDownload } from 'react-icons/fi'
 import { useConfirm } from '../../../components/ui/UIProvider'
 import TablePasteModal from '../../../components/admin/TablePasteModal'
 
@@ -510,6 +510,59 @@ export default function TutorTestSheets() {
     }
   }
 
+  // Download all questions of a sheet as a JSON file in the same format used for bulk upload,
+  // so a sheet can be re-uploaded / shared. Tutor edits (customQuestions) are merged in.
+  const handleDownloadJson = async (test) => {
+    try {
+      const token = localStorage.getItem('token')
+      const questionIds = (test.questions || []).join(',')
+      const res = await fetch(`/api/questions?ids=${questionIds}`, { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) { console.error('Failed to load questions for JSON export'); return }
+      let questions = await res.json()
+      const cmap = test.customQuestions || {}
+      questions = questions.map(q => { const qId = q.id || q._id; return cmap[qId] ? { ...q, ...cmap[qId] } : q })
+
+      const parseTags = (t) => {
+        try { const a = typeof t === 'string' ? JSON.parse(t) : t; if (Array.isArray(a)) return a } catch {}
+        return typeof t === 'string' ? t.split(',').map(s => s.trim()).filter(Boolean) : (Array.isArray(t) ? t : [])
+      }
+      const parseOpts = (q) => {
+        let o = null
+        try { const r = typeof q.options === 'string' ? JSON.parse(q.options) : q.options; if (Array.isArray(r)) o = { A: r[0] || '', B: r[1] || '', C: r[2] || '', D: r[3] || '' }; else if (r && typeof r === 'object') o = r } catch {}
+        if (!o && (q.optionA || q.optionB || q.optionC || q.optionD)) o = { A: q.optionA || '', B: q.optionB || '', C: q.optionC || '', D: q.optionD || '' }
+        return o || {}
+      }
+
+      const arr = questions.map(q => {
+        const o = parseOpts(q)
+        const g = (k) => String(o[k] ?? o[k.toLowerCase()] ?? '').trim()
+        const A = g('A'), B = g('B'), C = g('C'), D = g('D')
+        const hasOpts = !!(A || B || C || D)
+        return {
+          question: q.content || q.question || '',
+          ...(hasOpts ? { 'option a': A, 'option b': B, 'option c': C, 'option d': D } : {}),
+          'correct answer': q.correctAnswer || '',
+          difficulty: q.difficulty || 'Medium',
+          subject: q.subject || 'Math',
+          tags: parseTags(q.tags).join(', '),
+          shortexplanation: q.shortExplanation || q.explanation || '',
+          longexplanation: q.longExplanation || '',
+          remark: q.remark || ''
+        }
+      })
+
+      const blob = new Blob([JSON.stringify(arr, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${String(test.title || 'test').replace(/[^a-zA-Z0-9-_]+/g, '_')}.json`
+      document.body.appendChild(a); a.click(); a.remove()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      console.error('JSON export failed', e)
+    }
+  }
+
   const handleEditTest = async (test) => {
     setViewingTest(test)
     setCurrentQuestionIndex(0)
@@ -868,6 +921,13 @@ export default function TutorTestSheets() {
                             className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded"
                           >
                             <FiEye className="mr-1" /> View
+                          </button>
+                          <button
+                            onClick={() => handleDownloadJson(test)}
+                            className="inline-flex items-center px-3 py-1 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded"
+                            title="Download this sheet as JSON (upload format)"
+                          >
+                            <FiDownload className="mr-1" /> JSON
                           </button>
                           <button
                             onClick={() => handleEditTest(test)}
