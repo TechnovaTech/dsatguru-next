@@ -1,9 +1,10 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { FiCheck, FiX, FiEdit2, FiImage, FiChevronDown, FiChevronUp, FiSave, FiInbox } from 'react-icons/fi'
+import { FiCheck, FiX, FiEdit2, FiImage, FiGrid, FiChevronDown, FiChevronUp, FiSave, FiInbox } from 'react-icons/fi'
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
 import { useToast } from '../ui/UIProvider'
+import TablePasteModal from './TablePasteModal'
 
 export default function BulkQuestionPreview({ questions, onApprove, onCancel, questionBankId, isTutor }) {
   const toast = useToast()
@@ -13,6 +14,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
   const [approving, setApproving] = useState(false)
   const [globalRemark, setGlobalRemark] = useState('')
   const [uploadingField, setUploadingField] = useState(null) // 'qIndex-field' or 'qIndex-opt-optIndex'
+  const [tableInsertFn, setTableInsertFn] = useState(null)
   const imgInputRef = useRef(null)
   const pendingUpload = useRef(null) // { qIndex, field, optIndex? }
 
@@ -53,6 +55,21 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
     updated[qIndex] = { ...updated[qIndex], options: newOptions }
     setEditedQuestions(updated)
   }
+
+  const appendToField = (qIndex, field, md) => {
+    const prev = editedQuestions[qIndex][field] || ''
+    updateQuestion(qIndex, field, prev ? prev + '\n' + md : md)
+  }
+
+  const appendToOption = (qIndex, optIndex, md) => {
+    const updated = [...editedQuestions]
+    const newOptions = [...(updated[qIndex].options || [])]
+    newOptions[optIndex] = (newOptions[optIndex] ? newOptions[optIndex] + '\n' : '') + md
+    updated[qIndex] = { ...updated[qIndex], options: newOptions }
+    setEditedQuestions(updated)
+  }
+
+  const openTable = (insertFn) => setTableInsertFn(() => insertFn)
 
   const removeQuestion = (index) => {
     setEditedQuestions(editedQuestions.filter((_, i) => i !== index))
@@ -118,6 +135,17 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
       </button>
     )
   }
+
+  const TblBtn = ({ qIndex, field, optIndex = null }) => (
+    <button
+      type="button"
+      onClick={() => openTable(optIndex !== null ? (md) => appendToOption(qIndex, optIndex, md) : (md) => appendToField(qIndex, field, md))}
+      title="Insert table"
+      className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg"
+    >
+      <FiGrid className="w-3 h-3" /> Table
+    </button>
+  )
 
   const handleApprove = async () => {
     setApproving(true)
@@ -343,7 +371,10 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
 
                         {(question.questionParagraph || isEditing) && (
                           <div>
-                            <label htmlFor={`q-${qIndex}-paragraph`} className="block text-sm font-medium text-slate-600 mb-1">Passage / Context</label>
+                            <div className="flex items-center justify-between mb-1">
+                              <label htmlFor={`q-${qIndex}-paragraph`} className="block text-sm font-medium text-slate-600">Passage / Context</label>
+                              {isEditing && <div className="flex gap-1"><ImgBtn qIndex={qIndex} field="questionParagraph" /><TblBtn qIndex={qIndex} field="questionParagraph" /></div>}
+                            </div>
                             {isEditing ? <textarea id={`q-${qIndex}-paragraph`} value={question.questionParagraph || ''} onChange={(e) => updateQuestion(qIndex, 'questionParagraph', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" rows={4} placeholder="Passage or context..." /> : <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">{renderContent(question.questionParagraph)}</div>}
                           </div>
                         )}
@@ -351,7 +382,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                         <div>
                           <div className="flex items-center justify-between mb-1">
                             <label htmlFor={`q-${qIndex}-content`} className="block text-sm font-medium text-slate-600">Question Content</label>
-                            {isEditing && <ImgBtn qIndex={qIndex} field="content" />}
+                            {isEditing && <div className="flex gap-1"><ImgBtn qIndex={qIndex} field="content" /><TblBtn qIndex={qIndex} field="content" /></div>}
                           </div>
                           {isEditing
                             ? <div><textarea id={`q-${qIndex}-content`} value={question.content} onChange={(e) => updateQuestion(qIndex, 'content', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" rows={6} /><ImagePreviews text={question.content} /><details className="mt-1"><summary className="text-xs text-slate-400 cursor-pointer">Raw</summary><pre className="text-xs bg-slate-100 p-2 rounded-lg overflow-x-auto">{question.content}</pre></details></div>
@@ -366,7 +397,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                                 <div key={optIndex} className="flex items-start gap-2">
                                   <span className={`px-2 py-1 rounded-lg text-sm font-medium flex-shrink-0 ${question.correctAnswer === String.fromCharCode(65 + optIndex) ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{String.fromCharCode(65 + optIndex)}</span>
                                   {isEditing
-                                    ? <div className="flex-1 space-y-1"><textarea aria-label={`Option ${String.fromCharCode(65 + optIndex)} for question ${qIndex + 1}`} value={option} onChange={(e) => updateOption(qIndex, optIndex, e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" rows={2} /><ImagePreviews text={option} /><ImgBtn qIndex={qIndex} field="option" optIndex={optIndex} /></div>
+                                    ? <div className="flex-1 space-y-1"><textarea aria-label={`Option ${String.fromCharCode(65 + optIndex)} for question ${qIndex + 1}`} value={option} onChange={(e) => updateOption(qIndex, optIndex, e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" rows={2} /><ImagePreviews text={option} /><div className="flex gap-1"><ImgBtn qIndex={qIndex} field="option" optIndex={optIndex} /><TblBtn qIndex={qIndex} field="option" optIndex={optIndex} /></div></div>
                                     : <div className="flex-1 bg-white p-2 rounded-lg border border-slate-100">{renderContent(option)}</div>}
                                 </div>
                               ))}
@@ -402,7 +433,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                         <div>
                           <div className="flex items-center justify-between mb-1">
                             <label htmlFor={`q-${qIndex}-shortExp`} className="block text-sm font-medium text-slate-600">Short Explanation</label>
-                            {isEditing && <ImgBtn qIndex={qIndex} field="shortExplanation" />}
+                            {isEditing && <div className="flex gap-1"><ImgBtn qIndex={qIndex} field="shortExplanation" /><TblBtn qIndex={qIndex} field="shortExplanation" /></div>}
                           </div>
                           {isEditing
                             ? <div><textarea id={`q-${qIndex}-shortExp`} value={question.shortExplanation || question.explanation || ''} onChange={(e) => updateQuestion(qIndex, 'shortExplanation', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" rows={4} placeholder="Add short explanation..." /><ImagePreviews text={question.shortExplanation || question.explanation} /></div>
@@ -414,7 +445,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                         <div>
                           <div className="flex items-center justify-between mb-1">
                             <label htmlFor={`q-${qIndex}-longExp`} className="block text-sm font-medium text-slate-600">Long Explanation</label>
-                            {isEditing && <ImgBtn qIndex={qIndex} field="longExplanation" />}
+                            {isEditing && <div className="flex gap-1"><ImgBtn qIndex={qIndex} field="longExplanation" /><TblBtn qIndex={qIndex} field="longExplanation" /></div>}
                           </div>
                           {isEditing
                             ? <div><textarea id={`q-${qIndex}-longExp`} value={question.longExplanation || ''} onChange={(e) => updateQuestion(qIndex, 'longExplanation', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" rows={6} placeholder="Add long explanation..." /><ImagePreviews text={question.longExplanation} /></div>
@@ -459,6 +490,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
           </div>
         </div>
       </div>
+      <TablePasteModal open={!!tableInsertFn} onClose={() => setTableInsertFn(null)} onInsert={(md) => { if (tableInsertFn) tableInsertFn(md) }} />
     </div>
   )
 }
