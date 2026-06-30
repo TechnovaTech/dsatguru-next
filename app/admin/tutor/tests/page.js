@@ -3,7 +3,7 @@ import { renderContent as renderWithImages } from '../../../components/admin/Lat
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck, FiUpload, FiGrid, FiDownload } from 'react-icons/fi'
-import { useConfirm } from '../../../components/ui/UIProvider'
+import { useConfirm, useToast } from '../../../components/ui/UIProvider'
 import TablePasteModal from '../../../components/admin/TablePasteModal'
 
 export default function TutorTestSheets() {
@@ -510,6 +510,15 @@ export default function TutorTestSheets() {
     }
   }
 
+  const toast = useToast()
+  // Per-row "I've checked this whole sheet" gate. Assign to Student only works once confirmed.
+  const [verifiedTests, setVerifiedTests] = useState({})
+  const toggleVerified = async (test) => {
+    if (verifiedTests[test._id]) { setVerifiedTests(p => ({ ...p, [test._id]: false })); return }
+    const ok = await confirm({ title: 'Confirm sheet', message: 'Have you checked everything in this sheet (questions, answers, images)? Confirm to enable Assign to Student.', confirmText: 'Yes, all checked', cancelText: 'Not yet' })
+    if (ok) setVerifiedTests(p => ({ ...p, [test._id]: true }))
+  }
+
   // Download all questions of a sheet as a JSON file in the same format used for bulk upload,
   // so a sheet can be re-uploaded / shared. Tutor edits (customQuestions) are merged in.
   const handleDownloadJson = async (test) => {
@@ -935,9 +944,21 @@ export default function TutorTestSheets() {
                           >
                             <FiEdit className="mr-1" /> Edit
                           </button>
+                          <label className="inline-flex items-center" title="Confirm you've checked the whole sheet to enable Assign">
+                            <input
+                              type="checkbox"
+                              checked={!!verifiedTests[test._id]}
+                              onChange={() => toggleVerified(test)}
+                              className="h-4 w-4 cursor-pointer rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            />
+                          </label>
                           <button
-                            onClick={() => handleOpenAssignToStudentModal(test)}
-                            className="inline-flex items-center px-3 py-1 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded"
+                            onClick={() => {
+                              if (!verifiedTests[test._id]) { toast.info('Pehla checkbox check karo — sheet verify thaya pachi j Assign thay.'); return }
+                              handleOpenAssignToStudentModal(test)
+                            }}
+                            className={`inline-flex items-center px-3 py-1 rounded ${verifiedTests[test._id] ? 'text-purple-600 hover:text-purple-800 hover:bg-purple-100' : 'text-gray-300 cursor-not-allowed'}`}
+                            title={verifiedTests[test._id] ? 'Assign to Student' : 'Check the box first to enable Assign'}
                           >
                             <FiUserPlus className="mr-1" /> Assign to Student
                           </button>
