@@ -115,10 +115,27 @@ export default function TutorMathPage() {
     }
   }
 
+  // One row per test — use the most-advanced session so a completed test never lingers under Assigned.
+  const STATUS_RANK = { Completed: 3, InProgress: 2, Assigned: 1 }
+  const sessionTime = (h) => new Date(h.completedAt || h.updatedAt || h.createdAt || 0).getTime()
+  const effectiveSessions = (() => {
+    const m = new Map()
+    history.forEach(h => {
+      const tid = String(h.testId?._id || h._id)
+      const cur = m.get(tid)
+      const better = !cur || (STATUS_RANK[h.status] || 0) > (STATUS_RANK[cur.status] || 0) || ((STATUS_RANK[h.status] || 0) === (STATUS_RANK[cur.status] || 0) && sessionTime(h) > sessionTime(cur))
+      if (better) m.set(tid, h)
+    })
+    return [...m.values()]
+  })()
+  const assignedList = effectiveSessions.filter(h => h.status === 'Assigned')
+  const inProgressList = effectiveSessions.filter(h => h.status === 'InProgress' && !h.isReassigned)
+  const completedList = effectiveSessions.filter(h => h.status === 'Completed' && !h.isReassigned)
+
   const tabs = [
-    { name: 'Assigned', count: history.filter(h => h.status === 'Assigned').length },
-    { name: 'In Progress', count: history.filter(h => h.status === 'InProgress').length },
-    { name: 'Completed', count: history.filter(h => h.status === 'Completed').length }
+    { name: 'Assigned', count: assignedList.length },
+    { name: 'In Progress', count: inProgressList.length },
+    { name: 'Completed', count: completedList.length }
   ]
 
   if (loading) {
@@ -227,9 +244,8 @@ export default function TutorMathPage() {
         {/* Content */}
         <div className="space-y-3">
           {activeTab === 'Assigned' && (
-            history.filter(h => h.status === 'Assigned').length > 0 ? (
-              history
-                .filter(h => h.status === 'Assigned')
+            assignedList.length > 0 ? (
+              assignedList
                 .map((session) => {
                   const test = session.testId
                   const questionCount = test?.questions?.length || test?.totalQuestions || 0
@@ -302,18 +318,8 @@ export default function TutorMathPage() {
           )}
 
           {(activeTab === 'In Progress' || activeTab === 'Completed') && (
-            history.filter(h => {
-              const statusMatch = activeTab === 'Completed' ? h.status === 'Completed' : h.status === 'InProgress'
-              // Hide reassigned tests from completed tab
-              const notReassigned = !h.isReassigned
-              return statusMatch && notReassigned
-            }).length > 0 ? (
-              history
-                .filter(h => {
-                  const statusMatch = activeTab === 'Completed' ? h.status === 'Completed' : h.status === 'InProgress'
-                  const notReassigned = !h.isReassigned
-                  return statusMatch && notReassigned
-                })
+            (activeTab === 'Completed' ? completedList : inProgressList).length > 0 ? (
+              (activeTab === 'Completed' ? completedList : inProgressList)
                 .map((session) => {
                   const test = session.testId
                   const questionCount = test?.questions?.length || test?.totalQuestions || 0
