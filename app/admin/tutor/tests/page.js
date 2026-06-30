@@ -954,7 +954,7 @@ export default function TutorTestSheets() {
                           </label>
                           <button
                             onClick={() => {
-                              if (!verifiedTests[test._id]) { toast.info('Pehla checkbox check karo — sheet verify thaya pachi j Assign thay.'); return }
+                              if (!verifiedTests[test._id]) { toast.info('Please check the box first — you can assign only after verifying the sheet.'); return }
                               handleOpenAssignToStudentModal(test)
                             }}
                             className={`inline-flex items-center px-3 py-1 rounded ${verifiedTests[test._id] ? 'text-purple-600 hover:text-purple-800 hover:bg-purple-100' : 'text-gray-300 cursor-not-allowed'}`}
