@@ -1046,7 +1046,7 @@ export default function TakeTestPage() {
         }).length
         
         // For tutor mode, just save the session and redirect
-        setFinalScore({ total: correct }) // Simplified score
+        setFinalScore({ total: correct, correct, totalQuestions: moduleQuestions.length, isRaw: true }) // raw correct count — NOT an SAT scaled score
         setTestCompleted(true)
         
         try {
@@ -1116,11 +1116,8 @@ export default function TakeTestPage() {
                   // Route: /dashboard/tests/[id]/results?session_id=SESSION_ID
                   const finalSessionId = sessionId || responseData.session._id
                   setCompletedSessionId(finalSessionId)
-                  // Prefer the server-computed score (authoritative) over the local estimate
-                  const serverScore = responseData.session?.totalScore
-                  if (serverScore !== undefined && serverScore !== null) {
-                    setFinalScore(prev => ({ ...(prev || {}), total: serverScore }))
-                  }
+                  // Tutor/practice tests are NOT scored on the SAT scale — keep the raw correct count
+                  // (do not overwrite with the server's scaled totalScore, which floors to 400).
                   // router.push(`/dashboard/tests/${testId}/results?session_id=${finalSessionId}&returnUrl=${encodeURIComponent(returnUrl)}`)
              }
          } catch (e) {
@@ -1416,10 +1413,16 @@ export default function TakeTestPage() {
             <FiCheckCircle className="mx-auto text-green-600 mb-4" size={64} />
             <h2 className="text-3xl font-bold text-gray-900 mb-4">🎉 Test Completed!</h2>
             
+            {finalScore?.isRaw ? (
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-8 mb-6">
+              <p className="text-6xl font-bold text-blue-600 mb-2">{finalScore.correct ?? 0} <span className="text-3xl font-semibold text-gray-400">/ {finalScore.totalQuestions ?? 0}</span></p>
+              <p className="text-gray-700 text-lg">Correct Answers</p>
+            </div>
+            ) : (
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-8 mb-6">
               <p className="text-6xl font-bold text-blue-600 mb-4">{finalScore.total}</p>
               <p className="text-gray-700 text-lg mb-6">Total SAT Score</p>
-              
+
               <div className="grid grid-cols-2 gap-6">
                 {test?.sections?.rw && (
                   <div className="bg-white rounded-lg p-4">
@@ -1437,6 +1440,7 @@ export default function TakeTestPage() {
                 )}
               </div>
             </div>
+            )}
             
             <div className="space-y-3">
               <button
