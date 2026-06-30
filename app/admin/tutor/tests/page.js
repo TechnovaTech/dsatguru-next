@@ -60,6 +60,7 @@ export default function TutorTestSheets() {
   const [allStudents, setAllStudents] = useState([])
   const [loadingAllStudents, setLoadingAllStudents] = useState(false)
   const [studentAssignedTests, setStudentAssignedTests] = useState({}) // studentId -> [testIds]
+  const [studentExplMap, setStudentExplMap] = useState({}) // studentId -> { testId: showExplanation bool }
   const [studentSearch, setStudentSearch] = useState('')
   const [assignShowExplanation, setAssignShowExplanation] = useState(false)
 
@@ -154,8 +155,9 @@ export default function TutorTestSheets() {
       if (res.ok) {
         const students = await res.json()
         setAllStudents(students)
-        // Fetch assigned tests for each student
+        // Fetch assigned tests + explanation flags for each student
         const map = {}
+        const explMap = {}
         await Promise.all(students.map(async (s) => {
           try {
             const r = await fetch(`/api/admin/students/${s._id}/assigned-tests`, {
@@ -164,10 +166,12 @@ export default function TutorTestSheets() {
             if (r.ok) {
               const d = await r.json()
               map[s._id] = d.assignedTests || []
+              explMap[s._id] = d.showExplanation || {}
             }
           } catch {}
         }))
         setStudentAssignedTests(map)
+        setStudentExplMap(explMap)
       }
     } catch (err) {
       console.error(err)
@@ -189,12 +193,34 @@ export default function TutorTestSheets() {
       if (res.ok) {
         const data = await res.json()
         setStudentAssignedTests(prev => ({ ...prev, [studentId]: data.assignedTests }))
+        if (!isAssigned) setStudentExplMap(prev => ({ ...prev, [studentId]: { ...(prev[studentId] || {}), [testId.toString()]: assignShowExplanation } }))
         setSuccess(isAssigned ? 'Test unassigned from student' : 'Test assigned to student')
         setTimeout(() => setSuccess(''), 3000)
       }
     } catch (err) {
       setError('Failed to update assignment')
       setTimeout(() => setError(''), 3000)
+    }
+  }
+
+  // Toggle "show explanation in analysis" for one student — applies to ALL their sessions for
+  // this test (even after completion), so explanations can be revealed without re-assigning.
+  const handleToggleExplanationForStudent = async (studentId, testId, value) => {
+    const tid = testId.toString()
+    setStudentExplMap(prev => ({ ...prev, [studentId]: { ...(prev[studentId] || {}), [tid]: value } }))
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/admin/students/assign-test', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ studentId, testId, action: 'setExplanation', showExplanation: value })
+      })
+      if (!res.ok) throw new Error('failed')
+      toast.success(value ? 'Explanation enabled in analysis' : 'Explanation hidden in analysis')
+    } catch {
+      // revert on failure
+      setStudentExplMap(prev => ({ ...prev, [studentId]: { ...(prev[studentId] || {}), [tid]: !value } }))
+      toast.error('Could not update explanation setting')
     }
   }
 
@@ -1789,14 +1815,25 @@ export default function TutorTestSheets() {
                               <div className="font-medium text-gray-900 text-sm">{student.name}</div>
                               <div className="text-xs text-gray-500">{student.email}</div>
                             </div>
-                            <button
-                              onClick={() => handleToggleTestForStudent(student._id, assignToStudentTest._id)}
-                              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                assigned ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-blue-600 text-white hover:bg-blue-700'
-                              }`}
-                            >
-                              {assigned ? 'Unassign' : 'Assign'}
-                            </button>
+                            <div className="flex items-center gap-3">
+                              <label className="flex cursor-pointer items-center gap-1.5 text-xs text-gray-600" title="Show short & long explanation in this student's analysis — works even after they finish the test">
+                                <input
+                                  type="checkbox"
+                                  checked={!!(studentExplMap[student._id]?.[assignToStudentTest._id.toString()])}
+                                  onChange={(e) => handleToggleExplanationForStudent(student._id, assignToStudentTest._id, e.target.checked)}
+                                  className="h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                                />
+                                Explanation
+                              </label>
+                              <button
+                                onClick={() => handleToggleTestForStudent(student._id, assignToStudentTest._id)}
+                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                  assigned ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-blue-600 text-white hover:bg-blue-700'
+                                }`}
+                              >
+                                {assigned ? 'Unassign' : 'Assign'}
+                              </button>
+                            </div>
                           </div>
                         )
                       })}

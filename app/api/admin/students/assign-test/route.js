@@ -55,6 +55,11 @@ export async function PUT(request) {
     } else if (action === 'remove') {
       student.assignedTests = student.assignedTests.filter(id => id.toString() !== testId)
       await TestSession.deleteMany({ userId: studentId, testId, status: 'Assigned' })
+    } else if (action === 'setExplanation') {
+      // Toggle explanation visibility on ALL of this student's sessions for the test
+      // (Assigned/InProgress/Completed) so it applies even after the test is finished.
+      await TestSession.updateMany({ userId: studentId, testId }, { showExplanation: showExplanation === true })
+      return NextResponse.json({ success: true, assignedTests: student.assignedTests, showExplanation: showExplanation === true })
     }
 
     await student.save()
