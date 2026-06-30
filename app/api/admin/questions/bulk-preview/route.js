@@ -180,6 +180,7 @@ export async function POST(request) {
     const idxDifficulty = findIdx(['difficulty', 'level', 'diff'])
     const idxTags = findIdx(['tag', 'tags', 'topic', 'subtopic', 'tags/topic'])
     const idxSubject = findIdx(['subject', 'category', 'subj'])
+    const idxRemark = findIdx(['remark', 'remarks', 'note', 'notes'])
 
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'questions')
     await mkdir(uploadDir, { recursive: true })
@@ -261,6 +262,7 @@ export async function POST(request) {
       const shortExplanation = idxShortExpl >= 0 ? (cols[idxShortExpl] || '').trim() : (idxExplanation >= 0 ? (cols[idxExplanation] || '').trim() : '')
       const longExplanation = idxLongExpl >= 0 ? (cols[idxLongExpl] || '').trim() : ''
       const tagsRaw = idxTags >= 0 ? (cols[idxTags] || '').trim() : ''
+      const remark = idxRemark >= 0 ? (cols[idxRemark] || '').trim() : ''
 
       const replaceImages = (text) => {
         if (!text) return text
@@ -301,6 +303,7 @@ export async function POST(request) {
         correctAnswer,
         options: optionsArr,
         tags: tagsArr,
+        remark,
         rowNumber: r
       })
     }
