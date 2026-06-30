@@ -603,6 +603,28 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
   const removeImgFromOption = (idx, src) => setEditItem(prev => { const next = [...(prev.options || [])]; next[idx] = stripImageMarkdown(next[idx] || '', src); return { ...prev, options: next } })
   const openTable = (onInsert) => setTableInsertFn(() => onInsert)
 
+  // Drag & drop image upload — works on any field's textarea. Drop an image file to upload it
+  // and append the markdown into that field (same endpoint as the Add Image button).
+  const uploadImageFile = async (file) => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const fd = new FormData(); fd.append('file', file)
+      const res = await fetch('/api/admin/upload-image', { method: 'POST', headers: token ? { Authorization: `Bearer ${token}` } : {}, body: fd })
+      const data = await res.json()
+      if (data.success) return `![${data.filename}](${data.url})`
+      toast.error('Upload failed: ' + (data.error || 'Unknown error')); return null
+    } catch { toast.error('Upload error'); return null }
+  }
+  const dropProps = (appendFn) => ({
+    onDragOver: (e) => { e.preventDefault() },
+    onDrop: async (e) => {
+      const files = [...(e.dataTransfer?.files || [])].filter(f => f.type && f.type.startsWith('image/'))
+      if (!files.length) return
+      e.preventDefault()
+      for (const f of files) { const md = await uploadImageFile(f); if (md) appendFn(md) }
+    },
+  })
+
   // ---- Bulk edit (edit each selected question one-by-one, saved to the bank) ----
   const startBulkEdit = () => {
     const ids = getFilteredQuestions().filter(q => selectedQuestions.includes(q.id)).map(q => q.id)
@@ -1171,6 +1193,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                 <div className="flex-1 overflow-y-auto">
                 {modalEditing ? (
                 <div className="p-6 space-y-4">
+                  <p className="text-xs text-slate-400">Tip: drag &amp; drop an image into any field to upload it, or use the Add Image / Table buttons.</p>
                   {bulkIds && (
                     <div className="flex flex-wrap items-center gap-2">
                       <span className={`rounded-full px-3 py-1 text-xs font-medium ${editItem.subject === 'Math' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>{editItem.subject}</span>
@@ -1278,6 +1301,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     <textarea
                       value={editItem.questionParagraph || ''}
                       onChange={(e) => setEditItem({ ...editItem, questionParagraph: e.target.value })}
+                      {...dropProps((md) => appendToField('questionParagraph', md))}
                       rows={3}
                       placeholder="Enter passage or context here (mainly for Reading/Writing sections)..."
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -1296,6 +1320,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     <textarea
                       value={editItem.content || ''}
                       onChange={(e) => setEditItem({ ...editItem, content: e.target.value })}
+                      {...dropProps((md) => appendToField('content', md))}
                       rows={4}
                       placeholder="Enter the main question text here..."
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -1314,6 +1339,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     <textarea
                       value={editItem.explanation || ''}
                       onChange={(e) => setEditItem({ ...editItem, explanation: e.target.value })}
+                      {...dropProps((md) => appendToField('explanation', md))}
                       rows={3}
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
@@ -1356,6 +1382,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                               <textarea
                                 value={String(opt || '')}
                                 onChange={(e) => { const next = [...opts]; next[idx] = String(e.target.value); setEditItem({ ...editItem, options: next }) }}
+                                {...dropProps((md) => appendToOption(idx, md))}
                                 rows={2}
                                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                               />
@@ -1418,6 +1445,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     <textarea
                       value={editItem.shortExplanation || ''}
                       onChange={(e) => setEditItem({ ...editItem, shortExplanation: e.target.value })}
+                      {...dropProps((md) => appendToField('shortExplanation', md))}
                       rows={2}
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
@@ -1434,6 +1462,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     <textarea
                       value={editItem.longExplanation || ''}
                       onChange={(e) => setEditItem({ ...editItem, longExplanation: e.target.value })}
+                      {...dropProps((md) => appendToField('longExplanation', md))}
                       rows={4}
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
