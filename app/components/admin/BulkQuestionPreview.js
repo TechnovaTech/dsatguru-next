@@ -358,7 +358,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                             : <div className="bg-white p-3 rounded-lg border border-slate-100">{renderContent(question.content)}</div>}
                         </div>
 
-                        {(question.type !== 'ShortAnswer' || (question.options && question.options.length > 0)) && (
+                        {(Array.isArray(question.options) && question.options.some(o => String(o || '').trim())) && (
                           <div>
                             <label className="block text-sm font-medium text-slate-600 mb-2">Answer Options</label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -375,9 +375,9 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                         )}
 
                         <div>
-                          <label htmlFor={`q-${qIndex}-correct`} className="block text-sm font-medium text-slate-600 mb-1">Correct Answer</label>
+                          <label htmlFor={`q-${qIndex}-correct`} className="block text-sm font-medium text-slate-600 mb-1">Correct Answer{!(Array.isArray(question.options) && question.options.some(o => String(o || '').trim())) && ' (Fill-in-the-Blank)'}</label>
                           {isEditing ? (
-                            question.type === 'ShortAnswer' ? (
+                            !(Array.isArray(question.options) && question.options.some(o => String(o || '').trim())) ? (
                               <input
                                 id={`q-${qIndex}-correct`}
                                 type="text"
