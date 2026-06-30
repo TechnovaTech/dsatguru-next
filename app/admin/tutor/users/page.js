@@ -27,6 +27,7 @@ export default function TutorAndStudents() {
   const [selectedStudent, setSelectedStudent] = useState(null)
   const [allTests, setAllTests] = useState([])
   const [studentAssignedTests, setStudentAssignedTests] = useState([])
+  const [studentTestExpl, setStudentTestExpl] = useState({}) // testId -> showExplanation bool (for selectedStudent)
   const [loadingTests, setLoadingTests] = useState(false)
   const [testSearch, setTestSearch] = useState('')
   const [testSubjectFilter, setTestSubjectFilter] = useState('All')
@@ -158,6 +159,7 @@ export default function TutorAndStudents() {
       if (assignedRes.ok) {
         const d = await assignedRes.json()
         setStudentAssignedTests((d.assignedTests || []).map(id => id.toString()))
+        setStudentTestExpl(d.showExplanation || {})
       }
     } catch (err) {
       console.error(err)
@@ -178,11 +180,34 @@ export default function TutorAndStudents() {
       if (res.ok) {
         const data = await res.json()
         setStudentAssignedTests((data.assignedTests || []).map(id => id.toString()))
+        if (!isAssigned) setStudentTestExpl(prev => ({ ...prev, [testId.toString()]: assignShowExplanation }))
         setSuccess(isAssigned ? 'Test unassigned' : 'Test assigned')
         setTimeout(() => setSuccess(''), 3000)
       }
     } catch {
       setError('Failed to update')
+      setTimeout(() => setError(''), 3000)
+    }
+  }
+
+  // Toggle "show explanation in analysis" for the selected student on one test — applies to ALL
+  // their sessions for it (even after completion), so explanations can be revealed without re-assigning.
+  const handleToggleTestExplanation = async (testId, value) => {
+    const tid = testId.toString()
+    setStudentTestExpl(prev => ({ ...prev, [tid]: value }))
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/admin/students/assign-test', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ studentId: selectedStudent._id, testId, action: 'setExplanation', showExplanation: value })
+      })
+      if (!res.ok) throw new Error('failed')
+      setSuccess(value ? 'Explanation enabled in analysis' : 'Explanation hidden in analysis')
+      setTimeout(() => setSuccess(''), 3000)
+    } catch {
+      setStudentTestExpl(prev => ({ ...prev, [tid]: !value }))
+      setError('Could not update explanation setting')
       setTimeout(() => setError(''), 3000)
     }
   }
@@ -607,14 +632,25 @@ export default function TutorAndStudents() {
                                 {isAssigned && <span className="text-xs font-medium text-emerald-600">✓ Assigned</span>}
                               </div>
                             </div>
-                            <button
-                              onClick={() => handleToggleTestAssignment(test._id)}
-                              className={`ml-4 flex-shrink-0 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
-                                isAssigned ? 'bg-rose-50 text-rose-700 hover:bg-rose-100' : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                              }`}
-                            >
-                              {isAssigned ? 'Unassign' : 'Assign'}
-                            </button>
+                            <div className="ml-4 flex flex-shrink-0 items-center gap-3">
+                              <label className="flex cursor-pointer items-center gap-1.5 text-xs text-slate-600" title="Show short & long explanation in this student's analysis — works even after they finish the test">
+                                <input
+                                  type="checkbox"
+                                  checked={!!studentTestExpl[test._id.toString()]}
+                                  onChange={(e) => handleToggleTestExplanation(test._id, e.target.checked)}
+                                  className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
+                                />
+                                Explanation
+                              </label>
+                              <button
+                                onClick={() => handleToggleTestAssignment(test._id)}
+                                className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
+                                  isAssigned ? 'bg-rose-50 text-rose-700 hover:bg-rose-100' : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                }`}
+                              >
+                                {isAssigned ? 'Unassign' : 'Assign'}
+                              </button>
+                            </div>
                           </div>
                         )
                       })}
