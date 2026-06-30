@@ -33,6 +33,10 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
 
   const expandAll = () => setExpandedQuestions(new Set(editedQuestions.map((_, idx) => idx)))
   const collapseAll = () => setExpandedQuestions(new Set())
+  const goToQuestion = (i) => {
+    setExpandedQuestions(prev => { const s = new Set(prev); s.add(i); return s })
+    setTimeout(() => { document.getElementById(`bulk-q-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, 60)
+  }
   const startEdit = (index) => setEditingQuestion(index)
   const saveEdit = () => setEditingQuestion(null)
 
@@ -287,7 +291,18 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
           <button onClick={onCancel} aria-label="Close preview" className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-lg transition-colors"><FiX className="w-6 h-6" /></button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 flex min-h-0">
+          {editedQuestions.length > 1 && (
+            <nav className="flex w-12 flex-shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-slate-100 bg-slate-50 py-3" aria-label="Jump to question">
+              {editedQuestions.map((_, i) => (
+                <button key={i} type="button" onClick={() => goToQuestion(i)} title={`Go to question ${i + 1}`}
+                  className={`h-7 w-7 flex-shrink-0 rounded-lg text-xs font-semibold transition-colors ${editingQuestion === i ? 'bg-indigo-600 text-white' : 'border border-slate-200 bg-white text-slate-600 hover:bg-indigo-50 hover:text-indigo-700'}`}>
+                  {i + 1}
+                </button>
+              ))}
+            </nav>
+          )}
+          <div className="flex-1 overflow-y-auto p-6">
           <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
             <div className="flex items-start gap-3">
               <div className="flex-1">
@@ -318,7 +333,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
               const isExpanded = expandedQuestions.has(qIndex)
               const isEditing = editingQuestion === qIndex
               return (
-                <div key={question.id || qIndex} className={`border border-slate-100 rounded-2xl bg-white shadow-sm ${isEditing ? 'ring-2 ring-indigo-500' : ''}`}>
+                <div key={question.id || qIndex} id={`bulk-q-${qIndex}`} className={`border border-slate-100 rounded-2xl bg-white shadow-sm scroll-mt-2 ${isEditing ? 'ring-2 ring-indigo-500' : ''}`}>
                   <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-indigo-50/40 transition-colors rounded-2xl" onClick={() => !isEditing && toggleExpand(qIndex)}>
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <span className="text-sm font-medium text-slate-500 flex-shrink-0">#{qIndex + 1}</span>
@@ -473,6 +488,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
             })}
           </div>
           )}
+          </div>
         </div>
 
         <div className="p-6 border-t border-slate-100 bg-slate-50 rounded-b-2xl flex items-center justify-between gap-4">
