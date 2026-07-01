@@ -120,6 +120,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
   const [bulkIds, setBulkIds] = useState(null)
   const [bulkIndex, setBulkIndex] = useState(0)
   const [bulkDrafts, setBulkDrafts] = useState({})
+  const [bulkRemark, setBulkRemark] = useState('')
   const [modalEditing, setModalEditing] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const PAGE_SIZE = 50
@@ -632,8 +633,22 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
     setBulkIds(ids)
     setBulkIndex(0)
     setBulkDrafts({})
+    setBulkRemark('')
     setModalEditing(false)
     setEditItem(mapQuestionToEdit(questions.find(q => q.id === ids[0])))
+  }
+  // Apply one remark to ALL questions in this bulk-edit set (persisted on "Save All & Close").
+  const applyBulkRemark = () => {
+    const val = bulkRemark.trim()
+    if (!val || !bulkIds) return
+    const drafts = {}
+    bulkIds.forEach((id, i) => {
+      const base = i === bulkIndex ? editItem : (bulkDrafts[id] || mapQuestionToEdit(questions.find(q => q.id === id)))
+      drafts[id] = { ...base, remark: val }
+    })
+    setBulkDrafts(drafts)
+    setEditItem(prev => ({ ...prev, remark: val }))
+    toast.success(`Remark applied to all ${bulkIds.length} questions — click "Save All & Close" to save.`)
   }
   const bulkGoto = (newIndex) => {
     if (newIndex < 0 || newIndex >= bulkIds.length) return
@@ -1208,6 +1223,17 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                   </nav>
                 )}
                 <div className="flex-1 overflow-y-auto">
+                {bulkIds && (
+                  <div className="border-b border-slate-100 p-4">
+                    <div className="flex items-end gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                      <div className="flex-1">
+                        <label className="mb-1 block text-xs font-semibold text-amber-900">Apply remark to all {bulkIds.length} questions</label>
+                        <input value={bulkRemark} onChange={(e) => setBulkRemark(e.target.value)} placeholder="Enter a remark for every question in this set..." className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+                      </div>
+                      <button type="button" onClick={applyBulkRemark} disabled={!bulkRemark.trim()} className="whitespace-nowrap rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-50">Apply to all</button>
+                    </div>
+                  </div>
+                )}
                 {modalEditing ? (
                 <div className="p-6 space-y-4">
                   <p className="text-xs text-slate-400">Tip: drag &amp; drop an image into any field to upload it, or use the Add Image / Table buttons.</p>
