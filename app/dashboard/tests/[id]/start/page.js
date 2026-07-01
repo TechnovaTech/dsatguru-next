@@ -5,6 +5,38 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { FiClock, FiCheckCircle, FiArrowRight, FiAlertTriangle, FiMoreVertical, FiHelpCircle, FiBookOpen, FiSlash, FiGrid, FiLayers, FiEdit2 } from 'react-icons/fi'
 
+// Grade one answer, handling both multiple-choice (letter A–D or option text on either side,
+// case/space-insensitive) and fill-in-the-blank. Bank questions store options in q.options
+// (array/JSON), so the old q.optionA?.trim() check mis-detected MCQ as fill-in.
+const gradeNorm = (s) => String(s ?? '').trim().toLowerCase().replace(/\s+/g, '')
+function questionOptions(q) {
+  try {
+    const raw = typeof q.options === 'string' ? JSON.parse(q.options) : q.options
+    if (Array.isArray(raw)) return { A: raw[0] || '', B: raw[1] || '', C: raw[2] || '', D: raw[3] || '' }
+    if (raw && typeof raw === 'object') return raw
+  } catch {}
+  if (q.optionA || q.optionB || q.optionC || q.optionD) return { A: q.optionA || '', B: q.optionB || '', C: q.optionC || '', D: q.optionD || '' }
+  return null
+}
+function answerLetter(val, opts) {
+  const v = String(val ?? '').trim()
+  if (!v) return ''
+  if (/^[A-D]$/i.test(v)) return v.toUpperCase()
+  const nv = gradeNorm(v)
+  for (const L of ['A', 'B', 'C', 'D']) { const t = opts && opts[L]; if (t && gradeNorm(t) === nv) return L }
+  return ''
+}
+function isAnswerCorrect(q, userAnswer) {
+  if (userAnswer == null || String(userAnswer).trim() === '') return false
+  const opts = questionOptions(q)
+  const hasOpts = opts && ['A', 'B', 'C', 'D'].some(L => String(opts[L] || '').trim())
+  if (hasOpts) {
+    const cL = answerLetter(q.correctAnswer, opts), uL = answerLetter(userAnswer, opts)
+    if (cL && uL) return cL === uL
+  }
+  return gradeNorm(userAnswer) === gradeNorm(q.correctAnswer)
+}
+
 export default function TakeTestPage() {
   const toast = useToast()
   const router = useRouter()
@@ -837,13 +869,7 @@ export default function TakeTestPage() {
           const correctAnswer = q.correctAnswer
           
           // Check if it's multiple choice or fill-in-the-blank
-          const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
-          
-          if (hasOptions) {
-            return userAnswer === correctAnswer
-          } else {
-            return userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()
-          }
+          return isAnswerCorrect(q, userAnswer)
         }).length
         
         const token = localStorage.getItem('token')
@@ -861,13 +887,7 @@ export default function TakeTestPage() {
             
             if (userAnswer) {
               // Check if it's multiple choice or fill-in-the-blank
-              const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
-              
-              if (hasOptions) {
-                isCorrect = userAnswer === correctAnswer
-              } else {
-                isCorrect = userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()
-              }
+              isCorrect = isAnswerCorrect(q, userAnswer)
             }
             
             responses.push({
@@ -957,17 +977,7 @@ export default function TakeTestPage() {
       const correctAnswer = q.correctAnswer
       
       // Check if it's multiple choice or fill-in-the-blank
-      const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
-      
-      if (hasOptions) {
-        // Multiple choice - exact match
-        if (userAnswer === correctAnswer) correctCount++
-      } else {
-        // Fill-in-the-blank - case-insensitive comparison with trimmed whitespace
-        if (userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()) {
-          correctCount++
-        }
-      }
+      if (isAnswerCorrect(q, userAnswer)) correctCount++
     })
     
     const moduleKey = `${currentSection}_module${currentModule}`
@@ -1034,15 +1044,7 @@ export default function TakeTestPage() {
             const correctAnswer = q.correctAnswer
             
             // Check if it's multiple choice or fill-in-the-blank
-            const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
-            
-            if (hasOptions) {
-              // Multiple choice - exact match
-              return userAnswer === correctAnswer
-            } else {
-              // Fill-in-the-blank - case-insensitive comparison
-              return userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()
-            }
+            return isAnswerCorrect(q, userAnswer)
         }).length
         
         // For tutor mode, just save the session and redirect
@@ -1067,13 +1069,7 @@ export default function TakeTestPage() {
                 
                 if (userAnswer) {
                     // Check if it's multiple choice or fill-in-the-blank
-                    const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
-                    
-                    if (hasOptions) {
-                      isCorrect = userAnswer === correctAnswer
-                    } else {
-                      isCorrect = userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()
-                    }
+                    isCorrect = isAnswerCorrect(q, userAnswer)
                 }
                 
                 responses.push({
@@ -1173,12 +1169,7 @@ export default function TakeTestPage() {
                let isCorrect = false
                
                if (userAnswer) {
-                 const hasOptions = q.optionA?.trim() && q.optionB?.trim() && q.optionC?.trim() && q.optionD?.trim()
-                 if (hasOptions) {
-                   isCorrect = userAnswer === correctAnswer
-                 } else {
-                   isCorrect = userAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase()
-                 }
+                 isCorrect = isAnswerCorrect(q, userAnswer)
                }
                
                responses.push({
