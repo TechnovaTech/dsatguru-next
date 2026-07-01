@@ -1618,10 +1618,11 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                     ) : (
                                         // FILL-IN-THE-BLANK QUESTIONS
                                         <div className="space-y-3">
-                                            {/* Student's Answer */}
+                                            {/* Student's Answer — omitted questions get no red "Incorrect" box, just the correct answer */}
+                                            {q.userAnswer && (
                                             <div className={`p-4 rounded-lg border-2 ${
-                                                q.isCorrect 
-                                                    ? 'bg-green-50 border-green-500' 
+                                                q.isCorrect
+                                                    ? 'bg-green-50 border-green-500'
                                                     : 'bg-red-50 border-red-500'
                                             }`}>
                                                 <div className="flex items-center gap-2 mb-2">
@@ -1643,6 +1644,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                                     {q.userAnswer || <span className="text-gray-400 italic">No answer provided</span>}
                                                 </div>
                                             </div>
+                                            )}
 
                                             {/* Correct Answer (if wrong) */}
                                             {!q.isCorrect && q.correctAnswer && (
