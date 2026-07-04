@@ -31,6 +31,8 @@ export default function AppShell({ children }) {
   // Demo test take/rules pages are fullscreen — no header/footer
   const isDemoTestFullscreen = pathname.startsWith('/demo-test/take') ||
     pathname.startsWith('/demo-test/rules')
+  // Post-purchase thank-you page is a clean fullscreen moment (no marketing nav/footer).
+  const isThankYou = pathname.startsWith('/thank-you')
 
   // Maintenance is active only while ON and (no timer OR the timer hasn't elapsed).
   const maintenanceActive = !!maint?.maintenanceMode &&
@@ -43,7 +45,7 @@ export default function AppShell({ children }) {
     return <MaintenancePage siteName={maint.siteName} endsAt={maint.maintenanceEndsAt} />
   }
 
-  const inner = (isAdmin || isDashboard || isTutor || isDemoTestFullscreen)
+  const inner = (isAdmin || isDashboard || isTutor || isDemoTestFullscreen || isThankYou)
     ? children
     : <PublicLayout>{children}</PublicLayout>
 

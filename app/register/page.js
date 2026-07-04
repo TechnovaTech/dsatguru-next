@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -50,6 +50,11 @@ function BrandPanel({ kicker, title, subtitle }) {
 export default function Register() {
   const router = useRouter()
   const { login } = useAuth()
+  // Resume the pre-signup flow (e.g. enrollment) after the account is created.
+  const [returnTo, setReturnTo] = useState('')
+  useEffect(() => {
+    try { setReturnTo(new URLSearchParams(window.location.search).get('returnTo') || '') } catch {}
+  }, [])
 
   const [step, setStep] = useState('form')
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' })
@@ -119,7 +124,7 @@ export default function Register() {
     try {
       const res = await axios.post('/api/auth/verify-otp', { email: formData.email, otp, type: 'register' })
       login(res.data.token, res.data.user)
-      router.push('/dashboard')
+      router.push(returnTo || '/dashboard')
     } catch (err) {
       setErrors({ otp: err.response?.data?.error || 'Invalid OTP. Please try again.' })
     } finally {
@@ -215,7 +220,7 @@ export default function Register() {
                 </button>
 
                 <p className="text-center text-sm text-slate-600">
-                  Already have an account? <Link href="/login" className="font-semibold text-indigo-600 hover:underline">Login here</Link>
+                  Already have an account? <Link href={returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : '/login'} className="font-semibold text-indigo-600 hover:underline">Login here</Link>
                 </p>
               </form>
             </>

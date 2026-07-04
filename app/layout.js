@@ -47,6 +47,31 @@ export default function RootLayout({ children }) {
             gtag('config', 'G-2S6R8YEWQM');
           `}
         </Script>
+        {/* Meta (Facebook) Pixel — loaded on every page for Meta Ads tracking (PageView).
+            Conversion events (Lead / Purchase) are fired on /thank-you. */}
+        <Script id="meta-pixel" strategy="afterInteractive">
+          {`
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '1925897978125977');
+            fbq('track', 'PageView');
+          `}
+        </Script>
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: 'none' }}
+            src="https://www.facebook.com/tr?id=1925897978125977&ev=PageView&noscript=1"
+            alt=""
+          />
+        </noscript>
         <AuthProvider>
           <CourseProvider>
             <UIProvider>

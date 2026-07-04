@@ -64,7 +64,7 @@ export async function POST(request) {
         quantity: 1,
       }],
       mode: 'payment',
-      success_url: `${origin}${destPath}?success=true&courseId=${courseId}&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin}/thank-you?success=true&courseId=${courseId}&type=${type}&amount=${effectivePrice}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}${destPath}?canceled=true`,
       metadata,
       payment_intent_data: { metadata }

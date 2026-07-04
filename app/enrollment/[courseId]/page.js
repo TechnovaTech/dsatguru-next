@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
@@ -23,6 +23,14 @@ export default function EnrollmentPage() {
   const [enrollLoading, setEnrollLoading] = useState(false)
   const [showScheduleModal, setShowScheduleModal] = useState(false)
   const [selectedSchedule, setSelectedSchedule] = useState(null)
+  const resumedRef = useRef(false)
+
+  // Remember the intent to enroll, then send the guest to sign in / sign up.
+  // After auth they return here (via returnTo) and checkout resumes automatically.
+  const goLogin = () => {
+    try { sessionStorage.setItem('dg_pending_enroll', String(courseId)) } catch {}
+    router.push(`/login?returnTo=/enrollment/${courseId}`)
+  }
 
   useEffect(() => {
     if (courses.length > 0) {
@@ -41,7 +49,7 @@ export default function EnrollmentPage() {
 
   const handleEnroll = async (scheduleId = null) => {
     if (!user) {
-      router.push(`/login?returnTo=/enrollment/${courseId}`)
+      goLogin()
       return
     }
     if (course.discountedPrice > 0 || course.originalPrice > 0) {
@@ -77,7 +85,7 @@ export default function EnrollmentPage() {
 
   const handleScheduleSelection = () => {
     if (!user) {
-      router.push(`/login?returnTo=/enrollment/${courseId}`)
+      goLogin()
       return
     }
     if (course.courseSchedules?.length === 1) {
@@ -88,6 +96,19 @@ export default function EnrollmentPage() {
       handleEnroll(null)
     }
   }
+
+  // Resume checkout automatically when the user comes back authenticated after
+  // being sent to sign in mid-enroll. (They still actively pay on Stripe.)
+  useEffect(() => {
+    if (resumedRef.current || !user || !course) return
+    let pending = null
+    try { pending = sessionStorage.getItem('dg_pending_enroll') } catch {}
+    if (pending && pending === String(courseId)) {
+      resumedRef.current = true
+      try { sessionStorage.removeItem('dg_pending_enroll') } catch {}
+      handleScheduleSelection()
+    }
+  }, [user, course])
 
   if (coursesLoading) {
     return (

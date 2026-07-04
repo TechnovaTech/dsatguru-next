@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -23,6 +23,12 @@ export default function Login() {
   const [authError, setAuthError] = useState('')
   const router = useRouter()
   const { login } = useAuth()
+  // Where to go after login when the user was sent here mid-flow (e.g. from an
+  // enrollment page). Falls back to the role-based default.
+  const [returnTo, setReturnTo] = useState('')
+  useEffect(() => {
+    try { setReturnTo(new URLSearchParams(window.location.search).get('returnTo') || '') } catch {}
+  }, [])
 
   const validateField = (name, value) => {
     switch (name) {
@@ -62,7 +68,7 @@ export default function Login() {
       if (role === 'Admin') router.push('/admin')
       else if (role === 'TutorAdmin') router.push('/admin/tutor/question-bank')
       else if (role === 'Tutor') router.push('/tutor/dashboard')
-      else router.push('/dashboard')
+      else router.push(returnTo || '/dashboard')
     } catch (error) {
       console.error('Login error:', error)
       setAuthError('Login failed. Please check your credentials.')
@@ -156,7 +162,7 @@ export default function Login() {
             </button>
 
             <p className="text-center text-sm text-slate-600">
-              Don&apos;t have an account? <Link href="/register" className="font-semibold text-indigo-600 hover:underline">Create one</Link>
+              Don&apos;t have an account? <Link href={returnTo ? `/register?returnTo=${encodeURIComponent(returnTo)}` : '/register'} className="font-semibold text-indigo-600 hover:underline">Create one</Link>
             </p>
           </form>
         </div>
