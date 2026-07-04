@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiUsers, FiPlus, FiUpload, FiGrid } from 'react-icons/fi'
 import TablePasteModal from '../../../components/admin/TablePasteModal'
 import { useConfirm } from '../../../components/ui/UIProvider'
+import { EditTestJsonModal, DownloadTestJsonButton } from '../../../components/admin/TestJsonTools'
 
 export default function ModuleTestSheets() {
   const confirm = useConfirm()
@@ -388,6 +389,8 @@ export default function ModuleTestSheets() {
                         <div className="flex items-center gap-2">
                           <button onClick={() => loadTestQuestions(test, false)} className="inline-flex items-center rounded px-3 py-1 text-xs text-indigo-600 hover:bg-indigo-50"><FiEye className="mr-1" /> View</button>
                           <button onClick={() => loadTestQuestions(test, true)} className="inline-flex items-center rounded px-3 py-1 text-xs text-slate-600 hover:bg-slate-100"><FiEdit className="mr-1" /> Edit</button>
+                          <DownloadTestJsonButton test={test} className="inline-flex items-center rounded px-3 py-1 text-xs text-slate-600 hover:bg-slate-100" />
+                          <EditTestJsonModal test={test} updateUrl="/api/admin/tutor/module-tests/update" onSaved={fetchTests} className="inline-flex items-center rounded px-3 py-1 text-xs text-indigo-600 hover:bg-indigo-50" />
                           <button onClick={() => handleOpenAssignToTutorModal(test)} className="inline-flex items-center rounded px-3 py-1 text-xs text-amber-600 hover:bg-amber-100" title="Assign to Tutor"><FiUsers className="mr-1" /> Tutor</button>
                           <button onClick={() => handleOpenAssignToStudentModal(test)} className="inline-flex items-center rounded px-3 py-1 text-xs text-indigo-600 hover:bg-indigo-50"><FiUserPlus className="mr-1" /> Student</button>
                           <button onClick={() => handleDeleteTest(test._id)} className="inline-flex items-center rounded px-3 py-1 text-xs text-rose-600 hover:bg-rose-100"><FiTrash className="mr-1" /> Delete</button>
@@ -412,6 +415,7 @@ export default function ModuleTestSheets() {
                 </div>
                 <div className="flex items-center gap-3">
                   {isEditMode && <button onClick={handleSaveTestEdits} disabled={savingTest} className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700 disabled:bg-slate-400"><FiSave /> {savingTest ? 'Saving...' : 'Save All'}</button>}
+                  {isEditMode && <EditTestJsonModal test={viewingTest} updateUrl="/api/admin/tutor/module-tests/update" onSaved={() => { fetchTests(); setShowViewModal(false) }} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-indigo-600 hover:bg-slate-50" />}
                   <button onClick={() => setShowViewModal(false)} aria-label="Close" className="text-slate-400 hover:text-slate-600"><FiX className="w-5 h-5" /></button>
                 </div>
               </div>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck, FiAlertCircle, FiClipboard, FiUpload, FiGrid } from 'react-icons/fi'
 import TablePasteModal from '../../../components/admin/TablePasteModal'
 import { useConfirm } from '../../../components/ui/UIProvider'
+import { EditTestJsonModal, DownloadTestJsonButton } from '../../../components/admin/TestJsonTools'
 
 export default function AdminTestSheets() {
   const confirm = useConfirm()
@@ -412,6 +413,8 @@ export default function AdminTestSheets() {
                         <div className="flex gap-2">
                           <button onClick={() => handleViewTest(test)} className="rounded p-1.5 text-indigo-600 transition-colors hover:bg-indigo-50" title="View"><FiEye /></button>
                           <button onClick={() => handleEditTest(test)} className="rounded p-1.5 text-emerald-600 transition-colors hover:bg-emerald-50" title="Edit"><FiEdit /></button>
+                          <DownloadTestJsonButton test={test} label="" className="rounded p-1.5 text-slate-600 transition-colors hover:bg-slate-100" />
+                          <EditTestJsonModal test={test} updateUrl="/api/admin/admin-tests/update" onSaved={fetchTests} label="" className="rounded p-1.5 text-indigo-600 transition-colors hover:bg-indigo-50" />
                           <button onClick={() => handleOpenAssignToStudentModal(test)} className="rounded p-1.5 text-indigo-600 transition-colors hover:bg-indigo-50" title="Assign"><FiUserPlus /></button>
                           <button onClick={() => handleDeleteTest(test._id)} className="rounded p-1.5 text-rose-600 transition-colors hover:bg-rose-50" title="Delete"><FiTrash /></button>
                         </div>
