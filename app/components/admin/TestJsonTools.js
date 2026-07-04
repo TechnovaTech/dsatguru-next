@@ -3,17 +3,19 @@ import { useState } from 'react'
 import { FiCode, FiX, FiCopy, FiDownload, FiSave } from 'react-icons/fi'
 import { getOrderedQuestionIds, buildTestJson, jsonToCustomQuestions } from '../../../lib/testJson'
 
-// Load a test's questions in display order, merged with its existing customQuestions overlay.
-async function loadOrderedMergedQuestions(test) {
+// Load questions in display order, merged with a customQuestions overlay.
+// opts.ids restricts to a subset (e.g. a single module); opts.overlay overrides
+// which overlay to merge (e.g. the editor's live edits). Defaults to the whole test.
+async function loadOrderedMergedQuestions(test, opts = {}) {
   const token = localStorage.getItem('token')
-  const ids = getOrderedQuestionIds(test)
+  const ids = ((opts.ids && opts.ids.length ? opts.ids : getOrderedQuestionIds(test)) || []).map(String)
   if (!ids.length) return []
   const res = await fetch(`/api/questions?ids=${ids.join(',')}`, { headers: { Authorization: `Bearer ${token}` } })
   if (!res.ok) throw new Error('Failed to load questions')
   const questions = await res.json()
   const byId = {}
   questions.forEach(q => { byId[String(q.id || q._id)] = q })
-  const cmap = test.customQuestions || {}
+  const cmap = opts.overlay || test.customQuestions || {}
   return ids.map(id => {
     const base = byId[id] || { _id: id }
     return cmap[id] ? { ...base, ...cmap[id] } : base
@@ -57,7 +59,7 @@ export function DownloadTestJsonButton({ test, className, label = 'JSON' }) {
 
 // View / copy / download / edit the whole test as one JSON blob. Saving maps edits
 // back onto the existing questions (same order) via the test's update endpoint.
-export function EditTestJsonModal({ test, updateUrl, onSaved, className, label = 'Edit JSON' }) {
+export function EditTestJsonModal({ test, updateUrl, onSaved, className, label = 'Edit JSON', orderedQuestionIds, existingCustomQuestions, scopeLabel }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -69,7 +71,7 @@ export function EditTestJsonModal({ test, updateUrl, onSaved, className, label =
   const openEditor = async () => {
     setError(''); setWarning(''); setOpen(true); setLoading(true)
     try {
-      const merged = await loadOrderedMergedQuestions(test)
+      const merged = await loadOrderedMergedQuestions(test, { ids: orderedQuestionIds, overlay: existingCustomQuestions })
       setOrdered(merged)
       setText(JSON.stringify(buildTestJson(merged), null, 2))
     } catch (e) {
@@ -84,7 +86,7 @@ export function EditTestJsonModal({ test, updateUrl, onSaved, className, label =
     let parsed
     try { parsed = JSON.parse(text) } catch (e) { setError('Invalid JSON: ' + e.message); return }
     if (!Array.isArray(parsed)) { setError('The JSON must be an array of questions.'); return }
-    const { customQuestions, warning: w } = jsonToCustomQuestions(parsed, ordered, test.customQuestions || {})
+    const { customQuestions, warning: w } = jsonToCustomQuestions(parsed, ordered, existingCustomQuestions || test.customQuestions || {})
     setSaving(true)
     try {
       const token = localStorage.getItem('token')
@@ -118,7 +120,7 @@ export function EditTestJsonModal({ test, updateUrl, onSaved, className, label =
           <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-start justify-between border-b border-slate-100 bg-slate-50 p-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Edit JSON — {test.title}</h3>
+                <h3 className="text-lg font-bold text-slate-900">Edit JSON — {test.title}{scopeLabel ? ` · ${scopeLabel}` : ''}</h3>
                 <p className="mt-0.5 text-xs text-slate-500">Edits existing questions (same count &amp; order). Images/tables inside the text apply automatically. Add/remove isn&apos;t supported here.</p>
               </div>
               <button onClick={() => setOpen(false)} aria-label="Close" className="rounded-lg p-1 text-slate-400 hover:bg-white hover:text-slate-600"><FiX className="h-5 w-5" /></button>
