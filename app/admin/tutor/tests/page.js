@@ -1,5 +1,7 @@
 ﻿'use client'
 import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
+// Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
+import { resolveAnswerLetter } from '../../../../lib/scoring/satScale'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck, FiUpload, FiGrid, FiDownload } from 'react-icons/fi'
@@ -1279,11 +1281,11 @@ export default function TutorTestSheets() {
                                     const optText = (options && (options[letter] || options[letter.toLowerCase()])) || ''
                                     if (!optText) return null
                                     return (
-                                    <div key={letter} className={`p-3 border-2 rounded-lg ${q.correctAnswer === letter ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200'}`}>
+                                    <div key={letter} className={`p-3 border-2 rounded-lg ${resolveAnswerLetter(q.correctAnswer, q) === letter ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200'}`}>
                                       <div className="flex items-start gap-2">
                                         <div className="flex items-center gap-1 flex-shrink-0">
-                                          <span className={`font-bold text-sm ${q.correctAnswer === letter ? 'text-green-700' : 'text-gray-600'}`}>{letter}.</span>
-                                          {q.correctAnswer === letter ? (
+                                          <span className={`font-bold text-sm ${resolveAnswerLetter(q.correctAnswer, q) === letter ? 'text-green-700' : 'text-gray-600'}`}>{letter}.</span>
+                                          {resolveAnswerLetter(q.correctAnswer, q) === letter ? (
                                             <span className="text-xs font-semibold text-green-700 bg-green-100 px-1.5 py-0.5 rounded">Correct</span>
                                           ) : (isEditing && (
                                             <button type="button" onClick={() => handleQuestionFieldChange(qId, 'correctAnswer', letter)} className="text-[10px] font-semibold text-indigo-600 border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 rounded hover:bg-indigo-100" title="Mark this option as the correct answer">Set correct</button>

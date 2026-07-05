@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { FiCheckCircle, FiArrowRight } from 'react-icons/fi'
 import { useToast } from '../../../../../components/ui/UIProvider'
+// Shared grader (same as the server): MCQ decided by option letter, never by casing.
+import { answersMatch } from '../../../../../../lib/scoring/satScale'
 
 export default function RetestStartPage() {
   const toast = useToast()
@@ -109,7 +111,7 @@ export default function RetestStartPage() {
   const handleModuleComplete = () => {
     let correctCount = 0
     moduleQuestions.forEach(q => {
-      if (answers[q._id] === q.correctAnswer) correctCount++
+      if (answersMatch(q.correctAnswer, answers[q._id], q)) correctCount++
     })
     
     const moduleKey = `${currentSection}_module${currentModule}`

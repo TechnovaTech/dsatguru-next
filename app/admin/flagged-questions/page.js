@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiTrash2, FiEye, FiX, FiFlag } from 'react-icons/fi'
 import { useConfirm } from '../../components/ui/UIProvider'
+// Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
+import { resolveAnswerLetter } from '../../../lib/scoring/satScale'
 
 export default function FlaggedQuestionsPage() {
   const confirm = useConfirm()
@@ -182,7 +184,7 @@ export default function FlaggedQuestionsPage() {
 
                 <div className="space-y-2">
                   {['A', 'B', 'C', 'D'].map((opt) => {
-                    const isCorrect = selectedFlag.questionId?.correctAnswer === opt
+                    const isCorrect = resolveAnswerLetter(selectedFlag.questionId?.correctAnswer, selectedFlag.questionId) === opt
                     return (
                       <div key={opt} className={`rounded-lg p-3 ${isCorrect ? 'border-2 border-emerald-500 bg-emerald-50' : 'bg-slate-50'}`}>
                         <span className="font-semibold text-slate-900">{opt}.</span> <span className="text-slate-700">{selectedFlag.questionId?.[`option${opt}`]}</span>

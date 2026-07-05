@@ -1,5 +1,7 @@
 'use client'
 import { renderContent as renderWithImages } from '../../components/admin/LatexRenderer'
+// Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
+import { resolveAnswerLetter } from '../../../lib/scoring/satScale'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../components/AuthContext'
 import { useRouter } from 'next/navigation'
@@ -564,7 +566,7 @@ export default function TutorTests() {
                             <label className="mb-2 block text-sm font-medium text-slate-700">Answer Options</label>
                             <div className="space-y-2">
                               {['A', 'B', 'C', 'D'].map((letter, i) => (
-                                <div key={letter} className={`rounded-lg border p-3 ${q.correctAnswer === letter ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+                                <div key={letter} className={`rounded-lg border p-3 ${resolveAnswerLetter(q.correctAnswer, q) === letter ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
                                   <div className="flex items-start gap-2">
                                     <span className="font-medium">{letter}.</span>
                                     <div className="flex-1">{renderWithImages(options[i] || '')}</div>

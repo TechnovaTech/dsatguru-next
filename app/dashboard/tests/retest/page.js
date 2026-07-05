@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+// Shared grader (same as the server): MCQ decided by option letter, never by casing.
+import { answersMatch } from '../../../../lib/scoring/satScale'
 import {
   FiArrowLeft,
   FiPlay,
@@ -70,7 +72,7 @@ export default function RetestPage() {
               const question = allQuestions.find(q => String(q._id) === String(questionId))
               if (question) {
                 const userAnswer = answers[questionId]
-                const isCorrect = userAnswer === question.correctAnswer
+                const isCorrect = answersMatch(question.correctAnswer, userAnswer, question)
                 const wasAttempted = userAnswer !== null && userAnswer !== undefined && userAnswer !== ''
 
                 if (isCorrect && wasAttempted) {
@@ -108,7 +110,7 @@ export default function RetestPage() {
               const question = allQuestions.find(q => String(q._id) === String(questionId))
               if (question) {
                 const userAnswer = answers[questionId]
-                const isCorrect = userAnswer === question.correctAnswer
+                const isCorrect = answersMatch(question.correctAnswer, userAnswer, question)
                 const wasAttempted = userAnswer !== null && userAnswer !== undefined && userAnswer !== ''
 
                 // Include if wrong OR not attempted

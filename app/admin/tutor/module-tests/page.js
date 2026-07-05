@@ -1,5 +1,7 @@
 'use client'
 import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
+// Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
+import { resolveAnswerLetter } from '../../../../lib/scoring/satScale'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiUsers, FiPlus, FiUpload, FiGrid } from 'react-icons/fi'
@@ -497,11 +499,11 @@ export default function ModuleTestSheets() {
                                 {['A','B','C','D'].map(letter => {
                                   const optText = (options[letter] || options[letter.toLowerCase()]) || ''; if (!optText) return null
                                   return (
-                                    <div key={letter} className={`rounded-lg border-2 p-3 ${q.correctAnswer === letter ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+                                    <div key={letter} className={`rounded-lg border-2 p-3 ${resolveAnswerLetter(q.correctAnswer, q) === letter ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
                                       <div className="flex items-start gap-2">
                                         <div className="flex flex-shrink-0 items-center gap-1">
-                                          <span className={`text-sm font-bold ${q.correctAnswer === letter ? 'text-emerald-700' : 'text-slate-600'}`}>{letter}.</span>
-                                          {q.correctAnswer === letter ? <span className="rounded bg-emerald-100 px-1 text-xs font-semibold text-emerald-700">✓</span> : (isEditing && <button type="button" onClick={() => handleQuestionFieldChange(qId, 'correctAnswer', letter)} className="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600 hover:bg-indigo-100" title="Mark as correct">Set correct</button>)}
+                                          <span className={`text-sm font-bold ${resolveAnswerLetter(q.correctAnswer, q) === letter ? 'text-emerald-700' : 'text-slate-600'}`}>{letter}.</span>
+                                          {resolveAnswerLetter(q.correctAnswer, q) === letter ? <span className="rounded bg-emerald-100 px-1 text-xs font-semibold text-emerald-700">✓</span> : (isEditing && <button type="button" onClick={() => handleQuestionFieldChange(qId, 'correctAnswer', letter)} className="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600 hover:bg-indigo-100" title="Mark as correct">Set correct</button>)}
                                         </div>
                                         {isEditing
                                           ? <div className="flex-1"><textarea value={optText} onChange={e => handleOptionChange(qId, letter, e.target.value)} className="w-full rounded border border-slate-300 p-2 font-mono text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" rows={2} /><ImagePreview text={optText} onRemove={(src) => removeImageFromOption(qId, letter, optText, src)} /><button type="button" disabled={uploadingImage} onClick={() => appendImageToOption(qId, letter, optText)} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><FiUpload className="h-3.5 w-3.5" /> {uploadingImage ? 'Uploading…' : 'Upload image'}</button><button type="button" onClick={() => appendTableToOption(qId, letter, optText)} className="ml-2 mt-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"><FiGrid className="h-3.5 w-3.5" /> Table</button></div>

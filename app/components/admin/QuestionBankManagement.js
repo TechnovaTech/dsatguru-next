@@ -3,6 +3,8 @@ import { useEffect, useState, useRef } from 'react'
 import { FiSearch, FiEye, FiArrowLeft, FiPlus, FiEdit, FiX, FiCheck, FiEye as FiPreview, FiTrash, FiSettings, FiUserPlus, FiUserMinus, FiUpload, FiImage, FiUsers, FiGrid } from 'react-icons/fi'
 import { useRouter } from 'next/navigation'
 import { renderContent } from './LatexRenderer'
+// Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
+import { resolveAnswerLetter } from '../../../lib/scoring/satScale'
 import { useConfirm, useToast } from '../ui/UIProvider'
 import TablePasteModal from './TablePasteModal'
 
@@ -1546,7 +1548,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                                 {opts.map((opt, idx) => {
                                   const letter = String.fromCharCode(65 + idx)
                                   if (!String(opt || '').trim()) return null
-                                  const isCorrect = editItem.correctAnswer === letter
+                                  const isCorrect = resolveAnswerLetter(editItem.correctAnswer, editItem) === letter
                                   return (
                                     <div key={idx} className={`rounded-lg border-2 p-3 ${isCorrect ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
                                       <div className="flex items-start gap-2">

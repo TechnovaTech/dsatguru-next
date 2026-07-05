@@ -6,6 +6,8 @@ import {
   FiArrowLeft, FiUser, FiAlertCircle, FiBarChart2,
   FiXCircle, FiClock, FiChevronDown, FiFilter, FiX, FiCheck
 } from 'react-icons/fi'
+// Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
+import { resolveAnswerLetter } from '../../../../../lib/scoring/satScale'
 
 export default function StudentPerformancePage() {
   const { user } = useAuth()
@@ -512,8 +514,8 @@ export default function StudentPerformancePage() {
                             <div className="grid grid-cols-1 gap-2">
                               {q.options.map((opt, oi) => {
                                 const label = String.fromCharCode(65 + oi)
-                                const isCorrect = opt === q.correctAnswer || label === q.correctAnswer
-                                const isSelected = opt === q.selectedAnswer || label === q.selectedAnswer
+                                const isCorrect = resolveAnswerLetter(q.correctAnswer, q.options) === label
+                                const isSelected = resolveAnswerLetter(q.selectedAnswer, q.options) === label
                                 return (
                                   <div key={oi} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
                                     isCorrect ? 'border-emerald-300 bg-emerald-50 text-emerald-800' :

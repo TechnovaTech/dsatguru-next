@@ -7,7 +7,7 @@ import Test from '../../../../../lib/models/Test'
 import Question from '../../../../../lib/models/Question'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 import { answersMatch } from '../../../../../lib/scoring/satScale'
-import { getCustomMap, effectiveCorrectAnswer } from '../../../../../lib/tutorCustomQuestions'
+import { getCustomMap, effectiveCorrectAnswer, effectiveOptions } from '../../../../../lib/tutorCustomQuestions'
 
 export async function GET(request, { params }) {
   try {
@@ -45,11 +45,15 @@ export async function GET(request, { params }) {
 
     // Aggregate statistics for each question
     const questionStats = {}
+    // Options per question, kept out of the response payload — used only so re-grading
+    // can decide MCQ correctness by option letter.
+    const optionsByQ = {}
 
     // Initialize stats for all questions in the test
     const customMap = getCustomMap(test)
     test.questions.forEach(q => {
       const qId = String(q._id)
+      optionsByQ[qId] = effectiveOptions(customMap, q._id, q.options)
       questionStats[qId] = {
         questionId: qId,
         questionContent: q.content,
@@ -74,7 +78,7 @@ export async function GET(request, { params }) {
             if (response.selectedAnswer) {
               questionStats[qId].totalAttempts++
               // Re-grade against the effective (tutor-edited) correct answer.
-              if (answersMatch(questionStats[qId].correctAnswer, response.selectedAnswer)) {
+              if (answersMatch(questionStats[qId].correctAnswer, response.selectedAnswer, optionsByQ[qId])) {
                 questionStats[qId].correctCount++
               } else {
                 questionStats[qId].incorrectCount++

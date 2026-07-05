@@ -5,36 +5,12 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { FiClock, FiCheckCircle, FiArrowRight, FiAlertTriangle, FiMoreVertical, FiHelpCircle, FiBookOpen, FiSlash, FiGrid, FiLayers, FiEdit2 } from 'react-icons/fi'
 
-// Grade one answer, handling both multiple-choice (letter A–D or option text on either side,
-// case/space-insensitive) and fill-in-the-blank. Bank questions store options in q.options
-// (array/JSON), so the old q.optionA?.trim() check mis-detected MCQ as fill-in.
-const gradeNorm = (s) => String(s ?? '').trim().toLowerCase().replace(/\s+/g, '')
-function questionOptions(q) {
-  try {
-    const raw = typeof q.options === 'string' ? JSON.parse(q.options) : q.options
-    if (Array.isArray(raw)) return { A: raw[0] || '', B: raw[1] || '', C: raw[2] || '', D: raw[3] || '' }
-    if (raw && typeof raw === 'object') return raw
-  } catch {}
-  if (q.optionA || q.optionB || q.optionC || q.optionD) return { A: q.optionA || '', B: q.optionB || '', C: q.optionC || '', D: q.optionD || '' }
-  return null
-}
-function answerLetter(val, opts) {
-  const v = String(val ?? '').trim()
-  if (!v) return ''
-  if (/^[A-D]$/i.test(v)) return v.toUpperCase()
-  const nv = gradeNorm(v)
-  for (const L of ['A', 'B', 'C', 'D']) { const t = opts && opts[L]; if (t && gradeNorm(t) === nv) return L }
-  return ''
-}
+// Grade with the same shared matcher the server uses: MCQ is decided by option LETTER
+// (bare letter, "B) 240"-style key, or option text — casing never matters);
+// fill-in-the-blank falls back to case-insensitive text / numeric matching.
+import { answersMatch, resolveAnswerLetter } from '../../../../../lib/scoring/satScale'
 function isAnswerCorrect(q, userAnswer) {
-  if (userAnswer == null || String(userAnswer).trim() === '') return false
-  const opts = questionOptions(q)
-  const hasOpts = opts && ['A', 'B', 'C', 'D'].some(L => String(opts[L] || '').trim())
-  if (hasOpts) {
-    const cL = answerLetter(q.correctAnswer, opts), uL = answerLetter(userAnswer, opts)
-    if (cL && uL) return cL === uL
-  }
-  return gradeNorm(userAnswer) === gradeNorm(q.correctAnswer)
+  return answersMatch(q?.correctAnswer, userAnswer, q)
 }
 
 export default function TakeTestPage() {
@@ -1499,7 +1475,7 @@ export default function TakeTestPage() {
         const isElim = isEliminated(currentQ._id, option)
         // Only show immediate feedback for Tutor MODE (self-practice), NOT tutor-created tests
         const isTutorMode = test?.practiceMode === 'tutor' && !test?.isTutorTest
-        const isCorrect = currentQ.correctAnswer === option
+        const isCorrect = resolveAnswerLetter(currentQ.correctAnswer, currentQ) === option
         
         let containerStyle = ''
         let circleStyle = ''
@@ -1872,7 +1848,7 @@ export default function TakeTestPage() {
                       const isElim = isEliminated(currentQ._id, option)
                       // Only show immediate feedback for Tutor MODE (self-practice), NOT tutor-created tests
                       const isTutorMode = test?.practiceMode === 'tutor' && !test?.isTutorTest
-                      const isCorrect = currentQ.correctAnswer === option
+                      const isCorrect = resolveAnswerLetter(currentQ.correctAnswer, currentQ) === option
                       
                       let containerStyle = ''
                       let circleStyle = ''
@@ -1978,12 +1954,12 @@ export default function TakeTestPage() {
                       {/* Show feedback for tutor mode */}
                       {test?.practiceMode === 'tutor' && !test?.isTutorTest && answers[currentQ._id] && (
                         <div className={`p-4 rounded-lg border-2 ${
-                          answers[currentQ._id]?.trim().toLowerCase() === currentQ.correctAnswer?.trim().toLowerCase()
+                          isAnswerCorrect(currentQ, answers[currentQ._id])
                             ? 'bg-green-50 border-green-500'
                             : 'bg-red-50 border-red-500'
                         }`}>
                           <div className="flex items-center gap-2 mb-2">
-                            {answers[currentQ._id]?.trim().toLowerCase() === currentQ.correctAnswer?.trim().toLowerCase() ? (
+                            {isAnswerCorrect(currentQ, answers[currentQ._id]) ? (
                               <>
                                 <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

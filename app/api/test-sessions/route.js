@@ -5,6 +5,7 @@ import Test from '../../../lib/models/Test'
 import Question from '../../../lib/models/Question'
 import { verifyToken, getTokenFromRequest } from '../../../lib/auth'
 import { gradeAndScore } from '../../../lib/scoring/satScale'
+import { getCustomMap, effectiveCorrectAnswer, effectiveOptions } from '../../../lib/tutorCustomQuestions'
 import { logger } from '../../../lib/logger'
 import { syncWrongAnswers } from '../../../lib/learningLoop'
 
@@ -122,8 +123,15 @@ export async function POST(request) {
       // canonical scaled score. Client-computed scores/isCorrect are never trusted.
       if (Array.isArray(sessionData.responses) && sessionData.responses.length) {
         const qIds = sessionData.responses.map(r => r.questionId)
-        const qs = await Question.find({ _id: { $in: qIds } }).select('subject correctAnswer')
-        const qMap = new Map(qs.map(q => [String(q._id), q]))
+        const qs = await Question.find({ _id: { $in: qIds } }).select('subject correctAnswer options')
+        // Honor tutor customQuestions (edited answers/options) when grading.
+        const gradeTest = sessionData.testId ? await Test.findById(sessionData.testId).select('isTutorTest customQuestions').lean() : null
+        const gradeCustomMap = getCustomMap(gradeTest)
+        const qMap = new Map(qs.map(q => [String(q._id), {
+          subject: q.subject,
+          correctAnswer: effectiveCorrectAnswer(gradeCustomMap, q._id, q.correctAnswer),
+          options: effectiveOptions(gradeCustomMap, q._id, q.options),
+        }]))
         const scored = gradeAndScore(sessionData.responses, qMap)
         sessionData.responses = sessionData.responses.map((r, i) => ({ ...r, isCorrect: scored.flags[i] }))
         sessionData.correctAnswers = scored.correctAnswers

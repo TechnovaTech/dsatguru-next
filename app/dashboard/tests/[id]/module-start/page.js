@@ -3,6 +3,9 @@ import { renderContent as renderWithImages } from '../../../../components/admin/
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { FiClock, FiCheckCircle, FiArrowRight, FiAlertTriangle, FiMoreVertical, FiHelpCircle, FiSlash, FiGrid, FiEdit2, FiLayers, FiBookOpen } from 'react-icons/fi'
+// Shared grader (same as the server): MCQ decided by option letter, never by casing;
+// fill-in-the-blank by case-insensitive text / numeric match.
+import { answersMatch } from '../../../../../lib/scoring/satScale'
 
 export default function ModuleTestPage() {
   const router = useRouter()
@@ -346,7 +349,7 @@ export default function ModuleTestPage() {
         qs.forEach(q => {
           const qId = (q._id || q.id).toString()
           const ans = answers[qId]
-          const correct = q.correctAnswer && ans && q.correctAnswer.toString().trim().toUpperCase() === ans.toUpperCase()
+          const correct = !!(q.correctAnswer && ans && answersMatch(q.correctAnswer, ans, q))
           if (correct) { modCorrect++; totalCorrect++ }
           allResponses.push({ questionId: qId, selectedAnswer: ans || '', isCorrect: correct, timeSpent: questionTimes[qId] || 0, subject: m.subject })
         })
@@ -537,7 +540,7 @@ export default function ModuleTestPage() {
           {modules.map((m, i) => {
             const ms = Object.values(moduleQsMap).flat().length > 0 ? null : null
             const qs = moduleQsMap[i] || []
-            const correct = qs.filter(q => { const qId = (q._id||q.id).toString(); return answers[qId] && q.correctAnswer?.toUpperCase() === answers[qId].toUpperCase() }).length
+            const correct = qs.filter(q => { const qId = (q._id||q.id).toString(); return answers[qId] && answersMatch(q.correctAnswer, answers[qId], q) }).length
             return (
               <div key={i} className="flex justify-between items-center px-4 py-2 bg-gray-50 rounded-lg text-sm">
                 <span className="text-gray-700">Module {i+1} — {m.subject}</span>

@@ -25,7 +25,7 @@ export async function GET(request, { params }) {
     }
 
     const responseIds = (session.responses || []).map(r => r.questionId)
-    const questions = await Question.find({ _id: { $in: responseIds } }).select('subject tags correctAnswer')
+    const questions = await Question.find({ _id: { $in: responseIds } }).select('subject tags correctAnswer options')
     const qMap = new Map(questions.map(q => [String(q._id), q]))
 
     let mathRaw = 0
@@ -39,7 +39,7 @@ export async function GET(request, { params }) {
       const q = qMap.get(String(r.questionId))
       if (!q) continue
       // Re-grade authoritatively against the bank rather than trusting stored isCorrect.
-      const isCorrect = answersMatch(q.correctAnswer, r.selectedAnswer)
+      const isCorrect = answersMatch(q.correctAnswer, r.selectedAnswer, q.options)
       if (isCorrect) correctCount += 1
       const isMath = String(q.subject || '').toLowerCase().includes('math')
       const isRW = !isMath

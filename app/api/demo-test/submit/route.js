@@ -39,7 +39,7 @@ export async function POST(request) {
       if (!q) continue
       const custom = customMap[String(ans.questionId)] || null
       const correctAnswer = custom?.correctAnswer ?? q.correctAnswer
-      const isCorrect = answersMatch(correctAnswer, ans.selectedAnswer)
+      const isCorrect = answersMatch(correctAnswer, ans.selectedAnswer, custom?.options ?? q.options)
       const module = ans.module === 'math' ? 'math' : 'rw'
       if (module === 'math') {
         mathTotal++

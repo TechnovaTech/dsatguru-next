@@ -9,7 +9,7 @@ import '../../../../../../../lib/models/User'
 import { requireRole } from '../../../../../../../lib/auth'
 import { ROLES, STAFF_ROLES } from '../../../../../../../lib/constants/roles'
 import { answersMatch } from '../../../../../../../lib/scoring/satScale'
-import { getCustomMap, effectiveCorrectAnswer } from '../../../../../../../lib/tutorCustomQuestions'
+import { getCustomMap, effectiveCorrectAnswer, effectiveOptions } from '../../../../../../../lib/tutorCustomQuestions'
 
 export async function GET(request, { params }) {
   try {
@@ -51,10 +51,14 @@ export async function GET(request, { params }) {
     // Aggregate statistics for each question
     const questionStats = {}
     const customMap = getCustomMap(test)
+    // Options per question, kept out of the response payload — used only so re-grading
+    // can decide MCQ correctness by option letter.
+    const optionsByQ = {}
 
     // Initialize stats — support both flat questions and module-based structure
     const initQuestion = (q) => {
       const qId = String(q._id)
+      optionsByQ[qId] = effectiveOptions(customMap, q._id, q.options)
       if (!questionStats[qId]) {
         questionStats[qId] = {
           questionId: qId,
@@ -70,7 +74,7 @@ export async function GET(request, { params }) {
       const rawM = test.modules
       const mods = Array.isArray(rawM) ? rawM : Object.values(rawM)
       const allIds = mods.flatMap(m => { const q = m.questions; return Array.isArray(q) ? q : Object.values(q || {}) })
-      const populated = await Question.find({ _id: { $in: allIds } }).select('_id content correctAnswer')
+      const populated = await Question.find({ _id: { $in: allIds } }).select('_id content correctAnswer options')
       populated.forEach(initQuestion)
     } else {
       test.questions.forEach(initQuestion)
@@ -89,7 +93,7 @@ export async function GET(request, { params }) {
               questionStats[qId].totalAttempts++
               // Re-grade against the effective (tutor-edited) correct answer so analytics
               // stays correct even for sessions graded before the customQuestions fix.
-              if (answersMatch(questionStats[qId].correctAnswer, answered)) questionStats[qId].correctCount++
+              if (answersMatch(questionStats[qId].correctAnswer, answered, optionsByQ[qId])) questionStats[qId].correctCount++
               else questionStats[qId].incorrectCount++
             } else {
               questionStats[qId].omittedCount++

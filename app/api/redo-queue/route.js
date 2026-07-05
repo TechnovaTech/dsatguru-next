@@ -187,7 +187,7 @@ export async function POST(req) {
     date,
     sourceQuestionId: { $exists: true, $ne: null },
     redoResult: { $ne: '✓' }
-  }).populate('sourceQuestionId', 'correctAnswer')
+  }).populate('sourceQuestionId', 'correctAnswer options')
 
   let total = 0
   let correct = 0
@@ -198,7 +198,7 @@ export async function POST(req) {
 
     total += 1
     const actual = (log.sourceQuestionId?.correctAnswer || '').trim()
-    const isCorrect = answersMatch(actual, chosen)
+    const isCorrect = answersMatch(actual, chosen, log.sourceQuestionId?.options)
     if (isCorrect) correct += 1
 
     await ErrorLog.updateOne(

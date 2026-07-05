@@ -4,6 +4,8 @@ import { FiCheck, FiX, FiEdit2, FiImage, FiGrid, FiChevronDown, FiChevronUp, FiS
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
 import { useToast } from '../ui/UIProvider'
+// Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
+import { resolveAnswerLetter } from '../../../lib/scoring/satScale'
 import TablePasteModal from './TablePasteModal'
 
 export default function BulkQuestionPreview({ questions, onApprove, onCancel, questionBankId, isTutor }) {
@@ -410,7 +412,7 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               {(question.options || []).map((option, optIndex) => (
                                 <div key={optIndex} className="flex items-start gap-2">
-                                  <span className={`px-2 py-1 rounded-lg text-sm font-medium flex-shrink-0 ${question.correctAnswer === String.fromCharCode(65 + optIndex) ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{String.fromCharCode(65 + optIndex)}</span>
+                                  <span className={`px-2 py-1 rounded-lg text-sm font-medium flex-shrink-0 ${resolveAnswerLetter(question.correctAnswer, question.options) === String.fromCharCode(65 + optIndex) ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{String.fromCharCode(65 + optIndex)}</span>
                                   {isEditing
                                     ? <div className="flex-1 space-y-1"><textarea aria-label={`Option ${String.fromCharCode(65 + optIndex)} for question ${qIndex + 1}`} value={option} onChange={(e) => updateOption(qIndex, optIndex, e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" rows={2} /><ImagePreviews text={option} /><div className="flex gap-1"><ImgBtn qIndex={qIndex} field="option" optIndex={optIndex} /><TblBtn qIndex={qIndex} field="option" optIndex={optIndex} /></div></div>
                                     : <div className="flex-1 bg-white p-2 rounded-lg border border-slate-100">{renderContent(option)}</div>}

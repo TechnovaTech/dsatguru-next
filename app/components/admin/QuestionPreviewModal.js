@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react'
 import { FiX, FiChevronLeft, FiChevronRight, FiEdit2, FiSave, FiCheckCircle } from 'react-icons/fi'
 import { renderContent } from './LatexRenderer'
+// Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
+import { resolveAnswerLetter } from '../../../lib/scoring/satScale'
 
 export default function QuestionPreviewModal({ questions, onClose, onQuestionsUpdate }) {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -211,7 +213,7 @@ export default function QuestionPreviewModal({ questions, onClose, onQuestionsUp
               <>
                 <span className="text-sm font-semibold text-slate-700">Answer Options</span>
                 {['A', 'B', 'C', 'D'].map((optionKey) => {
-                  const isCorrect = currentQuestion.correctAnswer === optionKey
+                  const isCorrect = resolveAnswerLetter(currentQuestion.correctAnswer, currentQuestion.options) === optionKey
                   const optionText = currentQuestion.options[optionKey] || ''
                   if (!optionText) return null
 

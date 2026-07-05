@@ -7,7 +7,7 @@ import Question from '../../../../lib/models/Question'
 import Test from '../../../../lib/models/Test'
 import { gradeAndScore } from '../../../../lib/scoring/satScale'
 import { canRevealAnswers, stripAnswerFields } from '../../../../lib/serializers/question'
-import { getCustomMap, effectiveCorrectAnswer } from '../../../../lib/tutorCustomQuestions'
+import { getCustomMap, effectiveCorrectAnswer, effectiveOptions } from '../../../../lib/tutorCustomQuestions'
 import { STAFF_ROLES } from '../../../../lib/constants/roles'
 import { syncWrongAnswers } from '../../../../lib/learningLoop'
 
@@ -229,13 +229,14 @@ export async function PUT(request, { params }) {
         : (session.responses || [])
       if (toGrade.length) {
         const qIds = toGrade.map(r => r.questionId)
-        const qs = await Question.find({ _id: { $in: qIds } }).select('subject correctAnswer')
+        const qs = await Question.find({ _id: { $in: qIds } }).select('subject correctAnswer options')
         // Honor tutor customQuestions when grading (edited correct answers).
         const gradeTest = session.testId ? await Test.findById(session.testId).select('isTutorTest customQuestions').lean() : null
         const gradeCustomMap = getCustomMap(gradeTest)
         const qMap = new Map(qs.map(q => [String(q._id), {
           subject: q.subject,
           correctAnswer: effectiveCorrectAnswer(gradeCustomMap, q._id, q.correctAnswer),
+          options: effectiveOptions(gradeCustomMap, q._id, q.options),
         }]))
         const scored = gradeAndScore(toGrade, qMap)
         session.responses = toGrade.map((r, i) => ({ ...(typeof r.toObject === 'function' ? r.toObject() : r), isCorrect: scored.flags[i] }))

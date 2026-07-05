@@ -1,5 +1,7 @@
 ﻿'use client'
 import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
+// Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
+import { resolveAnswerLetter } from '../../../../lib/scoring/satScale'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiSave, FiAlertCircle, FiCheck, FiClock, FiX, FiEye, FiSearch, FiArrowLeft } from 'react-icons/fi'
@@ -881,7 +883,7 @@ export default function CreateTutorTest() {
                               <label className="block text-sm font-medium text-gray-700 mb-2">Answer Options (Multiple Choice)</label>
                               <div className="space-y-2">
                                 {['A', 'B', 'C', 'D'].map((letter, i) => (
-                                  <div key={letter} className={`p-3 border rounded-lg ${q.correctAnswer === letter ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200'}`}>
+                                  <div key={letter} className={`p-3 border rounded-lg ${resolveAnswerLetter(q.correctAnswer, q) === letter ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200'}`}>
                                     <div className="flex items-start gap-2">
                                       <span className="font-medium">{letter}.</span>
                                       {isEditing ? (

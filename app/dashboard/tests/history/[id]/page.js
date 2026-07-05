@@ -15,6 +15,9 @@ import {
   FiBookOpen,
   FiInbox
 } from 'react-icons/fi'
+// Shared grader (same as the server): MCQ decided by option letter, never by casing;
+// fill-in-the-blank by case-insensitive text / numeric match.
+import { answersMatch, resolveAnswerLetter } from '../../../../../lib/scoring/satScale'
 
 export default function TestReviewPage() {
   const router = useRouter()
@@ -70,7 +73,7 @@ export default function TestReviewPage() {
             const question = allQuestions.find(q => String(q._id) === String(questionId))
             if (question) {
               const userAnswer = answers[questionId] || null
-              const isCorrect = userAnswer === question.correctAnswer
+              const isCorrect = answersMatch(question.correctAnswer, userAnswer, question)
               const wasAttempted = userAnswer !== null && userAnswer !== undefined
 
               reviewQuestions.push({
@@ -96,7 +99,7 @@ export default function TestReviewPage() {
               const wasAttempted = userAnswer !== null
               const isCorrect = typeof r.isCorrect === 'boolean'
                 ? r.isCorrect
-                : (userAnswer === question.correctAnswer)
+                : answersMatch(question.correctAnswer, userAnswer, question)
 
               reviewQuestions.push({
                 ...question,
@@ -342,8 +345,8 @@ export default function TestReviewPage() {
                 {/* Answer Options */}
                 <div className="space-y-3">
                   {['A', 'B', 'C', 'D'].map((option) => {
-                    const isUserAnswer = currentQ.userAnswer === option
-                    const isCorrectAnswer = currentQ.correctAnswer === option
+                    const isUserAnswer = resolveAnswerLetter(currentQ.userAnswer, currentQ) === option
+                    const isCorrectAnswer = resolveAnswerLetter(currentQ.correctAnswer, currentQ) === option
 
                     return (
                       <div

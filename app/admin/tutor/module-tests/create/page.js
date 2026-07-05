@@ -1,5 +1,7 @@
 'use client'
 import { renderContent as renderWithImages } from '../../../../components/admin/LatexRenderer'
+// Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
+import { resolveAnswerLetter } from '../../../../../lib/scoring/satScale'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiSave, FiAlertCircle, FiCheck, FiClock, FiX, FiEye, FiSearch, FiArrowLeft } from 'react-icons/fi'
@@ -586,8 +588,8 @@ export default function CreateModuleTest() {
                               {['A','B','C','D'].map(letter => {
                                 const optText = options[letter] || ''; if (!optText) return null
                                 return (
-                                  <div key={letter} className={`p-2.5 border-2 rounded-lg flex gap-2 ${q.correctAnswer === letter ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200'}`}>
-                                    <span className={`font-bold text-sm flex-shrink-0 ${q.correctAnswer === letter ? 'text-green-700' : 'text-gray-600'}`}>{letter}.</span>
+                                  <div key={letter} className={`p-2.5 border-2 rounded-lg flex gap-2 ${resolveAnswerLetter(q.correctAnswer, q) === letter ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200'}`}>
+                                    <span className={`font-bold text-sm flex-shrink-0 ${resolveAnswerLetter(q.correctAnswer, q) === letter ? 'text-green-700' : 'text-gray-600'}`}>{letter}.</span>
                                     {isEditing
                                       ? <textarea value={optText} onChange={e => handleOptionChange(qId, letter, e.target.value)} className="flex-1 p-1 border rounded font-mono text-sm" rows={2} />
                                       : <div className="flex-1 text-sm">{renderWithImages(optText)}</div>}

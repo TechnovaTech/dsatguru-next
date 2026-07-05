@@ -5,23 +5,10 @@ import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevro
 import ReassignTestModal from './admin/ReassignTestModal'
 import { renderContent } from './admin/LatexRenderer'
 import { useConfirm, useToast } from './ui/UIProvider'
-import { answersMatch } from '../../lib/scoring/satScale'
-
-// Map an answer to its option letter (A–D). Accepts a letter OR the option's text, matched
-// case/space-insensitively — so an answer key stored as (uppercased) option text still resolves
-// to the right letter, and a letter-vs-text mismatch doesn't mark a correct choice wrong.
-const normAns = (s) => String(s ?? '').trim().toLowerCase().replace(/\s+/g, '')
-function answerLetter(val, options) {
-  const v = String(val ?? '').trim()
-  if (!v) return ''
-  if (/^[A-D]$/i.test(v)) return v.toUpperCase()
-  const nv = normAns(v)
-  for (const L of ['A', 'B', 'C', 'D']) {
-    const t = options && (options[L] ?? options[L?.toLowerCase?.()])
-    if (t && normAns(t) === nv) return L
-  }
-  return ''
-}
+// answersMatch decides MCQ correctness by option LETTER (bare letter, "B) 240"-style key,
+// or option-text match — never by casing); resolveAnswerLetter maps an answer to its letter
+// for display. Both live in lib/scoring/satScale.js — the same logic the server grades with.
+import { answersMatch, resolveAnswerLetter as answerLetter } from '../../lib/scoring/satScale'
 
 export default function TestResultView({ testId, sessionId, returnUrl, viewMode, viewAnalysis }) {
   const router = useRouter()
@@ -268,20 +255,11 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
 
             const mergedCorrectAnswer = q.correctAnswer || revealed.correctAnswer || ''
             const userAnswerVal = resp ? resp.selectedAnswer : null
-            // Re-derive correctness. For multiple-choice, either side may be a letter (A–D) OR the
-            // option text, so map both to a letter before comparing; fall back to text/numeric
-            // matching for fill-in-the-blank (or when a letter can't be resolved).
-            const hasOpts = options && ['A', 'B', 'C', 'D'].some(L => String(options[L] ?? '').trim())
-            let computedIsCorrect = false
-            if (userAnswerVal != null && String(userAnswerVal).trim() !== '') {
-                if (hasOpts) {
-                    const cL = answerLetter(mergedCorrectAnswer, options)
-                    const uL = answerLetter(userAnswerVal, options)
-                    computedIsCorrect = (cL && uL) ? cL === uL : answersMatch(mergedCorrectAnswer, userAnswerVal)
-                } else {
-                    computedIsCorrect = answersMatch(mergedCorrectAnswer, userAnswerVal)
-                }
-            }
+            // Re-derive correctness with the shared matcher: MCQ compares by option letter
+            // (case never matters), fill-in-the-blank by normalized text / numeric value.
+            const computedIsCorrect = (userAnswerVal != null && String(userAnswerVal).trim() !== '')
+                ? answersMatch(mergedCorrectAnswer, userAnswerVal, options)
+                : false
             const questionData = {
                 ...q,
                 options,

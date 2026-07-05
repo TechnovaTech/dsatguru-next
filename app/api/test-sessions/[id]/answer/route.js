@@ -6,7 +6,7 @@ import Test from '../../../../../lib/models/Test'
 import Question from '../../../../../lib/models/Question'
 import { answersMatch } from '../../../../../lib/scoring/satScale'
 import { buildAdaptiveModule } from '../../../../../lib/adaptive'
-import { getCustomMap, effectiveCorrectAnswer } from '../../../../../lib/tutorCustomQuestions'
+import { getCustomMap, effectiveCorrectAnswer, effectiveOptions } from '../../../../../lib/tutorCustomQuestions'
 import mongoose from 'mongoose'
 
 export async function POST(request, { params }) {
@@ -48,7 +48,7 @@ export async function POST(request, { params }) {
     const test = session.testId ? await Test.findById(session.testId).select('customConfig isTutorTest customQuestions').lean() : null
     const customMap = getCustomMap(test)
     const correctAnswer = effectiveCorrectAnswer(customMap, qId, question.correctAnswer)
-    const isCorrect = answersMatch(correctAnswer, selectedOption)
+    const isCorrect = answersMatch(correctAnswer, selectedOption, effectiveOptions(customMap, qId, question.options))
     session.responses.push({
       questionId: qId,
       selectedAnswer: selectedOption,

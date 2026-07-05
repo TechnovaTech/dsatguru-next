@@ -1,5 +1,7 @@
 'use client'
 import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
+// Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
+import { resolveAnswerLetter } from '../../../../lib/scoring/satScale'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck, FiAlertCircle, FiClipboard, FiUpload, FiGrid } from 'react-icons/fi'
@@ -520,7 +522,7 @@ export default function AdminTestSheets() {
                                 <span className="text-sm font-semibold text-slate-700">Answer Options</span>
                                 {optKeys.map(key => {
                                   const optText = options[key] || options[key.toLowerCase()] || ''
-                                  const isCorrect = q.correctAnswer === key
+                                  const isCorrect = resolveAnswerLetter(q.correctAnswer, q) === key
                                   return (
                                     <div key={key} className={`rounded-lg border-2 p-3 ${isCorrect ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
                                       <div className="mb-1 flex items-center gap-2">

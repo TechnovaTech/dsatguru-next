@@ -7,7 +7,7 @@ import Question from '../../../../../lib/models/Question'
 import { gradeAndScore } from '../../../../../lib/scoring/satScale'
 import { buildAdaptiveModule } from '../../../../../lib/adaptive'
 import { syncWrongAnswers } from '../../../../../lib/learningLoop'
-import { getCustomMap, effectiveCorrectAnswer } from '../../../../../lib/tutorCustomQuestions'
+import { getCustomMap, effectiveCorrectAnswer, effectiveOptions } from '../../../../../lib/tutorCustomQuestions'
 
 export async function POST(request, { params }) {
   try {
@@ -57,12 +57,13 @@ export async function POST(request, { params }) {
 
       // Server-authoritative scaled score from the full response set (re-graded from the bank,
       // honoring tutor customQuestions edited answers).
-      const scoreQs = await Question.find({ _id: { $in: responseIds } }).select('subject correctAnswer')
+      const scoreQs = await Question.find({ _id: { $in: responseIds } }).select('subject correctAnswer options')
       const gradeTest = session.testId ? await Test.findById(session.testId).select('isTutorTest customQuestions').lean() : null
       const gradeCustomMap = getCustomMap(gradeTest)
       const scoreMap = new Map(scoreQs.map(q => [String(q._id), {
         subject: q.subject,
         correctAnswer: effectiveCorrectAnswer(gradeCustomMap, q._id, q.correctAnswer),
+        options: effectiveOptions(gradeCustomMap, q._id, q.options),
       }]))
       const scored = gradeAndScore(session.responses, scoreMap)
       session.responses = (session.responses || []).map((r, i) => {
