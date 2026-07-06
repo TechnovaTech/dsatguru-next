@@ -1,0 +1,4 @@
+# Don't commit uploaded PDFs — keep the folder only.
+*
+!.gitignore
+!README.md
