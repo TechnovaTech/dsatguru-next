@@ -13,20 +13,32 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { testId, customQuestions } = await request.json()
+    const body = await request.json()
+    const { testId, customQuestions, title, duration, isTimed } = body
 
     if (!testId) {
       return NextResponse.json({ error: 'Test ID required' }, { status: 400 })
     }
 
-    // Update test with custom questions
-    await Test.findByIdAndUpdate(testId, { 
-      customQuestions: customQuestions || null 
-    })
+    // Only touch the fields that were actually sent, so a name/time edit does not
+    // wipe customQuestions and vice-versa.
+    const update = {}
+    if ('customQuestions' in body) update.customQuestions = customQuestions || null
+    if (typeof title === 'string' && title.trim()) {
+      const dup = await Test.findOne({ _id: { $ne: testId }, title: title.trim(), isTutorTest: true, isActive: { $ne: false } })
+      if (dup) {
+        return NextResponse.json({ error: `A tutor test named "${title.trim()}" already exists.` }, { status: 409 })
+      }
+      update.title = title.trim()
+    }
+    if (isTimed !== undefined) update.isTimed = !!isTimed
+    if (duration !== undefined) update.duration = Number(duration) || 0
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Test updated successfully' 
+    await Test.findByIdAndUpdate(testId, update)
+
+    return NextResponse.json({
+      success: true,
+      message: 'Test updated successfully'
     })
 
   } catch (error) {

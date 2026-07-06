@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { FiCode, FiX, FiCopy, FiDownload, FiSave } from 'react-icons/fi'
+import { FiCode, FiX, FiCopy, FiDownload, FiSave, FiClock } from 'react-icons/fi'
 import { getOrderedQuestionIds, buildTestJson, jsonToCustomQuestions } from '../../../lib/testJson'
 
 // Load questions in display order, merged with a customQuestions overlay.
@@ -54,6 +54,81 @@ export function DownloadTestJsonButton({ test, className, label = 'JSON' }) {
       title="Download this test as JSON (upload format)">
       <FiDownload className="mr-1" /> {busy ? '…' : label}
     </button>
+  )
+}
+
+// Edit a tutor test's name and time (duration) straight from the sheet list.
+export function EditTestMetaModal({ test, updateUrl, onSaved, className, label = 'Name / Time' }) {
+  const [open, setOpen] = useState(false)
+  const [title, setTitle] = useState('')
+  const [isTimed, setIsTimed] = useState(true)
+  const [duration, setDuration] = useState(0)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const openModal = () => {
+    setTitle(test.title || '')
+    setIsTimed(test.isTimed !== false)
+    setDuration(test.duration || 0)
+    setError(''); setOpen(true)
+  }
+
+  const save = async () => {
+    if (!title.trim()) { setError('Please enter a test name.'); return }
+    if (isTimed && (!duration || Number(duration) < 1)) { setError('Enter a valid duration (minutes).'); return }
+    setSaving(true); setError('')
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(updateUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ testId: test._id, title: title.trim(), isTimed, duration: isTimed ? Number(duration) || 0 : 0 }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { setError(data.error || 'Save failed'); return }
+      onSaved && onSaved(); setOpen(false)
+    } catch (e) { setError('Save failed') } finally { setSaving(false) }
+  }
+
+  return (
+    <>
+      <button type="button" onClick={openModal} className={className || 'inline-flex items-center text-sm text-slate-600 hover:text-slate-800'} title="Edit name & time">
+        <FiClock className="mr-1" /> {label}
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 p-4" onClick={() => setOpen(false)}>
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-100 p-4">
+              <h3 className="text-lg font-bold text-slate-900">Edit name &amp; time</h3>
+              <button onClick={() => setOpen(false)} aria-label="Close" className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"><FiX className="h-5 w-5" /></button>
+            </div>
+            <div className="space-y-4 p-5">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Test name</label>
+                <input value={title} onChange={e => setTitle(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" />
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="inline-flex items-center gap-2 text-sm text-slate-700">
+                  <input type="checkbox" checked={isTimed} onChange={e => setIsTimed(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                  Timed
+                </label>
+                {isTimed && (
+                  <div className="flex items-center gap-2">
+                    <input type="number" min="1" value={duration} onChange={e => setDuration(e.target.value)} className="w-24 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" />
+                    <span className="text-sm text-slate-500">minutes</span>
+                  </div>
+                )}
+              </div>
+              {error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+            </div>
+            <div className="flex justify-end gap-2 border-t border-slate-100 p-3">
+              <button onClick={() => setOpen(false)} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">Cancel</button>
+              <button onClick={save} disabled={saving} className="inline-flex items-center rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:bg-slate-400"><FiSave className="mr-1" /> {saving ? 'Saving…' : 'Save'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 

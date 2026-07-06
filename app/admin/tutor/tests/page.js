@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiCheck, FiUpload, FiGrid, FiDownload } from 'react-icons/fi'
 import { useConfirm, useToast } from '../../../components/ui/UIProvider'
 import TablePasteModal from '../../../components/admin/TablePasteModal'
-import { EditTestJsonModal } from '../../../components/admin/TestJsonTools'
+import { EditTestJsonModal, EditTestMetaModal } from '../../../components/admin/TestJsonTools'
 
 export default function TutorTestSheets() {
   const confirm = useConfirm()
@@ -976,6 +976,7 @@ export default function TutorTestSheets() {
                             <FiDownload className="mr-1" /> JSON
                           </button>
                           <EditTestJsonModal test={test} updateUrl="/api/admin/tutor/tests/update" onSaved={fetchTests} className="inline-flex items-center px-3 py-1 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded" />
+                          <EditTestMetaModal test={test} updateUrl="/api/admin/tutor/tests/update" onSaved={fetchTests} className="inline-flex items-center px-3 py-1 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded" />
                           <button
                             onClick={() => handleEditTest(test)}
                             className="inline-flex items-center px-3 py-1 text-green-600 hover:text-green-800 hover:bg-green-100 rounded"
