@@ -21,6 +21,28 @@ const norm = (v) => (v == null ? '' : String(v).trim())
 const isBlank = (v) => { const s = norm(v).toLowerCase(); return s === '' || s === 'n/a' }
 const slug = tag.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '')
 
+// LaTeX-hazard validation — mirrors app/components/admin/LatexRenderer.js so we never
+// import text that will mis-render. Flags stray unescaped `$` (unbalanced math delimiter,
+// causes prose to bleed into math) and raw `%`/`#` inside a math span (KaTeX comment/macro).
+const MATH_RE = /((?<!\\)\$\$[\s\S]*?(?<!\\)\$\$|(?<!\\)\$(?:\\\$|[^$\n])+?(?<!\\)\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\))/g
+function latexProblems(text) {
+  if (!text) return []
+  const out = []
+  for (const part of String(text).split(MATH_RE)) {
+    if (part == null) continue
+    const isMath = /^\$\$[\s\S]*\$\$$/.test(part) || (/^\$[\s\S]*\$$/.test(part) && !part.startsWith('$$')) ||
+      (part.startsWith('\\[') && part.endsWith('\\]')) || (part.startsWith('\\(') && part.endsWith('\\)'))
+    if (isMath) {
+      const inner = part.replace(/^\${1,2}|\${1,2}$/g, '')
+      if (/(?<!\\)%/.test(inner)) out.push('raw % inside math')
+      if (/(?<!\\)#/.test(inner)) out.push('raw # inside math')
+    } else if (/(?<!\\)\$/.test(part)) {
+      out.push('stray unescaped $ (unbalanced) near: "' + part.replace(/\n/g, ' ').slice(0, 40) + '"')
+    }
+  }
+  return out
+}
+
 function toDoc(q, i) {
   const A = q['option a'], B = q['option b'], C = q['option c'], D = q['option d']
   const hasOpts = [A, B, C, D].some((v) => v != null && !isBlank(v))
@@ -52,7 +74,17 @@ function toDoc(q, i) {
   const subjects = [...new Set(docs.map((d) => d.subject))].join(', ')
   console.log(`Parsed ${docs.length} questions (${fillIns} fill-in, ${docs.length - fillIns} MCQ) | subject(s): ${subjects} | prefix: ${slug}`)
 
-  if (DRY) { console.log('DRY RUN — nothing written.'); process.exit(0) }
+  // Validate LaTeX before writing — abort on any hazard so bad data never reaches the bank.
+  let hazards = 0
+  docs.forEach((d, i) => {
+    const hits = []
+    for (const f of ['content', 'shortExplanation', 'longExplanation']) latexProblems(d[f]).forEach((p) => hits.push(`${f}: ${p}`))
+    try { JSON.parse(d.options).forEach((o, oi) => latexProblems(o).forEach((p) => hits.push(`option ${oi}: ${p}`))) } catch {}
+    if (hits.length) { hazards++; console.log(`  ⚠ ${d.questionId}:`); hits.forEach((h) => console.log(`      ${h}`)) }
+  })
+  if (hazards > 0) { console.log(`\nABORT: ${hazards} question(s) have LaTeX hazards (fix the JSON — escape literal $ as \\$, use \\% inside math).`); process.exit(3) }
+
+  if (DRY) { console.log('LaTeX OK. DRY RUN — nothing written.'); process.exit(0) }
 
   await mongoose.connect(uri, { serverSelectionTimeoutMS: 15000 })
   const Q = mongoose.model('Q', new mongoose.Schema({}, { strict: false, collection: 'questions', timestamps: true }))

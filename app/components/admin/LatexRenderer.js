@@ -7,15 +7,10 @@ export function renderLatex(text) {
   if (!text) return null
   const S = '\u0024' // $
   const SS = S + S   // $$
-  const re = new RegExp(
-    '(' +
-    '\\' + S + '\\' + S + '[\\s\\S]*?\\' + S + '\\' + S +
-    '|\\' + S + '[^' + S + '\\n]+?\\' + S +
-    '|\\\\\\[[\\s\\S]*?\\\\\\]' +
-    '|\\\\\\([\\s\\S]*?\\\\\\)' +
-    ')',
-    'g'
-  )
+  // Match $$display$$, $inline$, \[...\], \(...\). A dollar preceded by a backslash
+  // (\$) is an ESCAPED literal dollar, not a delimiter — it never opens or closes a
+  // math span (so prices like "\$100" render as text, not as math that eats the prose).
+  const re = /((?<!\\)\$\$[\s\S]*?(?<!\\)\$\$|(?<!\\)\$(?:\\\$|[^$\n])+?(?<!\\)\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\))/g
   const parts = text.split(re)
   return parts.map((part, i) => {
     let latex = null
@@ -35,7 +30,8 @@ export function renderLatex(text) {
         return <span key={i} dangerouslySetInnerHTML={{ __html: html }} />
       } catch { return <span key={i}>{part}</span> }
     }
-    return <span key={i} style={{ whiteSpace: 'pre-wrap' }}>{part}</span>
+    // Non-math text: unescape LaTeX text specials so "\$100" shows as "$100", "\%" as "%".
+    return <span key={i} style={{ whiteSpace: 'pre-wrap' }}>{String(part || '').replace(/\\([$%&#_{}])/g, '$1')}</span>
   })
 }
 

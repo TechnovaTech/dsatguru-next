@@ -214,22 +214,15 @@ export default function BulkQuestionPreview({ questions, onApprove, onCancel, qu
         return <span key={i} dangerouslySetInnerHTML={{ __html: html }} />
       } catch { return <span key={i}>{part}</span> }
     }
-    return <span key={i} style={{ whiteSpace: 'pre-wrap' }}>{part}</span>
+    return <span key={i} style={{ whiteSpace: 'pre-wrap' }}>{String(part || '').replace(/\\([$%&#_{}])/g, '$1')}</span>
   }
 
   const renderLatex = (text) => {
     if (!text) return null
     const S = '$'
     const SS = S + S
-    const re = new RegExp(
-      '(' +
-      SS.replace(/./g, c => '\\' + c) + '[\\s\\S]*?' + SS.replace(/./g, c => '\\' + c) +
-      '|\\' + S + '[^' + S + '\\n]+?\\' + S +
-      '|\\\\\\[[\\s\\S]*?\\\\\\]' +
-      '|\\\\\\([\\s\\S]*?\\\\\\)' +
-      ')',
-      'g'
-    )
+    // \$ is an escaped literal dollar (not a delimiter) — keep in sync with LatexRenderer.js.
+    const re = /((?<!\\)\$\$[\s\S]*?(?<!\\)\$\$|(?<!\\)\$(?:\\\$|[^$\n])+?(?<!\\)\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\))/g
     const parts = text.split(re)
     return parts.map((part, i) => renderLatexSegment(part, i))
   }
