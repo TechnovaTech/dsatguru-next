@@ -1648,8 +1648,9 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                                             </div>
                                             <div className="text-sm font-semibold text-green-900 [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain">
                                                 {(() => {
-                                                    const ca = String(q.correctAnswer).trim().toUpperCase()
-                                                    const letter = ['A', 'B', 'C', 'D'].includes(ca) ? ca : null
+                                                    // Resolve any stored key shape (bare letter, "C) text", option text)
+                                                    // to its letter, then show the letter + the option's own text.
+                                                    const letter = answerLetter(q.correctAnswer, q.options) || null
                                                     const text = letter ? (q.options[letter] || q[`option${letter}`] || '') : q.correctAnswer
                                                     return letter
                                                         ? <span>{letter}. {text ? renderContent(text) : null}</span>
