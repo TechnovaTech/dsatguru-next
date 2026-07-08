@@ -68,9 +68,15 @@ export default function TakeTestPage() {
   const calculatorRef = useRef(null)
   const [showAutoSubmitModal, setShowAutoSubmitModal] = useState(false)
   const [autoSubmitReason, setAutoSubmitReason] = useState('')
-  
+  const [autoSubmitIsWarning, setAutoSubmitIsWarning] = useState(false)
+  const [saveError, setSaveError] = useState(false)
+  // Guards against double-submit (last-question double click / blur+visibility race)
+  // and gives proctored tests one warning before terminating.
+  const submittingRef = useRef(false)
+  const violationRef = useRef(0)
+
   // Time Tracking
-  const [questionTimes, setQuestionTimes] = useState({}) 
+  const [questionTimes, setQuestionTimes] = useState({})
 
   useEffect(() => {
     if (!loading && !checkingHistory && !showModuleSummary && !testCompleted && !showRWInstructions && !showMathInstructions && moduleQuestions.length > 0) {
@@ -253,26 +259,32 @@ export default function TakeTestPage() {
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [lineReaderActive])
 
-  // Fullscreen and tab change detection
+  // Fullscreen and tab change detection.
+  // Proctoring (auto-submit on focus loss) applies ONLY to genuinely proctored,
+  // instructor-assigned tests (tutor/admin). Student self-practice ('timed'/'untimed')
+  // is never force-terminated — that was the "the test ends by itself" complaint.
   useEffect(() => {
+    const isProctored = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+
     const handleVisibilityChange = async () => {
-      if (document.hidden && isFullscreen && !testCompleted && !showModuleSummary) {
-        // Auto-submit test when tab is changed
+      if (isProctored && document.hidden && isFullscreen && !testCompleted && !showModuleSummary) {
         await handleAutoSubmit('You switched tabs or left the test window.')
       }
     }
 
     const handleFullscreenChange = async () => {
-      if (!document.fullscreenElement && isFullscreen && !testCompleted && !showModuleSummary) {
-        // Auto-submit test when fullscreen is exited
-        await handleAutoSubmit('You exited fullscreen mode.')
+      if (!document.fullscreenElement) {
+        // Reflect that we left fullscreen so the UI/handlers are accurate.
+        setIsFullscreen(false)
+        if (isProctored && isFullscreen && !testCompleted && !showModuleSummary) {
+          await handleAutoSubmit('You exited fullscreen mode.')
+        }
       }
     }
 
     const handleEscKey = async (e) => {
-      if (e.key === 'Escape' && isFullscreen && !testCompleted && !showModuleSummary) {
+      if (e.key === 'Escape' && isProctored && isFullscreen && !testCompleted && !showModuleSummary) {
         e.preventDefault()
-        // Auto-submit test when ESC is pressed
         if (document.fullscreenElement) {
           await document.exitFullscreen()
         }
@@ -281,31 +293,29 @@ export default function TakeTestPage() {
     }
 
     const handleF11Key = async (e) => {
-      if (e.key === 'F11' && isFullscreen && !testCompleted && !showModuleSummary) {
+      if (e.key === 'F11' && isProctored && isFullscreen && !testCompleted && !showModuleSummary) {
         e.preventDefault()
-        // Auto-submit test when F11 is pressed
         await handleAutoSubmit('You pressed F11 to exit fullscreen.')
       }
     }
 
     // Detect Print Screen key
     const handlePrintScreen = async (e) => {
-      if ((e.key === 'PrintScreen' || e.keyCode === 44) && isFullscreen && !testCompleted && !showModuleSummary) {
+      if ((e.key === 'PrintScreen' || e.keyCode === 44) && isProctored && isFullscreen && !testCompleted && !showModuleSummary) {
         e.preventDefault()
-        await handleAutoSubmit('Screenshot attempt detected. Test auto-submitted.')
+        await handleAutoSubmit('Screenshot attempt detected.')
       }
     }
 
     // Detect window blur (minimize or focus loss)
     const handleWindowBlur = async () => {
-      const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin' || test?.practiceMode === 'timed'
-      if (isSecureMode && isFullscreen && !testCompleted && !showModuleSummary) {
-        // Small delay to avoid false positives
+      if (isProctored && isFullscreen && !testCompleted && !showModuleSummary) {
+        // Small delay + re-check to avoid false positives from transient focus loss.
         setTimeout(async () => {
           if (!document.hasFocus() && isFullscreen && !testCompleted && !showModuleSummary) {
             await handleAutoSubmit('You minimized or switched away from the test window.')
           }
-        }, 500)
+        }, 800)
       }
     }
 
@@ -326,7 +336,7 @@ export default function TakeTestPage() {
       document.removeEventListener('keyup', handlePrintScreen)
       window.removeEventListener('blur', handleWindowBlur)
     }
-  }, [isFullscreen, testCompleted, showModuleSummary, router, answers, moduleQuestions])
+  }, [isFullscreen, testCompleted, showModuleSummary, router, answers, moduleQuestions, test?.practiceMode])
 
   const enterFullscreen = async () => {
     try {
@@ -340,10 +350,11 @@ export default function TakeTestPage() {
     }
   }
 
-  // Auto-enter fullscreen when test starts (for tutor, admin and adaptive/timed tests)
+  // Auto-enter fullscreen only for genuinely proctored tests (tutor/admin).
+  // Self-practice runs in a normal window so a student can freely leave without penalty.
   useEffect(() => {
-    const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin' || test?.practiceMode === 'timed'
-    if (isSecureMode && !loading && !checkingHistory && !testCompleted && !showModuleSummary && moduleQuestions.length > 0 && !isFullscreen) {
+    const isProctored = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+    if (isProctored && !loading && !checkingHistory && !testCompleted && !showModuleSummary && moduleQuestions.length > 0 && !isFullscreen) {
       enterFullscreen()
     }
   }, [test, loading, checkingHistory, testCompleted, showModuleSummary, moduleQuestions, isFullscreen])
@@ -409,10 +420,14 @@ export default function TakeTestPage() {
           const historyData = await historyRes.json()
           const sessions = historyData.sessions || historyData || []
           const testSessions = sessions.filter(s => String(s.testId?._id || s.testId) === String(testId))
-          // Only block if completed AND no InProgress session exists (reattempt resets to InProgress)
-          const hasInProgress = testSessions.some(s => s.status === 'InProgress') || !!sessionId
-          const alreadyCompleted = !hasInProgress && testSessions.some(s => 
-            s.status === 'Completed' && 
+          // A ?sessionId in the URL only counts as "resume" if that specific session is
+          // NOT already completed — otherwise a stale completed link would re-open the test
+          // and let the score be overwritten. (The server also hard-blocks this, H4.)
+          const urlSession = sessionId ? testSessions.find(s => String(s._id) === String(sessionId)) : null
+          const urlSessionResumable = !!urlSession && urlSession.status !== 'Completed' && urlSession.state !== 'COMPLETED'
+          const hasInProgress = testSessions.some(s => s.status === 'InProgress') || urlSessionResumable
+          const alreadyCompleted = !hasInProgress && testSessions.some(s =>
+            s.status === 'Completed' &&
             s.totalScore !== undefined
           )
           
@@ -825,116 +840,83 @@ export default function TakeTestPage() {
   }
 
   const handleAutoSubmit = async (reason) => {
-    try {
-      // Show modal instead of alert
+    const isProctored = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+
+    // First offense on a proctored test: warn once, don't submit. A single accidental
+    // focus loss should never cost a student their whole test.
+    if (isProctored && violationRef.current === 0) {
+      violationRef.current = 1
+      setAutoSubmitIsWarning(true)
       setAutoSubmitReason(reason)
       setShowAutoSubmitModal(true)
-      
-      // Wait a moment for user to see the message
-      await new Promise(resolve => setTimeout(resolve, 3000))
-      
-      // Force complete the test immediately
-      const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
-      if (isSecureMode) {
-        // For tutor and admin mode, calculate and submit
-        const correct = Object.keys(answers).filter(qId => {
-          const q = moduleQuestions.find(mq => mq._id === qId)
-          if (!q) return false
-          
-          const userAnswer = answers[qId]
-          const correctAnswer = q.correctAnswer
-          
-          // Check if it's multiple choice or fill-in-the-blank
-          return isAnswerCorrect(q, userAnswer)
-        }).length
-        
-        const token = localStorage.getItem('token')
-        if (token) {
-          const totalTimeSpent = Object.values(questionTimes).reduce((a, b) => a + b, 0)
-          
-          // Generate responses array with time tracking
-          // Iterate over moduleQuestions to ensure ALL questions are included (even if skipped)
-          const responses = []
-          moduleQuestions.forEach(q => {
-            const qId = q._id
-            const userAnswer = answers[qId]
-            const correctAnswer = q.correctAnswer
-            let isCorrect = false
-            
-            if (userAnswer) {
-              // Check if it's multiple choice or fill-in-the-blank
-              isCorrect = isAnswerCorrect(q, userAnswer)
-            }
-            
-            responses.push({
-              questionId: qId,
-              selectedAnswer: userAnswer || null,
-              isCorrect: isCorrect,
-              timeSpent: questionTimes[qId] || 0,
-              answeredAt: userAnswer ? new Date() : null,
-              omitted: !userAnswer
-            })
-          })
+      setTimeout(() => setShowAutoSubmitModal(false), 5000)
+      return
+    }
 
-          const sessionData = {
-            testId,
-            status: 'Completed',
-            moduleScores,
-            moduleAnswers,
-            responses,
-            rwScore: 0,
-            mathScore: 0,
-            totalScore: correct,
-            timeSpent: totalTimeSpent,
-            completedAt: new Date().toISOString(),
-            autoSubmitted: true,
-            autoSubmitReason: reason
-          }
+    // Guard against a double fire (blur + visibilitychange race).
+    if (submittingRef.current) return
+    submittingRef.current = true
 
-          const url = sessionId ? `/api/test-sessions/${sessionId}` : '/api/test-sessions'
-          const method = sessionId ? 'PUT' : 'POST'
+    setAutoSubmitIsWarning(false)
+    setAutoSubmitReason(reason)
+    setShowAutoSubmitModal(true)
 
-          const response = await fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify(sessionData)
-          })
-          
-          const responseData = await response.json()
-          const finalSessionId = sessionId || responseData.session?._id
-          
-          // Exit fullscreen if still in it
-          if (document.fullscreenElement) {
-            await document.exitFullscreen()
-          }
-          
-          // Redirect to analysis page
-          if (finalSessionId) {
-            router.push(`/dashboard/tests/${testId}/results?sessionId=${finalSessionId}&returnUrl=${encodeURIComponent(returnUrl)}`)
-          } else {
-            router.push(returnUrl)
-          }
-        } else {
-          // No token, just redirect
-          if (document.fullscreenElement) {
-            await document.exitFullscreen()
-          }
-          router.push(returnUrl)
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        if (document.fullscreenElement) await document.exitFullscreen().catch(() => {})
+        router.push(returnUrl)
+        return
+      }
+
+      // Persist EVERY question (answered or skipped) so the auto-submit actually saves
+      // the student's work. Scoring is re-graded server-side, so client flags are advisory.
+      const totalTimeSpent = Object.values(questionTimes).reduce((a, b) => a + b, 0)
+      const responses = moduleQuestions.map((q) => {
+        const userAnswer = answers[q._id]
+        return {
+          questionId: q._id,
+          selectedAnswer: userAnswer || null,
+          isCorrect: userAnswer ? isAnswerCorrect(q, userAnswer) : false,
+          timeSpent: questionTimes[q._id] || 0,
+          answeredAt: userAnswer ? new Date() : null,
+          omitted: !userAnswer,
         }
+      })
+
+      const sessionData = {
+        testId,
+        status: 'Completed',
+        moduleScores,
+        moduleAnswers,
+        responses,
+        timeSpent: totalTimeSpent,
+        completedAt: new Date().toISOString(),
+        autoSubmitted: true,
+        autoSubmitReason: reason,
+      }
+
+      const url = sessionId ? `/api/test-sessions/${sessionId}` : '/api/test-sessions'
+      const method = sessionId ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(sessionData),
+      })
+      const responseData = await response.json().catch(() => ({}))
+      const finalSessionId = sessionId || responseData.session?._id
+
+      if (document.fullscreenElement) await document.exitFullscreen().catch(() => {})
+
+      if (finalSessionId) {
+        router.push(`/dashboard/tests/${testId}/results?session_id=${finalSessionId}&returnUrl=${encodeURIComponent(returnUrl)}`)
       } else {
-        // Non-tutor mode auto-submit (if needed in future)
-        // Exit fullscreen if still in it
-        if (document.fullscreenElement) {
-          await document.exitFullscreen()
-        }
         router.push(returnUrl)
       }
     } catch (error) {
       console.error('Auto-submit error:', error)
-      // Exit fullscreen if still in it
-      if (document.fullscreenElement) {
-        await document.exitFullscreen().catch(() => {})
-      }
+      if (document.fullscreenElement) await document.exitFullscreen().catch(() => {})
       router.push(returnUrl)
     }
   }
@@ -1009,6 +991,10 @@ export default function TakeTestPage() {
   }
 
   const calculateFinalScore = async () => {
+    // Guard against double submission (e.g. last-question double click).
+    if (submittingRef.current) return
+    submittingRef.current = true
+    setSaveError(false)
     // Check if we are in tutor or admin mode, if so, calculate simple score
     const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
     if (isSecureMode) {
@@ -1081,19 +1067,26 @@ export default function TakeTestPage() {
                 body: JSON.stringify(sessionData)
             })
             
-            const responseData = await response.json()
+            const responseData = await response.json().catch(() => ({}))
              if (response.ok) {
-                  // Redirect to the new result page with Session ID as query param or part of URL
-                  // The new result page expects to fetch data using session ID
-                  // Route: /dashboard/tests/[id]/results?session_id=SESSION_ID
-                  const finalSessionId = sessionId || responseData.session._id
+                  // The result page fetches by session id: /results?session_id=SESSION_ID
+                  const finalSessionId = sessionId || responseData.session?._id
                   setCompletedSessionId(finalSessionId)
                   // Tutor/practice tests are NOT scored on the SAT scale — keep the raw correct count
                   // (do not overwrite with the server's scaled totalScore, which floors to 400).
-                  // router.push(`/dashboard/tests/${testId}/results?session_id=${finalSessionId}&returnUrl=${encodeURIComponent(returnUrl)}`)
+             } else {
+                  console.error('Failed to save session:', responseData)
+                  setSaveError(true)
+                  submittingRef.current = false
+                  if (sessionId) setCompletedSessionId(sessionId)
+                  toast.error('We could not save your test. Please tap Retry.')
              }
          } catch (e) {
              console.error(e)
+             setSaveError(true)
+             submittingRef.current = false
+             if (sessionId) setCompletedSessionId(sessionId)
+             toast.error('We could not save your test. Please tap Retry.')
          }
          return
      }
@@ -1191,7 +1184,7 @@ export default function TakeTestPage() {
       
       if (response.ok) {
         console.log('✅ Test session saved successfully:', responseData)
-        setCompletedSessionId(responseData.session._id)
+        setCompletedSessionId(responseData.session?._id || sessionId)
         // Prefer the server-computed scores (authoritative) over the local estimate.
         // Set ALL of finalScore (total + per-section) so the transient completion
         // screen matches the canonical score shown on the analysis page.
@@ -1208,11 +1201,17 @@ export default function TakeTestPage() {
         // router.push(`/dashboard/tests/${testId}/results?returnUrl=${encodeURIComponent(returnUrl)}`)
       } else {
         console.error('❌ Failed to save test session:', responseData)
+        setSaveError(true)
+        submittingRef.current = false
+        if (sessionId) setCompletedSessionId(sessionId)
         toast.error(`Failed to save test: ${responseData.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('❌ Error saving test session:', error)
-      toast.error('Failed to save test session. Please check console for details.')
+      setSaveError(true)
+      submittingRef.current = false
+      if (sessionId) setCompletedSessionId(sessionId)
+      toast.error('Failed to save your test. Please tap Retry.')
     }
   }
 
@@ -1275,6 +1274,7 @@ export default function TakeTestPage() {
   }
 
   if (!isFullscreen && moduleQuestions.length === 0) {
+    const isProctored = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-6">
         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
@@ -1283,25 +1283,33 @@ export default function TakeTestPage() {
               <FiAlertTriangle className="text-blue-600" size={40} />
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Start?</h2>
-            <p className="text-gray-600 mb-6">This test will open in fullscreen mode. Please note:</p>
-            
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-left">
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li>✓ Test will run in fullscreen mode</li>
-                {test?.practiceMode !== 'untimed' && <li>✓ Timer will start immediately</li>}
-                <li>⚠️ Switching tabs will terminate the test</li>
-                <li>⚠️ Exiting fullscreen will terminate the test</li>
-                <li>⚠️ Minimizing window will terminate the test</li>
-                <li>⚠️ Taking screenshots will terminate the test</li>
-                <li>⚠️ Pressing ESC or F11 will terminate the test</li>
-              </ul>
-              <div className="mt-4 pt-4 border-t border-yellow-300">
-                <p className="text-sm font-bold text-red-700 flex items-center gap-2">
-                  <span className="text-lg">🚨</span>
-                  <span>IMPORTANT: Any violation will auto-submit the test immediately. No warnings, no second chances!</span>
-                </p>
+            <p className="text-gray-600 mb-6">
+              {isProctored ? 'This is a proctored test and will open in fullscreen mode. Please note:' : 'Take your time — your answers are saved when you submit.'}
+            </p>
+
+            {isProctored ? (
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-left">
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li>✓ Test will run in fullscreen mode</li>
+                  {test?.practiceMode !== 'untimed' && <li>✓ Timer will start immediately</li>}
+                  <li>⚠️ Leaving the test window (switching tabs, exiting fullscreen, minimizing, ESC/F11) is not allowed</li>
+                </ul>
+                <div className="mt-4 pt-4 border-t border-yellow-300">
+                  <p className="text-sm font-bold text-amber-700 flex items-center gap-2">
+                    <span className="text-lg">⚠️</span>
+                    <span>You will get ONE warning. If you leave the test window again, your test will be submitted automatically.</span>
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 text-left">
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {test?.practiceMode !== 'untimed' && <li>✓ A timer will start when you begin</li>}
+                  <li>✓ You can leave and come back — this is practice, nothing auto-submits on you</li>
+                  <li>✓ Submit when you're done to see your results</li>
+                </ul>
+              </div>
+            )}
 
             <div className="space-y-3">
               <button
@@ -1312,12 +1320,12 @@ export default function TakeTestPage() {
                   } else if (test.sections?.math) {
                     loadModule('math', 1, allQuestions, test)
                   }
-                  enterFullscreen()
+                  if (isProctored) enterFullscreen()
                 }}
                 disabled={!test || allQuestions.length === 0}
                 className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                Start Test in Fullscreen
+                {isProctored ? 'Start Test in Fullscreen' : 'Start Test'}
               </button>
               <button
                 onClick={() => router.push(returnUrl)}
@@ -1410,27 +1418,37 @@ export default function TakeTestPage() {
             )}
             
             <div className="space-y-3">
-              <button
-                disabled={!completedSessionId}
-                onClick={() => {
-                  if (!completedSessionId) return
-                  const url = `/dashboard/tests/${testId}/results?session_id=${completedSessionId}&returnUrl=${encodeURIComponent(returnUrl)}`
-                  router.push(url)
-                }}
-                className={`w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 flex items-center justify-center gap-2 ${!completedSessionId ? 'opacity-70 cursor-wait' : ''}`}
-              >
-                {!completedSessionId ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                    <span>Saving Results...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>📊</span>
-                    <span>View Detailed Analysis</span>
-                  </>
-                )}
-              </button>
+              {saveError && !completedSessionId ? (
+                <button
+                  onClick={() => { setSaveError(false); calculateFinalScore() }}
+                  className="w-full bg-amber-600 text-white py-3 rounded-lg font-medium hover:bg-amber-700 flex items-center justify-center gap-2"
+                >
+                  <span>⚠️</span>
+                  <span>Couldn't save your results — Retry</span>
+                </button>
+              ) : (
+                <button
+                  disabled={!completedSessionId}
+                  onClick={() => {
+                    if (!completedSessionId) return
+                    const url = `/dashboard/tests/${testId}/results?session_id=${completedSessionId}&returnUrl=${encodeURIComponent(returnUrl)}`
+                    router.push(url)
+                  }}
+                  className={`w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 flex items-center justify-center gap-2 ${!completedSessionId ? 'opacity-70 cursor-wait' : ''}`}
+                >
+                  {!completedSessionId ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      <span>Saving Results...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>📊</span>
+                      <span>View Detailed Analysis</span>
+                    </>
+                  )}
+                </button>
+              )}
               <button
                 onClick={() => router.push(returnUrl)}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700"
@@ -1745,9 +1763,9 @@ export default function TakeTestPage() {
             {/* Passage/Context */}
             {currentQ?.questionParagraph && (
               <div className="prose max-w-none mb-8">
-                <p className={`text-gray-800 leading-relaxed whitespace-pre-line ${fontSizeClass}`}>
-                  {currentQ.questionParagraph}
-                </p>
+                <div className={`text-gray-800 leading-relaxed ${fontSizeClass}`}>
+                  {renderWithImages(currentQ.questionParagraph)}
+                </div>
               </div>
             )}
 
@@ -2639,25 +2657,41 @@ export default function TakeTestPage() {
         </div>
       </div>
 
-      {/* Auto-Submit Modal */}
+      {/* Auto-Submit / Warning Modal */}
       {showAutoSubmitModal && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999]">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-in fade-in zoom-in duration-300">
             <div className="text-center">
-              <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <FiAlertTriangle className="w-12 h-12 text-red-600" />
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${autoSubmitIsWarning ? 'bg-amber-100' : 'bg-red-100'}`}>
+                <FiAlertTriangle className={`w-12 h-12 ${autoSubmitIsWarning ? 'text-amber-600' : 'text-red-600'}`} />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Test Auto-Submitted</h2>
-              <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                {autoSubmitIsWarning ? 'Warning — Stay on the Test' : 'Submitting Your Test'}
+              </h2>
+              <div className={`border-l-4 p-4 mb-6 ${autoSubmitIsWarning ? 'bg-amber-50 border-amber-500' : 'bg-red-50 border-red-500'}`}>
                 <p className="text-gray-800 font-medium">{autoSubmitReason}</p>
               </div>
-              <p className="text-gray-600 mb-6">
-                Your test has been automatically submitted and your progress has been saved.
-              </p>
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
-                <span>Redirecting...</span>
-              </div>
+              {autoSubmitIsWarning ? (
+                <>
+                  <p className="text-gray-600 mb-6">
+                    This is your one warning. If you leave the test window again, your test will be submitted automatically.
+                  </p>
+                  <button
+                    onClick={() => setShowAutoSubmitModal(false)}
+                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700"
+                  >
+                    Return to Test
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-gray-600 mb-6">Your answers are being saved and submitted.</p>
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
+                    <span>Please wait...</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

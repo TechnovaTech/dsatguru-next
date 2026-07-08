@@ -8,8 +8,22 @@ import Test from '../../../../lib/models/Test'
 import { gradeAndScore } from '../../../../lib/scoring/satScale'
 import { canRevealAnswers, stripAnswerFields } from '../../../../lib/serializers/question'
 import { getCustomMap, effectiveCorrectAnswer, effectiveOptions } from '../../../../lib/tutorCustomQuestions'
-import { STAFF_ROLES } from '../../../../lib/constants/roles'
+import { STAFF_ROLES, ADMIN_ROLES, ROLES } from '../../../../lib/constants/roles'
 import { syncWrongAnswers } from '../../../../lib/learningLoop'
+
+// Who may read/modify a given session:
+// - the student who owns it
+// - any Admin / TutorAdmin
+// - a Tutor ONLY if the session's student is assigned to them
+async function mayAccessSession(decoded, session) {
+  if (String(session.userId) === String(decoded.userId)) return true
+  if (ADMIN_ROLES.includes(decoded.role)) return true
+  if (decoded.role === ROLES.TUTOR) {
+    const student = await User.findById(session.userId).select('assignedTutors').lean()
+    return (student?.assignedTutors || []).some((id) => String(id) === String(decoded.userId))
+  }
+  return false
+}
 
 export async function GET(request, { params }) {
   try {
@@ -23,7 +37,7 @@ export async function GET(request, { params }) {
     if (!session) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
-    if (String(session.userId) !== String(decoded.userId) && !STAFF_ROLES.includes(decoded.role)) {
+    if (!(await mayAccessSession(decoded, session))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -183,8 +197,17 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
 
-    if (String(session.userId) !== String(decoded.userId) && !STAFF_ROLES.includes(decoded.role)) {
+    if (!(await mayAccessSession(decoded, session))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // A completed session must not be silently re-graded/overwritten by a student
+    // re-opening a stale ?sessionId= link (that would wipe the real score). Only the
+    // explicit /reattempt path resets a completed session back to InProgress. Staff
+    // may still correct a session.
+    const alreadyCompleted = session.state === 'COMPLETED' || session.status === 'Completed'
+    if (alreadyCompleted && !STAFF_ROLES.includes(decoded.role)) {
+      return NextResponse.json({ message: 'Session already completed', session })
     }
 
     // Update fields
