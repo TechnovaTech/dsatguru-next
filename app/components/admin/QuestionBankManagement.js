@@ -931,7 +931,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                               {q.difficulty}
                             </span>
                           </td>
-                          <td className="px-4 py-4 text-sm text-slate-700">{q.type || 'MultipleChoice'}</td>
+                          <td className="px-4 py-4 text-sm text-slate-700">{parsedOptions.some(o => { const s = String(o ?? '').trim().toLowerCase(); return s && s !== 'n/a' }) ? 'MultipleChoice' : 'Fill in the Blank'}</td>
                           <td className="px-4 py-4 text-sm text-slate-700 max-w-[150px] truncate" title={parsedTags.join(', ')}>{parsedTags.join(', ') || '-'}</td>
                           <td className="px-4 py-4 text-sm text-slate-600 max-w-xs truncate" title={q.remark || ''}>
                             {q.remark || <span className="text-slate-400 italic">-</span>}

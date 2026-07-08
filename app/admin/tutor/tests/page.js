@@ -961,7 +961,7 @@ export default function TutorTestSheets() {
                         {test.createdAt ? new Date(test.createdAt).toLocaleDateString() : '—'}
                       </td>
                       <td className="px-6 py-4 text-sm">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <button
                             onClick={() => handleViewTest(test)}
                             className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded"
