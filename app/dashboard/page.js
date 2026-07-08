@@ -119,13 +119,28 @@ export default function Dashboard() {
       })
       setRecentActivity(recent)
 
-      // Count assigned-but-not-completed tests per category
+      // Count assigned-but-not-completed tests per category.
+      // Match the tutor pages exactly: one row per test (most-advanced session wins) so a
+      // completed-then-reassigned test isn't double-counted, and DROP deactivated
+      // (isActive===false) tests so dead/duplicate sheets never show as "pending".
       const allSessions = sessions
-      const assignedRW = allSessions.filter(s => s.status === 'Assigned' && s.testId?.isTutorTest && s.testId?.subject === 'Reading and Writing' && !s.testId?.isModuleTest).length
-      const assignedMath = allSessions.filter(s => s.status === 'Assigned' && s.testId?.isTutorTest && s.testId?.subject === 'Math' && !s.testId?.isModuleTest).length
-      const assignedModule = allSessions.filter(s => s.status === 'Assigned' && s.testId?.isModuleTest).length
-      const assignedAdmin = allSessions.filter(s => s.status === 'Assigned' && (s.testId?.practiceMode === 'admin' || s.testId?.testType === 'Mock')).length
-      const assignedAdaptive = allSessions.filter(s => s.status === 'Assigned' && s.testId && s.testId.practiceMode !== 'admin' && s.testId.practiceMode !== 'tutor' && s.testId.isTutorTest !== true && (s.testId.sections?.math === true || s.testId.sections?.rw === true)).length
+      const STATUS_RANK = { Completed: 3, InProgress: 2, Assigned: 1 }
+      const sTime = s => new Date(s.completedAt || s.updatedAt || s.createdAt || 0).getTime()
+      const perTest = new Map()
+      for (const s of allSessions) {
+        if (!s.testId || s.testId.isActive === false) continue
+        const tid = String(s.testId._id || s._id)
+        const cur = perTest.get(tid)
+        const better = !cur || (STATUS_RANK[s.status] || 0) > (STATUS_RANK[cur.status] || 0) ||
+          ((STATUS_RANK[s.status] || 0) === (STATUS_RANK[cur.status] || 0) && sTime(s) > sTime(cur))
+        if (better) perTest.set(tid, s)
+      }
+      const pendingSessions = [...perTest.values()].filter(s => s.status === 'Assigned')
+      const assignedRW = pendingSessions.filter(s => s.testId?.isTutorTest && s.testId?.subject === 'Reading and Writing' && !s.testId?.isModuleTest).length
+      const assignedMath = pendingSessions.filter(s => s.testId?.isTutorTest && s.testId?.subject === 'Math' && !s.testId?.isModuleTest).length
+      const assignedModule = pendingSessions.filter(s => s.testId?.isModuleTest).length
+      const assignedAdmin = pendingSessions.filter(s => s.testId?.practiceMode === 'admin' || s.testId?.testType === 'Mock').length
+      const assignedAdaptive = pendingSessions.filter(s => s.testId && s.testId.practiceMode !== 'admin' && s.testId.practiceMode !== 'tutor' && s.testId.isTutorTest !== true && (s.testId.sections?.math === true || s.testId.sections?.rw === true)).length
       setTestCounts({ rw: assignedRW, math: assignedMath, module: assignedModule, admin: assignedAdmin, adaptive: assignedAdaptive })
 
       // Build performance data per category (completed sessions only)

@@ -128,8 +128,10 @@ export default function TutorMathPage() {
     })
     return [...m.values()]
   })()
-  const assignedList = effectiveSessions.filter(h => h.status === 'Assigned')
-  const inProgressList = effectiveSessions.filter(h => h.status === 'InProgress' && !h.isReassigned)
+  // A deactivated (isActive===false) test is a dead/duplicate sheet — never surface it as
+  // something the student can start. Completed history for such a test is left untouched.
+  const assignedList = effectiveSessions.filter(h => h.status === 'Assigned' && h.testId?.isActive !== false)
+  const inProgressList = effectiveSessions.filter(h => h.status === 'InProgress' && !h.isReassigned && h.testId?.isActive !== false)
   const completedList = effectiveSessions.filter(h => h.status === 'Completed' && !h.isReassigned)
 
   const tabs = [

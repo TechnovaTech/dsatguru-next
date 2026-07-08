@@ -122,8 +122,9 @@ export default function TutorRWPage() {
     })
     return [...m.values()]
   })()
-  const assignedList = effectiveSessions.filter(h => h.status === 'Assigned')
-  const inProgressList = effectiveSessions.filter(h => h.status === 'InProgress' && !h.isReassigned)
+  // Deactivated (isActive===false) sheets are dead/duplicates — never show them as startable.
+  const assignedList = effectiveSessions.filter(h => h.status === 'Assigned' && h.testId?.isActive !== false)
+  const inProgressList = effectiveSessions.filter(h => h.status === 'InProgress' && !h.isReassigned && h.testId?.isActive !== false)
   const completedList = effectiveSessions.filter(h => h.status === 'Completed' && !h.isReassigned)
   const assignedCount = assignedList.length
   const inProgressCount = inProgressList.length
