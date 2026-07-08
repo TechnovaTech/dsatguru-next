@@ -28,6 +28,7 @@ export default function ModuleTestPage() {
   const [showModuleSummary, setShowModuleSummary] = useState(false)
   const [testCompleted, setTestCompleted] = useState(false)
   const [finalScore, setFinalScore] = useState(null)
+  const [serverResponses, setServerResponses] = useState([])
   const [completedSessionId, setCompletedSessionId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -351,7 +352,9 @@ export default function ModuleTestPage() {
           const ans = answers[qId]
           const correct = !!(q.correctAnswer && ans && answersMatch(q.correctAnswer, ans, q))
           if (correct) { modCorrect++; totalCorrect++ }
-          allResponses.push({ questionId: qId, selectedAnswer: ans || '', isCorrect: correct, timeSpent: questionTimes[qId] || 0, subject: m.subject })
+          // moduleIndex lets the server recompute authoritative per-module scores (the client
+          // can't grade — correctAnswer is stripped from its payload).
+          allResponses.push({ questionId: qId, selectedAnswer: ans || '', isCorrect: correct, timeSpent: questionTimes[qId] || 0, subject: m.subject, moduleIndex: idx })
         })
         moduleScores[idx] = { subject: m.subject, correct: modCorrect, total: qs.length, score: qs.length > 0 ? Math.round((modCorrect / qs.length) * 100) : 0 }
       })
@@ -391,7 +394,9 @@ export default function ModuleTestPage() {
 
       if (res.ok) {
         const data = await res.json()
-        setFinalScore(totalCorrect)
+        // Show the server-graded score (client count is always 0 — answers are stripped).
+        setFinalScore(data.session?.correctAnswers ?? totalCorrect)
+        setServerResponses(data.session?.responses || [])
         setCompletedSessionId(urlSessionId || data.session?._id)
         setTestCompleted(true)
       }
@@ -538,9 +543,9 @@ export default function ModuleTestPage() {
         <p className="text-gray-600 mb-2">Score: <span className="text-2xl font-bold text-blue-600">{finalScore}</span> / {Object.values(moduleQsMap).flat().length}</p>
         <div className="space-y-2 my-4">
           {modules.map((m, i) => {
-            const ms = Object.values(moduleQsMap).flat().length > 0 ? null : null
             const qs = moduleQsMap[i] || []
-            const correct = qs.filter(q => { const qId = (q._id||q.id).toString(); return answers[qId] && answersMatch(q.correctAnswer, answers[qId], q) }).length
+            const correctByQid = new Map(serverResponses.map(r => [String(r.questionId), r.isCorrect]))
+            const correct = qs.filter(q => correctByQid.get((q._id||q.id).toString()) === true).length
             return (
               <div key={i} className="flex justify-between items-center px-4 py-2 bg-gray-50 rounded-lg text-sm">
                 <span className="text-gray-700">Module {i+1} — {m.subject}</span>

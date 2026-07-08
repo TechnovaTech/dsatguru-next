@@ -24,7 +24,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
     }
 
-    const safeEmail = String(email)
+    // Normalize the email so casing never causes a false "invalid credentials"
+    // (mobile keyboards auto-capitalize the first letter).
+    const safeEmail = String(email).toLowerCase().trim()
     const safePassword = String(password)
 
     const user = await User.findOne({ email: safeEmail })
@@ -37,6 +39,11 @@ export async function POST(request) {
 
     if (!isValid) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
+    }
+
+    // A deactivated account cannot log in.
+    if (user.isActive === false) {
+      return NextResponse.json({ error: 'Your account has been deactivated. Please contact your instructor.' }, { status: 403 })
     }
 
     const token = jwt.sign(

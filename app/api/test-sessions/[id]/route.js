@@ -25,6 +25,25 @@ async function mayAccessSession(decoded, session) {
   return false
 }
 
+// Recompute per-module {correct,total,score} from the server-authoritative grading flags,
+// keyed by the moduleIndex the client tags on each response. Returns null when the payload
+// isn't a module test (no moduleIndex) so the caller keeps the existing moduleScores.
+function recomputeModuleScores(responses, flags) {
+  if (!Array.isArray(responses) || !responses.some((r) => r && r.moduleIndex != null)) return null
+  const ms = {}
+  responses.forEach((r, i) => {
+    if (!r || r.moduleIndex == null) return
+    const key = String(r.moduleIndex)
+    if (!ms[key]) ms[key] = { subject: r.subject || '', correct: 0, total: 0, score: 0 }
+    ms[key].total += 1
+    if (flags[i]) ms[key].correct += 1
+  })
+  for (const k of Object.keys(ms)) {
+    ms[k].score = ms[k].total > 0 ? Math.round((ms[k].correct / ms[k].total) * 100) : 0
+  }
+  return ms
+}
+
 export async function GET(request, { params }) {
   try {
     await connectDB()
@@ -268,6 +287,7 @@ export async function PUT(request, { params }) {
         session.mathScore = scored.mathScore
         session.totalScore = scored.totalScore
         session.result = { math: scored.mathScore, readingWriting: scored.rwScore, total: scored.totalScore }
+        session.moduleScores = recomputeModuleScores(toGrade, scored.flags) || session.moduleScores
       }
     }
 
