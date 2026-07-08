@@ -90,7 +90,23 @@ function TableBlock({ rows }) {
   )
 }
 
-// Render a non-table text segment: images + LaTeX. <br> becomes a newline (whitespace-pre-wrap).
+// Render a run of non-image, non-table text: honors <u>...</u> underline markup (used by
+// SAT "function of the underlined sentence" questions), rendering LaTeX inside each piece.
+function renderInlineText(text, key) {
+  const uParts = String(text).split(/(<u>[\s\S]*?<\/u>)/g)
+  return (
+    <span key={key}>
+      {uParts.map((u, ui) => {
+        const um = u.match(/^<u>([\s\S]*?)<\/u>$/)
+        return um
+          ? <u key={ui} className="underline">{renderLatex(um[1])}</u>
+          : <span key={ui}>{renderLatex(u)}</span>
+      })}
+    </span>
+  )
+}
+
+// Render a non-table text segment: images + underline + LaTeX. <br> becomes a newline (whitespace-pre-wrap).
 function renderTextSegment(part, key) {
   part = String(part || '').replace(/<br\s*\/?>/gi, '\n')
   const imgParts = part.split(/(!\[.*?\]\(.*?\))/g)
@@ -105,7 +121,7 @@ function renderTextSegment(part, key) {
             </div>
           )
         }
-        return <span key={idx}>{renderLatex(p)}</span>
+        return renderInlineText(p, idx)
       })}
     </span>
   )
