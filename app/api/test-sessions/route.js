@@ -4,6 +4,7 @@ import TestSession from '../../../lib/models/TestSession'
 import Test from '../../../lib/models/Test'
 import Question from '../../../lib/models/Question'
 import { verifyToken, getTokenFromRequest } from '../../../lib/auth'
+import { STAFF_ROLES } from '../../../lib/constants/roles'
 import { gradeAndScore } from '../../../lib/scoring/satScale'
 import { getCustomMap, effectiveCorrectAnswer, effectiveOptions } from '../../../lib/tutorCustomQuestions'
 import { logger } from '../../../lib/logger'
@@ -30,7 +31,9 @@ const CREATE_ALLOWED_FIELDS = [
   'autoSubmitted',
   'autoSubmitReason',
   'attemptCount',
-  'showExplanation',
+  // NOTE: showExplanation is intentionally NOT client-settable — it is derived
+  // server-side from the tutor/admin-controlled assigned session so a student
+  // can't self-grant answer/explanation reveal.
 ]
 
 function pickAllowed(body) {
@@ -87,6 +90,33 @@ export async function POST(request) {
     const sessionData = pickAllowed(rawBody)
     sessionData.userId = decoded.userId
     logger.debug('User ID from token:', decoded.userId)
+
+    // Authorization: a student can only create a session for a test they own
+    // (self-practice), that is assigned to them, or that they already have a session
+    // for. This stops taking/grading arbitrary tests pulled by ID.
+    if (sessionData.testId) {
+      const authTest = await Test.findById(sessionData.testId).select('owner assignedTo').lean()
+      if (!authTest) {
+        return NextResponse.json({ error: 'Test not found' }, { status: 404 })
+      }
+      if (!STAFF_ROLES.includes(decoded.role)) {
+        const uid = String(decoded.userId)
+        const isOwner = String(authTest.owner || '') === uid
+        const isAssigned = (authTest.assignedTo || []).some((id) => String(id) === uid)
+        const hasSession = isOwner || isAssigned
+          ? true
+          : !!(await TestSession.exists({ userId: decoded.userId, testId: sessionData.testId }))
+        if (!isOwner && !isAssigned && !hasSession) {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        }
+      }
+      // Derive showExplanation from the tutor/admin-controlled assigned session.
+      const priorSession = await TestSession.findOne({ userId: decoded.userId, testId: sessionData.testId })
+        .select('showExplanation')
+        .sort({ createdAt: 1 })
+        .lean()
+      sessionData.showExplanation = priorSession?.showExplanation === true
+    }
 
     // If this is a completed test, grade it server-side. Triggered by status alone so a
     // client that stops sending scores still gets graded.

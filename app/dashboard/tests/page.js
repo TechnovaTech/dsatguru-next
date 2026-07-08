@@ -1,8 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiPlay, FiClock, FiFileText, FiCheckCircle, FiRefreshCw, FiBookOpen, FiBarChart2, FiHelpCircle, FiLayers, FiAlertCircle } from 'react-icons/fi'
-import { useToast } from '../../components/ui/UIProvider'
+import { FiPlay, FiClock, FiFileText, FiCheckCircle, FiRefreshCw, FiBookOpen, FiBarChart2, FiHelpCircle, FiLayers, FiAlertCircle, FiAward } from 'react-icons/fi'
 
 const DIFFICULTY_STYLES = {
   Easy: 'bg-emerald-100 text-emerald-700',
@@ -10,13 +9,32 @@ const DIFFICULTY_STYLES = {
   Hard: 'bg-rose-100 text-rose-700',
 }
 
+// One row per test — most-advanced session wins (so a completed-then-reassigned test
+// never lingers under Assigned). Matches the dashboard + tutor pages exactly.
+const STATUS_RANK = { Completed: 3, InProgress: 2, Assigned: 1 }
+const sTime = (s) => new Date(s.completedAt || s.updatedAt || s.createdAt || 0).getTime()
+
+const categoryOf = (test) => {
+  if (!test) return 'Practice'
+  if (test.isModuleTest) return 'Module Test'
+  if (test.isTutorTest || test.practiceMode === 'tutor') {
+    if (test.subject === 'Math') return 'Tutor Math'
+    if (test.subject === 'Reading and Writing') return 'Tutor R&W'
+    return 'Tutor Test'
+  }
+  if (test.practiceMode === 'admin' || test.testType === 'Mock') return 'Admin Test'
+  if (test.configType === 'custom' || test.title === 'Self Practice Test') return 'Self Practice'
+  return 'Adaptive'
+}
+
+const fmtDate = (x) => (x ? new Date(x).toLocaleDateString() : '—')
+
 export default function TestsPage() {
-  const toast = useToast()
   const router = useRouter()
-  const [tests, setTests] = useState([])
-  const [completedTestIds, setCompletedTestIds] = useState([])
+  const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [activeTab, setActiveTab] = useState('Assigned')
 
   useEffect(() => {
     fetchTests()
@@ -27,47 +45,61 @@ export default function TestsPage() {
     setError('')
     try {
       const token = localStorage.getItem('token')
-      const [testsRes, historyRes] = await Promise.all([
-        fetch('/api/admin/tests', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        }),
-        fetch('/api/test-sessions', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        })
-      ])
+      // Source strictly from the caller's own sessions (user-scoped on the server) so a
+      // student can only ever see tests actually assigned to / taken by them — never the
+      // global test catalog.
+      const res = await fetch('/api/test-sessions', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        cache: 'no-store',
+      })
+      if (!res.ok) throw new Error('Failed to load tests')
+      const data = await res.json()
+      const sessions = data.sessions || data || []
 
-      if (!testsRes.ok) throw new Error('Failed to load tests')
-
-      const data = await testsRes.json()
-      setTests(data.filter(test => test.isActive))
-
-      if (historyRes.ok) {
-        const historyData = await historyRes.json()
-        const sessions = historyData.sessions || historyData || []
-        const completed = sessions
-          .filter(s => s.status === 'Completed' && s.totalScore !== undefined)
-          .map(s => String(s.testId?._id || s.testId))
-        setCompletedTestIds(completed)
+      // Collapse to one session per test (most-advanced wins).
+      const perTest = new Map()
+      for (const s of sessions) {
+        if (!s.testId) continue
+        const tid = String(s.testId._id || s.testId)
+        const cur = perTest.get(tid)
+        const better = !cur ||
+          (STATUS_RANK[s.status] || 0) > (STATUS_RANK[cur.status] || 0) ||
+          ((STATUS_RANK[s.status] || 0) === (STATUS_RANK[cur.status] || 0) && sTime(s) > sTime(cur))
+        if (better) perTest.set(tid, s)
       }
-    } catch (error) {
-      console.error('Error fetching tests:', error)
+      // Drop deactivated sheets from anything the student could start (keep completed history).
+      const collapsed = [...perTest.values()].filter(
+        (s) => s.status === 'Completed' || s.testId?.isActive !== false
+      )
+      setRows(collapsed)
+    } catch (e) {
+      console.error('Error fetching tests:', e)
       setError("Couldn't load tests.")
     } finally {
       setLoading(false)
     }
   }
 
-  const startTest = (test) => {
-    if (completedTestIds.includes(String(test._id))) {
-      toast.info('You have already completed this test. Check your Test History to review it.')
-      return
-    }
-    if (test.isModuleTest) {
-      router.push(`/dashboard/tests/${test._id}/module-start`)
-    } else {
-      router.push(`/dashboard/tests/${test._id}/start`)
-    }
+  const startPath = (session) => {
+    const test = session.testId
+    const base = test?.isModuleTest
+      ? `/dashboard/tests/${test._id}/module-start`
+      : `/dashboard/tests/${test._id}/start`
+    // Pass the existing sessionId so the attempt updates this session instead of
+    // creating a duplicate one.
+    return `${base}?sessionId=${session._id}&returnUrl=/dashboard/tests`
   }
+
+  const assigned = rows.filter((s) => s.status === 'Assigned')
+  const inProgress = rows.filter((s) => s.status === 'InProgress' && !s.isReassigned)
+  const completed = rows.filter((s) => s.status === 'Completed' && !s.isReassigned)
+
+  const tabs = [
+    { name: 'Assigned', count: assigned.length },
+    { name: 'In Progress', count: inProgress.length },
+    { name: 'Completed', count: completed.length },
+  ]
+  const list = activeTab === 'Assigned' ? assigned : activeTab === 'In Progress' ? inProgress : completed
 
   if (loading) {
     return (
@@ -79,8 +111,95 @@ export default function TestsPage() {
     )
   }
 
-  const activeCount = tests.filter(t => !completedTestIds.includes(String(t._id))).length
-  const completedCount = tests.filter(t => completedTestIds.includes(String(t._id))).length
+  const renderCard = (session) => {
+    const test = session.testId
+    const isCompleted = session.status === 'Completed'
+    const isInProgress = session.status === 'InProgress'
+    const questionCount = test?.totalQuestions || test?.questions?.length || 0
+    const category = categoryOf(test)
+
+    return (
+      <div
+        key={session._id}
+        className={`flex flex-col rounded-2xl border bg-white p-6 shadow-sm transition-all hover:shadow-md ${
+          isCompleted ? 'border-emerald-200' : 'border-slate-100 hover:border-indigo-200'
+        }`}
+      >
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${
+              category === 'Self Practice' ? 'bg-violet-100 text-violet-600' : 'bg-indigo-100 text-indigo-600'
+            }`}>
+              <FiFileText size={20} />
+            </span>
+            <div>
+              <h3 className="text-base font-semibold leading-tight text-slate-900">{test?.title || '—'}</h3>
+              <p className="mt-0.5 text-xs font-medium uppercase tracking-wider text-slate-400">{category}</p>
+            </div>
+          </div>
+          <span className={`flex-shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
+            isCompleted ? 'bg-emerald-100 text-emerald-700' : isInProgress ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'
+          }`}>
+            {isInProgress ? 'In Progress' : session.status}
+          </span>
+        </div>
+
+        <div className="mb-4 flex flex-wrap gap-2">
+          {test?.difficulty && (
+            <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${DIFFICULTY_STYLES[test.difficulty] || 'bg-slate-100 text-slate-600'}`}>
+              {test.difficulty}
+            </span>
+          )}
+          {!test?.isModuleTest && questionCount > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+              <FiHelpCircle size={12} />
+              {questionCount} Questions
+            </span>
+          )}
+          {test?.isModuleTest && Array.isArray(test.modules) && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+              <FiLayers size={12} />
+              {test.modules.length} Module{test.modules.length > 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+
+        <div className="mb-6 flex-1 space-y-3">
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <FiClock size={16} className="text-slate-400" />
+            <span>{test?.isTimed === false || test?.practiceMode === 'tutor' ? 'Untimed' : `${test?.duration || 180} minutes`}</span>
+          </div>
+          <div className="flex items-center gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
+            <FiBarChart2 size={14} className="text-slate-400" />
+            <span>Assigned {fmtDate(session.createdAt)}</span>
+            {isCompleted && (
+              <span className="ml-auto inline-flex items-center gap-1 font-medium text-emerald-600">
+                <FiAward size={14} /> Score {session.totalScore ?? '—'}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {isCompleted ? (
+          <button
+            onClick={() => router.push(`/dashboard/tests/${test?._id}/results?session_id=${session._id}&returnUrl=/dashboard/tests`)}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+          >
+            <FiBarChart2 size={16} />
+            {session.analysisSubmitted ? 'View Analysis' : 'View Results'}
+          </button>
+        ) : (
+          <button
+            onClick={() => router.push(startPath(session))}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+          >
+            <FiPlay size={16} />
+            {isInProgress ? 'Resume Test' : 'Start Test'}
+          </button>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
@@ -92,9 +211,9 @@ export default function TestsPage() {
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
                 <FiFileText size={20} />
               </span>
-              Available Tests
+              My Tests
             </h1>
-            <p className="mt-1 text-sm text-slate-500">Take practice tests created by your instructors</p>
+            <p className="mt-1 text-sm text-slate-500">Tests assigned to you by your instructors</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <button
@@ -115,35 +234,21 @@ export default function TestsPage() {
         </div>
 
         {/* Stat cards */}
-        {!error && tests.length > 0 && (
+        {!error && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-indigo-500 text-white">
-                <FiFileText size={20} />
-              </span>
-              <div>
-                <p className="text-2xl font-extrabold text-slate-900">{tests.length}</p>
-                <p className="text-sm text-slate-500">Total Tests</p>
+            {[
+              { label: 'Assigned', value: assigned.length, icon: <FiFileText size={20} />, color: 'bg-indigo-500' },
+              { label: 'In Progress', value: inProgress.length, icon: <FiPlay size={20} />, color: 'bg-amber-500' },
+              { label: 'Completed', value: completed.length, icon: <FiCheckCircle size={20} />, color: 'bg-emerald-500' },
+            ].map((s) => (
+              <div key={s.label} className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <span className={`flex h-11 w-11 items-center justify-center rounded-lg text-white ${s.color}`}>{s.icon}</span>
+                <div>
+                  <p className="text-2xl font-extrabold text-slate-900">{s.value}</p>
+                  <p className="text-sm text-slate-500">{s.label}</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber-500 text-white">
-                <FiPlay size={20} />
-              </span>
-              <div>
-                <p className="text-2xl font-extrabold text-slate-900">{activeCount}</p>
-                <p className="text-sm text-slate-500">Available to Take</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-500 text-white">
-                <FiCheckCircle size={20} />
-              </span>
-              <div>
-                <p className="text-2xl font-extrabold text-slate-900">{completedCount}</p>
-                <p className="text-sm text-slate-500">Completed</p>
-              </div>
-            </div>
+            ))}
           </div>
         )}
 
@@ -160,152 +265,46 @@ export default function TestsPage() {
               Retry
             </button>
           </div>
-        ) : tests.length === 0 ? (
-          <div className="rounded-2xl border border-slate-100 bg-white p-12 text-center shadow-sm">
-            <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-              <FiFileText size={28} />
-            </span>
-            <h3 className="text-lg font-semibold text-slate-900">No Tests Available</h3>
-            <p className="mt-1 text-sm text-slate-500">Check back later for new tests from your instructors.</p>
-          </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {tests.map((test) => {
-              const isCompleted = completedTestIds.includes(String(test._id))
-
-              // Determine display info based on test source/type
-              const isSelfTest = test.title === 'Self Practice Test' || test.configType === 'custom'
-              let displayTitle = test.title
-              let category = 'Admin Practice'
-              let typeLabel = test.configType === 'standard' ? 'Standard SAT' : 'Custom'
-
-              if (isSelfTest) {
-                const type = test.configType === 'standard' ? 'Standard' : 'Custom'
-                const mode = test.practiceMode === 'tutor' ? 'Tutor' : 'Timed'
-                displayTitle = `${type} ${mode}`
-                category = 'Self Practice'
-                typeLabel = `${type} ${mode}`
-              }
-
-              return (
-                <div
-                  key={test._id}
-                  className={`flex flex-col rounded-2xl border bg-white p-6 shadow-sm transition-all hover:shadow-md ${
-                    isCompleted ? 'border-emerald-200' : 'border-slate-100 hover:border-indigo-200'
+          <>
+            {/* Tabs */}
+            <div className="flex items-center gap-1 overflow-x-auto border-b border-slate-200">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.name}
+                  onClick={() => setActiveTab(tab.name)}
+                  className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors ${
+                    activeTab === tab.name ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'
                   }`}
                 >
-                  <div className="mb-4 flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${
-                        isSelfTest ? 'bg-violet-100 text-violet-600' : 'bg-indigo-100 text-indigo-600'
-                      }`}>
-                        <FiFileText size={20} />
-                      </span>
-                      <div>
-                        <h3 className="text-base font-semibold leading-tight text-slate-900">{displayTitle || '—'}</h3>
-                        <p className="mt-0.5 text-xs font-medium uppercase tracking-wider text-slate-400">{category}</p>
-                      </div>
-                    </div>
-                    <span className={`flex-shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
-                      isCompleted ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700'
-                    }`}>
-                      {isCompleted ? 'Completed' : 'Active'}
+                  {tab.name}
+                  {tab.count > 0 && (
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${activeTab === tab.name ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'}`}>
+                      {tab.count}
                     </span>
-                  </div>
-
-                  {test.description && (
-                    <p className="mb-4 line-clamp-2 text-sm text-slate-500">{test.description}</p>
                   )}
+                </button>
+              ))}
+            </div>
 
-                  {/* Meta badges: difficulty, test type, total questions */}
-                  <div className="mb-4 flex flex-wrap gap-2">
-                    {test.difficulty && (
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${DIFFICULTY_STYLES[test.difficulty] || 'bg-slate-100 text-slate-600'}`}>
-                        {test.difficulty}
-                      </span>
-                    )}
-                    {test.testType && (
-                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                        {test.testType}
-                      </span>
-                    )}
-                    {!test.isModuleTest && test.totalQuestions != null && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                        <FiHelpCircle size={12} />
-                        {test.totalQuestions} Questions
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="mb-6 flex-1 space-y-3">
-                    {test.isModuleTest && Array.isArray(test.modules) ? (
-                      <>
-                        <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
-                          <FiLayers size={16} className="text-slate-400" />
-                          <span>{test.modules.length} Module{test.modules.length > 1 ? 's' : ''}</span>
-                        </div>
-                        <div className="space-y-1.5 border-t border-slate-100 pt-3">
-                          {test.modules.map((m, i) => (
-                            <div key={i} className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
-                              <span className="font-semibold text-slate-700">M{i + 1}:</span>
-                              <span>{m.subject ?? '—'}</span>
-                              <span className="text-slate-300">•</span>
-                              <span>{m.numberOfQuestions || m.questions?.length || 0}q</span>
-                              <span className="text-slate-300">•</span>
-                              <span>{m.isTimed ? `${m.duration ?? '—'}min` : 'Untimed'}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                          <FiClock size={16} className="text-slate-400" />
-                          <span>Duration: {test.practiceMode === 'tutor' ? 'Untimed' : `${test.duration || 180} minutes`}</span>
-                        </div>
-                        <div className="border-t border-slate-100 pt-3">
-                          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Sections</p>
-                          <div className="flex flex-wrap gap-2">
-                            {test.sections?.math && (
-                              <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">Math</span>
-                            )}
-                            {test.sections?.rw && (
-                              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Reading &amp; Writing</span>
-                            )}
-                            {!test.sections?.math && !test.sections?.rw && (
-                              <span className="text-xs text-slate-400">—</span>
-                            )}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                    <div className="flex items-center gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
-                      <FiBarChart2 size={14} className="text-slate-400" />
-                      <span>Type: {test.isModuleTest ? 'Module Test' : typeLabel}</span>
-                    </div>
-                  </div>
-
-                  {isCompleted ? (
-                    <button
-                      onClick={() => router.push('/dashboard/tests/history')}
-                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
-                    >
-                      <FiCheckCircle size={16} />
-                      View Results
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => startTest(test)}
-                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
-                    >
-                      <FiPlay size={16} />
-                      Start Test
-                    </button>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+            {list.length === 0 ? (
+              <div className="rounded-2xl border border-slate-100 bg-white p-12 text-center shadow-sm">
+                <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                  <FiFileText size={28} />
+                </span>
+                <h3 className="text-lg font-semibold text-slate-900">
+                  {activeTab === 'Assigned' ? 'No tests assigned' : `No ${activeTab.toLowerCase()} tests`}
+                </h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  {activeTab === 'Assigned' ? 'Check back later for new tests from your instructors.' : `You have no ${activeTab.toLowerCase()} tests yet.`}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {list.map(renderCard)}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

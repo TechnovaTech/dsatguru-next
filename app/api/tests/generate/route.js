@@ -78,6 +78,10 @@ export async function POST(request) {
         ? 'Full Standard DSAT format — 2 adaptive modules per section'
         : `Custom practice: ${(subtopics || []).slice(0, 3).join(', ')}${(subtopics || []).length > 3 ? '...' : ''}`,
       testType: 'Practice',
+      // Owned by the student who generated it — used to authorize taking it and to
+      // keep it out of the admin management grid / other students' catalogs.
+      owner: decoded.userId,
+      isSelfPractice: true,
       excludeUsedQuestions: true,
       configType: mode === 'standard' ? 'standard' : 'custom',
       practiceMode: practiceMode || 'timed',

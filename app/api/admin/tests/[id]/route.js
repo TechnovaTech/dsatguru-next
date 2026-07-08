@@ -1,8 +1,21 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import Test from '../../../../../lib/models/Test'
+import TestSession from '../../../../../lib/models/TestSession'
 import { requireAuth, requireRole } from '../../../../../lib/auth'
-import { ADMIN_ROLES } from '../../../../../lib/constants/roles'
+import { ADMIN_ROLES, STAFF_ROLES } from '../../../../../lib/constants/roles'
+import { canRevealAnswers, stripAnswerFields } from '../../../../../lib/serializers/question'
+
+// A student may only load a test they own (self-practice), that is assigned to them,
+// or that they already have a session for (assigned/reassigned). Staff always may.
+async function studentMayAccessTest(decoded, test) {
+  if (STAFF_ROLES.includes(decoded.role)) return true
+  if (!test) return false
+  const uid = String(decoded.userId)
+  if (String(test.owner || '') === uid) return true
+  if ((test.assignedTo || []).some((id) => String(id) === uid)) return true
+  return !!(await TestSession.exists({ userId: decoded.userId, testId: test._id }))
+}
 
 export async function GET(request, { params }) {
   try {
@@ -17,11 +30,27 @@ export async function GET(request, { params }) {
     const test = await Test.findById(params.id)
       .populate('questions')
       .lean()
-    
+
     if (!test) {
       return NextResponse.json({ error: 'Test not found' }, { status: 404 })
     }
-    
+
+    // Authorization: a student cannot pull an arbitrary test by ID.
+    if (!(await studentMayAccessTest(decoded, test))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // Reveal answers only to staff, or to a student who has already completed this test.
+    let sessionCompleted = false
+    if (!canRevealAnswers({ role: decoded.role })) {
+      sessionCompleted = !!(await TestSession.exists({
+        userId: decoded.userId,
+        testId: params.id,
+        $or: [{ status: 'Completed' }, { state: 'COMPLETED' }],
+      }))
+    }
+    const revealAnswers = canRevealAnswers({ role: decoded.role, sessionCompleted })
+
     // Format questions to ensure optionA-D fields exist
     if (test.questions && Array.isArray(test.questions)) {
       test.questions = test.questions.map(q => {
@@ -73,7 +102,12 @@ export async function GET(request, { params }) {
         return q
       })
     }
-    
+
+    // Never ship the answer key to a student who is still taking the test.
+    if (!revealAnswers && Array.isArray(test.questions)) {
+      test.questions = test.questions.map(stripAnswerFields)
+    }
+
     return NextResponse.json(test)
   } catch (error) {
     console.error('Error fetching test:', error)

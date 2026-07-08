@@ -10,10 +10,12 @@ export async function GET(request) {
     if (auth.error) return auth.error
     const { decoded } = auth
     await connectDB()
-    // Only return adaptive/standard tests — exclude tutor tests and admin-panel tests
+    // Only return adaptive/standard tests — exclude tutor tests, admin-panel tests,
+    // and student-generated self-practice tests (which are owner-scoped, not managed here).
     const tests = await Test.find({
       isTutorTest: { $ne: true },
       isAdminTest: { $ne: true },
+      isSelfPractice: { $ne: true },
       practiceMode: { $nin: ['tutor', 'admin'] }
     }).sort({ createdAt: -1 })
     return NextResponse.json(tests)
