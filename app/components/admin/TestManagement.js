@@ -1,10 +1,15 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FiPlus, FiEdit, FiTrash2, FiPlay, FiPause, FiUsers, FiFileText, FiUserPlus, FiSearch, FiX, FiCheck } from 'react-icons/fi'
-import { useConfirm } from '../ui/UIProvider'
+import { FiPlus, FiEdit, FiTrash2, FiPlay, FiPause, FiUsers, FiFileText, FiUserPlus, FiSearch, FiX, FiCheck, FiAlertTriangle, FiDatabase } from 'react-icons/fi'
+import { useConfirm, useToast } from '../ui/UIProvider'
 
 export default function TestManagement() {
   const confirm = useConfirm()
+  const toast = useToast()
+  const [cleanupOpen, setCleanupOpen] = useState(false)
+  const [cleanupPreview, setCleanupPreview] = useState(null)
+  const [cleanupBusy, setCleanupBusy] = useState(false)
+  const [cleanupDone, setCleanupDone] = useState(null)
   const [tests, setTests] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -278,18 +283,108 @@ export default function TestManagement() {
     )
   }
 
+  const openCleanup = async () => {
+    setCleanupOpen(true); setCleanupDone(null); setCleanupPreview(null)
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const res = await fetch('/api/admin/tests/cleanup-practice', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      setCleanupPreview(res.ok ? await res.json() : { error: true })
+    } catch { setCleanupPreview({ error: true }) }
+  }
+  const runCleanup = async () => {
+    if (cleanupBusy) return
+    setCleanupBusy(true)
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const res = await fetch('/api/admin/tests/cleanup-practice', { method: 'POST', headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok) { setCleanupDone(data); toast.success(`Removed ${data.counts?.tests || 0} practice tests — backup saved`); fetchTests() }
+      else toast.error(data.error || 'Cleanup failed')
+    } catch { toast.error('Cleanup failed') }
+    finally { setCleanupBusy(false) }
+  }
+  const closeCleanup = () => { if (!cleanupBusy) { setCleanupOpen(false); setCleanupPreview(null); setCleanupDone(null) } }
+
   return (
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
         <h1 className="text-2xl lg:text-3xl font-extrabold text-slate-900">📋 Adaptive Test Management</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors"
-        >
-          <FiPlus /> Create Test
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={openCleanup}
+            className="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-3 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50"
+            title="Delete the auto-generated student practice tests (backup saved first)"
+          >
+            <FiTrash2 size={15} /> Clean up practice tests
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors"
+          >
+            <FiPlus /> Create Test
+          </button>
         </div>
+        </div>
+
+        {cleanupOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" onClick={closeCleanup}>
+            <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+              {!cleanupDone ? (
+                <>
+                  <div className="mb-4 flex items-start gap-3">
+                    <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600"><FiAlertTriangle size={22} /></span>
+                    <div>
+                      <h2 className="text-lg font-bold text-slate-900">Clean up student practice tests</h2>
+                      <p className="mt-0.5 text-sm text-slate-500">Removes the auto-generated &quot;Standard DSAT&quot; / &quot;Custom Practice&quot; sheets. Tutor tests, Mock exams and your own created tests are never touched.</p>
+                    </div>
+                  </div>
+                  {!cleanupPreview ? (
+                    <div className="py-6 text-center text-sm text-slate-500">Loading preview…</div>
+                  ) : cleanupPreview.error ? (
+                    <div className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">Couldn&apos;t load the preview. Please try again.</div>
+                  ) : cleanupPreview.testCount === 0 ? (
+                    <div className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">Nothing to clean up — no student practice tests found.</div>
+                  ) : (
+                    <>
+                      <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-4 text-sm text-slate-700">
+                        This will delete <b>{cleanupPreview.testCount}</b> practice test{cleanupPreview.testCount === 1 ? '' : 's'} and <b>{cleanupPreview.sessionCount}</b> tied attempt{cleanupPreview.sessionCount === 1 ? '' : 's'}.
+                        <div className="mt-3 flex items-center gap-2 rounded-lg bg-white/70 px-3 py-2 text-xs font-medium text-emerald-700"><FiDatabase size={14} /> A full backup is saved first.</div>
+                      </div>
+                      <div className="mt-3 max-h-48 overflow-y-auto rounded-lg border border-slate-100 text-sm">
+                        {cleanupPreview.tests.map((t) => (
+                          <div key={t._id} className="flex items-center justify-between gap-2 border-b border-slate-50 px-3 py-1.5 last:border-0">
+                            <span className="truncate text-slate-700">{t.title}</span>
+                            <span className="flex-shrink-0 text-xs text-slate-400">{t.createdAt ? new Date(t.createdAt).toLocaleDateString() : ''}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  <div className="mt-6 flex justify-end gap-2">
+                    <button onClick={closeCleanup} disabled={cleanupBusy} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50">Cancel</button>
+                    <button onClick={runCleanup} disabled={cleanupBusy || !cleanupPreview || cleanupPreview.error || !cleanupPreview.testCount} className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-rose-700 disabled:opacity-50">
+                      {cleanupBusy ? (<><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> Backing up &amp; deleting…</>) : (<><FiTrash2 size={15} /> Backup &amp; Delete</>)}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="mb-4 flex items-start gap-3">
+                    <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600"><FiCheck size={22} /></span>
+                    <div>
+                      <h2 className="text-lg font-bold text-slate-900">Cleanup complete</h2>
+                      <p className="mt-0.5 text-sm text-slate-500">Removed {cleanupDone.counts?.tests || 0} practice tests and {cleanupDone.counts?.sessions || 0} attempts. A backup was saved.</p>
+                    </div>
+                  </div>
+                  <div className="mt-6 flex justify-end">
+                    <button onClick={closeCleanup} className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700">Done</button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
       {/* Tests Grid */}
       {tests.length === 0 ? (
