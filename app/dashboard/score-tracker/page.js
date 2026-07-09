@@ -7,8 +7,8 @@ import {
 
 function getTrend(current, previous, isFirst) {
   if (isFirst) return { label: '—', color: 'text-slate-400', badge: 'bg-slate-100 text-slate-500', Icon: FiMinus }
-  if (current < previous) return { label: 'Improved', color: 'text-emerald-600', badge: 'bg-emerald-100 text-emerald-700', Icon: FiArrowDownRight }
-  if (current > previous) return { label: 'Worse', color: 'text-rose-600', badge: 'bg-rose-100 text-rose-700', Icon: FiArrowUpRight }
+  if (current < previous) return { label: 'Improved', color: 'text-emerald-600', badge: 'bg-emerald-100 text-emerald-700', Icon: FiArrowUpRight }
+  if (current > previous) return { label: 'Worse', color: 'text-rose-600', badge: 'bg-rose-100 text-rose-700', Icon: FiArrowDownRight }
   return { label: 'Same', color: 'text-slate-500', badge: 'bg-slate-100 text-slate-600', Icon: FiMinus }
 }
 
@@ -96,7 +96,7 @@ export default function ScoreTrackerPage() {
 
   const statCards = [
     { label: 'Total Errors (All Tests)', value: totalErrors, icon: FiAlertCircle, chip: 'bg-rose-500' },
-    { label: 'Improvements', value: improvedDays, icon: FiTrendingDown, chip: 'bg-emerald-500' },
+    { label: 'Improvements', value: improvedDays, icon: FiTrendingUp, chip: 'bg-emerald-500' },
     { label: 'Tests Tracked', value: computed.length, icon: FiClipboard, chip: 'bg-indigo-500' },
     { label: 'Best Performance', value: bestDay && bestDay.total > 0 ? `${bestDay.total} Errors` : '—', icon: FiAward, chip: 'bg-violet-500' },
   ]
@@ -110,10 +110,10 @@ export default function ScoreTrackerPage() {
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
               <FiTrendingUp className="h-5 w-5" />
             </span>
-            Admin Test Score Tracker
+            Mock Exam Error Analysis
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Automatically tracking your errors from Admin-assigned tests. Lower misses = higher score.
+            Automatically tracking your errors from your Mock Exams. Lower misses = higher score.
           </p>
         </div>
 
@@ -251,11 +251,11 @@ export default function ScoreTrackerPage() {
         {/* Legend */}
         <div className="mt-6 flex flex-wrap items-center gap-6 rounded-2xl border border-slate-100 bg-white p-4 text-xs text-slate-500 shadow-sm">
           <div className="flex items-center gap-2">
-            <FiArrowDownRight className="h-3.5 w-3.5 text-emerald-600" />
+            <FiArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
             <span><span className="font-semibold text-slate-700">Improved</span> — errors decreased</span>
           </div>
           <div className="flex items-center gap-2">
-            <FiArrowUpRight className="h-3.5 w-3.5 text-rose-600" />
+            <FiArrowDownRight className="h-3.5 w-3.5 text-rose-600" />
             <span><span className="font-semibold text-slate-700">Worse</span> — errors increased</span>
           </div>
           <div className="flex items-center gap-2">

@@ -12,20 +12,22 @@ import BugReportWidget from '../components/BugReportWidget'
 
 const SECTIONS = [
   { id: 'dashboard', label: 'Dashboard', icon: FiGrid, path: '/dashboard' },
+  // The single place a student sees every test assigned to them.
+  { id: 'mytests', label: 'My Tests', icon: FiFileText, path: '/dashboard/tests' },
   {
-    id: 'tests', label: 'Tests', icon: FiFileText, items: [
+    id: 'tests', label: 'Practice', icon: FiFileText, items: [
       { label: 'Create Practice', path: '/dashboard/tests/create' },
       { label: 'Practice History', path: '/dashboard/tests/history' },
-      { label: 'Adaptive Tests', path: '/dashboard/adaptive-tests' },
-      { label: 'Admin Tests', path: '/dashboard/admin-tests' },
+      { label: 'Adaptive Practice', path: '/dashboard/adaptive-tests' },
+      { label: 'Mock Exams', path: '/dashboard/admin-tests' },
       { label: 'Retest', path: '/dashboard/tests/retest' },
     ],
   },
   {
-    id: 'tutor', label: 'Tutor', icon: FiBook, items: [
-      { label: 'Tutor Math', path: '/dashboard/tutor/math' },
-      { label: 'Tutor Reading & Writing', path: '/dashboard/tutor/rw' },
-      { label: 'Module Tests', path: '/dashboard/tutor/module-tests' },
+    id: 'tutor', label: 'Tutor Tests', icon: FiBook, items: [
+      { label: 'Math', path: '/dashboard/tutor/math' },
+      { label: 'Reading & Writing', path: '/dashboard/tutor/rw' },
+      { label: 'Full-Length Section Tests', path: '/dashboard/tutor/module-tests' },
     ],
   },
   {

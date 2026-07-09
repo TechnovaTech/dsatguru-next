@@ -155,9 +155,9 @@ export default function AdminMathPage() {
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
               <FiTarget className="h-5 w-5" />
             </span>
-            Math Admin Practice
+            Math Mock Exams
           </h1>
-          <p className="mt-1 text-sm text-slate-500">Access your assigned admin practice and track your progress.</p>
+          <p className="mt-1 text-sm text-slate-500">Your assigned full-length Math practice.</p>
         </div>
 
         {/* Stat cards */}
@@ -353,7 +353,7 @@ export default function AdminMathPage() {
                                   : 'bg-indigo-600 hover:bg-indigo-700'
                               }`}
                             >
-                              {session.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
+                              {session.analysisSubmitted ? 'Review answers' : 'See my results'}
                             </button>
                           </>
                         ) : (

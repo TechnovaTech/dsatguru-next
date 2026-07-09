@@ -22,7 +22,7 @@ const categoryOf = (test) => {
     if (test.subject === 'Reading and Writing') return 'Tutor R&W'
     return 'Tutor Test'
   }
-  if (test.practiceMode === 'admin' || test.testType === 'Mock') return 'Admin Test'
+  if (test.practiceMode === 'admin' || test.testType === 'Mock') return 'Mock Exam'
   if (test.configType === 'custom' || test.title === 'Self Practice Test') return 'Self Practice'
   return 'Adaptive'
 }
@@ -186,7 +186,7 @@ export default function TestsPage() {
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
           >
             <FiBarChart2 size={16} />
-            {session.analysisSubmitted ? 'View Analysis' : 'View Results'}
+            {session.analysisSubmitted ? 'Review answers' : 'See my results'}
           </button>
         ) : (
           <button

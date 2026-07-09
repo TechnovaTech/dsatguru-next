@@ -229,7 +229,7 @@ export default function AdminTestsPage() {
                 session.analysisSubmitted ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'
               }`}
             >
-              {session.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
+              {session.analysisSubmitted ? 'Review answers' : 'See my results'}
             </button>
           )}
         </div>
@@ -251,10 +251,10 @@ export default function AdminTestsPage() {
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
               <FiFileText className="h-5 w-5" />
             </span>
-            Admin Tests
+            Mock Exams
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Access your assigned admin practice tests and track your progress.
+            Full-length practice exams that simulate the real SAT and predict your score.
           </p>
         </div>
 

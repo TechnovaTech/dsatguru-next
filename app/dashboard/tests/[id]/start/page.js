@@ -1753,7 +1753,7 @@ export default function TakeTestPage() {
         <div className="w-full md:w-1/2 h-auto md:h-full overflow-y-auto p-4 md:p-8 bg-gray-50 relative border-b md:border-r md:border-b-0 border-gray-300">
           {/* Watermark */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-gray-300 text-6xl font-bold transform -rotate-45 opacity-30 select-none">
+            <div className="text-gray-300 text-6xl font-bold transform -rotate-45 opacity-5 select-none">
               www.dsatguru.com
             </div>
           </div>
@@ -1784,7 +1784,7 @@ export default function TakeTestPage() {
         <div className="w-full md:w-1/2 h-auto md:h-full overflow-y-auto p-4 md:p-8 bg-gray-50 relative">
           {/* Watermark */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-gray-300 text-6xl font-bold transform -rotate-45 opacity-30 select-none">
+            <div className="text-gray-300 text-6xl font-bold transform -rotate-45 opacity-5 select-none">
               www.dsatguru.com
             </div>
           </div>

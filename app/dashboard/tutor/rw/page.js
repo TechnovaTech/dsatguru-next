@@ -401,7 +401,7 @@ export default function TutorRWPage() {
                               }`}
                             >
                               <FiBarChart2 className="h-4 w-4" />
-                              {session.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
+                              {session.analysisSubmitted ? 'Review answers' : 'See my results'}
                             </button>
                           </>
                         ) : (

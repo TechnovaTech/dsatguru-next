@@ -412,7 +412,7 @@ export default function ErrorLogPage() {
                       </span>
                       <p className="text-sm font-semibold text-slate-700">No errors logged yet</p>
                       <p className="max-w-md text-sm text-slate-400">
-                        Mistakes from your completed Admin Tests appear here automatically. You can also import from your last test or add a row manually.
+                        Mistakes from your completed Mock Exams appear here automatically. You can also import from your last test or add a row manually.
                       </p>
                     </div>
                   </td>

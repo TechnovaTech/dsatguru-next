@@ -245,7 +245,7 @@ export default function AdaptiveTestsPage() {
                 analysisDone ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'
               }`}
             >
-              {analysisDone ? <><FiBarChart2 className="h-4 w-4" /> View Analysis</> : <><FiAward className="h-4 w-4" /> Submit Analysis</>}
+              {analysisDone ? <><FiBarChart2 className="h-4 w-4" /> Review answers</> : <><FiAward className="h-4 w-4" /> See my results</>}
             </button>
           )}
         </div>

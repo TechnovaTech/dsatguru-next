@@ -161,9 +161,9 @@ export default function AdminRWPage() {
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
               <FiBookOpen className="h-5 w-5" />
             </span>
-            Reading &amp; Writing Admin Practice
+            Reading &amp; Writing Mock Exams
           </h1>
-          <p className="mt-1 text-sm text-slate-500">Access your assigned admin practice and track your progress.</p>
+          <p className="mt-1 text-sm text-slate-500">Your assigned full-length Reading &amp; Writing practice.</p>
         </div>
 
         {/* Stat cards */}
@@ -251,7 +251,7 @@ export default function AdminRWPage() {
                             </span>
                           )}
                         </div>
-                        <h3 className="mb-2 text-lg font-bold text-slate-900">{test?.title || 'Assigned Admin Test'}</h3>
+                        <h3 className="mb-2 text-lg font-bold text-slate-900">{test?.title || 'Assigned Mock Exam'}</h3>
                         <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
                           <span className="flex items-center gap-1.5">
                             <FiFileText className="h-4 w-4 text-slate-400" />
@@ -323,7 +323,7 @@ export default function AdminRWPage() {
                             </span>
                           )}
                         </div>
-                        <h3 className="mb-2 text-lg font-bold text-slate-900">{test?.title || 'Admin Practice Session'}</h3>
+                        <h3 className="mb-2 text-lg font-bold text-slate-900">{test?.title || 'Mock Exam'}</h3>
                         <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
                           <span className="flex items-center gap-1.5">
                             <FiFileText className="h-4 w-4 text-slate-400" />
@@ -380,7 +380,7 @@ export default function AdminRWPage() {
                               }`}
                             >
                               <FiBarChart2 className="h-4 w-4" />
-                              {session.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
+                              {session.analysisSubmitted ? 'Review answers' : 'See my results'}
                             </button>
                           </>
                         ) : (

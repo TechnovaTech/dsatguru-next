@@ -429,17 +429,13 @@ export default function ModuleTestPage() {
         </div>
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r-lg">
           <ul className="space-y-2 text-sm text-gray-700">
-            <li>✓ Test will run in fullscreen mode</li>
+            <li>✓ The test runs in fullscreen mode</li>
             <li>✓ Each module has its own timer</li>
-            {modules.some(m => parseInt(m.breakAfter) > 0) && <li>✓ Scheduled breaks between modules — module starts automatically after break</li>}
-            <li>⚠️ Switching tabs will auto-submit the test</li>
-            <li>⚠️ Exiting fullscreen will auto-submit the test</li>
-            <li>⚠️ Minimizing window will auto-submit the test</li>
-            <li>⚠️ Taking screenshots will auto-submit the test</li>
-            <li>⚠️ Pressing ESC or F11 will auto-submit the test</li>
+            {modules.some(m => parseInt(m.breakAfter) > 0) && <li>✓ Scheduled breaks between modules — the next module starts automatically</li>}
+            <li>✓ Your answers are saved as you go</li>
           </ul>
           <div className="mt-3 pt-3 border-t border-yellow-300">
-            <p className="text-sm font-bold text-red-700">🚨 Any violation will auto-submit immediately. No warnings, no second chances!</p>
+            <p className="text-sm font-medium text-amber-800">Please stay on this screen during the test. If you leave — switch tabs, exit fullscreen, or minimize — your test may be submitted automatically. Your answers are saved either way.</p>
           </div>
         </div>
         <div className="space-y-3">
@@ -924,7 +920,7 @@ export default function ModuleTestPage() {
         {/* LEFT: Passage + Question text */}
         <div className="w-full md:w-1/2 h-auto md:h-full overflow-y-auto p-4 md:p-8 bg-gray-50 relative border-b md:border-r md:border-b-0 border-gray-300">
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-gray-200 text-5xl font-bold -rotate-45 opacity-30 select-none">www.dsatguru.com</div>
+            <div className="text-gray-200 text-5xl font-bold -rotate-45 opacity-5 select-none">www.dsatguru.com</div>
           </div>
           <div className="relative z-10">
             {!currentQ ? (
@@ -949,7 +945,7 @@ export default function ModuleTestPage() {
         {/* RIGHT: Question number + options */}
         <div className="w-full md:w-1/2 h-auto md:h-full overflow-y-auto p-4 md:p-8 bg-gray-50 relative">
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-gray-200 text-5xl font-bold -rotate-45 opacity-30 select-none">www.dsatguru.com</div>
+            <div className="text-gray-200 text-5xl font-bold -rotate-45 opacity-5 select-none">www.dsatguru.com</div>
           </div>
           {currentQ && currentQId && (
             <div className="max-w-2xl mx-auto relative z-10">

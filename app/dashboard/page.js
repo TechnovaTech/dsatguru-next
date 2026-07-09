@@ -99,7 +99,7 @@ export default function Dashboard() {
         // Determine session type
         let typeLabel = "Practice"
         if (session.testId) {
-            if (session.testId.testType === 'Mock') typeLabel = "Admin Test"
+            if (session.testId.testType === 'Mock') typeLabel = "Mock Exam"
             else if (session.testId.testType === 'Adaptive') typeLabel = "Adaptive Test"
             else if (session.testId.practiceMode === 'tutor') typeLabel = "Tutor Mode"
             else if (session.testId.practiceMode === 'timed') typeLabel = "Timed Practice"
@@ -158,7 +158,7 @@ export default function Dashboard() {
         { name: 'Tutor R&W', score: calcAvg(completedRW), tests: completedRW.length, fill: '#8b5cf6' },
         { name: 'Tutor Math', score: calcAvg(completedMath), tests: completedMath.length, fill: '#3b82f6' },
         { name: 'Module Tests', score: calcAvg(completedModule), tests: completedModule.length, fill: '#6366f1' },
-        { name: 'Admin Test', score: calcAvg(completedAdmin), tests: completedAdmin.length, fill: '#64748b' },
+        { name: 'Mock Exam', score: calcAvg(completedAdmin), tests: completedAdmin.length, fill: '#64748b' },
         { name: 'Adaptive', score: calcAvg(completedAdaptive), tests: completedAdaptive.length, fill: '#14b8a6' },
       ])
 
@@ -193,6 +193,12 @@ export default function Dashboard() {
   const _ls = stats.latestScores || {}
   const totalScore = (_ls.math != null && _ls.rw != null) ? _ls.math + _ls.rw : null
 
+  // A brand-new student (nothing attempted, no activity) gets a "start here" greeting
+  // instead of "Welcome back", and a create-your-first-test nudge.
+  const firstName = user?.name?.split(' ')[0] || 'there'
+  const isNewUser = (stats.totalAttempted || 0) === 0 && recentActivity.length === 0
+  const pendingTotal = (testCounts.rw || 0) + (testCounts.math || 0) + (testCounts.module || 0) + (testCounts.admin || 0) + (testCounts.adaptive || 0)
+
   return (
     <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
@@ -204,10 +210,12 @@ export default function Dashboard() {
             </span>
             <div>
               <h1 className="text-2xl font-extrabold text-slate-900 lg:text-3xl">
-                Welcome back, {user?.name || 'Student'}
+                {isNewUser ? `Welcome, ${firstName}! Let's get you started.` : `Welcome back, ${user?.name || 'Student'}`}
               </h1>
               <p className="mt-1 text-sm text-slate-500">
-                Success is the sum of small efforts repeated day in and day out.
+                {isNewUser
+                  ? 'Set your goal, take your first practice test, and track every point you gain.'
+                  : 'Success is the sum of small efforts repeated day in and day out.'}
               </p>
             </div>
           </div>
@@ -317,14 +325,42 @@ export default function Dashboard() {
 
         {/* Test Quick Access */}
         <div>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">Your Tests</h2>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Your Tests</h2>
+            <button onClick={() => router.push('/dashboard/tests')} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700">View all →</button>
+          </div>
+          {pendingTotal > 0 ? (
+            <button
+              onClick={() => router.push('/dashboard/tests')}
+              className="mb-4 flex w-full items-center justify-between gap-3 rounded-2xl border border-indigo-100 bg-indigo-50 px-5 py-4 text-left transition-colors hover:bg-indigo-100"
+            >
+              <span className="flex items-center gap-3">
+                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white"><FiPlay size={18} /></span>
+                <span>
+                  <span className="block text-base font-bold text-slate-900">You have {pendingTotal} test{pendingTotal > 1 ? 's' : ''} to do</span>
+                  <span className="block text-xs text-slate-500">Tap to see everything assigned to you</span>
+                </span>
+              </span>
+              <FiExternalLink className="flex-shrink-0 text-indigo-500" />
+            </button>
+          ) : (
+            <div className="mb-4 flex flex-col items-start gap-3 rounded-2xl border border-slate-100 bg-white px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-sm text-slate-600">No tests assigned yet — your tutor's tests will show up here. Want to practice now?</span>
+              <button
+                onClick={() => router.push('/dashboard/tests/create')}
+                className="flex-shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+              >
+                Create a practice test
+              </button>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
             {[
               { label: 'Tutor R&W', path: '/dashboard/tutor/rw', count: testCounts.rw, icon: <FiBookmark size={20} />, iconBg: 'bg-violet-100 text-violet-600' },
               { label: 'Tutor Math', path: '/dashboard/tutor/math', count: testCounts.math, icon: <FiTarget size={20} />, iconBg: 'bg-indigo-100 text-indigo-600' },
               { label: 'Tutor Module Tests', path: '/dashboard/tutor/module-tests', count: testCounts.module, icon: <FiTrendingUp size={20} />, iconBg: 'bg-blue-100 text-blue-600' },
-              { label: 'Admin Test', path: '/dashboard/admin-tests', count: testCounts.admin, icon: <FiBarChart size={20} />, iconBg: 'bg-slate-100 text-slate-600' },
-              { label: 'Adaptive Test', path: '/dashboard/adaptive-tests', count: testCounts.adaptive, icon: <FiActivity size={20} />, iconBg: 'bg-emerald-100 text-emerald-600' },
+              { label: 'Mock Exam', path: '/dashboard/admin-tests', count: testCounts.admin, icon: <FiBarChart size={20} />, iconBg: 'bg-slate-100 text-slate-600' },
+              { label: 'Adaptive', path: '/dashboard/adaptive-tests', count: testCounts.adaptive, icon: <FiActivity size={20} />, iconBg: 'bg-emerald-100 text-emerald-600' },
             ].map(({ label, path, count, icon, iconBg }) => (
               <button
                 key={path}

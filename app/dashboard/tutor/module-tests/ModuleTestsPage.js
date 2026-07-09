@@ -247,7 +247,7 @@ export default function ModuleTestsPage({ subject }) {
                           className={`flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-colors ${
                             resultSession.analysisSubmitted ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'
                           }`}>
-                          <FiCheckCircle className="h-4 w-4" /> {resultSession.analysisSubmitted ? 'View Analysis' : 'Submit Analysis'}
+                          <FiCheckCircle className="h-4 w-4" /> {resultSession.analysisSubmitted ? 'Review answers' : 'See my results'}
                         </button>
                       </div>
                     ) : (
