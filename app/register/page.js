@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { FiArrowLeft, FiArrowRight, FiEye, FiEyeOff, FiMail, FiLock, FiUser, FiShield, FiCheck } from 'react-icons/fi'
-import { useAuth } from '../components/AuthContext'
+import { useAuth, isTokenExpired, roleHome } from '../components/AuthContext'
 import axios from 'axios'
 
 const perks = [
@@ -55,6 +55,17 @@ export default function Register() {
   useEffect(() => {
     try { setReturnTo(new URLSearchParams(window.location.search).get('returnTo') || '') } catch {}
   }, [])
+
+  // Already signed in with a still-valid token? No need to register — go home.
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('token')
+      const raw = localStorage.getItem('user')
+      if (token && raw && !isTokenExpired(token)) {
+        router.replace(roleHome(JSON.parse(raw).role))
+      }
+    } catch {}
+  }, [router])
 
   const [step, setStep] = useState('form')
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' })

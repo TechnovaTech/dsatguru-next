@@ -75,13 +75,11 @@ export default function TutorTests() {
         // Combine all tests
         const allTestsData = [...testsData, ...moduleTestsData]
 
-        // Filter students assigned to this tutor
-        const myStudents = studentsData.filter(s => s.assignedTutor === user?.id || s.assignedTutor?._id === user?.id)
-
+        // /api/admin/users?role=Student is already tutor-scoped server-side.
         // Add student count to each test
         const testsWithCount = allTestsData.map(test => ({
           ...test,
-          assignedStudentsCount: myStudents.filter(s =>
+          assignedStudentsCount: studentsData.filter(s =>
             s.assignedTests && s.assignedTests.includes(test._id)
           ).length
         }))
@@ -177,12 +175,11 @@ export default function TutorTests() {
 
       if (res.ok) {
         const data = await res.json()
-        // Filter students assigned to this tutor
-        const myStudents = data.filter(s => s.assignedTutor === user.id || s.assignedTutor?._id === user.id)
-        setStudents(myStudents)
+        // Endpoint is already tutor-scoped server-side; use the returned students directly.
+        setStudents(data)
 
         // Pre-select students who already have this test assigned
-        const alreadyAssigned = myStudents
+        const alreadyAssigned = data
           .filter(s => s.assignedTests && s.assignedTests.includes(test._id))
           .map(s => s._id)
         setSelectedStudents(alreadyAssigned)
@@ -275,11 +272,9 @@ export default function TutorTests() {
 
       if (res.ok) {
         const data = await res.json()
-        // Filter students who have this test assigned
+        // Endpoint is already tutor-scoped; keep only the assigned-test filter.
         const studentsWithTest = data.filter(s =>
-          (s.assignedTutor === user.id || s.assignedTutor?._id === user.id) &&
-          s.assignedTests &&
-          s.assignedTests.includes(test._id)
+          s.assignedTests && s.assignedTests.includes(test._id)
         )
         setAssignedStudentsList(studentsWithTest)
       }

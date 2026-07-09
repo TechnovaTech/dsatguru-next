@@ -58,6 +58,16 @@ export default function TutorDashboard() {
       } else {
         setError('Failed to load dashboard data')
       }
+
+      // Fetch completed test results count (scoped to this tutor's students server-side)
+      const resultsRes = await fetch('/api/admin/tutor/results', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (resultsRes.ok) {
+        const results = await resultsRes.json()
+        const completed = Array.isArray(results) ? results.length : 0
+        setStats(prev => ({ ...prev, completedTests: completed }))
+      }
     } catch (err) {
       console.error('Failed to fetch stats', err)
       setError('Failed to load dashboard data')

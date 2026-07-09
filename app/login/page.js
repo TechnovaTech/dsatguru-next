@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { FiArrowLeft, FiArrowRight, FiEye, FiEyeOff, FiMail, FiLock, FiCheck, FiAlertCircle } from 'react-icons/fi'
-import { useAuth } from '../components/AuthContext'
+import { useAuth, isTokenExpired, roleHome } from '../components/AuthContext'
 import axios from 'axios'
 
 const perks = [
@@ -29,6 +29,17 @@ export default function Login() {
   useEffect(() => {
     try { setReturnTo(new URLSearchParams(window.location.search).get('returnTo') || '') } catch {}
   }, [])
+
+  // Already signed in with a still-valid token? Skip the form and send them home.
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('token')
+      const raw = localStorage.getItem('user')
+      if (token && raw && !isTokenExpired(token)) {
+        router.replace(roleHome(JSON.parse(raw).role))
+      }
+    } catch {}
+  }, [router])
 
   const validateField = (name, value) => {
     switch (name) {
@@ -71,7 +82,18 @@ export default function Login() {
       else router.push(returnTo || '/dashboard')
     } catch (error) {
       console.error('Login error:', error)
-      setAuthError('Login failed. Please check your credentials.')
+      const status = error.response?.status
+      if (status === 429) {
+        setAuthError('Too many attempts. Please wait a moment and try again.')
+      } else if (status === 401) {
+        setAuthError('Invalid email or password. Please check your credentials.')
+      } else if (status === 403) {
+        setAuthError(error.response?.data?.error || 'Your account access is restricted. Please contact support.')
+      } else if (!error.response) {
+        setAuthError('Network error. Please check your connection and try again.')
+      } else {
+        setAuthError(error.response?.data?.error || 'Something went wrong. Please try again.')
+      }
     } finally {
       setLoading(false)
     }

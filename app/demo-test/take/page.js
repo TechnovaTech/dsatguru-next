@@ -1,4 +1,5 @@
 'use client'
+import { renderContent } from '../../components/admin/LatexRenderer'
 import { useEffect, useMemo, useRef, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -296,7 +297,7 @@ function DemoTestTake() {
           {/* Passage */}
           {currentQ.questionParagraph && (
             <div className="prose max-w-none mb-8">
-              <div className="whitespace-pre-line text-gray-800 leading-relaxed">{currentQ.questionParagraph}</div>
+              <div className="text-gray-800 leading-relaxed">{renderContent(currentQ.questionParagraph)}</div>
             </div>
           )}
 
@@ -311,7 +312,7 @@ function DemoTestTake() {
 
           {/* Question text */}
           <div className="mb-6">
-            <p className="text-gray-900 text-base leading-relaxed whitespace-pre-line">{currentQ.content}</p>
+            <div className="text-gray-900 text-base leading-relaxed">{renderContent(currentQ.content)}</div>
           </div>
 
           {/* Question image */}
@@ -340,7 +341,7 @@ function DemoTestTake() {
                       <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold ${selected ? 'border-blue-500 bg-blue-500 text-white' : 'border-gray-400 text-gray-700'}`}>
                         {letter}
                       </div>
-                      <div className="flex-1 pt-1"><span className="text-gray-900">{opt}</span></div>
+                      <div className="flex-1 pt-1 text-gray-900">{renderContent(opt)}</div>
                     </div>
                   </button>
                 )

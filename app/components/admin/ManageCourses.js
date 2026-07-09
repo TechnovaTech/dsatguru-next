@@ -1360,11 +1360,11 @@ function CourseContentManager({ course, onBack }) {
                         </td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            enrollment.userId?.isActive !== false
+                            enrollment.isActive !== false
                               ? 'bg-green-50 text-green-700'
                               : 'bg-red-50 text-red-700'
                           }`}>
-                            {enrollment.userId?.isActive !== false ? 'Active' : 'Inactive'}
+                            {enrollment.isActive !== false ? 'Active' : 'Inactive'}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-sm font-medium">
@@ -1385,11 +1385,11 @@ function CourseContentManager({ course, onBack }) {
                               <FiEdit />
                             </button>
                             <button
-                              onClick={() => handleToggleEnrollmentStatus(enrollment._id, enrollment.userId?.isActive !== false)}
+                              onClick={() => handleToggleEnrollmentStatus(enrollment._id, enrollment.isActive !== false)}
                               className="text-amber-600 hover:text-amber-800"
                               title="Toggle Status"
                             >
-                              {enrollment.userId?.isActive !== false ? <FiToggleRight /> : <FiToggleLeft />}
+                              {enrollment.isActive !== false ? <FiToggleRight /> : <FiToggleLeft />}
                             </button>
                             <button
                               onClick={() => handleDeleteEnrollment(enrollment._id)}

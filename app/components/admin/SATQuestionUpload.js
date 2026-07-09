@@ -178,11 +178,20 @@ export default function SATQuestionUpload({ isTutor: propIsTutor = false, manage
         console.error('Preview error response:', JSON.stringify(error, null, 2))
         const isSubjectErr = (error.error || '').toLowerCase().includes('subject mismatch')
         if (isSubjectErr) {
+          const expectedSubject = isTutor
+            ? singleQuestion.subject
+            : selectedQuestionBank === 'MATH_DIRECT'
+              ? 'Math'
+              : selectedQuestionBank === 'RW_DIRECT'
+                ? 'Reading and Writing'
+                : ''
           toast.error(
             `❌ UPLOAD BLOCKED — WRONG SUBJECT\n\n` +
             `${error.error}\n\n` +
             `${error.details || ''}\n\n` +
-            `✔ Fix: Open your file and make sure every row's "subject" column is exactly "${singleQuestion.subject}" (this bank), then upload again.`
+            (expectedSubject
+              ? `✔ Fix: Open your file and make sure every row's "subject" column is exactly "${expectedSubject}" (this bank), then upload again.`
+              : `✔ Fix: Open your file and make sure the "subject" column matches this bank, then upload again.`)
           )
         } else {
           toast.error(`Preview failed: ${error.error || error.message || 'Unknown error'}\n${error.details || ''}`)

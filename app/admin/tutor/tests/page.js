@@ -240,13 +240,11 @@ export default function TutorTestSheets() {
       
       if (res.ok) {
         const students = await res.json()
-        // Filter students where assignedTutor._id matches tutor._id
-        const tutorStudents = students.filter(s => {
-          if (!s.assignedTutor) return false
-          // assignedTutor can be either an object with _id or just an _id string
-          const assignedTutorId = typeof s.assignedTutor === 'object' ? s.assignedTutor._id : s.assignedTutor
-          return assignedTutorId && assignedTutorId.toString() === tutor._id.toString()
-        })
+        // Filter students whose assignedTutors (plural array) contains this tutor.
+        // Each entry may be a populated object with _id or a raw id string.
+        const tutorStudents = students.filter(s =>
+          (s.assignedTutors || []).some(t => String(t?._id || t) === String(tutor._id))
+        )
         setSelectedTutorStudents(tutorStudents)
       }
     } catch (err) {

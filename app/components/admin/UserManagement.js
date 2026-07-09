@@ -81,8 +81,12 @@ export default function UserManagement() {
       if (res.ok) {
         const updated = await res.json()
         setUsers(prev => prev.map(u => (u._id === updated._id || u.id === updated._id) ? updated : u))
+      } else {
+        toast.error('Failed to update status')
       }
-    } catch {}
+    } catch {
+      toast.error('Failed to update status')
+    }
   }
 
   const handleSaveUser = async (e) => {

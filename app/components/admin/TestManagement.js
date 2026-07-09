@@ -182,7 +182,8 @@ export default function TestManagement() {
   const [assigningTest, setAssigningTest] = useState(null)
   const [allStudents, setAllStudents] = useState([])
   const [loadingStudents, setLoadingStudents] = useState(false)
-  const [studentAssignedTests, setStudentAssignedTests] = useState({})
+  // Set of student ids the currently-open test is assigned to (resolved in one query).
+  const [assignedStudentIds, setAssignedStudentIds] = useState(new Set())
   const [studentSearch, setStudentSearch] = useState('')
   const [assignSuccess, setAssignSuccess] = useState('')
   const [assignError, setAssignError] = useState('')
@@ -196,21 +197,21 @@ export default function TestManagement() {
     setAssignError('')
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      const res = await fetch('/api/admin/users?role=Student', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-      if (res.ok) {
-        const students = await res.json()
-        setAllStudents(students)
-        const map = {}
-        await Promise.all(students.map(async (s) => {
-          try {
-            const r = await fetch(`/api/admin/students/${s._id}/assigned-tests`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-            if (r.ok) {
-              const d = await r.json()
-              map[s._id] = d.assignedTests || []
-            }
-          } catch {}
-        }))
-        setStudentAssignedTests(map)
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
+      // Fetch the full student roster and this test's assigned students in parallel —
+      // ONE query each, instead of one /assigned-tests request per student (N+1 storm).
+      const [studentsRes, assignedRes] = await Promise.all([
+        fetch('/api/admin/users?role=Student', { headers }),
+        fetch(`/api/admin/tests/${test._id}/assigned-students`, { headers }),
+      ])
+      if (studentsRes.ok) {
+        setAllStudents(await studentsRes.json())
+      }
+      if (assignedRes.ok) {
+        const data = await assignedRes.json()
+        setAssignedStudentIds(new Set((data.students || []).map(s => String(s._id))))
+      } else {
+        setAssignedStudentIds(new Set())
       }
     } catch (err) {
       console.error(err)
@@ -221,8 +222,7 @@ export default function TestManagement() {
 
   const handleToggleAssign = async (studentId, testId) => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-    const current = studentAssignedTests[studentId] || []
-    const isAssigned = current.map(id => id.toString()).includes(testId)
+    const isAssigned = assignedStudentIds.has(String(studentId))
     try {
       const res = await fetch('/api/admin/students/assign-test', {
         method: 'PUT',
@@ -230,8 +230,12 @@ export default function TestManagement() {
         body: JSON.stringify({ studentId, testId, action: isAssigned ? 'remove' : 'add', showExplanation: true })
       })
       if (res.ok) {
-        const data = await res.json()
-        setStudentAssignedTests(prev => ({ ...prev, [studentId]: data.assignedTests }))
+        setAssignedStudentIds(prev => {
+          const next = new Set(prev)
+          if (isAssigned) next.delete(String(studentId))
+          else next.add(String(studentId))
+          return next
+        })
         setAssignSuccess(isAssigned ? 'Test unassigned' : 'Test assigned successfully')
         setTimeout(() => setAssignSuccess(''), 3000)
       }
@@ -368,10 +372,6 @@ export default function TestManagement() {
               }`}>
                 {test.isActive ? 'Active' : 'Inactive'}
               </span>
-              <div className="flex items-center gap-1 text-sm text-slate-500">
-                <FiUsers />
-                <span>{test.attemptCount || 0} attempts</span>
-              </div>
             </div>
           </div>
         ))}
@@ -424,7 +424,7 @@ export default function TestManagement() {
                 <div className="space-y-2">
                   {filtered
                     .map(student => {
-                      const isAssigned = (studentAssignedTests[student._id] || []).map(id => id.toString()).includes(assigningTest._id)
+                      const isAssigned = assignedStudentIds.has(String(student._id))
                       return (
                         <div key={student._id} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:bg-indigo-50/40 transition-colors">
                           <div>

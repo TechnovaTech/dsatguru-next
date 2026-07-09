@@ -287,14 +287,26 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
     }
   }
 
+  const isSyntheticBankId = (bankId) => {
+    if (!bankId) return true
+    const id = String(bankId)
+    if (id.startsWith('admin-') || id.startsWith('tutor-') || id.startsWith('admintest-')) return true
+    return !/^[0-9a-fA-F]{24}$/.test(id)
+  }
+
   const deleteQuestionBank = async (bankId) => {
+    if (isSyntheticBankId(bankId)) return
     if (!(await confirm({ message: 'Are you sure you want to delete this question bank? This action cannot be undone.', tone: 'danger', confirmText: 'Delete' }))) return
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      await fetch(`/api/admin/question-banks/${bankId}`, {
+      const res = await fetch(`/api/admin/question-banks/${bankId}`, {
         method: 'DELETE',
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       })
+      if (!res.ok) {
+        toast.error('Failed to delete question bank')
+        return
+      }
       setQuestionBanks(prev => prev.filter(b => b.id !== bankId))
       toast.success('Question bank deleted successfully')
     } catch (error) {
@@ -1757,9 +1769,11 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                             <button className="inline-flex items-center px-3 py-1 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors" onClick={() => openAccessModal(bank)}>
                               <FiSettings className="mr-1" /> Manage Access
                             </button>
-                            <button className="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors" onClick={() => deleteQuestionBank(bank.id)}>
-                              <FiTrash className="mr-1" /> Delete
-                            </button>
+                            {!isSyntheticBankId(bank.id) && (
+                              <button className="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors" onClick={() => deleteQuestionBank(bank.id)}>
+                                <FiTrash className="mr-1" /> Delete
+                              </button>
+                            )}
                           </>
                         )}
                       </div>
