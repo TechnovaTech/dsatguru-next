@@ -181,9 +181,14 @@ export async function GET(request) {
         })
       }
 
+      // Synthetic subject-based buckets (admin-math/admin-rw) are staff-only helpers:
+      // their ids aren't real Course docs, so a student "Purchase Access" click dead-ends
+      // at /enrollment/admin-math. Students receive ONLY real question_bank Course docs;
+      // staff/unauthenticated tooling (tokenless admin fetch) still gets the buckets.
+      const includeSyntheticBanks = !decoded || decoded.role !== ROLES.STUDENT
       return NextResponse.json({
         success: true,
-        data: [...adminBanks, ...questionBanksData],
+        data: includeSyntheticBanks ? [...adminBanks, ...questionBanksData] : questionBanksData,
         message: 'Question banks retrieved successfully'
       })
     }

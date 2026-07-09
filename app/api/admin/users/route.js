@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import User from '../../../../lib/models/User'
 import { requireRole } from '../../../../lib/auth'
-import { STAFF_ROLES, ADMIN_ROLES } from '../../../../lib/constants/roles'
+import { ROLES, STAFF_ROLES, ADMIN_ROLES } from '../../../../lib/constants/roles'
 import bcrypt from 'bcryptjs'
 
 export async function GET(request) {
@@ -17,17 +17,18 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url)
     const roleFilter = searchParams.get('role')
     
-    // Build query
+    // Build query. Tutors are hard-scoped to their own assigned students and may
+    // NOT list other tutors/admins or the full directory, regardless of any ?role
+    // filter they pass. Only ADMIN_ROLES (Admin/TutorAdmin) get the full user list.
+    const isTutor = decoded.role === ROLES.TUTOR
     const query = {}
-    if (roleFilter) {
+    if (isTutor) {
+      query.role = ROLES.STUDENT
+      query.assignedTutors = decoded.userId
+    } else if (roleFilter) {
       query.role = roleFilter
     }
-    
-    // If user is Tutor role, only show students assigned to them
-    if (decoded.role === 'Tutor' && roleFilter === 'Student') {
-      query.assignedTutors = decoded.userId
-    }
-    
+
     const users = await User.find(query)
       .sort({ createdAt: -1 })
       .select('-password')
@@ -35,8 +36,8 @@ export async function GET(request) {
       .limit(500)
       .lean()
     
-    // If fetching tutors, add student count for each
-    if (roleFilter === 'Tutor') {
+    // If fetching tutors, add student count for each (admin-only view)
+    if (!isTutor && roleFilter === 'Tutor') {
       const usersWithCounts = await Promise.all(users.map(async (user) => {
         const studentCount = await User.countDocuments({ assignedTutors: user._id })
         return { ...user, studentCount }

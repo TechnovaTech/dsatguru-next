@@ -5,6 +5,7 @@ import ErrorLog from '@/lib/models/ErrorLog'
 // Register the Question model so populate('sourceQuestionId') resolves its schema.
 import Question from '@/lib/models/Question'
 import { answersMatch } from '@/lib/scoring/satScale'
+import { parseOptionsArray, isFillInBlank } from '@/lib/questionOptions'
 
 async function getUser(req) {
   const auth = req.headers.get('authorization') || ''
@@ -16,23 +17,14 @@ function getUserId(user) {
   return user?.userId || user?.id || user?._id
 }
 
-function parseOptions(rawOptions) {
-  if (!rawOptions) return []
-  try {
-    const parsed = typeof rawOptions === 'string' ? JSON.parse(rawOptions) : rawOptions
-    if (!Array.isArray(parsed)) return []
-    return parsed.map((opt, index) => {
-      if (typeof opt === 'string') {
-        return { key: String.fromCharCode(65 + index), value: opt }
-      }
-      return {
-        key: opt?.key || String.fromCharCode(65 + index),
-        value: opt?.value || ''
-      }
-    })
-  } catch {
-    return []
-  }
+// Build the client-facing options list. Fill-in-the-blank / grid-in questions
+// (every option blank or "N/A") return [] so the client renders a text input
+// instead of A–D buttons. MCQs return the non-blank { key, value } choices.
+function buildOptions(q) {
+  if (isFillInBlank(q)) return []
+  return parseOptionsArray(q)
+    .map((value, index) => ({ key: String.fromCharCode(65 + index), value }))
+    .filter(opt => opt.value !== '')
 }
 
 function parseDateLabelToTs(label) {
@@ -61,7 +53,7 @@ export async function GET(req) {
       sourceQuestionId: { $exists: true, $ne: null },
       redoResult: { $ne: '✓' }
     })
-      .populate('sourceQuestionId', 'questionId content options correctAnswer explanation subject difficulty skill')
+      .populate('sourceQuestionId', 'questionId content questionParagraph imageUrl options correctAnswer explanation subject difficulty skill')
       .sort({ createdAt: 1 })
 
     const questions = logs
@@ -73,7 +65,10 @@ export async function GET(req) {
           questionId: q._id,
           questionLabel: q.questionId || '',
           content: q.content || '',
-          options: parseOptions(q.options),
+          questionParagraph: q.questionParagraph || '',
+          imageUrl: q.imageUrl || '',
+          options: buildOptions(q),
+          isFillInBlank: isFillInBlank(q),
           correctAnswer: q.correctAnswer || '',
           explanation: q.explanation || '',
           subject: q.subject || log.section,
@@ -100,7 +95,7 @@ export async function GET(req) {
       sourceQuestionId: { $exists: true, $ne: null },
       redoResult: { $ne: '✓' }
     })
-      .populate('sourceQuestionId', 'questionId content options correctAnswer explanation subject difficulty skill')
+      .populate('sourceQuestionId', 'questionId content questionParagraph imageUrl options correctAnswer explanation subject difficulty skill')
       .sort({ createdAt: -1 })
 
     const questions = logs
@@ -112,7 +107,10 @@ export async function GET(req) {
           questionId: q._id,
           questionLabel: q.questionId || '',
           content: q.content || '',
-          options: parseOptions(q.options),
+          questionParagraph: q.questionParagraph || '',
+          imageUrl: q.imageUrl || '',
+          options: buildOptions(q),
+          isFillInBlank: isFillInBlank(q),
           correctAnswer: q.correctAnswer || '',
           explanation: q.explanation || '',
           subject: q.subject || log.section,

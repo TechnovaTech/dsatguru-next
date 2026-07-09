@@ -17,18 +17,19 @@ export async function GET(request) {
     const userId = getUserId(request)
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Fetch all completed sessions for this user that are admin-assigned
+  // Fetch all completed sessions for this user that are trackable
+  // (admin-assigned OR Mock tests) — mirrors the dashboard/student-analysis filter.
   const sessions = await TestSession.find({ userId, $or: [{ status: 'Completed' }, { state: 'COMPLETED' }] })
     .populate({
       path: 'testId',
-      match: { practiceMode: 'admin' },
-      select: 'title subject practiceMode'
+      match: { $or: [{ practiceMode: 'admin' }, { testType: 'Mock' }] },
+      select: 'title subject practiceMode testType'
     })
     .sort({ completedAt: 1 })
     .select('_id completedAt totalQuestions correctAnswers answeredQuestions responses timeSpent testId')
     .lean()
 
-  // Filter out sessions that are not linked to an admin test
+  // Filter out sessions that are not linked to a trackable test
   const adminSessions = sessions.filter(s => s.testId)
 
   // Fetch saved tracker entries (if any manual data exists for these sessions)

@@ -5,6 +5,7 @@ import OTP from '../../../../lib/models/OTP'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { rateLimit } from '../../../../lib/rateLimit'
+import { getSettings } from '../../../../lib/models/Setting'
 
 export async function POST(request) {
   try {
@@ -46,6 +47,13 @@ export async function POST(request) {
 
     // OTP is valid — process based on type
     if (type === 'register') {
+      // Enforce the persisted admin toggle so a pre-issued OTP can't slip through.
+      const settings = await getSettings()
+      if (settings.registrationEnabled === false) {
+        await OTP.deleteOne({ _id: record._id })
+        return NextResponse.json({ error: 'Registration is currently disabled' }, { status: 403 })
+      }
+
       const { name, hashedPassword } = record.pendingData || {}
       if (!name || !hashedPassword) {
         return NextResponse.json({ error: 'Registration data missing. Please start over.' }, { status: 400 })

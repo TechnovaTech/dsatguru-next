@@ -29,7 +29,7 @@ export async function GET(req) {
 
     // 1. Sessions for all students (used for totals, today's count, last active).
     const allSessions = await TestSession.find({ userId: { $in: studentIds } })
-      .select('userId answeredQuestions updatedAt createdAt')
+      .select('userId answeredQuestions updatedAt createdAt responses.answeredAt')
       .lean()
 
     const sessionsByUser = {}
@@ -78,11 +78,17 @@ export async function GET(req) {
         const answered = session.answeredQuestions || 0
         totalQuestionsCompleted += answered
 
-        const sessionDate = new Date(session.updatedAt || session.createdAt)
-        if (sessionDate >= today) {
-          questionsDoneToday += answered
-        }
+        // Questions done today must come from per-response timestamps, not the
+        // cumulative answeredQuestions counter — otherwise a session merely
+        // touched today would add all its prior-day answers to today's count.
+        const responses = session.responses || []
+        responses.forEach(r => {
+          if (r.answeredAt && new Date(r.answeredAt) >= today) {
+            questionsDoneToday += 1
+          }
+        })
 
+        const sessionDate = new Date(session.updatedAt || session.createdAt)
         if (sessionDate > lastActive) {
           lastActive = sessionDate
         }

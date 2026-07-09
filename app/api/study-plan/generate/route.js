@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
-import StudyPlan from '../../../../lib/models/StudyPlan'
 import TestSession from '../../../../lib/models/TestSession'
 import Question from '../../../../lib/models/Question'
 
@@ -57,13 +56,16 @@ export async function POST(request) {
         difficultyMix: 'Mixed'
       })
     }
-    const plan = await StudyPlan.create({
-      userId: decoded.userId,
+    // Compute-and-return only. The client's POST /api/study-plan is the sole
+    // write, so we don't persist a stripped plan here (it would omit
+    // studentName/startDate/currentScore/targetScore and could survive if the
+    // client's follow-up save fails).
+    const plan = {
       examDate: end,
       weakTopics,
       dailyPlan
-    })
-    return NextResponse.json(plan, { status: 201 })
+    }
+    return NextResponse.json(plan, { status: 200 })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to generate study plan' }, { status: 500 })
   }

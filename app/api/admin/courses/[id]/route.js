@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
-import Course from '../../../../../lib/models/Course'
+import Course, { CourseEnrollment, QuestionBankEnrollment } from '../../../../../lib/models/Course'
 import { requireRole } from '../../../../../lib/auth'
 import { ADMIN_ROLES } from '../../../../../lib/constants/roles'
 
@@ -55,12 +55,30 @@ export async function DELETE(request, { params }) {
     const { decoded } = auth
 
     const { id } = params
+
+    // Prevent orphaning enrollments/payments: deleting a Course would leave
+    // dangling CourseEnrollment/QuestionBankEnrollment rows and detach linked
+    // Payment history (Payment.enrollmentId -> CourseEnrollment). Block instead
+    // so nothing is silently destroyed; enrollments must be removed first.
+    const [courseEnrollmentCount, questionBankEnrollmentCount] = await Promise.all([
+      CourseEnrollment.countDocuments({ courseId: id }),
+      QuestionBankEnrollment.countDocuments({ questionBankId: id })
+    ])
+    const enrollmentCount = courseEnrollmentCount + questionBankEnrollmentCount
+
+    if (enrollmentCount > 0) {
+      return NextResponse.json({
+        error: `Cannot delete this course: ${enrollmentCount} student enrollment(s) are still linked to it. Remove the enrollments first to preserve payment and enrollment history.`,
+        enrollmentCount
+      }, { status: 409 })
+    }
+
     const deletedCourse = await Course.findByIdAndDelete(id)
-    
+
     if (!deletedCourse) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 })
     }
-    
+
     return NextResponse.json({
       message: 'Course deleted successfully'
     })

@@ -27,6 +27,8 @@ export async function GET(request, { params }) {
         accessType: enrollment.accessType,
         accessDuration: enrollment.accessDuration,
         expiresAt: enrollment.expiresAt,
+        // Per-enrollment access flag (NOT the student's global account status).
+        isActive: enrollment.isActive !== false,
         userName: enrollment.userId?.name,
         userEmail: enrollment.userId?.email
       }))

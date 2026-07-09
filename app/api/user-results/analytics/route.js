@@ -57,6 +57,20 @@ const DOMAIN_MAPPING = {
   }
 }
 
+// Normalize a label so slug-ish response values ('algebra', 'advanced-math',
+// 'Advanced_Math') reconcile with the Title-Case DOMAIN_MAPPING keys/subtopics.
+const normalizeLabel = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '')
+
+// Slug -> { subject, domain } index built from both the domain keys and their
+// subtopic arrays, so a response can be bucketed by its domain, subtopic, or skill tag.
+const DOMAIN_INDEX = {}
+Object.entries(DOMAIN_MAPPING).forEach(([subject, domains]) => {
+  Object.entries(domains).forEach(([domain, subs]) => {
+    DOMAIN_INDEX[normalizeLabel(domain)] = { subject, domain }
+    subs.forEach(sub => { DOMAIN_INDEX[normalizeLabel(sub)] = { subject, domain } })
+  })
+})
+
 export async function GET(request) {
   try {
     await connectDB()
@@ -95,7 +109,7 @@ export async function GET(request) {
 
     const questions = await Question.find({
       _id: { $in: Array.from(questionIds) }
-    }).select('_id tags subject difficulty').lean()
+    }).select('_id tags subject difficulty skill domain').lean()
 
     const questionMap = {}
     questions.forEach(q => {
@@ -107,7 +121,9 @@ export async function GET(request) {
       }
       questionMap[q._id.toString()] = {
         subject: q.subject,
-        tags: tags
+        tags: tags,
+        skill: q.skill,
+        domain: q.domain
       }
     })
 
@@ -184,8 +200,9 @@ export async function GET(request) {
       weeklyStats[dayStr] = { correct: 0, total: 0, date: d }
     }
 
-    // Process Sessions
-    sessions.forEach(session => {
+    // Process Sessions — only COMPLETED ones so in-progress attempts don't inflate
+    // Questions Attempted / Accuracy / Weekly Progress.
+    completedSessions.forEach(session => {
       // Add session time (if available and valid)
       if (session.timeSpent) {
         totalTimeSpent += session.timeSpent
@@ -218,35 +235,31 @@ export async function GET(request) {
           if (qId && questionMap[qId]) {
             const qData = questionMap[qId]
             const subject = qData.subject === 'rw' || qData.subject === 'Reading and Writing' ? 'Reading and Writing' : 'Math'
-            
-            // Find Domain
+            const mapping = DOMAIN_MAPPING[subject]
+
+            // Resolve domain: prefer an exact q.domain that IS a mapping key, else
+            // match q.domain / tags / q.skill against the normalized index so
+            // slug-ish values ('algebra', 'advanced-math') still bucket correctly.
             let domain = 'Uncategorized'
-            if (qData.tags && qData.tags.length > 0) {
-               const tag = qData.tags[0] // Assume first tag is subtopic
-               // Reverse lookup domain from subtopic
-               const mapping = DOMAIN_MAPPING[subject]
-               if (mapping) {
-                 for (const [dom, subs] of Object.entries(mapping)) {
-                   if (subs.includes(tag)) {
-                     domain = dom
-                     break
-                   }
-                 }
-               }
-            }
-            
-            // Fallback: if tag is actually the domain name
-            if (domain === 'Uncategorized' && qData.tags && qData.tags.length > 0) {
-               const mapping = DOMAIN_MAPPING[subject]
-               if (mapping && mapping[qData.tags[0]]) {
-                 domain = qData.tags[0]
-               }
+            if (mapping && qData.domain && mapping[qData.domain]) {
+              domain = qData.domain
+            } else {
+              const candidates = [qData.domain, ...(qData.tags || []), qData.skill]
+              for (const cand of candidates) {
+                if (!cand) continue
+                const hit = DOMAIN_INDEX[normalizeLabel(cand)]
+                if (hit && hit.subject === subject) {
+                  domain = hit.domain
+                  break
+                }
+              }
             }
 
-            if (subjectPerformance[subject] && subjectPerformance[subject][domain]) {
-              subjectPerformance[subject][domain].total++
-              if (response.isCorrect) subjectPerformance[subject][domain].correct++
-            }
+            // Never silently drop: unmatched responses land in 'Uncategorized' so
+            // the domain bars reconcile with the Attempted card.
+            initDomain(subject, domain)
+            subjectPerformance[subject][domain].total++
+            if (response.isCorrect) subjectPerformance[subject][domain].correct++
           }
         })
       }

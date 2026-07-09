@@ -5,6 +5,7 @@ import OTP from '../../../../lib/models/OTP'
 import bcrypt from 'bcryptjs'
 import { generateOTP, sendOTPEmail } from '../../../../lib/email'
 import { rateLimit, clientIp } from '../../../../lib/rateLimit'
+import { getSettings } from '../../../../lib/models/Setting'
 
 export async function POST(request) {
   try {
@@ -26,6 +27,11 @@ export async function POST(request) {
     }
 
     if (type === 'register') {
+      // Enforce the persisted admin toggle: block new signups when disabled.
+      const settings = await getSettings()
+      if (settings.registrationEnabled === false) {
+        return NextResponse.json({ error: 'Registration is currently disabled' }, { status: 403 })
+      }
       // Check if user already exists
       const existing = await User.findOne({ email: email.toLowerCase() })
       if (existing) {

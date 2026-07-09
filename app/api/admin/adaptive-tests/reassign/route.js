@@ -44,6 +44,7 @@ export async function POST(request) {
       title: `${originalTest.title} (Reassigned)`,
       subject: originalTest.subject,
       questions: originalTest.questions,
+      assignedTo: [userId],
       configType: originalTest.configType,
       practiceMode: originalTest.practiceMode || 'timed',
       testType: originalTest.testType || 'Practice',

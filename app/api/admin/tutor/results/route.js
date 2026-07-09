@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import TestSession from '../../../../../lib/models/TestSession'
-// Side-effect imports: register User and Test schemas so .populate('userId') /
-// .populate('testId') resolve on cold start.
-import '../../../../../lib/models/User'
-import '../../../../../lib/models/Test'
+// Bind User and Test models: registers their schemas so .populate('userId') /
+// .populate('testId') resolve on cold start, and lets us pre-resolve ids below.
+import User from '../../../../../lib/models/User'
+import Test from '../../../../../lib/models/Test'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 
 export async function GET(request) {
@@ -19,47 +19,43 @@ export async function GET(request) {
 
     console.log(`[Tutor Results API] User role: ${decoded.role}, userId: ${decoded.userId}`)
 
-    // Fetch ALL completed test sessions first
-    const allSessions = await TestSession.find({
-      status: 'Completed'
+    // Pre-resolve the relevant tutor-test ids so we can constrain the TestSession
+    // query BEFORE .limit() — otherwise the newest 500 completed sessions of ALL
+    // types are fetched and older tutor results vanish at scale (M20). Module tests
+    // are shown separately at /admin/tutor/module-tests/results, so exclude them.
+    const tutorTests = await Test.find({
+      isModuleTest: { $ne: true },
+      $or: [{ isTutorTest: true }, { practiceMode: 'tutor' }]
     })
-      .populate('userId', 'name email assignedTutor')
+      .select('_id')
+      .lean()
+    const tutorTestIds = tutorTests.map(t => t._id)
+
+    const sessionQuery = {
+      status: 'Completed',
+      testId: { $in: tutorTestIds }
+    }
+
+    // Tutor role only sees results for their assigned students. The field on User
+    // is assignedTutors (plural array); constrain userId to those students at the
+    // DB level rather than filtering in JS after the limit (H16 + M20).
+    if (decoded.role === 'Tutor') {
+      const students = await User.find({ assignedTutors: decoded.userId })
+        .select('_id')
+        .lean()
+      sessionQuery.userId = { $in: students.map(u => u._id) }
+      console.log(`[Tutor Results API] Tutor has ${students.length} assigned student(s)`)
+    }
+
+    const sessions = await TestSession.find(sessionQuery)
+      .populate('userId', 'name email assignedTutors')
       .populate('testId')
       .sort({ completedAt: -1 })
       .limit(500)
       .lean()
 
-    console.log(`[Tutor Results API] Total completed sessions: ${allSessions.length}`)
-
-    // Filter for tutor tests ONLY (exclude module tests — they have their own results page)
-    let filteredSessions = allSessions.filter(s => {
-      if (!s.testId) {
-        console.log(`[Tutor Results API] Session ${s._id} has no testId`)
-        return false
-      }
-
-      // Module tests are shown separately at /admin/tutor/module-tests/results
-      if (s.testId.isModuleTest === true) return false
-
-      const isTutorTest = s.testId.isTutorTest === true || s.testId.practiceMode === 'tutor'
-
-      if (!isTutorTest) {
-        console.log(`[Tutor Results API] Session ${s._id} test ${s.testId._id} is not a tutor test`)
-      }
-
-      return isTutorTest
-    })
-
-    console.log(`[Tutor Results API] Tutor test sessions: ${filteredSessions.length}`)
-
-    // If user is Tutor role, only show results for their assigned students
-    if (decoded.role === 'Tutor') {
-      const beforeFilter = filteredSessions.length
-      filteredSessions = filteredSessions.filter(s => 
-        s.userId?.assignedTutor?.toString() === decoded.userId
-      )
-      console.log(`[Tutor Results API] Filtered for tutor's students: ${beforeFilter} -> ${filteredSessions.length}`)
-    }
+    // Defensive: drop any session whose test was deleted between the two queries.
+    const filteredSessions = sessions.filter(s => !!s.testId)
 
     console.log(`[Tutor Results API] Final sessions to return: ${filteredSessions.length}`)
 

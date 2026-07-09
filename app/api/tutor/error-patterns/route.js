@@ -1,28 +1,19 @@
 import { NextResponse } from 'next/server'
-import jwt from 'jsonwebtoken'
 import dbConnect from '@/lib/db'
 import User from '@/lib/models/User'
 import TestSession from '@/lib/models/TestSession'
 import Question from '@/lib/models/Question'
-
-async function getTutorFromRequest(request) {
-  const auth = request.headers.get('authorization')
-  if (!auth?.startsWith('Bearer ')) return null
-  try {
-    const decoded = jwt.verify(auth.slice(7), process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET)
-    return decoded
-  } catch { return null }
-}
+import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 
 export async function GET(request) {
   await dbConnect()
-  const tutor = await getTutorFromRequest(request)
-  if (!tutor || !['Tutor', 'TutorAdmin', 'Admin'].includes(tutor.role)) {
+  const decoded = verifyToken(getTokenFromRequest(request))
+  if (!decoded || !['Tutor', 'TutorAdmin', 'Admin'].includes(decoded.role)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   // Get tutor's students
-  const students = await User.find({ assignedTutors: tutor.id, role: 'Student' }, '_id name').lean()
+  const students = await User.find({ assignedTutors: decoded.userId, role: 'Student' }, '_id name').lean()
   const studentIds = students.map(s => s._id)
 
   // Get completed sessions for these students

@@ -17,12 +17,13 @@ export async function GET(req) {
   if (me.role === 'Admin') {
     // Admin can chat with everyone
     query.role = { $in: ['Student', 'Tutor', 'Admin'] }
+  } else if (me.role === 'TutorAdmin') {
+    // TutorAdmin can chat with everyone (mirrors Admin)
+    query.role = { $in: ['Student', 'Tutor', 'Admin'] }
   } else if (me.role === 'Tutor') {
     // Tutor can chat with their assigned students and admins
     const adminIds = await User.find({ role: 'Admin' }).select('_id').lean()
-    const assignedStudentIds = me.assignedTests
-      ? await User.find({ assignedTutors: decoded.userId }).select('_id').lean()
-      : []
+    const assignedStudentIds = await User.find({ assignedTutors: decoded.userId, role: 'Student' }).select('_id').lean()
     const allowedIds = [
       ...adminIds.map(a => a._id.toString()),
       ...assignedStudentIds.map(s => s._id.toString())

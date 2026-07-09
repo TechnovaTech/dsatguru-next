@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import TestSession from '../../../../../lib/models/TestSession'
-// Side-effect imports: register User and Test schemas so .populate('userId') /
-// .populate('testId') resolve on cold start.
+// Side-effect import: register User schema so .populate('userId') resolves on cold start.
 import '../../../../../lib/models/User'
-import '../../../../../lib/models/Test'
+import Test from '../../../../../lib/models/Test'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 
 export async function GET(request) {
@@ -17,22 +16,35 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const sessions = await TestSession.find({ status: 'Completed' })
+    // Paging — limit applies AFTER subsetting to adaptive/standard tests (see below).
+    const { searchParams } = new URL(request.url)
+    const limit = Math.min(Math.max(parseInt(searchParams.get('limit'), 10) || 500, 1), 1000)
+    const skip = Math.max(parseInt(searchParams.get('skip'), 10) || 0, 0)
+
+    // Pre-resolve the relevant test ids (adaptive/standard — exclude tutor and
+    // admin-panel tests) so the limit constrains the relevant subset, not the
+    // newest 500 completed sessions of every test type. Otherwise, once total
+    // completions exceed the cap, older adaptive results are silently dropped.
+    const adaptiveTestIds = await Test.find({
+      isTutorTest: { $ne: true },
+      isAdminTest: { $ne: true },
+      practiceMode: { $nin: ['tutor', 'admin'] }
+    }).distinct('_id')
+
+    const sessions = await TestSession.find({
+      status: 'Completed',
+      testId: { $in: adaptiveTestIds }
+    })
       .populate('userId', 'name email')
       .populate('testId', 'title subject practiceMode isTutorTest isAdminTest duration isTimed')
       .sort({ completedAt: -1 })
-      .limit(500)
+      .skip(skip)
+      .limit(limit)
       .lean()
 
-    // Only adaptive/standard tests — exclude tutor and admin-panel tests
-    const filtered = sessions.filter(s => {
-      if (!s.testId || !s.userId) return false
-      const pm = s.testId.practiceMode
-      if (s.testId.isTutorTest === true) return false
-      if (s.testId.isAdminTest === true) return false
-      if (pm === 'tutor' || pm === 'admin') return false
-      return true
-    })
+    // Drop rows whose test was deleted (testId null) or user was deleted
+    // (populate → null) after completion.
+    const filtered = sessions.filter(s => s.testId && s.userId)
 
     // A row can't be reassigned again while its previous reassignment is still
     // awaiting the student's attempt (the new session isn't Completed yet).

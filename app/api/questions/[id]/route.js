@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import Question from '../../../../lib/models/Question'
+import TestSession from '../../../../lib/models/TestSession'
 import { getTokenFromRequest, verifyToken, requireRole } from '../../../../lib/auth'
 import { ADMIN_ROLES } from '../../../../lib/constants/roles'
 import { canRevealAnswers } from '../../../../lib/serializers/question'
@@ -91,8 +92,20 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Question not found' }, { status: 404 })
     }
     
-    // Only staff may see answer key / explanation (no session context here to review).
-    const revealAnswers = canRevealAnswers({ role: decoded.role })
+    // Reveal answer key / explanation to staff, or to a student who has already
+    // COMPLETED a session that includes this question (Error Log / review).
+    // Mirrors the TestSession.exists check in app/api/tests/[id]/route.js.
+    let sessionCompleted = false
+    if (!canRevealAnswers({ role: decoded.role })) {
+      sessionCompleted = !!(await TestSession.exists({
+        userId: decoded.userId,
+        $and: [
+          { $or: [{ status: 'Completed' }, { state: 'COMPLETED' }] },
+          { $or: [{ 'responses.questionId': id }, { adaptiveAssignedQuestionIds: id }] }
+        ]
+      }))
+    }
+    const revealAnswers = canRevealAnswers({ role: decoded.role, sessionCompleted })
 
     let parsedOptions = []
     try { parsedOptions = question.options ? JSON.parse(question.options) : [] } catch (e) { parsedOptions = [] }

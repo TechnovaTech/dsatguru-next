@@ -171,7 +171,24 @@ export async function POST(request) {
         sessionData.result = { math: scored.mathScore, readingWriting: scored.rwScore, total: scored.totalScore }
       }
 
-      const session = await TestSession.create(sessionData)
+      // If the student already has an OPEN (Assigned/InProgress) session for this test,
+      // complete THAT one instead of creating a duplicate — otherwise the test shows as
+      // both pending AND completed and gets double-counted in analytics (M25).
+      let session = null
+      if (sessionData.testId) {
+        const open = await TestSession.findOne({
+          userId: decoded.userId,
+          testId: sessionData.testId,
+          status: { $in: ['Assigned', 'InProgress'] },
+        }).sort({ createdAt: -1 })
+        if (open) {
+          Object.assign(open, sessionData)
+          session = await open.save()
+        }
+      }
+      if (!session) {
+        session = await TestSession.create(sessionData)
+      }
       logger.debug('Test session saved successfully with ID:', session._id)
 
       // Auto-populate ErrorLog from wrong answers so the redo page can see them

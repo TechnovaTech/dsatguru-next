@@ -40,6 +40,10 @@ export async function GET(request, { params }) {
         if (custom.correctAnswer !== undefined) d.correctAnswer = custom.correctAnswer
         if (custom.explanation !== undefined) d.explanation = custom.explanation
       }
+      // NOTE (L7): this endpoint is public and keyed only by the attempt ObjectId. It
+      // intentionally returns the taker's own answers + explanations (the demo's value is
+      // showing what they got wrong). A future hardening is to bind results to a
+      // per-attempt result token issued at start; the enumeration risk is low for a demo.
       qMap.set(d.id, d)
     }
 

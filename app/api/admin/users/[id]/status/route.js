@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../../lib/db'
 import User from '../../../../../../lib/models/User'
 import { requireRole } from '../../../../../../lib/auth'
-import { ROLES } from '../../../../../../lib/constants/roles'
+import { ADMIN_ROLES } from '../../../../../../lib/constants/roles'
 
 export async function PATCH(request, { params }) {
   try {
-    const auth = requireRole(request, [ROLES.ADMIN])
+    const auth = requireRole(request, ADMIN_ROLES)
     if (auth.error) return auth.error
 
     await connectDB()

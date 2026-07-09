@@ -18,14 +18,15 @@ export async function GET(request) {
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
-    // 1. Fetch all completed Admin Test sessions for this user
-    const adminSessions = await TestSession.find({ 
-      userId, 
-      status: 'Completed' 
+    // 1. Fetch all completed test sessions for this user
+    const adminSessions = await TestSession.find({
+      userId,
+      status: 'Completed'
     }).populate('testId').sort({ completedAt: -1 })
 
-    // 2. Filter for tests where practiceMode is 'admin'
-    const filteredSessions = adminSessions.filter(s => s.testId?.practiceMode === 'admin')
+    // 2. Filter for trackable tests (admin-assigned OR Mock) — mirrors the
+    // dashboard/student-analysis filter so all non-adaptive misses show up.
+    const filteredSessions = adminSessions.filter(s => s.testId?.practiceMode === 'admin' || s.testId?.testType === 'Mock')
 
     if (filteredSessions.length > 0) {
       // 3. Extract all incorrect responses from these sessions

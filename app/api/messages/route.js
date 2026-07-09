@@ -87,8 +87,8 @@ export async function POST(req) {
     if (!me) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
     let allowed = false
-    if (me.role === 'Admin') {
-      // Admin can chat with any active Student/Tutor/Admin
+    if (me.role === 'Admin' || me.role === 'TutorAdmin') {
+      // Admin and TutorAdmin can chat with any active Student/Tutor/Admin
       const target = await User.findOne({
         _id: targetUserId,
         isActive: true,
@@ -98,9 +98,7 @@ export async function POST(req) {
     } else if (me.role === 'Tutor') {
       // Tutor can chat with admins and their assigned students
       const adminIds = await User.find({ role: 'Admin' }).select('_id').lean()
-      const assignedStudentIds = me.assignedTests
-        ? await User.find({ assignedTutors: decoded.userId }).select('_id').lean()
-        : []
+      const assignedStudentIds = await User.find({ assignedTutors: decoded.userId, role: 'Student' }).select('_id').lean()
       const allowedIds = new Set([
         ...adminIds.map(a => a._id.toString()),
         ...assignedStudentIds.map(s => s._id.toString()),

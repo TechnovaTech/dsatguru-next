@@ -24,7 +24,12 @@ export async function GET(request) {
     const subject = searchParams.get('subject')
 
     if (type === 'students') {
-      const students = await User.find({ role: 'Student' }).select('_id name email')
+      // Tutors only see their own students; Admin/TutorAdmin see all students
+      const studentQuery = { role: 'Student' }
+      if (decoded.role === ROLES.TUTOR) {
+        studentQuery.assignedTutors = decoded.userId
+      }
+      const students = await User.find(studentQuery).select('_id name email')
       return NextResponse.json(students)
     }
 
@@ -121,6 +126,21 @@ export async function POST(request) {
     const existingTest = await Test.findOne({ title: title.trim(), isTutorTest: true, isActive: { $ne: false } })
     if (existingTest) {
       return NextResponse.json({ error: `A tutor test named "${title.trim()}" already exists. Please use a different name.` }, { status: 409 })
+    }
+
+    // Determine which users this test will be assigned to.
+    // Tutors may only assign to their OWN students; Admin/TutorAdmin can assign to anyone.
+    let assignedUserIds = Array.isArray(assignedUsers) ? assignedUsers : []
+    if (decoded.role === ROLES.TUTOR && assignedUserIds.length > 0) {
+      const ownStudents = await User.find({
+        _id: { $in: assignedUserIds },
+        role: 'Student',
+        assignedTutors: decoded.userId
+      }).select('_id')
+      assignedUserIds = ownStudents.map(s => s._id)
+      if (assignedUserIds.length === 0) {
+        return NextResponse.json({ error: 'Forbidden: none of the selected students are assigned to you' }, { status: 403 })
+      }
     }
 
     let selectedQuestionIds = []
@@ -228,7 +248,8 @@ export async function POST(request) {
       title,
       subject,
       questions: selectedQuestionIds,
-      assignedTo: assignedUsers,
+      assignedTo: assignedUserIds,
+      assignedTutors: [decoded.userId],
       isTutorTest: true,
       testType: 'Practice',
       practiceMode: 'tutor', 
@@ -244,9 +265,9 @@ export async function POST(request) {
       }
     })
 
-    // Create Test Sessions for assigned users
-    if (assignedUsers && assignedUsers.length > 0) {
-      const sessions = assignedUsers.map(userId => ({
+    // Create Test Sessions for assigned users and keep their assignedTests in sync
+    if (assignedUserIds.length > 0) {
+      const sessions = assignedUserIds.map(userId => ({
         userId,
         testId: newTest._id,
         status: 'Assigned',
@@ -255,8 +276,14 @@ export async function POST(request) {
         endTime: null,
         score: 0
       }))
-      
+
       await TestSession.insertMany(sessions)
+
+      // Add the test to each student's assignedTests so it shows in their assigned list
+      await User.updateMany(
+        { _id: { $in: assignedUserIds } },
+        { $addToSet: { assignedTests: newTest._id } }
+      )
     }
 
     return NextResponse.json({ success: true, testId: newTest._id, count: selectedQuestionIds.length })

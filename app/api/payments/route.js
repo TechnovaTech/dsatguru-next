@@ -49,35 +49,44 @@ export async function GET(request) {
 
     const dbPayments = raw.map(formatPaymentRecord)
 
-    const intents = await stripe.paymentIntents.list({
-      limit: 100,
-      expand: ['data.charges']
-    })
-    const intentsForUser = intents.data.filter(i => i.metadata?.userId === String(decoded.userId))
-    const intentCourseIds = Array.from(new Set(intentsForUser.map(i => i.metadata?.courseId).filter(Boolean)))
-    const validCourseIds = intentCourseIds.filter(id => mongoose.Types.ObjectId.isValid(id)).map(id => new mongoose.Types.ObjectId(id))
-    const courses = validCourseIds.length ? await Course.find({ _id: { $in: validCourseIds } }).select('title') : []
-    const courseMap = new Map(courses.map(c => [String(c._id), c]))
-    const stripePayments = intentsForUser.map(i => {
-      const cid = i.metadata?.courseId
-      const course = cid ? courseMap.get(String(cid)) : null
-      const charge = i.charges?.data?.[0]
-      const receiptUrl = charge?.receipt_url || null
-      const status = i.status === 'succeeded' ? 'Succeeded' : i.status === 'canceled' ? 'Cancelled' : 'Pending'
-      return {
-        id: i.id,
-        amount: Number((i.amount / 100).toFixed(2)),
-        currency: i.currency ? i.currency.toUpperCase() : 'USD',
-        status,
-        receiptUrl,
-        date: new Date(i.created * 1000).toISOString(),
-        courseTitle: course?.title || (i.metadata?.courseTitle || 'Purchase'),
-        courseId: cid || null,
-        enrollmentId: null,
-        paymentGateway: 'stripe',
-        paymentIntentId: i.id
-      }
-    })
+    // Stripe is best-effort enrichment; the local Payment collection is the source of truth.
+    // A Stripe API failure (e.g. `charges` no longer being expandable on modern API versions)
+    // must degrade to DB-only payments instead of 500-ing the whole page.
+    let stripePayments = []
+    try {
+      const intents = await stripe.paymentIntents.list({
+        limit: 100,
+        expand: ['data.latest_charge']
+      })
+      const intentsForUser = intents.data.filter(i => i.metadata?.userId === String(decoded.userId))
+      const intentCourseIds = Array.from(new Set(intentsForUser.map(i => i.metadata?.courseId).filter(Boolean)))
+      const validCourseIds = intentCourseIds.filter(id => mongoose.Types.ObjectId.isValid(id)).map(id => new mongoose.Types.ObjectId(id))
+      const courses = validCourseIds.length ? await Course.find({ _id: { $in: validCourseIds } }).select('title') : []
+      const courseMap = new Map(courses.map(c => [String(c._id), c]))
+      stripePayments = intentsForUser.map(i => {
+        const cid = i.metadata?.courseId
+        const course = cid ? courseMap.get(String(cid)) : null
+        const charge = i.latest_charge && typeof i.latest_charge === 'object' ? i.latest_charge : null
+        const receiptUrl = charge?.receipt_url || null
+        const status = i.status === 'succeeded' ? 'Succeeded' : i.status === 'canceled' ? 'Cancelled' : 'Pending'
+        return {
+          id: i.id,
+          amount: Number((i.amount / 100).toFixed(2)),
+          currency: i.currency ? i.currency.toUpperCase() : 'USD',
+          status,
+          receiptUrl,
+          date: new Date(i.created * 1000).toISOString(),
+          courseTitle: course?.title || (i.metadata?.courseTitle || 'Purchase'),
+          courseId: cid || null,
+          enrollmentId: null,
+          paymentGateway: 'stripe',
+          paymentIntentId: i.id
+        }
+      })
+    } catch (stripeErr) {
+      // Stripe unavailable/incompatible — fall back to DB-only payments.
+      stripePayments = []
+    }
 
     const merged = [...dbPayments, ...stripePayments]
     const seen = new Map()
@@ -115,7 +124,7 @@ export async function POST(request) {
     // Verify the payment with Stripe — never trust a client-supplied amount/status.
     let intent
     try {
-      intent = await stripe.paymentIntents.retrieve(paymentIntentId)
+      intent = await stripe.paymentIntents.retrieve(paymentIntentId, { expand: ['latest_charge'] })
     } catch (err) {
       return NextResponse.json({ error: 'Invalid paymentIntentId' }, { status: 400 })
     }
@@ -158,7 +167,7 @@ export async function POST(request) {
       paymentGateway: 'stripe',
       paymentIntentId,
       status: 'Succeeded',
-      receiptUrl: intent.charges?.data?.[0]?.receipt_url || null
+      receiptUrl: (intent.latest_charge && typeof intent.latest_charge === 'object' ? intent.latest_charge.receipt_url : null) || null
     })
 
     const populated = await Payment.findById(payment._id).populate({
