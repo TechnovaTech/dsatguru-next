@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react'
 import {
   FiEdit, FiToggleLeft, FiToggleRight, FiPlus, FiTrash2, FiEye, FiEyeOff,
-  FiSearch, FiX, FiUsers, FiUserCheck, FiShield,
+  FiSearch, FiX, FiUsers, FiUserCheck, FiShield, FiRotateCcw, FiDownload,
+  FiAlertTriangle, FiDatabase, FiCheckCircle,
 } from 'react-icons/fi'
 import { useToast, useConfirm } from '../ui/UIProvider'
 
@@ -29,6 +30,10 @@ export default function UserManagement() {
   const [showPassword, setShowPassword] = useState(false)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  // Reset-progress flow
+  const [resetTarget, setResetTarget] = useState(null)   // the student being reset
+  const [resetBusy, setResetBusy] = useState(false)
+  const [resetResult, setResetResult] = useState(null)   // { summary, archive } after success
 
   // Reset to first page whenever the result set changes
   useEffect(() => { setPage(1) }, [filter, search, pageSize])
@@ -60,11 +65,11 @@ export default function UserManagement() {
 
   // Close modal on Escape
   useEffect(() => {
-    if (!showModal) return
-    const onKey = (e) => { if (e.key === 'Escape') closeModal() }
+    if (!showModal && !resetTarget) return
+    const onKey = (e) => { if (e.key === 'Escape') { if (resetTarget) closeReset(); else closeModal() } }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [showModal])
+  }, [showModal, resetTarget, resetBusy])
 
   const handleToggleStatus = async (id) => {
     try {
@@ -154,6 +159,56 @@ export default function UserManagement() {
     } catch (error) {
       toast.error('Failed to delete user')
     }
+  }
+
+  const closeReset = () => { if (!resetBusy) { setResetTarget(null); setResetResult(null) } }
+
+  const doReset = async () => {
+    if (!resetTarget || resetBusy) return
+    setResetBusy(true)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`/api/admin/users/${resetTarget._id || resetTarget.id}/reset-progress`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ clearAssignments: true }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok) {
+        setResetResult(data)
+        toast.success(`${resetTarget.name || 'Student'}'s progress was reset — backup saved`)
+      } else {
+        toast.error(data.error || 'Failed to reset progress')
+      }
+    } catch {
+      toast.error('Failed to reset progress')
+    } finally {
+      setResetBusy(false)
+    }
+  }
+
+  const downloadBackup = () => {
+    if (!resetResult?.archive) return
+    const payload = {
+      student: { name: resetTarget?.name, email: resetTarget?.email, id: resetTarget?._id || resetTarget?.id },
+      resetAt: new Date().toISOString(),
+      summary: resetResult.summary,
+      data: resetResult.archive,
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${(resetTarget?.name || 'student').replace(/\s+/g, '-').toLowerCase()}-backup-${new Date().toISOString().slice(0, 10)}.json`
+    document.body.appendChild(a); a.click(); a.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  // Human-friendly labels for the archive summary counts.
+  const RESET_LABELS = {
+    testSessions: 'test attempts', errorLogs: 'logged mistakes', redoQueue: 'redo-queue items',
+    scoreTracker: 'score-tracker rows', dailyTracker: 'daily-tracker rows', studyPlans: 'study plans',
+    assignedTests: 'assigned tests',
   }
 
   const matchesRole = (user) => {
@@ -294,6 +349,11 @@ export default function UserManagement() {
                         <button onClick={() => openEditModal(user)} title="Edit" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-indigo-50 hover:text-indigo-600">
                           <FiEdit size={15} />
                         </button>
+                        {user.role === 'Student' && (
+                          <button onClick={() => { setResetTarget(user); setResetResult(null) }} title="Reset progress (backup first)" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-amber-50 hover:text-amber-600">
+                            <FiRotateCcw size={15} />
+                          </button>
+                        )}
                         <button onClick={() => handleDeleteUser(user._id || user.id)} title="Delete" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600">
                           <FiTrash2 size={15} />
                         </button>
@@ -435,6 +495,60 @@ export default function UserManagement() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Progress Modal (backup-first) */}
+      {resetTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" onClick={closeReset}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+            {!resetResult ? (
+              <>
+                <div className="mb-4 flex items-start gap-3">
+                  <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600"><FiAlertTriangle size={22} /></span>
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900">Reset {resetTarget.name}&apos;s progress?</h2>
+                    <p className="mt-0.5 text-sm text-slate-500">{resetTarget.email}</p>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-4 text-sm text-slate-700">
+                  This clears <b>all</b> of this student&apos;s data back to zero — test attempts, scores, mistakes, redo queue, trackers, study plan and test assignments.
+                  <div className="mt-3 flex items-center gap-2 rounded-lg bg-white/70 px-3 py-2 text-xs font-medium text-emerald-700">
+                    <FiDatabase size={14} /> A full backup is saved first — you can download it right after.
+                  </div>
+                </div>
+                <div className="mt-6 flex justify-end gap-2">
+                  <button onClick={closeReset} disabled={resetBusy} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50">Cancel</button>
+                  <button onClick={doReset} disabled={resetBusy} className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-700 disabled:opacity-60">
+                    {resetBusy ? (<><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> Backing up &amp; resetting…</>) : (<><FiRotateCcw size={15} /> Backup &amp; Reset</>)}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mb-4 flex items-start gap-3">
+                  <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600"><FiCheckCircle size={22} /></span>
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900">Progress reset</h2>
+                    <p className="mt-0.5 text-sm text-slate-500">{resetTarget.name} is now a blank slate. Backup saved.</p>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                  <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Backed up</p>
+                  <div className="space-y-1 text-sm text-slate-600">
+                    {Object.entries(resetResult.summary || {}).filter(([, n]) => n > 0).map(([k, n]) => (
+                      <div key={k} className="flex items-center justify-between"><span>{RESET_LABELS[k] || k}</span><span className="font-semibold tabular-nums text-slate-900">{n}</span></div>
+                    ))}
+                    {Object.values(resetResult.summary || {}).every((n) => !n) && <p className="text-slate-400">This student had no data to clear.</p>}
+                  </div>
+                </div>
+                <div className="mt-6 flex justify-end gap-2">
+                  <button onClick={downloadBackup} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"><FiDownload size={15} /> Download backup</button>
+                  <button onClick={closeReset} className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700">Done</button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
