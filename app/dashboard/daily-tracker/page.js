@@ -1,6 +1,6 @@
 'use client'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { FiCalendar, FiCheckCircle, FiList, FiTarget, FiTrendingUp, FiSave, FiCheck, FiAlertCircle, FiArrowRight } from 'react-icons/fi'
+import { FiCalendar, FiCheckCircle, FiList, FiTarget, FiTrendingUp, FiSave, FiCheck, FiAlertCircle, FiArrowRight, FiPlus, FiMinus, FiChevronDown } from 'react-icons/fi'
 
 function getStatus(total, target) {
   if (total === 0) return { label: '—', badge: 'bg-slate-100 text-slate-500' }
@@ -19,6 +19,7 @@ export default function StudentDailyTracker() {
   const [noPlan, setNoPlan] = useState(false)
   const [dateRange, setDateRange] = useState({ startDate: null, examDate: null })
   const [testSessions, setTestSessions] = useState([])
+  const [showFullLog, setShowFullLog] = useState(false)
   const saveTimer = useRef(null)
 
   const fetchData = async () => {
@@ -191,6 +192,18 @@ export default function StudentDailyTracker() {
     })
   }, [target, autoSave])
 
+  // Stepper for the mobile Today card — computes inside the functional
+  // updater so rapid taps never lose a count. Reuses the shared autoSave.
+  const bump = useCallback((idx, field, delta) => {
+    setRows(prev => {
+      const next = [...prev]
+      const cur = parseInt(next[idx]?.[field]) || 0
+      next[idx] = { ...next[idx], [field]: Math.max(0, cur + delta) }
+      autoSave(next, target, true)
+      return next
+    })
+  }, [target, autoSave])
+
   const updateTarget = (val, immediate = false) => {
     const t = Math.max(1, parseInt(val) || 1)
     setTarget(t)
@@ -210,6 +223,19 @@ export default function StudentDailyTracker() {
   const totalDone = computed.reduce((s, r) => s + r.total, 0)
   const daysWithData = computed.filter(r => r.total > 0).length
   const onTrackDays = computed.filter(r => r.total > 0 && r.total >= target).length
+
+  // Locate today's row for the mobile quick-log card. Row dates are "DD-MMM"
+  // (e.g. "09-Jul"); match the same way the session merge above does.
+  const now = new Date()
+  const todayDay = now.getDate()
+  const todayMonthShort = now.toLocaleDateString('en-GB', { month: 'short' })
+  const todayLabel = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+  const todayIdx = computed.findIndex(r => {
+    const parts = String(r.date).split('-')
+    return parseInt(parts[0], 10) === todayDay && parts[1] === todayMonthShort
+  })
+  const todayRow = todayIdx >= 0 ? computed[todayIdx] : null
+  const todayStatus = todayRow ? getStatus(todayRow.total, target) : null
 
   if (loading) return (
     <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
@@ -291,6 +317,94 @@ export default function StudentDailyTracker() {
           )}
         </div>
 
+        {/* Mobile-first "Today" quick-log card — hidden on desktop where the table is easy to use */}
+        <div className="mb-6 md:hidden">
+          {todayRow ? (
+            <div className="rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-indigo-500">Today · {todayRow.date}</p>
+                  <h2 className="text-lg font-bold text-slate-900">Log today&apos;s practice</h2>
+                  <p className="mt-0.5 text-xs text-slate-500">Count the questions you finished today.</p>
+                </div>
+                {todayStatus && (
+                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${todayStatus.badge}`}>{todayStatus.label}</span>
+                )}
+              </div>
+
+              {/* Math */}
+              <label htmlFor="today-math" className="mb-1.5 block text-sm font-semibold text-slate-700">Math questions</label>
+              <div className="mb-4 flex items-stretch gap-2.5">
+                <button type="button" aria-label="One less math question" onClick={() => bump(todayIdx, 'math', -1)} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-600 transition-colors active:bg-indigo-100">
+                  <FiMinus className="h-5 w-5" />
+                </button>
+                <input
+                  id="today-math"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  value={rows[todayIdx].math}
+                  onChange={e => update(todayIdx, 'math', e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && update(todayIdx, 'math', e.target.value, true)}
+                  placeholder="0"
+                  className="h-12 w-full min-w-0 rounded-xl border border-indigo-100 bg-indigo-50 text-center text-xl font-bold text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                />
+                <button type="button" aria-label="One more math question" onClick={() => bump(todayIdx, 'math', 1)} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-600 transition-colors active:bg-indigo-100">
+                  <FiPlus className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Reading & Writing */}
+              <label htmlFor="today-rw" className="mb-1.5 block text-sm font-semibold text-slate-700">Reading &amp; Writing questions</label>
+              <div className="mb-4 flex items-stretch gap-2.5">
+                <button type="button" aria-label="One less reading and writing question" onClick={() => bump(todayIdx, 'reading', -1)} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-600 transition-colors active:bg-emerald-100">
+                  <FiMinus className="h-5 w-5" />
+                </button>
+                <input
+                  id="today-rw"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  value={rows[todayIdx].reading}
+                  onChange={e => update(todayIdx, 'reading', e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && update(todayIdx, 'reading', e.target.value, true)}
+                  placeholder="0"
+                  className="h-12 w-full min-w-0 rounded-xl border border-emerald-100 bg-emerald-50 text-center text-xl font-bold text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                />
+                <button type="button" aria-label="One more reading and writing question" onClick={() => bump(todayIdx, 'reading', 1)} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-600 transition-colors active:bg-emerald-100">
+                  <FiPlus className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Today's total vs goal */}
+              <div className="mb-4 flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+                <span className="flex items-center gap-1.5 text-sm font-medium text-slate-500"><FiTarget className="h-4 w-4 text-amber-500" /> Today&apos;s total</span>
+                <span className="text-sm font-bold text-slate-900">{todayRow.total} <span className="font-normal text-slate-400">/ {target} goal</span></span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => autoSave(rows, target, true)}
+                disabled={saving}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-bold text-white transition-colors active:bg-indigo-700 disabled:opacity-70"
+              >
+                {saving ? <><FiSave className="h-4 w-4" /> Saving…</> : saved ? <><FiCheck className="h-4 w-4" /> Saved!</> : <><FiSave className="h-4 w-4" /> Save today</>}
+              </button>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-slate-100 bg-white p-5 text-center shadow-sm">
+              <span className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
+                <FiCalendar className="h-5 w-5" />
+              </span>
+              <h2 className="text-base font-bold text-slate-900">Today isn&apos;t in your plan yet</h2>
+              <p className="mx-auto mt-1 max-w-xs text-sm text-slate-500">{todayLabel} falls outside your study plan dates. Open your full log below to review past days, or update your plan.</p>
+              <a href="/dashboard/study-plan" className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white transition-colors active:bg-indigo-700">
+                Update study plan <FiArrowRight className="h-4 w-4" />
+              </a>
+            </div>
+          )}
+        </div>
+
         <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
           {stats.map(s => (
             <div key={s.label} className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
@@ -321,6 +435,18 @@ export default function StudentDailyTracker() {
           </div>
         </div>
 
+        {/* Full history — collapsed on phones (quick-log card above handles today), always open on desktop */}
+        <button
+          type="button"
+          onClick={() => setShowFullLog(v => !v)}
+          aria-expanded={showFullLog}
+          className="mb-3 flex h-12 w-full items-center justify-between rounded-2xl border border-slate-100 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm md:hidden"
+        >
+          <span className="flex items-center gap-2"><FiList className="h-4 w-4 text-slate-400" /> {showFullLog ? 'Hide full history' : 'Show full history'}</span>
+          <FiChevronDown className={`h-5 w-5 text-slate-400 transition-transform ${showFullLog ? 'rotate-180' : ''}`} />
+        </button>
+
+        <div className={`${showFullLog ? 'block' : 'hidden'} md:block`}>
         <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white shadow-sm">
           <table className="w-full text-sm">
             <thead>
@@ -396,6 +522,7 @@ export default function StudentDailyTracker() {
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> On Track — met daily target</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-amber-500" /> At Risk — ≥70% of target</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" /> Behind — &lt;70% of target</span>
+        </div>
         </div>
       </div>
     </div>

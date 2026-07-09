@@ -1,10 +1,11 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { renderContent } from '../../components/admin/LatexRenderer'
 import { resolveAnswerLetter } from '../../../lib/scoring/satScale'
 import {
   FiX, FiHelpCircle, FiAlertCircle, FiCheckCircle, FiXCircle, FiClock,
-  FiPlus, FiDownloadCloud, FiTrash2, FiSave, FiTag, FiRefreshCw
+  FiPlus, FiDownloadCloud, FiTrash2, FiSave, FiTag, FiRefreshCw, FiTarget, FiArrowRight
 } from 'react-icons/fi'
 
 const SECTIONS = ['Math', 'Reading & Writing']
@@ -266,6 +267,23 @@ export default function ErrorLogPage() {
     return acc
   }, {})
 
+  // Weakest areas: rank what the student misses most so we can point them
+  // straight at practice. Prefer named topics; if none are filled in, fall
+  // back to the broad section (Math / Reading & Writing). Never fabricate —
+  // if there's nothing to rank, the block simply doesn't render.
+  const rankBy = (keyFn) => rows.reduce((acc, r) => {
+    const k = (keyFn(r) || '').trim()
+    if (k) acc[k] = (acc[k] || 0) + 1
+    return acc
+  }, {})
+  const namedTopicCounts = rankBy(r => r.topic)
+  const weakestSource = Object.keys(namedTopicCounts).length > 0
+    ? namedTopicCounts
+    : rankBy(r => r.section)
+  const weakestAreas = Object.entries(weakestSource)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
@@ -287,7 +305,7 @@ export default function ErrorLogPage() {
               Error Log &amp; Redo Tracker
             </h1>
             <p className="mt-1 text-sm text-slate-500">
-              Log EVERY wrong answer. Complete the Redo column when you retry it.
+              Here are the questions you missed — review them and try again.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -335,6 +353,41 @@ export default function ErrorLogPage() {
           <StatCard icon={<FiXCircle className="h-5 w-5" />} value={stats.stillWrong} label="Still Wrong ✗" chipClass="bg-amber-500" />
           <StatCard icon={<FiClock className="h-5 w-5" />} value={stats.pending} label="Pending Redo" chipClass="bg-indigo-500" />
         </div>
+
+        {/* Your weakest areas — turn the counts into a next step */}
+        {weakestAreas.length > 0 && (
+          <div className="mb-6 rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-white p-5 shadow-sm">
+            <div className="mb-3 flex items-start gap-2.5">
+              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                <FiTarget className="h-4 w-4" />
+              </span>
+              <div>
+                <p className="text-sm font-bold text-slate-900">Your weakest areas</p>
+                <p className="text-xs text-slate-500">Start here — these are the topics you miss the most.</p>
+              </div>
+            </div>
+            <ul className="space-y-2">
+              {weakestAreas.map(([area, count]) => (
+                <li
+                  key={area}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3"
+                >
+                  <span className="text-sm text-slate-600">
+                    <span className="font-bold text-slate-900">{area}</span>
+                    {' — you’ve missed '}
+                    {count} question{count === 1 ? '' : 's'}
+                  </span>
+                  <Link
+                    href="/dashboard/redo-queue"
+                    className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+                  >
+                    Practice this <FiArrowRight className="h-4 w-4" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Topic Breakdown */}
         {Object.keys(topicCounts).length > 0 && (

@@ -112,7 +112,7 @@ export default function LiveClassesPage() {
               Live Classes
             </h1>
             <p className="mt-1 text-sm text-slate-500">
-              Join your scheduled live sessions and revisit past class recaps.
+              Join the live sessions from courses you&apos;re enrolled in, and revisit past class recaps.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -213,10 +213,16 @@ export default function LiveClassesPage() {
                 <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600">
                   <FiCalendar className="h-7 w-7" />
                 </span>
-                <h3 className="mt-4 text-lg font-bold text-slate-900">No scheduled classes</h3>
+                <h3 className="mt-4 text-lg font-bold text-slate-900">No live classes yet</h3>
                 <p className="mt-1.5 text-sm text-slate-500">
-                  You don&apos;t have any live classes scheduled at the moment.
+                  Live classes appear here once you join a live course.
                 </p>
+                <button
+                  onClick={() => router.push('/dashboard/courses')}
+                  className="mt-5 inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+                >
+                  <FiBookOpen className="h-4 w-4" /> Browse Live Courses
+                </button>
               </div>
             ) : (
               <div className="mt-8 space-y-10">
@@ -233,9 +239,13 @@ export default function LiveClassesPage() {
                             <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700">
                               <FiBookOpen className="h-3 w-3" /> {meeting.courseTitle || '—'}
                             </span>
-                            {isClassLive(meeting.parsedDate) && (
+                            {isClassLive(meeting.parsedDate) ? (
                               <span className="flex flex-shrink-0 animate-pulse items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-medium text-rose-700">
                                 <span className="h-2 w-2 rounded-full bg-rose-600"></span> LIVE NOW
+                              </span>
+                            ) : (
+                              <span className="flex flex-shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">
+                                <FiClock className="h-3 w-3" /> Upcoming
                               </span>
                             )}
                           </div>
@@ -249,12 +259,21 @@ export default function LiveClassesPage() {
                               <FiGlobe className="h-3.5 w-3.5" /> {meeting.transcriptLanguage}
                             </div>
                           )}
-                          <button
-                            onClick={() => setActiveMeeting(meeting)}
-                            className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
-                          >
-                            <FiVideo className="h-4 w-4" /> Join Class
-                          </button>
+                          {isClassLive(meeting.parsedDate) ? (
+                            <button
+                              onClick={() => setActiveMeeting(meeting)}
+                              className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+                            >
+                              <FiVideo className="h-4 w-4" /> Join Class
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setActiveMeeting(meeting)}
+                              className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg border border-indigo-200 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-600 transition-colors hover:bg-indigo-50"
+                            >
+                              <FiClock className="h-4 w-4" /> Join when it&apos;s live
+                            </button>
+                          )}
                         </div>
                       ))}
                     </div>

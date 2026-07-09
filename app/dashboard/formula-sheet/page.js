@@ -2,8 +2,54 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   FiBookOpen, FiPlus, FiTrash2, FiStar, FiCheckCircle,
-  FiAlertTriangle, FiSave, FiLayers, FiTrendingUp, FiCircle
+  FiAlertTriangle, FiSave, FiLayers, FiTrendingUp, FiCircle,
+  FiChevronDown, FiChevronUp, FiBookmark, FiEdit3
 } from 'react-icons/fi'
+import { renderLatex } from '../../components/admin/LatexRenderer'
+
+// Read-only facts from the official Digital SAT math reference. These are printed on the
+// real test, but a student who knows them cold answers faster. Formulas are LaTeX (rendered
+// with KaTeX via renderLatex); labels are plain English.
+const SAT_REFERENCE = [
+  {
+    title: 'Circles',
+    dot: 'bg-indigo-500',
+    facts: [
+      { label: 'Area of a circle', formula: 'A = \\pi r^2' },
+      { label: 'Circumference of a circle', formula: 'C = 2\\pi r' },
+      { label: 'One full circle', formula: '360^\\circ = 2\\pi \\text{ radians}' },
+    ],
+  },
+  {
+    title: 'Areas',
+    dot: 'bg-emerald-500',
+    facts: [
+      { label: 'Area of a rectangle', formula: 'A = \\ell w' },
+      { label: 'Area of a triangle', formula: 'A = \\tfrac{1}{2}\\,b h' },
+    ],
+  },
+  {
+    title: 'Triangles',
+    dot: 'bg-amber-500',
+    facts: [
+      { label: 'Pythagorean theorem', formula: 'a^2 + b^2 = c^2' },
+      { label: 'Angles of a triangle add up to', formula: '180^\\circ' },
+      { label: '30°-60°-90° side ratio', formula: 'x : x\\sqrt{3} : 2x' },
+      { label: '45°-45°-90° side ratio', formula: 's : s : s\\sqrt{2}' },
+    ],
+  },
+  {
+    title: 'Volumes',
+    dot: 'bg-sky-500',
+    facts: [
+      { label: 'Rectangular solid (box)', formula: 'V = \\ell w h' },
+      { label: 'Cylinder', formula: 'V = \\pi r^2 h' },
+      { label: 'Sphere', formula: 'V = \\tfrac{4}{3}\\pi r^3' },
+      { label: 'Cone', formula: 'V = \\tfrac{1}{3}\\pi r^2 h' },
+      { label: 'Pyramid', formula: 'V = \\tfrac{1}{3}\\ell w h' },
+    ],
+  },
+]
 
 const EMPTY_ROW = {
   day: '', date: '', mathFormula: '', grammarRule: '',
@@ -63,6 +109,7 @@ export default function FormulaSheetPage() {
   const [saved, setSaved] = useState(false)
   const [saveFailed, setSaveFailed] = useState(false)
   const [error, setError] = useState('')
+  const [showRef, setShowRef] = useState(true)
 
   const token = () => typeof window !== 'undefined' ? localStorage.getItem('token') : ''
 
@@ -173,7 +220,69 @@ export default function FormulaSheetPage() {
             My Formula &amp; Grammar Rule Sheet
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Every math formula, grammar rule, and trap you learn goes here. Review this tab for 5 minutes before every practice session.
+            Your quick math reference, plus your own notes and traps. Glance at this tab for 5 minutes before every practice session.
+          </p>
+        </div>
+
+        {/* Official SAT Reference (read-only) */}
+        <section className="mb-8">
+          <button
+            type="button"
+            onClick={() => setShowRef(v => !v)}
+            aria-expanded={showRef}
+            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/60 px-4 py-3 text-left transition-colors hover:bg-indigo-50"
+          >
+            <span className="flex items-center gap-2.5">
+              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white">
+                <FiBookmark className="h-5 w-5" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-base font-bold text-slate-900">Official SAT Reference</span>
+                <span className="block text-xs text-slate-500">
+                  The formulas the test gives you. Learn them by heart to save time.
+                </span>
+              </span>
+            </span>
+            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-indigo-600">
+              {showRef ? <FiChevronUp className="h-5 w-5" /> : <FiChevronDown className="h-5 w-5" />}
+            </span>
+          </button>
+
+          {showRef && (
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {SAT_REFERENCE.map(group => (
+                <div key={group.title} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-5">
+                  <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
+                    <span className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${group.dot}`} />
+                    {group.title}
+                  </h3>
+                  <ul className="space-y-3">
+                    {group.facts.map(fact => (
+                      <li
+                        key={fact.label}
+                        className="flex flex-col gap-0.5 border-b border-slate-50 pb-3 last:border-0 last:pb-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3"
+                      >
+                        <span className="text-sm text-slate-600">{fact.label}</span>
+                        <span className="text-base font-semibold text-slate-900 sm:text-right">
+                          {renderLatex(`$${fact.formula}$`)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* My Notes & Traps (your own log) */}
+        <div className="mb-4">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-slate-800">
+            <FiEdit3 className="h-5 w-5 flex-shrink-0 text-indigo-600" />
+            My Notes &amp; Traps
+          </h2>
+          <p className="mt-0.5 text-sm text-slate-500">
+            Your own log of formulas, grammar rules, and mistakes to watch out for. Add a row for anything you want to remember.
           </p>
         </div>
 

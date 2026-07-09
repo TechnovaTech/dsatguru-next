@@ -255,6 +255,7 @@ export default function Register() {
                     className={`w-full rounded-xl border py-3.5 text-center text-2xl font-bold tracking-[0.5em] text-slate-800 focus:outline-none focus:ring-4 ${errors.otp ? 'border-rose-400 focus:ring-rose-100' : 'border-slate-200 focus:border-indigo-400 focus:ring-indigo-100'}`}
                   />
                   {errors.otp && <p className="mt-1 text-center text-xs font-medium text-rose-500">{errors.otp}</p>}
+                  <p className="mt-2 text-center text-xs text-slate-500">Can&apos;t find it? Check your spam or promotions folder — the code expires in 10 minutes.</p>
                 </div>
 
                 <button type="submit" disabled={loading || otp.length !== 6} className="inline-flex w-full items-center justify-center rounded-full bg-indigo-600 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5 hover:bg-indigo-700 disabled:opacity-60">
@@ -274,6 +275,10 @@ export default function Register() {
               </form>
             </>
           )}
+
+          <p className="mt-6 text-center text-xs text-slate-500 md:hidden">
+            Trouble signing in? Email <a className="font-semibold text-indigo-600 hover:underline" href="mailto:info@dsatguru.com">info@dsatguru.com</a>
+          </p>
         </div>
       </motion.div>
     </section>

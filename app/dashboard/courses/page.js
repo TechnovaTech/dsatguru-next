@@ -150,7 +150,7 @@ export default function CoursesPage() {
             </span>
             My Live Courses
           </h1>
-          <p className="mt-1 text-sm text-slate-500">Manage your enrolled courses and explore new ones</p>
+          <p className="mt-1 text-sm text-slate-500">These are the courses you enroll in &mdash; each one unlocks its live classes and lessons. Manage your courses and explore new ones here.</p>
         </div>
 
         {/* Error alert */}

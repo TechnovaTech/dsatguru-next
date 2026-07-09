@@ -1,9 +1,21 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { renderContent } from '../../components/admin/LatexRenderer'
-import { FiClock, FiCheckCircle, FiArrowRight, FiArrowLeft, FiX, FiRefreshCw, FiInbox, FiPlay, FiAlertCircle } from 'react-icons/fi'
+// Same grading logic the server uses: resolve any stored answer shape (bare letter,
+// "B) 240"-style key, or option text) to its option LETTER, and match by letter.
+import { answersMatch, resolveAnswerLetter } from '../../../lib/scoring/satScale'
+import { FiClock, FiCheckCircle, FiXCircle, FiArrowRight, FiArrowLeft, FiX, FiRefreshCw, FiInbox, FiPlay, FiAlertCircle, FiChevronDown, FiChevronUp, FiBookOpen } from 'react-icons/fi'
 
 const token = () => typeof window !== 'undefined' ? localStorage.getItem('token') : ''
+
+// The redo API sends MCQ options as [{ key, value }]. Fold them into an { A, B, C, D }
+// object so the scoring helpers (which expect a question-style options shape) can resolve
+// the correct letter. Fill-in-the-blank questions have no options and yield all-blank.
+const optionsToObject = (options) => {
+  const obj = { A: '', B: '', C: '', D: '' }
+  ;(options || []).forEach(o => { if (o && o.key) obj[o.key] = o.value })
+  return obj
+}
 
 const sectionBadge = (section) => {
   const s = (section || '').toLowerCase()
@@ -35,6 +47,7 @@ export default function RedoQueuePage() {
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
+  const [showReview, setShowReview] = useState(false)
   const [showStartPopup, setShowStartPopup] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [timeElapsed, setTimeElapsed] = useState(0)
@@ -112,6 +125,7 @@ export default function RedoQueuePage() {
       setAnswers({})
       setCurrentQuestionIndex(0)
       setResult(null)
+      setShowReview(false)
       setTimeElapsed(0)
       setMode('test')
       enterFullscreen()
@@ -566,9 +580,9 @@ export default function RedoQueuePage() {
 
       {/* Result Mode */}
       {mode === 'result' && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-6">
-          <div className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-xl">
-            <div className="bg-indigo-600 p-10 text-center text-white">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4 sm:p-6">
+          <div className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+            <div className="shrink-0 bg-indigo-600 p-8 text-center text-white sm:p-10">
               <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-md">
                 <FiCheckCircle size={44} />
               </div>
@@ -578,22 +592,182 @@ export default function RedoQueuePage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-6 p-10 text-center">
-              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
-                <p className="mb-1 text-xs font-bold uppercase tracking-widest text-slate-400">Attempted</p>
-                <p className="text-3xl font-extrabold text-slate-900">{result?.attempted || 0}</p>
+            <div className="grid shrink-0 grid-cols-3 gap-3 p-6 text-center sm:gap-6 sm:p-10">
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-6">
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 sm:text-xs">Attempted</p>
+                <p className="text-2xl font-extrabold text-slate-900 sm:text-3xl">{result?.attempted || 0}</p>
               </div>
-              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-6">
-                <p className="mb-1 text-xs font-bold uppercase tracking-widest text-emerald-500">Correct</p>
-                <p className="text-3xl font-extrabold text-emerald-600">{result?.correct || 0}</p>
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 sm:p-6">
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-emerald-500 sm:text-xs">Correct</p>
+                <p className="text-2xl font-extrabold text-emerald-600 sm:text-3xl">{result?.correct || 0}</p>
               </div>
-              <div className="rounded-2xl border border-rose-100 bg-rose-50 p-6">
-                <p className="mb-1 text-xs font-bold uppercase tracking-widest text-rose-500">Incorrect</p>
-                <p className="text-3xl font-extrabold text-rose-600">{result?.wrong || 0}</p>
+              <div className="rounded-2xl border border-rose-100 bg-rose-50 p-4 sm:p-6">
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-rose-500 sm:text-xs">Incorrect</p>
+                <p className="text-2xl font-extrabold text-rose-600 sm:text-3xl">{result?.wrong || 0}</p>
               </div>
             </div>
 
-            <div className="flex gap-4 px-10 pb-10">
+            {/* Review answers toggle — reveals per-question feedback so a redo actually teaches */}
+            {questions.length > 0 && (
+              <div className="shrink-0 px-6 sm:px-10">
+                <button
+                  onClick={() => setShowReview(v => !v)}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-indigo-200 bg-indigo-50 px-6 py-3 text-sm font-bold text-indigo-700 transition-all hover:bg-indigo-100"
+                >
+                  <FiBookOpen />
+                  {showReview ? 'Hide answers' : 'Review answers'}
+                  {showReview ? <FiChevronUp /> : <FiChevronDown />}
+                </button>
+              </div>
+            )}
+
+            {/* Per-question review: the question, what you picked, the right answer, and why */}
+            {showReview && questions.length > 0 && (
+              <div className="custom-scrollbar mt-4 flex-1 space-y-4 overflow-y-auto bg-slate-50 px-4 py-4 sm:px-6">
+                {questions.map((q, idx) => {
+                  const optsObj = optionsToObject(q.options)
+                  const studentAnswer = answers[q.logId]
+                  const answered = studentAnswer != null && String(studentAnswer).trim() !== ''
+                  const isMcq = !q.isFillInBlank && Array.isArray(q.options) && q.options.length > 0
+                  const isRight = answered && answersMatch(q.correctAnswer, studentAnswer, isMcq ? optsObj : null)
+                  const correctLetter = isMcq ? resolveAnswerLetter(q.correctAnswer, optsObj) : ''
+                  const studentLetter = isMcq ? resolveAnswerLetter(studentAnswer, optsObj) : ''
+                  return (
+                    <div key={q.logId} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6">
+                      {/* Status row */}
+                      <div className="mb-4 flex items-center justify-between gap-3">
+                        <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                          Question {idx + 1}
+                        </span>
+                        {!answered ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">
+                            <FiAlertCircle size={14} /> Skipped
+                          </span>
+                        ) : isRight ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
+                            <FiCheckCircle size={14} /> Correct
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700">
+                            <FiXCircle size={14} /> Incorrect
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Question content */}
+                      {q.questionParagraph && (
+                        <div className="prose prose-sm mb-4 max-w-none rounded-xl border border-slate-100 bg-slate-50 p-4 leading-relaxed text-slate-700">
+                          {renderContent(q.questionParagraph)}
+                        </div>
+                      )}
+                      {q.imageUrl && (
+                        <img src={q.imageUrl} alt="Question" className="mb-4 max-w-full rounded-lg border border-slate-100" />
+                      )}
+                      <div className="prose prose-sm mb-4 max-w-none leading-relaxed text-slate-800">
+                        {renderContent(q.content)}
+                      </div>
+
+                      {/* Options (MCQ) with correct/selected highlighting */}
+                      {isMcq ? (
+                        <div className="space-y-2">
+                          {q.options.map((opt) => {
+                            const isCorrectOpt = correctLetter && opt.key === correctLetter
+                            const isSelectedOpt = studentLetter && opt.key === studentLetter
+                            const isWrongSel = isSelectedOpt && !isCorrectOpt
+                            let container = 'border-slate-100 bg-white'
+                            let badge = 'bg-slate-100 text-slate-500'
+                            let text = 'text-slate-600'
+                            if (isCorrectOpt) {
+                              container = 'border-emerald-200 bg-emerald-50'
+                              badge = 'bg-emerald-600 text-white'
+                              text = 'text-emerald-900 font-medium'
+                            } else if (isWrongSel) {
+                              container = 'border-rose-200 bg-rose-50'
+                              badge = 'bg-rose-600 text-white'
+                              text = 'text-rose-900 font-medium'
+                            }
+                            return (
+                              <div key={opt.key} className={`flex items-start gap-3 rounded-xl border p-3 ${container}`}>
+                                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${badge}`}>
+                                  {opt.key}
+                                </span>
+                                <div className={`flex-1 text-sm [&_img]:max-h-20 [&_img]:max-w-full ${text}`}>
+                                  {renderContent(opt.value)}
+                                </div>
+                                {isCorrectOpt && <FiCheckCircle className="mt-1 shrink-0 text-emerald-600" size={18} />}
+                                {isWrongSel && <FiXCircle className="mt-1 shrink-0 text-rose-600" size={18} />}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        /* Fill-in-the-blank review */
+                        <div className="space-y-3">
+                          {answered && (
+                            <div className={`rounded-xl border-2 p-4 ${isRight ? 'border-emerald-500 bg-emerald-50' : 'border-rose-500 bg-rose-50'}`}>
+                              <div className="mb-1 flex items-center gap-2">
+                                {isRight
+                                  ? <FiCheckCircle className="text-emerald-600" size={18} />
+                                  : <FiXCircle className="text-rose-600" size={18} />}
+                                <span className={`text-sm font-bold ${isRight ? 'text-emerald-700' : 'text-rose-700'}`}>Your answer</span>
+                              </div>
+                              <div className={`text-base font-semibold ${isRight ? 'text-emerald-900' : 'text-rose-900'}`}>
+                                {studentAnswer}
+                              </div>
+                            </div>
+                          )}
+                          {!isRight && q.correctAnswer && (
+                            <div className="rounded-xl border-2 border-emerald-500 bg-emerald-50 p-4">
+                              <div className="mb-1 flex items-center gap-2">
+                                <FiCheckCircle className="text-emerald-600" size={18} />
+                                <span className="text-sm font-bold text-emerald-700">Correct answer</span>
+                              </div>
+                              <div className="text-base font-semibold text-emerald-900">
+                                {renderContent(q.correctAnswer)}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Explicit correct answer for MCQ when missed or skipped */}
+                      {isMcq && !isRight && correctLetter && (
+                        <div className="mt-3 rounded-xl border-2 border-emerald-500 bg-emerald-50 p-4">
+                          <div className="mb-1 flex items-center gap-2">
+                            <FiCheckCircle className="text-emerald-600" size={18} />
+                            <span className="text-sm font-bold text-emerald-700">Correct answer</span>
+                          </div>
+                          <div className="text-sm font-semibold text-emerald-900 [&_img]:max-h-20 [&_img]:max-w-full">
+                            <span>{correctLetter}. {optsObj[correctLetter] ? renderContent(optsObj[correctLetter]) : null}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {!answered && (
+                        <p className="mt-3 text-xs font-medium text-slate-400">
+                          You didn&apos;t answer this one — check the correct answer above.
+                        </p>
+                      )}
+
+                      {/* Explanation, when the question has one */}
+                      {q.explanation && String(q.explanation).trim() !== '' && (
+                        <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/60 p-4">
+                          <div className="mb-2 flex items-center gap-2">
+                            <FiBookOpen className="text-indigo-600" size={16} />
+                            <h4 className="text-xs font-bold uppercase tracking-wide text-indigo-700">Explanation</h4>
+                          </div>
+                          <div className="prose prose-sm max-w-none leading-relaxed text-slate-700">
+                            {renderContent(q.explanation)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            <div className="flex shrink-0 gap-4 border-t border-slate-100 p-6 sm:px-10 sm:pb-10 sm:pt-6">
               <button
                 onClick={() => setMode('list')}
                 className="flex-1 rounded-xl border-2 border-slate-200 px-6 py-4 font-bold text-slate-600 transition-all hover:bg-slate-50"

@@ -187,6 +187,10 @@ export default function Login() {
               Don&apos;t have an account? <Link href={returnTo ? `/register?returnTo=${encodeURIComponent(returnTo)}` : '/register'} className="font-semibold text-indigo-600 hover:underline">Create one</Link>
             </p>
           </form>
+
+          <p className="mt-6 text-center text-xs text-slate-500 md:hidden">
+            Trouble signing in? Email <a className="font-semibold text-indigo-600 hover:underline" href="mailto:info@dsatguru.com">info@dsatguru.com</a>
+          </p>
         </div>
       </motion.div>
     </section>

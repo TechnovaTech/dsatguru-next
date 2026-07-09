@@ -26,6 +26,26 @@ export default function Dashboard() {
   const [testCounts, setTestCounts] = useState({ rw: 0, math: 0, module: 0, admin: 0, adaptive: 0 })
   const [performanceData, setPerformanceData] = useState([])
   const [unreadMessages, setUnreadMessages] = useState(0)
+  const [studyPlan, setStudyPlan] = useState(null)
+  const [studyPlanLoaded, setStudyPlanLoaded] = useState(false)
+
+  // Fetch the student's study plan for the goal + exam-countdown strip. Fails quietly:
+  // on any error we never flip studyPlanLoaded, so the strip simply stays hidden.
+  useEffect(() => {
+    const fetchStudyPlan = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) return
+        const res = await fetch('/api/study-plan', { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const data = await res.json()
+          setStudyPlan(data || null)
+          setStudyPlanLoaded(true)
+        }
+      } catch {}
+    }
+    fetchStudyPlan()
+  }, [])
 
   useEffect(() => {
     const fetchUnread = async () => {
@@ -199,6 +219,30 @@ export default function Dashboard() {
   const isNewUser = (stats.totalAttempted || 0) === 0 && recentActivity.length === 0
   const pendingTotal = (testCounts.rw || 0) + (testCounts.math || 0) + (testCounts.module || 0) + (testCounts.admin || 0) + (testCounts.adaptive || 0)
 
+  // Goal + exam-countdown strip. We recompute today's question target with the SAME
+  // formula the Study Plan page uses (its `dailyTotal`) so the two pages always agree,
+  // and derive the days-until-exam from the saved exam date. No plan = null = show CTA.
+  const goal = (() => {
+    if (!studyPlan || !studyPlan.examDate) return null
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const exam = new Date(studyPlan.examDate); exam.setHours(0, 0, 0, 0)
+    const target = parseInt(studyPlan.targetScore) || 1600
+    const current = parseInt(studyPlan.currentScore) || 0
+    const daysUntilExam = Math.ceil((exam - today) / 86400000)
+    const scoreGap = Math.max(0, target - current)
+    const examPassed = daysUntilExam <= 0
+    let dailyTotal = 0
+    if (!examPassed && daysUntilExam > 0 && scoreGap > 0) {
+      dailyTotal = Math.min(Math.max(Math.ceil(scoreGap * 0.05 + (100 / Math.max(daysUntilExam, 1)) * 5), 10), 60)
+    } else if (!examPassed && daysUntilExam > 0 && scoreGap === 0) {
+      dailyTotal = 10
+    }
+    return { target, daysUntilExam, examPassed, dailyTotal }
+  })()
+  const goalActive = !!goal && !goal.examPassed
+  const goalPassed = !!goal && goal.examPassed
+
   return (
     <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
@@ -232,6 +276,73 @@ export default function Dashboard() {
             )}
           </button>
         </div>
+
+        {/* Goal + exam-countdown strip — the daily nudge to start practice */}
+        {studyPlanLoaded && goalActive && (
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 p-5 text-white shadow-sm">
+            <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-1 flex-wrap items-center gap-x-6 gap-y-3">
+                <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-indigo-100">
+                  <FiTarget className="h-4 w-4" /> Your goal
+                </span>
+                <div className="flex items-center gap-2">
+                  <FiAward className="h-5 w-5 flex-shrink-0 text-indigo-200" />
+                  <div className="leading-tight">
+                    <div className="text-lg font-extrabold">{goal.target}</div>
+                    <div className="text-[11px] text-indigo-100">target score</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FiCalendar className="h-5 w-5 flex-shrink-0 text-indigo-200" />
+                  <div className="leading-tight">
+                    <div className="text-lg font-extrabold">{goal.daysUntilExam} day{goal.daysUntilExam === 1 ? '' : 's'}</div>
+                    <div className="text-[11px] text-indigo-100">until your exam</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FiActivity className="h-5 w-5 flex-shrink-0 text-indigo-200" />
+                  <div className="leading-tight">
+                    <div className="text-lg font-extrabold">{goal.dailyTotal || 10} question{(goal.dailyTotal || 10) === 1 ? '' : 's'}</div>
+                    <div className="text-[11px] text-indigo-100">today&apos;s practice</div>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => router.push('/dashboard/tests/create')}
+                className="flex w-full min-h-[44px] flex-shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-bold text-indigo-700 shadow-sm transition-colors hover:bg-indigo-50 sm:w-auto"
+              >
+                <FiPlay className="h-4 w-4" /> Start today&apos;s practice
+              </button>
+            </div>
+          </div>
+        )}
+
+        {studyPlanLoaded && !goalActive && (
+          <div className="flex flex-col items-start gap-3 rounded-2xl border border-indigo-100 bg-indigo-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white">
+                <FiTarget size={18} />
+              </span>
+              <div>
+                <p className="text-base font-bold text-slate-900">
+                  {goalPassed ? 'Your exam date has passed' : 'Set your SAT goal'}
+                </p>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  {goalPassed
+                    ? "Update your goal and we'll refresh your daily practice plan."
+                    : "Tell us your target score and exam date — we'll build a daily practice plan just for you."}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push('/dashboard/study-plan')}
+              className="w-full min-h-[44px] flex-shrink-0 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 sm:w-auto"
+            >
+              {goalPassed ? 'Update my goal' : 'Set your goal'}
+            </button>
+          </div>
+        )}
 
         {error && (
           <div role="alert" className="flex items-center justify-between gap-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3">

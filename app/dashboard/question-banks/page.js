@@ -9,7 +9,6 @@ import {
   FiLayers,
   FiHelpCircle,
   FiCheckCircle,
-  FiEdit3,
   FiCalendar,
   FiAlertCircle,
   FiPlayCircle,
@@ -107,6 +106,13 @@ export default function QuestionBanksPage() {
 
   const formatDate = (d) => (d ? new Date(d).toLocaleDateString() : '—')
 
+  // Whole-dollar unless there are cents (e.g. $49 or $49.50). Used for price + CTA labels.
+  const formatMoney = (n) => {
+    const num = Number(n)
+    if (!isFinite(num)) return ''
+    return `$${Number.isInteger(num) ? num : num.toFixed(2)}`
+  }
+
   const totalQuestionsAll = useMemo(
     () => questionBanks.reduce((sum, b) => sum + (Number(b.totalQuestions) || 0), 0),
     [questionBanks]
@@ -203,7 +209,39 @@ export default function QuestionBanksPage() {
             {questionBanks.map((bank) => {
               const enrollment = enrolledIds.get(String(bank.id))
               const isEnrolled = enrollment?.hasAccess || false
-              const accessType = enrollment?.accessType
+
+              // Only show a subject chip when it's a real subject — hide the internal
+              // 'Mixed' placeholder, which means nothing to a student.
+              const rawSubject = bank.subject || bank.questionBankType || ''
+              const subjectLabel = rawSubject && !/^mixed$/i.test(rawSubject.trim()) ? rawSubject : null
+
+              // Questions a student can actually practice (active), falling back to the total.
+              const questionCount = Number(bank.activeQuestions ?? bank.totalQuestions ?? 0) || 0
+
+              // Pricing. NOTE: /api/questions?question-banks=true does NOT currently return
+              // price fields. The Course model already has price / discountedPrice /
+              // discountPercentage (see lib/models/Course.js) — the API should include them
+              // in the question-banks payload so real prices show here. Until it does, this
+              // block simply hides pricing and shows a plain value line (never a fake number).
+              const hasPrice = bank.price !== undefined && bank.price !== null && bank.price !== ''
+              const priceNum = hasPrice ? Number(bank.price) : null
+              const discountedNum =
+                bank.discountedPrice !== undefined && bank.discountedPrice !== null && bank.discountedPrice !== ''
+                  ? Number(bank.discountedPrice)
+                  : null
+              const hasDiscount =
+                discountedNum != null && priceNum != null && discountedNum >= 0 && discountedNum < priceNum
+              const payNum = hasDiscount ? discountedNum : priceNum
+              const isFree = hasPrice && payNum === 0
+              const discountPct =
+                bank.discountPercentage != null && bank.discountPercentage !== ''
+                  ? Math.round(Number(bank.discountPercentage))
+                  : hasDiscount
+                    ? Math.round((1 - discountedNum / priceNum) * 100)
+                    : null
+
+              let ctaLabel = 'Get Access'
+              if (hasPrice && !isFree && payNum != null) ctaLabel = `Buy for ${formatMoney(payNum)}`
 
               return (
                 <div
@@ -211,80 +249,85 @@ export default function QuestionBanksPage() {
                   className="flex flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
                 >
                   <div className="mb-3 flex items-start justify-between gap-2">
-                    <h3 className="text-base font-bold text-slate-900">{bank.title || '—'}</h3>
+                    <h3 className="text-base font-bold text-slate-900">{bank.title || 'Question Bank'}</h3>
                     <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
-                      <span className="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700">
-                        {bank.subject || bank.questionBankType || '—'}
-                      </span>
+                      {subjectLabel && (
+                        <span className="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700">
+                          {subjectLabel}
+                        </span>
+                      )}
                       {isEnrolled && (
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                          accessType === 'admin'
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-violet-100 text-violet-700'
-                        }`}>
-                          {accessType === 'admin' ? 'Admin Access' : 'Paid Access'}
+                        <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                          Unlocked
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <p className="mb-4 line-clamp-3 text-sm text-slate-500">{bank.description || '—'}</p>
+                  <p className="mb-4 line-clamp-3 text-sm text-slate-500">
+                    {bank.description || 'A focused set of practice questions to help you get exam-ready.'}
+                  </p>
 
-                  {/* Stats */}
-                  <div className="mb-4 grid grid-cols-3 gap-2">
-                    <div className="rounded-xl bg-slate-50 px-2 py-2.5 text-center">
-                      <p className="flex items-center justify-center gap-1 text-sm font-bold text-slate-900">
-                        <FiHelpCircle className="h-3.5 w-3.5 text-slate-400" />
-                        {bank.totalQuestions ?? 0}
-                      </p>
-                      <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-400">Total</p>
-                    </div>
-                    <div className="rounded-xl bg-slate-50 px-2 py-2.5 text-center">
-                      <p className="flex items-center justify-center gap-1 text-sm font-bold text-emerald-600">
-                        <FiCheckCircle className="h-3.5 w-3.5" />
-                        {bank.activeQuestions ?? 0}
-                      </p>
-                      <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-400">Active</p>
-                    </div>
-                    <div className="rounded-xl bg-slate-50 px-2 py-2.5 text-center">
-                      <p className="flex items-center justify-center gap-1 text-sm font-bold text-amber-600">
-                        <FiEdit3 className="h-3.5 w-3.5" />
-                        {bank.draftQuestions ?? 0}
-                      </p>
-                      <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-400">Draft</p>
-                    </div>
+                  {/* Plain-English question count — replaces the internal Total/Active/Draft breakdown */}
+                  <div className="mb-4 flex items-center gap-2 text-sm font-medium text-slate-700">
+                    <FiHelpCircle className="h-4 w-4 flex-shrink-0 text-indigo-500" />
+                    {questionCount > 0
+                      ? `${questionCount.toLocaleString()} practice questions`
+                      : 'New questions added regularly'}
                   </div>
 
                   {/* Meta */}
-                  <div className="mb-4 mt-auto flex items-center justify-between gap-2 text-xs text-slate-400">
-                    <span className="flex items-center gap-1.5">
-                      <FiCalendar className="h-3.5 w-3.5" />
-                      Added {formatDate(bank.createdAt)}
-                    </span>
-                    {bank.status && (
-                      <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
-                        {bank.status}
-                      </span>
-                    )}
+                  <div className="mb-4 mt-auto flex items-center gap-2 text-xs text-slate-400">
+                    <FiCalendar className="h-3.5 w-3.5" />
+                    Added {formatDate(bank.createdAt)}
                   </div>
 
                   {isEnrolled ? (
                     <button
                       onClick={() => router.push(`/dashboard/practice/create?bankId=${bank.id}`)}
-                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
                     >
                       <FiPlayCircle className="h-4 w-4" />
                       Start Practice
                     </button>
                   ) : (
-                    <button
-                      onClick={() => handlePurchase(bank.id)}
-                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
-                    >
-                      <FiLock className="h-4 w-4" />
-                      Purchase Access
-                      <FiArrowRight className="h-4 w-4" />
-                    </button>
+                    <>
+                      {/* Price — shown only when the bank actually carries a price field */}
+                      {hasPrice ? (
+                        isFree ? (
+                          <div className="mb-3 flex items-baseline gap-2">
+                            <span className="text-lg font-extrabold text-emerald-600">Free</span>
+                          </div>
+                        ) : (
+                          <div className="mb-3 flex flex-wrap items-baseline gap-2">
+                            <span className="text-lg font-extrabold text-slate-900">{formatMoney(payNum)}</span>
+                            {hasDiscount && (
+                              <>
+                                <span className="text-sm text-slate-400 line-through">{formatMoney(priceNum)}</span>
+                                {discountPct != null && discountPct > 0 && (
+                                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                                    {discountPct}% off
+                                  </span>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        )
+                      ) : (
+                        <p className="mb-3 text-xs text-slate-500">
+                          Unlock every question in this bank and practice as much as you want.
+                        </p>
+                      )}
+
+                      <button
+                        onClick={() => handlePurchase(bank.id)}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+                      >
+                        <FiLock className="h-4 w-4" />
+                        {ctaLabel}
+                        <FiArrowRight className="h-4 w-4" />
+                      </button>
+                    </>
                   )}
                 </div>
               )

@@ -818,6 +818,23 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
   // SAT scaled score (out of 1600/800) only makes sense for full module tests —
   // hide it for practice/tutor/admin/adaptive results where it's misleading.
   const showScaledScore = hasScaledScore && test?.isModuleTest === true
+  // Plain-English meaning for the scaled SAT total (only shown on module tests, where
+  // totalScore is a real 400–1600 scaled score). Ranges are approximate encouragement,
+  // never a verdict — kept warm for a nervous student reading this on their phone.
+  const scoreBand =
+    (session.totalScore >= 1400) ? { label: 'Excellent', className: 'bg-green-100 text-green-800' } :
+    (session.totalScore >= 1200) ? { label: 'Strong', className: 'bg-teal-100 text-teal-800' } :
+    (session.totalScore >= 1000) ? { label: 'On your way', className: 'bg-sky-100 text-sky-800' } :
+    { label: 'Building foundations', className: 'bg-amber-100 text-amber-800' }
+  // A goal score only appears if it's genuinely attached to the data — never invented.
+  const targetScore = (typeof session?.targetScore === 'number') ? session.targetScore
+    : (typeof session?.userId?.targetScore === 'number') ? session.userId.targetScore
+    : (typeof session?.user?.targetScore === 'number') ? session.user.targetScore
+    : (typeof test?.targetScore === 'number') ? test.targetScore
+    : null
+  const pointsToTarget = (targetScore != null && typeof session.totalScore === 'number')
+    ? targetScore - session.totalScore
+    : null
   const scrollToScaledScore = () => {
     scaledScoreRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
@@ -828,6 +845,15 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
   const incorrectCount = questions.filter(q => !q.isCorrect && q.userAnswer).length
   const omittedCount = questions.filter(q => !q.userAnswer && q.wasVisited).length
   const unvisitedCount = questions.filter(q => !q.wasVisited).length
+  // Per-section raw tallies. A section with zero questions (e.g. a Math-only test) is
+  // hidden below instead of showing a discouraging "0/0".
+  const rwQuestions = questions.filter(q => /read|writ/i.test(q.subject || ''))
+  const mathQuestions = questions.filter(q => /math/i.test(q.subject || ''))
+  const rwTotal = rwQuestions.length
+  const mathTotal = mathQuestions.length
+  const rwCorrect = rwQuestions.filter(q => q.isCorrect).length
+  const mathCorrect = mathQuestions.filter(q => q.isCorrect).length
+  const visibleSectionCount = 1 + (rwTotal > 0 ? 1 : 0) + (mathTotal > 0 ? 1 : 0)
   const accuracy = totalQuestions > 0 ? ((correctCount / totalQuestions) * 100).toFixed(2) : 0
   const totalTime = session.timeSpent || 0
   const formattedTime = `${Math.floor(totalTime / 60)}:${(totalTime % 60).toString().padStart(2, '0')}`
@@ -1159,6 +1185,19 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                             <div className="text-xs font-bold text-purple-200 uppercase mb-1">Total Score</div>
                             <div className="text-4xl font-black text-white">{session.totalScore}</div>
                             <div className="text-xs text-purple-200 mt-1">out of 1600</div>
+                            {/* One-line meaning of this score, so it isn't just a bare number */}
+                            <div className="mt-3 pt-3 border-t border-purple-700">
+                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${scoreBand.className}`}>
+                                    {scoreBand.label}
+                                </span>
+                                {pointsToTarget != null && (
+                                    <div className="text-xs font-semibold text-purple-100 mt-2">
+                                        {pointsToTarget > 0
+                                            ? `${pointsToTarget} points to your target`
+                                            : "You've reached your target — amazing work!"}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         <div className="bg-purple-50 rounded-xl p-4 text-center border border-purple-100">
                             <div className="text-xs font-bold text-purple-700 uppercase mb-1">Reading and Writing</div>
@@ -1173,26 +1212,25 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                     </div>
                 )}
 
-                {/* Raw correct/total counts — secondary */}
-                <div className="grid grid-cols-3 gap-8 text-center">
+                {/* Raw correct/total counts — secondary. Empty sections (e.g. a Math-only
+                    test) are hidden so students never see a scary "0/0". */}
+                <div className={`grid gap-8 text-center ${visibleSectionCount >= 3 ? 'grid-cols-3' : visibleSectionCount === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                     <div>
                         <div className="text-3xl font-bold text-gray-900">{correctCount}/{totalQuestions}</div>
                         <div className="text-xs text-gray-500 font-medium uppercase mt-1">Total Questions</div>
                     </div>
-                    <div>
-                        <div className="text-3xl font-bold text-gray-900">
-                            {questions.filter(q => /read|writ/i.test(q.subject || '')).filter(q => q.isCorrect).length} /
-                            {questions.filter(q => /read|writ/i.test(q.subject || '')).length}
+                    {rwTotal > 0 && (
+                        <div>
+                            <div className="text-3xl font-bold text-gray-900">{rwCorrect}/{rwTotal}</div>
+                            <div className="text-xs text-gray-500 font-medium uppercase mt-1">Reading and Writing</div>
                         </div>
-                        <div className="text-xs text-gray-500 font-medium uppercase mt-1">Reading and Writing</div>
-                    </div>
-                    <div>
-                        <div className="text-3xl font-bold text-gray-900">
-                            {questions.filter(q => /math/i.test(q.subject || '')).filter(q => q.isCorrect).length} /
-                            {questions.filter(q => /math/i.test(q.subject || '')).length}
+                    )}
+                    {mathTotal > 0 && (
+                        <div>
+                            <div className="text-3xl font-bold text-gray-900">{mathCorrect}/{mathTotal}</div>
+                            <div className="text-xs text-gray-500 font-medium uppercase mt-1">Math</div>
                         </div>
-                        <div className="text-xs text-gray-500 font-medium uppercase mt-1">Math</div>
-                    </div>
+                    )}
                 </div>
             </div>
 

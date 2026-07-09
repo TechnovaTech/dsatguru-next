@@ -47,9 +47,10 @@ export default function ForgotPasswordPage() {
   const handleVerifyOTP = async (e) => {
     e.preventDefault()
     setError('')
-    if (!otp || otp.length !== 6) { setError('Please enter the 6-digit code'); return }
-    // Just validate OTP exists — we'll use it in the reset step
-    // For UX: move to reset step immediately after entering valid-looking OTP
+    // Client-side guard: require exactly 6 digits before advancing. The code is
+    // still verified by the server in the reset step below — this only prevents
+    // moving on with an obviously incomplete/invalid code.
+    if (!/^\d{6}$/.test(otp)) { setError('Please enter the 6-digit code'); return }
     setStep('reset')
   }
 
@@ -150,6 +151,7 @@ export default function ForgotPasswordPage() {
                   placeholder="000000"
                   className={`w-full text-center text-2xl font-bold tracking-[0.5em] py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${error ? 'border-red-500' : 'border-gray-300'}`} />
                 {error && <p className="text-red-500 text-xs mt-1 text-center">{error}</p>}
+                <p className="mt-2 text-center text-xs text-gray-500">Can&apos;t find it? Check your spam or promotions folder — the code expires in 10 minutes.</p>
               </div>
               <button type="submit" disabled={otp.length !== 6}
                 className="w-full bg-blue-600 text-white py-2.5 rounded-md text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50">
