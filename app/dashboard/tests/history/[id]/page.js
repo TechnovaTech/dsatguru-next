@@ -18,6 +18,10 @@ import {
 // Shared grader (same as the server): MCQ decided by option letter, never by casing;
 // fill-in-the-blank by case-insensitive text / numeric match.
 import { answersMatch, resolveAnswerLetter } from '../../../../../lib/scoring/satScale'
+// Rich question rendering (LaTeX $…$, markdown, <u>underline</u>, images, tables).
+import { renderContent } from '../../../../components/admin/LatexRenderer'
+// isFillInBlank => grid-in (no A–D choices); render the typed answer, not four empty boxes.
+import { isFillInBlank } from '../../../../../lib/questionOptions'
 
 export default function TestReviewPage() {
   const router = useRouter()
@@ -37,18 +41,23 @@ export default function TestReviewPage() {
   const fetchReview = async () => {
     try {
       const token = localStorage.getItem('token')
-      const [sessionRes, questionsRes] = await Promise.all([
-        fetch(`/api/test-sessions/${sessionId}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        }),
-        fetch('/api/questions', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        })
-      ])
+      // Build the review from the COMPLETED session payload only. That payload reveals
+      // correctAnswer + explanations and carries server-graded isCorrect on each response.
+      // (The old /api/questions source strips answer keys, so answersMatch was always false.)
+      const sessionRes = await fetch(`/api/test-sessions/${sessionId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
 
-      if (sessionRes.ok && questionsRes.ok) {
+      if (sessionRes.ok) {
         const sessionData = await sessionRes.json()
-        const allQuestions = await questionsRes.json()
+        const allQuestions = Array.isArray(sessionData.questions) ? sessionData.questions : []
+
+        // Prefer the server's authoritative isCorrect, matched by questionId; fall back to
+        // the shared matcher only when a response has no boolean flag.
+        const responseByQid = {}
+        if (Array.isArray(sessionData.responses)) {
+          sessionData.responses.forEach(r => { responseByQid[String(r.questionId)] = r })
+        }
 
         const reviewQuestions = []
         const moduleAnswers = sessionData.moduleAnswers || {}
@@ -73,8 +82,11 @@ export default function TestReviewPage() {
             const question = allQuestions.find(q => String(q._id) === String(questionId))
             if (question) {
               const userAnswer = answers[questionId] || null
-              const isCorrect = answersMatch(question.correctAnswer, userAnswer, question)
               const wasAttempted = userAnswer !== null && userAnswer !== undefined
+              const resp = responseByQid[String(questionId)]
+              const isCorrect = (resp && typeof resp.isCorrect === 'boolean')
+                ? resp.isCorrect
+                : answersMatch(question.correctAnswer, userAnswer, question)
 
               reviewQuestions.push({
                 ...question,
@@ -315,10 +327,8 @@ export default function TestReviewPage() {
               </div>
               <div className="relative z-10">
                 {currentQ?.questionParagraph && (
-                  <div className="mb-6">
-                    <p className="whitespace-pre-line leading-relaxed text-slate-700">
-                      {currentQ.questionParagraph}
-                    </p>
+                  <div className="mb-6 leading-relaxed text-slate-700">
+                    {renderContent(currentQ.questionParagraph)}
                   </div>
                 )}
                 {currentQ?.imageUrl && (
@@ -328,9 +338,9 @@ export default function TestReviewPage() {
                     className="mb-6 max-w-full rounded-xl border border-slate-100"
                   />
                 )}
-                <p className="text-base font-semibold leading-relaxed text-slate-900">
-                  {currentQ?.question || currentQ?.content}
-                </p>
+                <div className="text-base font-semibold leading-relaxed text-slate-900">
+                  {renderContent(currentQ?.question || currentQ?.content || currentQ?.questionText)}
+                </div>
               </div>
             </div>
 
@@ -343,50 +353,96 @@ export default function TestReviewPage() {
               </div>
               <div className="relative z-10">
                 {/* Answer Options */}
-                <div className="space-y-3">
-                  {['A', 'B', 'C', 'D'].map((option) => {
-                    const isUserAnswer = resolveAnswerLetter(currentQ.userAnswer, currentQ) === option
-                    const isCorrectAnswer = resolveAnswerLetter(currentQ.correctAnswer, currentQ) === option
-
-                    return (
-                      <div
-                        key={option}
-                        className={`w-full rounded-xl border-2 p-4 text-left transition-colors ${
-                          isCorrectAnswer
-                            ? 'border-emerald-400 bg-emerald-50'
-                            : isUserAnswer && !isCorrectAnswer
-                            ? 'border-rose-400 bg-rose-50'
-                            : 'border-slate-200 bg-white'
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold ${
-                            isCorrectAnswer
-                              ? 'border-emerald-500 bg-emerald-500 text-white'
-                              : isUserAnswer && !isCorrectAnswer
-                              ? 'border-rose-500 bg-rose-500 text-white'
-                              : 'border-slate-300 text-slate-600'
-                          }`}>
-                            {option}
-                          </div>
-                          <div className="flex-1 pt-1">
-                            <span className="text-slate-800">{currentQ?.[`option${option}`]}</span>
-                            {isCorrectAnswer && (
-                              <span className="ml-2 inline-flex items-center gap-1 text-sm font-semibold text-emerald-600">
-                                <FiCheckCircle size={14} /> Correct
-                              </span>
-                            )}
-                            {isUserAnswer && !isCorrectAnswer && (
-                              <span className="ml-2 inline-flex items-center gap-1 text-sm font-semibold text-rose-600">
-                                <FiXCircle size={14} /> Your Answer
-                              </span>
-                            )}
-                          </div>
+                {isFillInBlank(currentQ) ? (
+                  // GRID-IN / FILL-IN-THE-BLANK — no A–D choices; show the typed answer + key.
+                  <div className="space-y-3">
+                    {currentQ.wasAttempted && (
+                      <div className={`rounded-xl border-2 p-4 ${
+                        currentQ.isCorrect ? 'border-emerald-400 bg-emerald-50' : 'border-rose-400 bg-rose-50'
+                      }`}>
+                        <div className="mb-2 flex items-center gap-2">
+                          {currentQ.isCorrect ? (
+                            <>
+                              <FiCheckCircle className="text-emerald-600" size={18} />
+                              <span className="font-semibold text-emerald-700">Your Answer (Correct)</span>
+                            </>
+                          ) : (
+                            <>
+                              <FiXCircle className="text-rose-600" size={18} />
+                              <span className="font-semibold text-rose-700">Your Answer (Incorrect)</span>
+                            </>
+                          )}
+                        </div>
+                        <div className={`text-lg font-semibold ${currentQ.isCorrect ? 'text-emerald-900' : 'text-rose-900'}`}>
+                          {renderContent(String(currentQ.userAnswer))}
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
+                    )}
+                    {!currentQ.isCorrect && currentQ.correctAnswer && (
+                      <div className="rounded-xl border-2 border-emerald-400 bg-emerald-50 p-4">
+                        <div className="mb-2 flex items-center gap-2">
+                          <FiCheckCircle className="text-emerald-600" size={18} />
+                          <span className="font-semibold text-emerald-700">Correct Answer</span>
+                        </div>
+                        <div className="text-lg font-semibold text-emerald-900">
+                          {renderContent(String(currentQ.correctAnswer))}
+                        </div>
+                      </div>
+                    )}
+                    {!currentQ.wasAttempted && (
+                      <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                        <FiSlash className="text-slate-500" size={16} />
+                        <span className="text-sm font-medium text-slate-600">Not attempted</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {['A', 'B', 'C', 'D'].map((option) => {
+                      const optionText = currentQ?.options?.[option] ?? currentQ?.[`option${option}`] ?? ''
+                      const isUserAnswer = resolveAnswerLetter(currentQ.userAnswer, currentQ) === option
+                      const isCorrectAnswer = resolveAnswerLetter(currentQ.correctAnswer, currentQ) === option
+
+                      return (
+                        <div
+                          key={option}
+                          className={`w-full rounded-xl border-2 p-4 text-left transition-colors ${
+                            isCorrectAnswer
+                              ? 'border-emerald-400 bg-emerald-50'
+                              : isUserAnswer && !isCorrectAnswer
+                              ? 'border-rose-400 bg-rose-50'
+                              : 'border-slate-200 bg-white'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold ${
+                              isCorrectAnswer
+                                ? 'border-emerald-500 bg-emerald-500 text-white'
+                                : isUserAnswer && !isCorrectAnswer
+                                ? 'border-rose-500 bg-rose-500 text-white'
+                                : 'border-slate-300 text-slate-600'
+                            }`}>
+                              {option}
+                            </div>
+                            <div className="flex-1 pt-1 [&_img]:max-h-16 [&_img]:max-w-[200px] [&_img]:object-contain">
+                              <div className="text-slate-800">{optionText ? renderContent(optionText) : null}</div>
+                              {isCorrectAnswer && (
+                                <span className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-emerald-600">
+                                  <FiCheckCircle size={14} /> Correct
+                                </span>
+                              )}
+                              {isUserAnswer && !isCorrectAnswer && (
+                                <span className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-rose-600">
+                                  <FiXCircle size={14} /> Your Answer
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
 
                 {/* Explanation Section */}
                 {(!currentQ.wasAttempted || !currentQ.isCorrect) && (
@@ -408,9 +464,9 @@ export default function TestReviewPage() {
                         }`}>
                           Quick Explanation:
                         </p>
-                        <p className={`text-sm leading-relaxed ${!currentQ.wasAttempted ? 'text-slate-700' : 'text-amber-800'}`}>
-                          {currentQ.shortExplanation}
-                        </p>
+                        <div className={`text-sm leading-relaxed ${!currentQ.wasAttempted ? 'text-slate-700' : 'text-amber-800'}`}>
+                          {renderContent(currentQ.shortExplanation)}
+                        </div>
                       </div>
                     )}
                     <div>
@@ -419,9 +475,11 @@ export default function TestReviewPage() {
                       }`}>
                         Detailed Explanation:
                       </p>
-                      <p className={`text-sm leading-relaxed ${!currentQ.wasAttempted ? 'text-slate-700' : 'text-amber-800'}`}>
-                        {currentQ.longExplanation || currentQ.explanation || 'No detailed explanation available'}
-                      </p>
+                      <div className={`text-sm leading-relaxed ${!currentQ.wasAttempted ? 'text-slate-700' : 'text-amber-800'}`}>
+                        {currentQ.longExplanation || currentQ.explanation
+                          ? renderContent(currentQ.longExplanation || currentQ.explanation)
+                          : 'No detailed explanation available'}
+                      </div>
                     </div>
                   </div>
                 )}

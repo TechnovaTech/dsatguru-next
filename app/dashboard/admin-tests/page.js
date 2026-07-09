@@ -50,21 +50,40 @@ export default function AdminTestsPage() {
     setHistory(adminSessions)
   }
 
+  // One row per test — use the most-advanced session so a completed test never lingers under Assigned.
+  const STATUS_RANK = { Completed: 3, InProgress: 2, Assigned: 1 }
+  const sessionTime = (h) => new Date(h.completedAt || h.updatedAt || h.createdAt || 0).getTime()
+  const effectiveSessions = (() => {
+    const m = new Map()
+    history.forEach(h => {
+      const tid = String(h.testId?._id || h._id)
+      const cur = m.get(tid)
+      const better = !cur || (STATUS_RANK[h.status] || 0) > (STATUS_RANK[cur.status] || 0) || ((STATUS_RANK[h.status] || 0) === (STATUS_RANK[cur.status] || 0) && sessionTime(h) > sessionTime(cur))
+      if (better) m.set(tid, h)
+    })
+    return [...m.values()]
+  })()
+  // A deactivated (isActive===false) test is a dead/duplicate sheet — never surface it as
+  // something the student can start. Completed history for such a test is left untouched.
+  const assignedList = effectiveSessions.filter(h => h.status === 'Assigned' && h.testId?.isActive !== false)
+  const inProgressList = effectiveSessions.filter(h => h.status === 'InProgress' && !h.isReassigned && h.testId?.isActive !== false)
+  const completedList = effectiveSessions.filter(h => h.status === 'Completed' && !h.isReassigned)
+
   const tabs = [
-    { name: 'Assigned', count: history.filter(h => h.status === 'Assigned').length },
-    { name: 'In Progress', count: history.filter(h => h.status === 'InProgress').length },
-    { name: 'Completed', count: history.filter(h => h.status === 'Completed').length }
+    { name: 'Assigned', count: assignedList.length },
+    { name: 'In Progress', count: inProgressList.length },
+    { name: 'Completed', count: completedList.length }
   ]
 
   const returnUrl = '/dashboard/admin-tests'
 
   // Summary stats across all admin sessions
-  const completedSessions = history.filter(h => h.status === 'Completed')
+  const completedSessions = completedList
   const avgScore = completedSessions.length
     ? Math.round(completedSessions.reduce((sum, s) => sum + (s.totalScore || 0), 0) / completedSessions.length)
     : 0
   const stats = [
-    { label: 'Total Tests', value: history.length, icon: <FiFileText className="h-5 w-5" />, color: 'bg-indigo-500' },
+    { label: 'Total Tests', value: effectiveSessions.length, icon: <FiFileText className="h-5 w-5" />, color: 'bg-indigo-500' },
     { label: 'Assigned', value: tabs[0].count, icon: <FiTarget className="h-5 w-5" />, color: 'bg-amber-500' },
     { label: 'Completed', value: completedSessions.length, icon: <FiCheckCircle className="h-5 w-5" />, color: 'bg-emerald-500' },
     { label: 'Avg Score', value: completedSessions.length ? avgScore : '—', icon: <FiTrendingUp className="h-5 w-5" />, color: 'bg-violet-500' },
@@ -218,12 +237,10 @@ export default function AdminTestsPage() {
     )
   }
 
-  const filtered = history.filter(h => {
-    if (activeTab === 'Assigned') return h.status === 'Assigned'
-    if (activeTab === 'In Progress') return h.status === 'InProgress' && !h.isReassigned
-    if (activeTab === 'Completed') return h.status === 'Completed' && !h.isReassigned
-    return false
-  })
+  const filtered = activeTab === 'Assigned' ? assignedList
+    : activeTab === 'In Progress' ? inProgressList
+    : activeTab === 'Completed' ? completedList
+    : []
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 lg:p-8">

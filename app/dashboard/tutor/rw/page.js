@@ -19,36 +19,18 @@ export default function TutorRWPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState('Assigned')
-  const [assignedTestIds, setAssignedTestIds] = useState([])
 
   useEffect(() => {
     fetchAssignedTests()
   }, [])
 
+  // /api/test-sessions already returns only this student's own sessions, so we
+  // gate purely on those (tutor test + Reading & Writing + active). We deliberately
+  // do NOT cross-check User.assignedTests: the tutor-test create path doesn't
+  // populate that array, so a cross-check would drop newly assigned tutor tests.
   const fetchAssignedTests = async () => {
     setLoading(true)
     setError(null)
-    try {
-      const token = localStorage.getItem('token')
-      const userRes = await fetch('/api/user/profile', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      if (userRes.ok) {
-        const data = await userRes.json()
-        setAssignedTestIds(data.user.assignedTests || [])
-        fetchHistory(data.user.assignedTests || [])
-      } else {
-        setError('Failed to load your profile. Please try again.')
-        setLoading(false)
-      }
-    } catch (error) {
-      console.error('Failed to fetch assigned tests', error)
-      setError('Failed to load your assigned tests. Please try again.')
-      setLoading(false)
-    }
-  }
-
-  const fetchHistory = async (testIds) => {
     try {
       const token = localStorage.getItem('token')
       const res = await fetch('/api/test-sessions', {
@@ -70,10 +52,7 @@ export default function TutorRWPage() {
         // FALLBACK: If 'subject' is missing (legacy data), check 'sections.rw'
         const isRW = s.testId?.subject === 'Reading and Writing' || (!s.testId?.subject && s.testId?.sections?.rw === true)
 
-        // Check if test is assigned to this student
-        const isAssigned = testIds.length === 0 || testIds.map(id => id?.toString()).includes(s.testId?._id?.toString())
-
-        return isTutor && isRW && isAssigned
+        return isTutor && isRW
       })
       setHistory(tutorSessions)
     } catch (error) {

@@ -56,17 +56,39 @@ export default function AdaptiveTestsPage() {
     }
   }
 
+  // One row per test — collapse to the most-advanced session so a completed test never
+  // lingers under Assigned. Self-practice tests belong to the practice flow, not this
+  // assigned-tests view, so drop them from every tab/stat entirely.
+  const STATUS_RANK = { Completed: 3, InProgress: 2, Assigned: 1 }
+  const sessionTime = (h) => new Date(h.completedAt || h.updatedAt || h.createdAt || 0).getTime()
+  const effectiveSessions = (() => {
+    const m = new Map()
+    history.forEach(h => {
+      if (h.testId?.isSelfPractice === true) return
+      const tid = String(h.testId?._id || h._id)
+      const cur = m.get(tid)
+      const better = !cur || (STATUS_RANK[h.status] || 0) > (STATUS_RANK[cur.status] || 0) || ((STATUS_RANK[h.status] || 0) === (STATUS_RANK[cur.status] || 0) && sessionTime(h) > sessionTime(cur))
+      if (better) m.set(tid, h)
+    })
+    return [...m.values()]
+  })()
+  // A deactivated (isActive===false) test is a dead/duplicate sheet — never surface it as
+  // something the student can start. Completed history for such a test is left untouched.
+  const assignedList = effectiveSessions.filter(h => h.status === 'Assigned' && h.testId?.isActive !== false)
+  const inProgressList = effectiveSessions.filter(h => h.status === 'InProgress' && !h.isReassigned && h.testId?.isActive !== false)
+  const completedList = effectiveSessions.filter(h => h.status === 'Completed' && !h.isReassigned)
+
   const tabs = [
-    { name: 'Assigned', count: history.filter(h => h.status === 'Assigned').length },
-    { name: 'In Progress', count: history.filter(h => h.status === 'InProgress').length },
-    { name: 'Completed', count: history.filter(h => h.status === 'Completed').length }
+    { name: 'Assigned', count: assignedList.length },
+    { name: 'In Progress', count: inProgressList.length },
+    { name: 'Completed', count: completedList.length }
   ]
 
   const statCards = [
-    { label: 'Assigned', value: history.filter(h => h.status === 'Assigned').length, icon: FiInbox, chip: 'bg-indigo-500' },
-    { label: 'In Progress', value: history.filter(h => h.status === 'InProgress' && !h.isReassigned).length, icon: FiActivity, chip: 'bg-amber-500' },
-    { label: 'Completed', value: history.filter(h => h.status === 'Completed' && !h.isReassigned).length, icon: FiCheckCircle, chip: 'bg-emerald-500' },
-    { label: 'Total Tests', value: history.length, icon: FiList, chip: 'bg-violet-500' },
+    { label: 'Assigned', value: assignedList.length, icon: FiInbox, chip: 'bg-indigo-500' },
+    { label: 'In Progress', value: inProgressList.length, icon: FiActivity, chip: 'bg-amber-500' },
+    { label: 'Completed', value: completedList.length, icon: FiCheckCircle, chip: 'bg-emerald-500' },
+    { label: 'Total Tests', value: effectiveSessions.length, icon: FiList, chip: 'bg-violet-500' },
   ]
 
   const returnUrl = '/dashboard/adaptive-tests'
@@ -231,13 +253,11 @@ export default function AdaptiveTestsPage() {
     )
   }
 
-  // Filtered list matching original tab logic
-  const filtered = history.filter(h => {
-    if (activeTab === 'Assigned') return h.status === 'Assigned'
-    if (activeTab === 'In Progress') return h.status === 'InProgress' && !h.isReassigned
-    if (activeTab === 'Completed') return h.status === 'Completed' && !h.isReassigned
-    return false
-  })
+  // Filtered list derived from the same deduped + active arrays as the tabs/stats
+  const filtered = activeTab === 'Assigned' ? assignedList
+    : activeTab === 'In Progress' ? inProgressList
+    : activeTab === 'Completed' ? completedList
+    : []
 
   if (loading) {
     return (

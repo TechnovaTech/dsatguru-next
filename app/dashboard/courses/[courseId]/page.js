@@ -18,6 +18,8 @@ import {
   FiFileText as FiSummary,
   FiImage,
   FiGlobe,
+  FiAlertCircle,
+  FiRefreshCw,
 } from 'react-icons/fi'
 
 const TABS = [
@@ -57,38 +59,51 @@ export default function CourseDetailPage() {
   })
   const [courseTitle, setCourseTitle] = useState('')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState('meetings')
   const [recap, setRecap] = useState(null)
 
-  useEffect(() => {
-    const fetchCourseContent = async () => {
-      try {
-        setLoading(true)
-        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-        const res = await fetch(`/api/courses/${courseId}/content`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        })
-        if (res.status === 403) {
-          router.push('/dashboard/courses')
-          return
-        }
-        if (res.ok) {
-          const json = await res.json()
-          const content = json.content || {}
-          setCourseTitle(json.title || '')
-          setCourseData({
-            meetings: content.meetings || [],
-            materials: content.materials || [],
-            syllabus: content.syllabus || [],
-            assignments: content.assignments || []
-          })
-        }
-      } finally {
-        setLoading(false)
+  const fetchCourseContent = async () => {
+    try {
+      setLoading(true)
+      setError('')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const res = await fetch(`/api/courses/${courseId}/content`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
+      if (res.status === 401) {
+        router.push('/login')
+        return
       }
+      if (res.status === 403) {
+        router.push('/dashboard/courses')
+        return
+      }
+      if (!res.ok) {
+        setError("Couldn't load course content.")
+        return
+      }
+      const json = await res.json()
+      const content = json.content || {}
+      setCourseTitle(json.title || '')
+      setCourseData({
+        meetings: content.meetings || [],
+        materials: content.materials || [],
+        syllabus: content.syllabus || [],
+        assignments: content.assignments || []
+      })
+    } catch (err) {
+      console.error('Error fetching course content:', err)
+      setError("Couldn't load course content.")
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     if (courseId) fetchCourseContent()
-  }, [courseId, router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courseId])
 
   // Close recap modal on Escape
   useEffect(() => {
@@ -102,6 +117,38 @@ export default function CourseDetailPage() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col items-center gap-4 rounded-2xl border border-rose-100 bg-rose-50 p-10 text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+              <FiAlertCircle className="h-6 w-6" />
+            </span>
+            <div>
+              <h3 className="text-base font-semibold text-rose-800">Something went wrong</h3>
+              <p className="mt-1 text-sm text-rose-600">{error} Please try again.</p>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <button
+                onClick={fetchCourseContent}
+                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+              >
+                <FiRefreshCw className="h-4 w-4" /> Retry
+              </button>
+              <button
+                onClick={() => router.push('/dashboard/courses')}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+              >
+                <FiArrowLeft className="h-4 w-4" /> Back to Courses
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }

@@ -1,8 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-// Shared grader (same as the server): MCQ decided by option letter, never by casing.
-import { answersMatch } from '../../../../lib/scoring/satScale'
 import {
   FiArrowLeft,
   FiPlay,
@@ -14,6 +12,10 @@ import {
   FiCheckCircle,
   FiTarget,
 } from 'react-icons/fi'
+
+// Smallest pool that unlocks a full retest. The old gate demanded a whole 98-question
+// mock, which almost never accumulates, so the dashboard read "Not Enough Questions".
+const MIN_RETEST_QUESTIONS = 5
 
 export default function RetestPage() {
   const router = useRouter()
@@ -28,106 +30,108 @@ export default function RetestPage() {
   const fetchAllWrongQuestions = async () => {
     try {
       const token = localStorage.getItem('token')
-      const [sessionsRes, questionsRes] = await Promise.all([
-        fetch('/api/test-sessions', {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch('/api/questions', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      ])
+      const sessionsRes = await fetch('/api/test-sessions', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
 
-      if (sessionsRes.ok && questionsRes.ok) {
+      if (sessionsRes.ok) {
         const sessionsData = await sessionsRes.json()
-        const allQuestions = await questionsRes.json()
         const sessions = sessionsData.sessions || sessionsData || []
 
-        // Get all completed sessions (including retests)
+        // Every completed flow (module/tutor/adaptive/practice) records its answers in
+        // `responses`, which carry the server-graded `isCorrect` flag. Older sessions may
+        // only have raw `moduleAnswers` (no correctness), so include those too.
         const completedSessions = sessions.filter(s =>
-          s.status === 'Completed' && s.moduleAnswers
+          s.status === 'Completed' &&
+          ((Array.isArray(s.responses) && s.responses.length) || s.moduleAnswers)
         )
 
-        // Track questions that were answered correctly
+        // Normalize a session into a flat list of { questionId, selectedAnswer, isCorrect }.
+        // Prefer server-graded `responses`; only fall back to raw `moduleAnswers` (isCorrect
+        // unknown) when a session has none. We NEVER re-grade on the client — correctAnswer
+        // is stripped from the student /api/questions payload, so any client compare is bogus.
+        const entriesFor = (session) => {
+          if (Array.isArray(session.responses) && session.responses.length) {
+            return session.responses.map(r => ({
+              questionId: String(r.questionId),
+              selectedAnswer: r.selectedAnswer,
+              isCorrect: r.isCorrect,
+            }))
+          }
+          const out = []
+          const moduleAnswers = session.moduleAnswers || {}
+          Object.keys(moduleAnswers).forEach(moduleKey => {
+            const moduleData = moduleAnswers[moduleKey]
+            let answers = {}
+            if (moduleData && typeof moduleData === 'object') {
+              answers = (moduleData.answers && moduleData.questionIds) ? moduleData.answers : moduleData
+            }
+            Object.keys(answers).forEach(questionId => {
+              out.push({
+                questionId: String(questionId),
+                selectedAnswer: answers[questionId],
+                isCorrect: undefined, // moduleAnswers carries no correctness flag
+              })
+            })
+          })
+          return out
+        }
+
+        const wasAttempted = (val) => val !== null && val !== undefined && val !== ''
+
+        // First pass: every question ever graded correct (trust the stored server flag only).
         const correctlyAnswered = new Set()
-
-        // First pass: collect all correctly answered questions
         completedSessions.forEach(session => {
-          const moduleAnswers = session.moduleAnswers || {}
-          Object.keys(moduleAnswers).forEach(moduleKey => {
-            const moduleData = moduleAnswers[moduleKey]
-            let answers = {}
-            let questionIds = []
-
-            if (moduleData && typeof moduleData === 'object') {
-              if (moduleData.answers && moduleData.questionIds) {
-                answers = moduleData.answers
-                questionIds = moduleData.questionIds
-              } else {
-                answers = moduleData
-                questionIds = Object.keys(answers)
-              }
-            }
-
-            questionIds.forEach(questionId => {
-              const question = allQuestions.find(q => String(q._id) === String(questionId))
-              if (question) {
-                const userAnswer = answers[questionId]
-                const isCorrect = answersMatch(question.correctAnswer, userAnswer, question)
-                const wasAttempted = userAnswer !== null && userAnswer !== undefined && userAnswer !== ''
-
-                if (isCorrect && wasAttempted) {
-                  correctlyAnswered.add(String(questionId))
-                }
-              }
-            })
+          entriesFor(session).forEach(e => {
+            if (e.isCorrect === true) correctlyAnswered.add(e.questionId)
           })
         })
 
-        // Second pass: collect wrong/unattempted questions (excluding correctly answered ones)
-        const wrongQuestionsMap = new Map()
-
+        // Second pass: collect wrong / skipped question IDs (+ the student's answer),
+        // excluding any later mastered. We record only metadata here — the actual question
+        // docs are fetched by id below so wrong questions from EVERY source (tutor/admin/
+        // adaptive/mock) are included, not just direct-upload questions.
+        const wrongMeta = new Map()
         completedSessions.forEach(session => {
-          const moduleAnswers = session.moduleAnswers || {}
-          Object.keys(moduleAnswers).forEach(moduleKey => {
-            const moduleData = moduleAnswers[moduleKey]
-            let answers = {}
-            let questionIds = []
+          entriesFor(session).forEach(e => {
+            // Skip if answered correctly in any test.
+            if (correctlyAnswered.has(e.questionId)) return
 
-            if (moduleData && typeof moduleData === 'object') {
-              if (moduleData.answers && moduleData.questionIds) {
-                answers = moduleData.answers
-                questionIds = moduleData.questionIds
-              } else {
-                answers = moduleData
-                questionIds = Object.keys(answers)
-              }
+            const attempted = wasAttempted(e.selectedAnswer)
+            // A retest candidate is one the server graded wrong, or that was left blank.
+            // (isCorrect === undefined + attempted = legacy moduleAnswers we can't verify,
+            // so we leave it out rather than guess.)
+            if (e.isCorrect !== false && attempted) return
+
+            if (!wrongMeta.has(e.questionId)) {
+              wrongMeta.set(e.questionId, {
+                userAnswer: attempted ? e.selectedAnswer : null,
+                wasAttempted: attempted,
+              })
             }
-
-            questionIds.forEach(questionId => {
-              // Skip if already answered correctly in any test
-              if (correctlyAnswered.has(String(questionId))) return
-
-              const question = allQuestions.find(q => String(q._id) === String(questionId))
-              if (question) {
-                const userAnswer = answers[questionId]
-                const isCorrect = answersMatch(question.correctAnswer, userAnswer, question)
-                const wasAttempted = userAnswer !== null && userAnswer !== undefined && userAnswer !== ''
-
-                // Include if wrong OR not attempted
-                if (!isCorrect || !wasAttempted) {
-                  wrongQuestionsMap.set(String(questionId), {
-                    ...question,
-                    userAnswer: wasAttempted ? userAnswer : null,
-                    wasAttempted,
-                    module: moduleKey
-                  })
-                }
-              }
-            })
           })
         })
 
-        const wrongQuestions = Array.from(wrongQuestionsMap.values())
+        const ids = Array.from(wrongMeta.keys())
+        let wrongQuestions = []
+        if (ids.length > 0) {
+          // Fetch the exact question docs by id (scope-agnostic — includes tutor/admin/
+          // adaptive/mock questions the plain /api/questions listing would exclude).
+          const qRes = await fetch(`/api/questions?ids=${ids.join(',')}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          const questionDocs = qRes.ok ? await qRes.json() : []
+          const qById = new Map(questionDocs.map(q => [String(q._id), q]))
+          wrongQuestions = ids
+            .map(id => {
+              const q = qById.get(id)
+              if (!q) return null
+              const meta = wrongMeta.get(id)
+              return { ...q, userAnswer: meta.userAnswer, wasAttempted: meta.wasAttempted }
+            })
+            .filter(Boolean)
+        }
+
         const rwCount = wrongQuestions.filter(q =>
           q.subject === 'Reading and Writing' || q.subject === 'Reading & Writing'
         ).length
@@ -144,7 +148,7 @@ export default function RetestPage() {
   }
 
   const startRetest = () => {
-    if (stats.total < 98) return
+    if (stats.total < MIN_RETEST_QUESTIONS) return
 
     // Use a single id for both the stored session and the URL so the start page can
     // match them. The set is passed via localStorage; the start page guards against it
@@ -155,12 +159,12 @@ export default function RetestPage() {
     router.push(`/dashboard/tests/retest/${sessionId}/start`)
   }
 
-  const canStartRetest = stats.total >= 98
+  const canStartRetest = stats.total >= MIN_RETEST_QUESTIONS
 
   // Derived breakdown surfaced from the per-question data we already compute.
   const attemptedWrong = allWrongQuestions.filter(q => q.wasAttempted).length
   const notAttempted = allWrongQuestions.filter(q => !q.wasAttempted).length
-  const progressPct = Math.min(100, Math.round((stats.total / 98) * 100))
+  const progressPct = Math.min(100, Math.round((stats.total / MIN_RETEST_QUESTIONS) * 100))
 
   if (loading) {
     return (
@@ -277,7 +281,7 @@ export default function RetestPage() {
           <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-slate-700">Progress to Full Retest</span>
-              <span className="text-xs font-medium text-slate-500">{stats.total} / 98</span>
+              <span className="text-xs font-medium text-slate-500">{stats.total} / {MIN_RETEST_QUESTIONS}</span>
             </div>
             <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
               <div
@@ -288,7 +292,7 @@ export default function RetestPage() {
             <p className="mt-2 text-xs text-slate-500">
               {canStartRetest
                 ? 'You have enough questions for a full retest.'
-                : `${98 - stats.total} more question${98 - stats.total === 1 ? '' : 's'} needed to unlock a full retest.`}
+                : `${MIN_RETEST_QUESTIONS - stats.total} more question${MIN_RETEST_QUESTIONS - stats.total === 1 ? '' : 's'} needed to unlock a full retest.`}
             </p>
           </div>
         </div>
@@ -302,7 +306,7 @@ export default function RetestPage() {
               </div>
               <h3 className="text-xl font-bold text-slate-900">Not Enough Questions</h3>
               <p className="mt-2 text-sm text-slate-600">
-                You need at least <span className="font-semibold text-indigo-600">98 questions</span> to start a full retest.
+                You need at least <span className="font-semibold text-indigo-600">{MIN_RETEST_QUESTIONS} questions</span> to start a full retest.
                 <br />
                 Currently available: <span className="font-semibold text-slate-900">{stats.total} questions</span>
               </p>

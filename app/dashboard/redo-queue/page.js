@@ -468,6 +468,18 @@ export default function RedoQueuePage() {
                       </span>
                     )}
                   </div>
+                  {questions[currentQuestionIndex].questionParagraph && (
+                    <div className="prose prose-indigo mb-6 max-w-none rounded-xl border border-slate-100 bg-slate-50 p-6 text-base leading-relaxed text-slate-700">
+                      {renderContent(questions[currentQuestionIndex].questionParagraph)}
+                    </div>
+                  )}
+                  {questions[currentQuestionIndex].imageUrl && (
+                    <img
+                      src={questions[currentQuestionIndex].imageUrl}
+                      alt="Question"
+                      className="mb-6 max-w-full rounded-lg border border-slate-100"
+                    />
+                  )}
                   <div className="prose prose-indigo max-w-none text-lg leading-relaxed text-slate-800">
                     {renderContent(questions[currentQuestionIndex].content)}
                   </div>
@@ -478,9 +490,22 @@ export default function RedoQueuePage() {
             {/* Right side - Options */}
             <div className="z-10 flex w-[450px] flex-col border-l border-slate-100 bg-white shadow-2xl">
               <div className="custom-scrollbar flex-1 overflow-y-auto p-8">
-                <h3 className="mb-8 text-xs font-bold uppercase tracking-widest text-slate-400">Select Answer</h3>
+                <h3 className="mb-8 text-xs font-bold uppercase tracking-widest text-slate-400">
+                  {(questions[currentQuestionIndex].isFillInBlank || questions[currentQuestionIndex].options.length === 0) ? 'Your Answer' : 'Select Answer'}
+                </h3>
                 <div className="space-y-4">
-                  {questions[currentQuestionIndex].options.map((opt) => {
+                  {(questions[currentQuestionIndex].isFillInBlank || questions[currentQuestionIndex].options.length === 0) ? (
+                    <div>
+                      <input
+                        type="text"
+                        value={answers[questions[currentQuestionIndex].logId] || ''}
+                        onChange={(e) => setAnswers(prev => ({ ...prev, [questions[currentQuestionIndex].logId]: e.target.value }))}
+                        placeholder="Type your answer"
+                        className="w-full rounded-xl border-2 border-slate-200 px-5 py-4 text-lg font-medium text-slate-800 transition-all focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                      />
+                      <p className="mt-3 text-xs text-slate-400">Enter your answer exactly as it should appear (e.g. 5, -1/3, 0.75).</p>
+                    </div>
+                  ) : questions[currentQuestionIndex].options.map((opt) => {
                     const selected = answers[questions[currentQuestionIndex].logId] === opt.key
                     return (
                       <button

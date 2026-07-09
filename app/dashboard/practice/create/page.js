@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { FiPlay, FiSettings, FiClock, FiBook, FiTarget, FiHelpCircle, FiChevronDown, FiChevronUp } from 'react-icons/fi'
+import { FiPlay, FiSettings, FiClock, FiBook, FiHelpCircle, FiChevronDown, FiChevronUp } from 'react-icons/fi'
 import axios from 'axios'
 
 export default function CreatePracticePage() {
@@ -15,9 +15,7 @@ export default function CreatePracticePage() {
   const [showTutorial, setShowTutorial] = useState(false)
   const [practiceOptions, setPracticeOptions] = useState({
     subjects: ['Math', 'Reading & Writing'],
-    totalQuestions: 100,
-    difficultyDistribution: { Easy: 30, Medium: 40, Hard: 30 },
-    statusCounts: { unused: 80, incorrect: 10, correct: 8, mastered: 2, flagged: 0 }
+    totalQuestions: 100
   })
   const [expandedSections, setExpandedSections] = useState({
     quickSetup: true,
@@ -27,7 +25,6 @@ export default function CreatePracticePage() {
 
   const [config, setConfig] = useState({
     subject: 'Math',
-    difficulty: null,
     questionCount: 10,
     mode: 'Mock',
     timeLimit: null
@@ -63,8 +60,13 @@ export default function CreatePracticePage() {
   }
 
   const handleStartPractice = async () => {
+    if (!bankId) {
+      setError('No question bank is selected for this practice.')
+      return
+    }
     try {
       setStartingSession(true)
+      setError('')
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       const payload = {
         questionBankId: bankId,
@@ -82,16 +84,25 @@ export default function CreatePracticePage() {
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify(payload)
       })
-      if (res.ok) {
-        const data = await res.json()
-        const sessionId = data?.session?._id || data?.session?.id
-        if (sessionId) {
-          router.push(`/dashboard/sat-test/${sessionId}`)
-        } else {
-          router.push('/dashboard/analytics')
-        }
+      if (!res.ok) {
+        let message = ''
+        try {
+          const errData = await res.json()
+          message = errData?.error || errData?.message || ''
+        } catch (_) {}
+        setError(message || `Couldn't start the practice session (error ${res.status}).`)
+        return
       }
-    } catch (error) {
+      const data = await res.json()
+      const sessionId = data?.session?._id || data?.session?.id
+      if (sessionId) {
+        router.push(`/dashboard/sat-test/${sessionId}`)
+      } else {
+        setError("Couldn't start the practice session.")
+      }
+    } catch (err) {
+      console.error('Error starting practice session:', err)
+      setError("Couldn't start the practice session.")
     } finally {
       setStartingSession(false)
     }
@@ -140,8 +151,7 @@ export default function CreatePracticePage() {
             </button>
           </div>
         )}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3 space-y-6">
+        <div className="max-w-3xl mx-auto space-y-6">
             <div className="bg-white rounded-lg shadow-sm border">
               <button
                 onClick={() => toggleSection('quickSetup')}
@@ -183,7 +193,7 @@ export default function CreatePracticePage() {
                     </div>
                     <button
                       onClick={handleStartPractice}
-                      disabled={startingSession}
+                      disabled={startingSession || !bankId}
                       className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                     >
                       {startingSession ? (
@@ -199,6 +209,11 @@ export default function CreatePracticePage() {
                       )}
                     </button>
                   </div>
+                  {!bankId && (
+                    <p className="text-xs text-red-600">
+                      No question bank was selected, so practice can&apos;t be started from this page.
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -239,45 +254,6 @@ export default function CreatePracticePage() {
                           <div className="text-sm text-gray-500 mt-1">{practiceOptions?.totalQuestions || 0} questions</div>
                         </button>
                       ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">Difficulty Level</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {['Easy', 'Medium', 'Hard'].map((difficulty) => (
-                        <button
-                          key={difficulty}
-                          onClick={() =>
-                            setConfig((prev) => ({
-                              ...prev,
-                              difficulty: prev.difficulty === difficulty ? null : difficulty
-                            }))
-                          }
-                          className={`p-3 rounded-lg border text-sm font-medium transition-all ${
-                            config.difficulty === difficulty
-                              ? 'border-blue-500 bg-blue-50 text-blue-700'
-                              : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                          }`}
-                        >
-                          {difficulty}
-                          {practiceOptions?.difficultyDistribution?.[difficulty] && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              {practiceOptions.difficultyDistribution[difficulty]} questions
-                            </div>
-                          )}
-                        </button>
-                      ))}
-                      <button
-                        onClick={() => setConfig((prev) => ({ ...prev, difficulty: null }))}
-                        className={`p-3 rounded-lg border text-sm font-medium transition-all ${
-                          config.difficulty === null
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                        }`}
-                      >
-                        All Levels
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -347,43 +323,6 @@ export default function CreatePracticePage() {
                 </div>
               )}
             </div>
-          </div>
-
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border p-6 sticky top-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <FiTarget className="w-5 h-5" />
-                Practice Summary
-              </h3>
-
-              <div className="space-y-4">
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-gray-50 p-2 rounded">
-                      <div className="font-medium text-gray-900">{practiceOptions.statusCounts?.unused || 0}</div>
-                      <div className="text-gray-600">Unused</div>
-                    </div>
-                    <div className="bg-red-50 p-2 rounded">
-                      <div className="font-medium text-red-900">{practiceOptions.statusCounts?.incorrect || 0}</div>
-                      <div className="text-red-600">Incorrect</div>
-                    </div>
-                    <div className="bg-green-50 p-2 rounded">
-                      <div className="font-medium text-green-900">{practiceOptions.statusCounts?.correct || 0}</div>
-                      <div className="text-green-600">Correct</div>
-                    </div>
-                    <div className="bg-blue-50 p-2 rounded">
-                      <div className="font-medium text-blue-900">{practiceOptions.statusCounts?.mastered || 0}</div>
-                      <div className="text-blue-600">Mastered</div>
-                    </div>
-                    <div className="bg-purple-50 p-2 rounded">
-                      <div className="font-medium text-purple-900">{practiceOptions.statusCounts?.flagged || 0}</div>
-                      <div className="text-purple-600">Flagged</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -402,7 +341,7 @@ export default function CreatePracticePage() {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Personalize</h3>
-                  <p>Customize your practice by choosing specific subjects and difficulty levels.</p>
+                  <p>Customize your practice by choosing a specific subject.</p>
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Practice Mode</h3>

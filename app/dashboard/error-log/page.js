@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { renderContent } from '../../components/admin/LatexRenderer'
+import { resolveAnswerLetter } from '../../../lib/scoring/satScale'
 import {
   FiX, FiHelpCircle, FiAlertCircle, FiCheckCircle, FiXCircle, FiClock,
   FiPlus, FiDownloadCloud, FiTrash2, FiSave, FiTag, FiRefreshCw
@@ -516,43 +517,67 @@ export default function ErrorLogPage() {
                   </div>
 
                   {/* Options */}
-                  {selectedQuestion?.options && Array.isArray(selectedQuestion.options) && (
-                    <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-6 md:grid-cols-2">
-                      {selectedQuestion.options.map((opt, i) => {
-                        const key = opt?.key || String.fromCharCode(65 + i)
-                        const value = typeof opt === 'string' ? opt : opt?.value || ''
+                  {selectedQuestion?.options && Array.isArray(selectedQuestion.options) && (() => {
+                    // Resolve both the correct answer and the student's answer to option
+                    // letters (A–D) so we can highlight correct=green / wrong-choice=red,
+                    // regardless of whether the stored value is a letter, a "B) text" key,
+                    // or the full option text. Mirrors TestResultView.js.
+                    const optionValues = selectedQuestion.options.map((opt) =>
+                      typeof opt === 'string' ? opt : opt?.value || '')
+                    const correctLetter = resolveAnswerLetter(selectedQuestion.correctAnswer, optionValues)
+                    const studentLetter = resolveAnswerLetter(currentUserAnswer, optionValues)
 
-                        const isStudentAnswer = key === currentUserAnswer
+                    return (
+                      <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-6 md:grid-cols-2">
+                        {selectedQuestion.options.map((opt, i) => {
+                          const key = opt?.key || String.fromCharCode(65 + i)
+                          const value = typeof opt === 'string' ? opt : opt?.value || ''
 
-                        return (
-                          <div
-                            key={i}
-                            className={`flex items-start gap-4 rounded-xl border-2 p-4 transition-all ${
-                              isStudentAnswer
-                                ? 'border-rose-500 bg-rose-50 shadow-sm'
-                                : 'border-slate-100 bg-white hover:border-slate-200'
-                            }`}
-                          >
-                            <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg font-bold ${
-                              isStudentAnswer
-                                ? 'bg-rose-500 text-white shadow-md'
-                                : 'bg-slate-100 text-slate-600'
-                            }`}>
-                              {key}
-                            </span>
-                            <div className="flex-1 pt-0.5 text-slate-700">
-                              {renderContent(value)}
-                            </div>
-                            {isStudentAnswer && (
-                              <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter text-rose-600">
-                                Your Choice
+                          const isCorrect = !!correctLetter && key === correctLetter
+                          const isStudentAnswer = !!studentLetter && key === studentLetter
+                          const isWrongSelection = isStudentAnswer && !isCorrect
+
+                          let containerCls = 'border-slate-100 bg-white hover:border-slate-200'
+                          let badgeCls = 'bg-slate-100 text-slate-600'
+                          if (isCorrect) {
+                            containerCls = 'border-emerald-500 bg-emerald-50 shadow-sm'
+                            badgeCls = 'bg-emerald-500 text-white shadow-md'
+                          } else if (isWrongSelection) {
+                            containerCls = 'border-rose-500 bg-rose-50 shadow-sm'
+                            badgeCls = 'bg-rose-500 text-white shadow-md'
+                          }
+
+                          return (
+                            <div
+                              key={i}
+                              className={`flex items-start gap-4 rounded-xl border-2 p-4 transition-all ${containerCls}`}
+                            >
+                              <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg font-bold ${badgeCls}`}>
+                                {key}
                               </span>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
+                              <div className="flex-1 pt-0.5 text-slate-700">
+                                {renderContent(value)}
+                              </div>
+                              <div className="ml-auto flex flex-shrink-0 flex-col items-end gap-1">
+                                {isCorrect && (
+                                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter text-emerald-600">
+                                    Correct
+                                  </span>
+                                )}
+                                {isStudentAnswer && (
+                                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter ${
+                                    isCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
+                                  }`}>
+                                    Your Choice
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  })()}
 
                   {/* Meta Data */}
                   <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-6">

@@ -47,7 +47,11 @@ export default function QuestionBanksPage() {
     setError(null)
     try {
       const response = await axios.get('/api/questions?question-banks=true')
-      setQuestionBanks(response.data.data || [])
+      // Defense-in-depth: only real question_bank Course docs have 24-hex ids. Synthetic
+      // buckets (admin-math/admin-rw) route to /enrollment/admin-math -> "Course Not Found",
+      // so never render them in the student listing regardless of what the API returns.
+      const banks = (response.data.data || []).filter(b => /^[0-9a-fA-F]{24}$/.test(String(b?.id)))
+      setQuestionBanks(banks)
     } catch (error) {
       console.error('Error fetching question banks:', error)
       setError("Couldn't load question banks.")

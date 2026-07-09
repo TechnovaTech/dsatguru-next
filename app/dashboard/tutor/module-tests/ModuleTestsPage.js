@@ -46,13 +46,31 @@ export default function ModuleTestsPage({ subject }) {
     }
   }
 
+  // One row per test — use the most-advanced session so a completed test never lingers under Assigned.
+  const STATUS_RANK = { Completed: 3, InProgress: 2, Assigned: 1 }
+  const sessionTime = (h) => new Date(h.completedAt || h.updatedAt || h.createdAt || 0).getTime()
+  const effectiveSessions = (() => {
+    const m = new Map()
+    history.forEach(h => {
+      const tid = String(h.testId?._id || h._id)
+      const cur = m.get(tid)
+      const better = !cur || (STATUS_RANK[h.status] || 0) > (STATUS_RANK[cur.status] || 0) || ((STATUS_RANK[h.status] || 0) === (STATUS_RANK[cur.status] || 0) && sessionTime(h) > sessionTime(cur))
+      if (better) m.set(tid, h)
+    })
+    return [...m.values()]
+  })()
+  // A deactivated (isActive===false) test is a dead/duplicate sheet — never surface it as
+  // something the student can start. Completed history for such a test is left untouched.
+  const assignedList = effectiveSessions.filter(h => h.status === 'Assigned' && h.testId?.isActive !== false)
+  const inProgressList = effectiveSessions.filter(h => h.status === 'InProgress' && !h.isReassigned && h.testId?.isActive !== false)
+  const completedList = effectiveSessions.filter(h => h.status === 'Completed' && !h.isReassigned)
+
   const tabs = [
-    { name: 'Assigned', count: history.filter(h => h.status === 'Assigned').length },
-    { name: 'In Progress', count: history.filter(h => h.status === 'InProgress').length },
-    { name: 'Completed', count: history.filter(h => h.status === 'Completed').length }
+    { name: 'Assigned', count: assignedList.length },
+    { name: 'In Progress', count: inProgressList.length },
+    { name: 'Completed', count: completedList.length }
   ]
 
-  const statusMap = { Assigned: 'Assigned', 'In Progress': 'InProgress', Completed: 'Completed' }
   const returnUrl = subject
     ? (subject === 'Math' ? '/dashboard/tutor/module-tests/math' : '/dashboard/tutor/module-tests/rw')
     : '/dashboard/tutor/module-tests'
@@ -140,12 +158,9 @@ export default function ModuleTestsPage({ subject }) {
         {/* List */}
         <div className="space-y-3">
           {(() => {
-            const filtered = history.filter(h => {
-              if (h.status !== statusMap[activeTab]) return false
-              // Hide reassigned sessions from Completed and In Progress tabs
-              if (activeTab !== 'Assigned' && h.isReassigned) return false
-              return true
-            })
+            const filtered = activeTab === 'Assigned' ? assignedList
+              : activeTab === 'In Progress' ? inProgressList
+              : completedList
             if (!filtered.length) return (
               <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
                 <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">

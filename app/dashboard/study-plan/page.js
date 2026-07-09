@@ -152,7 +152,11 @@ export default function StudyPlanPage() {
       if (res.ok) {
         const data = await res.json()
         const newWeak = Array.isArray(data?.weakTopics) ? data.weakTopics : []
-        const newDaily = Array.isArray(data?.dailyPlan) ? data.dailyPlan : []
+        // Set each day's target to the hero's "Daily Qs" (same dailyTotal
+        // formula) instead of a hardcoded count.
+        const perDay = stats.dailyTotal || 15
+        const newDaily = (Array.isArray(data?.dailyPlan) ? data.dailyPlan : [])
+          .map(d => ({ ...d, questionCount: perDay }))
         setWeakTopics(newWeak)
         setDailyPlan(newDaily)
         // Persist alongside the rest of the form via the whitelisted POST.

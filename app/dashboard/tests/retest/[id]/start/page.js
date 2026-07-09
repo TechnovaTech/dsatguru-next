@@ -3,8 +3,12 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { FiCheckCircle, FiArrowRight } from 'react-icons/fi'
 import { useToast } from '../../../../../components/ui/UIProvider'
+// Rich content renderer (LaTeX $…$, <u>underline</u>, images, tables) — never print raw text.
+import { renderContent } from '../../../../../components/admin/LatexRenderer'
 // Shared grader (same as the server): MCQ decided by option letter, never by casing.
 import { answersMatch } from '../../../../../../lib/scoring/satScale'
+// MCQ vs grid-in detection: collapses "N/A"/empty placeholder options to blanks.
+import { hasRealOptions, parseOptionsArray } from '../../../../../../lib/questionOptions'
 
 export default function RetestStartPage() {
   const toast = useToast()
@@ -377,16 +381,16 @@ export default function RetestStartPage() {
           <div className="relative z-10">
             {currentQ?.questionParagraph && (
               <div className="prose max-w-none mb-8">
-                <p className="text-gray-800 leading-relaxed whitespace-pre-line">
-                  {currentQ.questionParagraph}
-                </p>
+                <div className="text-gray-800 leading-relaxed whitespace-pre-line">
+                  {renderContent(currentQ.questionParagraph)}
+                </div>
               </div>
             )}
-            
+
             <div className="mt-6">
-              <p className="text-gray-900 text-base leading-relaxed font-medium">
-                {currentQ?.question || currentQ?.content}
-              </p>
+              <div className="text-gray-900 text-base leading-relaxed font-medium">
+                {renderContent(currentQ?.question || currentQ?.content)}
+              </div>
             </div>
           </div>
         </div>
@@ -451,31 +455,48 @@ export default function RetestStartPage() {
               <span className="text-gray-500 text-sm">Mark for Review</span>
             </div>
 
-            <div className="space-y-3">
-              {['A', 'B', 'C', 'D'].map((option) => {
-                const isSelected = answers[currentQ._id] === option
-                return (
-                  <button
-                    key={option}
-                    onClick={() => handleAnswer(currentQ._id, option)}
-                    className={`w-full text-left border-2 rounded-lg p-4 transition-all ${
-                      isSelected ? 'border-orange-400 bg-orange-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold ${
-                        isSelected ? 'border-orange-600 bg-orange-600 text-white' : 'border-gray-400 text-gray-700'
-                      }`}>
-                        {option}
+            {hasRealOptions(currentQ) ? (
+              <div className="space-y-3">
+                {parseOptionsArray(currentQ).map((optText, idx) => {
+                  // Skip blank/"N/A" slots so grid-in-shaped rows never appear as empty buttons.
+                  if (!optText) return null
+                  const option = ['A', 'B', 'C', 'D'][idx]
+                  const isSelected = answers[currentQ._id] === option
+                  return (
+                    <button
+                      key={option}
+                      onClick={() => handleAnswer(currentQ._id, option)}
+                      className={`w-full text-left border-2 rounded-lg p-4 transition-all ${
+                        isSelected ? 'border-orange-400 bg-orange-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold ${
+                          isSelected ? 'border-orange-600 bg-orange-600 text-white' : 'border-gray-400 text-gray-700'
+                        }`}>
+                          {option}
+                        </div>
+                        <div className="flex-1 pt-1 text-gray-900">
+                          {renderContent(optText)}
+                        </div>
                       </div>
-                      <div className="flex-1 pt-1">
-                        <span className="text-gray-900">{currentQ?.[`option${option}`]}</span>
-                      </div>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              // Grid-in / fill-in-the-blank: student types the answer; answersMatch grades the typed value.
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Enter your answer:</p>
+                <input
+                  type="text"
+                  value={answers[currentQ._id] || ''}
+                  onChange={(e) => handleAnswer(currentQ._id, e.target.value)}
+                  className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 outline-none"
+                  placeholder="Type your answer..."
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

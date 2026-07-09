@@ -1,5 +1,6 @@
 ﻿'use client'
 import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
+import { parseOptionsArray, hasRealOptions } from '../../../../lib/questionOptions'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import axios from 'axios'
@@ -29,6 +30,7 @@ export default function SatTestRunner() {
   const [remaining, setRemaining] = useState(30 * 60) // 30 minutes default
   const [answeredMap, setAnsweredMap] = useState({})
   const [selectedMap, setSelectedMap] = useState({})
+  const [gridMap, setGridMap] = useState({}) // typed answers for grid-in (fill-in-the-blank) questions
 
   useEffect(() => {
     const init = async () => {
@@ -239,7 +241,7 @@ export default function SatTestRunner() {
           {currentQuestion.questionParagraph ? (
             <div className="prose max-w-none">
               <div className="whitespace-pre-line text-gray-800 leading-relaxed">
-                {currentQuestion.questionParagraph}
+                {renderWithImages(currentQuestion.questionParagraph)}
               </div>
             </div>
           ) : (
@@ -290,40 +292,81 @@ export default function SatTestRunner() {
             )}
 
             {/* Answer Options */}
-            <div className="space-y-3">
-              {(currentQuestion.options || []).map((opt, i) => {
-                const optionLetter = String.fromCharCode(65 + i)
-                const qId = String(currentQuestion.id || currentQuestion._id)
-                const isSelected = selectedMap[qId] === optionLetter
-                const isAnswered = !!answeredMap[qId]
-                
+            {(() => {
+              const qId = String(currentQuestion.id || currentQuestion._id)
+              const isAnswered = !!answeredMap[qId]
+
+              // Grid-in (student-produced response): no real answer choices — the
+              // student types a numeric/text answer. hasRealOptions/parseOptionsArray
+              // normalize any options shape (array, JSON string, {A,B,C,D} object),
+              // so an object no longer crashes with "options.map is not a function".
+              if (!hasRealOptions(currentQuestion)) {
+                const typed = isAnswered ? (selectedMap[qId] || '') : (gridMap[qId] || '')
+                const submitTyped = () => {
+                  const v = (gridMap[qId] || '').trim()
+                  if (v) submitAnswer(v)
+                }
                 return (
-                  <button
-                    key={i}
-                    onClick={() => submitAnswer(optionLetter)}
-                    disabled={submitting || isAnswered}
-                    className={`w-full text-left border-2 rounded-lg p-4 transition-all ${
-                      isSelected
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                    } ${isAnswered ? 'cursor-not-allowed opacity-60' : ''}`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold ${
-                        isSelected
-                          ? 'border-blue-500 bg-blue-500 text-white'
-                          : 'border-gray-400 text-gray-700'
-                      }`}>
-                        {optionLetter}
-                      </div>
-                      <div className="flex-1 pt-1">
-                        <span className="text-gray-900">{opt}</span>
-                      </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-2">Enter your answer:</p>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="text"
+                        value={typed}
+                        disabled={submitting || isAnswered}
+                        onChange={(e) => setGridMap(prev => ({ ...prev, [qId]: e.target.value }))}
+                        onKeyDown={(e) => { if (e.key === 'Enter') submitTyped() }}
+                        className="flex-1 p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
+                        placeholder="Type your answer..."
+                      />
+                      <button
+                        onClick={submitTyped}
+                        disabled={submitting || isAnswered || !(gridMap[qId] || '').trim()}
+                        className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      >
+                        Submit
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 )
-              })}
-            </div>
+              }
+
+              return (
+                <div className="space-y-3">
+                  {parseOptionsArray(currentQuestion).map((opt, i) => {
+                    if (!opt) return null
+                    const optionLetter = String.fromCharCode(65 + i)
+                    const isSelected = selectedMap[qId] === optionLetter
+
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => submitAnswer(optionLetter)}
+                        disabled={submitting || isAnswered}
+                        className={`w-full text-left border-2 rounded-lg p-4 transition-all ${
+                          isSelected
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                        } ${isAnswered ? 'cursor-not-allowed opacity-60' : ''}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 font-semibold ${
+                            isSelected
+                              ? 'border-blue-500 bg-blue-500 text-white'
+                              : 'border-gray-400 text-gray-700'
+                          }`}>
+                            {optionLetter}
+                          </div>
+                          <div className="flex-1 pt-1">
+                            <span className="text-gray-900">{renderWithImages(opt)}</span>
+                          </div>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )
+            })()}
           </div>
         </div>
       </div>
