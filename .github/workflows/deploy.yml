@@ -31,6 +31,9 @@ jobs:
             git fetch origin newdsat
             git reset --hard origin/newdsat
             npm install --no-audit --no-fund
+            # Clean the build cache so newly-added routes/pages (esp. under dynamic
+            # [id] segments) always register — incremental builds can silently miss them.
+            rm -rf .next
             npm run build
             pm2 restart dsatguru-next
             pm2 save
