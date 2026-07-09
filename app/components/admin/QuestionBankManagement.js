@@ -1214,8 +1214,8 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
           )}
 
           {editItem && (
-            <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 overflow-y-auto" onClick={() => { if (!bulkIds) setEditItem(null) }}>
-              <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto" onClick={() => { if (!bulkIds) setEditItem(null) }}>
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-[1600px] h-[96vh] sm:h-[94vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                 <div className="p-4 border-b border-slate-100 flex flex-shrink-0 items-center justify-between">
                   <h3 className="text-lg font-bold text-slate-900">{bulkIds ? `Bulk Edit — Question ${bulkIndex + 1} of ${bulkIds.length}` : 'Edit Question'}</h3>
                   <div className="flex items-center gap-2">
