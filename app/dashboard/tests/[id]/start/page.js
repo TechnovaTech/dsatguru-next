@@ -74,6 +74,8 @@ export default function TakeTestPage() {
   // and gives proctored tests one warning before terminating.
   const submittingRef = useRef(false)
   const violationRef = useRef(0)
+  // Per-section server-computed Module-2 difficulty distribution (real adaptive routing).
+  const adaptiveRef = useRef({})
 
   // Time Tracking
   const [questionTimes, setQuestionTimes] = useState({})
@@ -709,12 +711,16 @@ export default function TakeTestPage() {
         
         selectedQuestions = selectQuestionsByDistribution(filteredQuestions, distribution)
       } else {
-        // Module 2 - Adaptive based on Module 1 performance
+        // Module 2 — adaptive. Prefer the SERVER-computed distribution (real Module-1 score
+        // graded server-side + the test's custom routing config); fall back to the client
+        // heuristic only if the server routing wasn't available.
         const module1Key = `${section}_module1`
-        const module1Score = moduleScores[module1Key] || 0
-        const routingPath = determineRoutingPath(module1Score, section, questionCount)
-        
-        const distribution = getAdaptiveDistribution(section, routingPath)
+        let distribution = adaptiveRef.current[section]?.distribution
+        if (!distribution) {
+          const module1Score = moduleScores[module1Key] || 0
+          const routingPath = determineRoutingPath(module1Score, section, questionCount)
+          distribution = getAdaptiveDistribution(section, routingPath)
+        }
         selectedQuestions = selectQuestionsByDistribution(filteredQuestions, distribution)
       }
       
@@ -927,34 +933,49 @@ export default function TakeTestPage() {
     // Students will see results only on the analysis page after completing the test
   }
 
-  const handleModuleComplete = () => {
-    // Calculate module score
-    let correctCount = 0
-    moduleQuestions.forEach(q => {
-      const userAnswer = answers[q._id]
-      const correctAnswer = q.correctAnswer
-      
-      // Check if it's multiple choice or fill-in-the-blank
-      if (isAnswerCorrect(q, userAnswer)) correctCount++
-    })
-    
+  const handleModuleComplete = async () => {
     const moduleKey = `${currentSection}_module${currentModule}`
-    setModuleScores(prev => ({ ...prev, [moduleKey]: correctCount }))
-    setModuleAnswers(prev => ({ 
-      ...prev, 
-      [moduleKey]: {
-        answers: answers,
-        questionIds: moduleQuestions.map(q => q._id)
-      }
-    }))
-    
-    // If Tutor or Admin Mode, skip summary and go straight to completion
+    const questionIds = moduleQuestions.map(q => q._id)
+
+    // Client-side count is a fallback only — correctAnswer is stripped from the student
+    // payload, so this is usually 0 for adaptive tests.
+    let correctCount = 0
+    moduleQuestions.forEach(q => { if (isAnswerCorrect(q, answers[q._id])) correctCount++ })
+
+    setModuleAnswers(prev => ({ ...prev, [moduleKey]: { answers, questionIds } }))
+
     const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+
+    // Adaptive practice, end of Module 1: grade it on the SERVER so Module 2 can route on
+    // the real score and honor the test's custom config. Fully defensive — any failure
+    // just leaves the existing client fallback in place, so the test never breaks.
+    if (!isSecureMode && currentModule === 1) {
+      try {
+        const token = localStorage.getItem('token')
+        const responses = questionIds.map(id => ({ questionId: id, selectedAnswer: answers[id] || null }))
+        // Short timeout so a hung network can't stall the module transition — on abort we
+        // just fall through to the client fallback below.
+        const ctrl = new AbortController()
+        const timer = setTimeout(() => ctrl.abort(), 6000)
+        const res = await fetch(`/api/tests/${testId}/module-routing`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ subject: currentSection, responses }),
+          signal: ctrl.signal,
+        })
+        clearTimeout(timer)
+        if (res.ok) {
+          const data = await res.json()
+          if (typeof data.correct === 'number') correctCount = data.correct
+          if (data.distribution) adaptiveRef.current[currentSection] = { distribution: data.distribution }
+        }
+      } catch { /* aborted or failed — keep the client fallback */ }
+    }
+
+    setModuleScores(prev => ({ ...prev, [moduleKey]: correctCount }))
+
     if (isSecureMode) {
-      // Small delay to ensure state updates
-      setTimeout(() => {
-        calculateFinalScore()
-      }, 100)
+      setTimeout(() => { calculateFinalScore() }, 100)
     } else {
       setShowModuleSummary(true)
     }

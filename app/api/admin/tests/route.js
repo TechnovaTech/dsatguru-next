@@ -12,11 +12,14 @@ export async function GET(request) {
     await connectDB()
     // Only return adaptive/standard tests — exclude tutor tests, admin-panel tests,
     // and student-generated self-practice tests (which are owner-scoped, not managed here).
+    // The title exclusion also hides OLD self-practice sheets created before the
+    // isSelfPractice flag existed — they carry the practice generator's auto-title.
     const tests = await Test.find({
       isTutorTest: { $ne: true },
       isAdminTest: { $ne: true },
       isSelfPractice: { $ne: true },
-      practiceMode: { $nin: ['tutor', 'admin'] }
+      practiceMode: { $nin: ['tutor', 'admin'] },
+      title: { $not: /^(Standard DSAT|Custom Practice)/ },
     }).sort({ createdAt: -1 })
     return NextResponse.json(tests)
   } catch (error) {
