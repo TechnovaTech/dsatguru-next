@@ -958,53 +958,61 @@ export default function TutorTestSheets() {
                       <td className="px-6 py-4 text-sm text-gray-500">
                         {test.createdAt ? new Date(test.createdAt).toLocaleDateString() : '—'}
                       </td>
-                      <td className="px-6 py-4 text-sm">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            onClick={() => handleViewTest(test)}
-                            className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded"
-                          >
-                            <FiEye className="mr-1" /> View
-                          </button>
-                          <button
-                            onClick={() => handleDownloadJson(test)}
-                            className="inline-flex items-center px-3 py-1 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded"
-                            title="Download this sheet as JSON (upload format)"
-                          >
-                            <FiDownload className="mr-1" /> JSON
-                          </button>
-                          <EditTestJsonModal test={test} updateUrl="/api/admin/tutor/tests/update" onSaved={fetchTests} className="inline-flex items-center px-3 py-1 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded" />
-                          <EditTestMetaModal test={test} updateUrl="/api/admin/tutor/tests/update" onSaved={fetchTests} className="inline-flex items-center px-3 py-1 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded" />
-                          <button
-                            onClick={() => handleEditTest(test)}
-                            className="inline-flex items-center px-3 py-1 text-green-600 hover:text-green-800 hover:bg-green-100 rounded"
-                          >
-                            <FiEdit className="mr-1" /> Edit
-                          </button>
-                          <label className="inline-flex items-center" title="Confirm you've checked the whole sheet to enable Assign">
-                            <input
-                              type="checkbox"
-                              checked={!!verifiedTests[test._id]}
-                              onChange={() => toggleVerified(test)}
-                              className="h-4 w-4 cursor-pointer rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                            />
-                          </label>
-                          <button
-                            onClick={() => {
-                              if (!verifiedTests[test._id]) { toast.info('Please check the box first — you can assign only after verifying the sheet.'); return }
-                              handleOpenAssignToStudentModal(test)
-                            }}
-                            className={`inline-flex items-center px-3 py-1 rounded ${verifiedTests[test._id] ? 'text-purple-600 hover:text-purple-800 hover:bg-purple-100' : 'text-gray-300 cursor-not-allowed'}`}
-                            title={verifiedTests[test._id] ? 'Assign to Student' : 'Check the box first to enable Assign'}
-                          >
-                            <FiUserPlus className="mr-1" /> Assign to Student
-                          </button>
-                          <button
-                            onClick={() => handleDeleteTest(test._id)}
-                            className="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
-                          >
-                            <FiTrash className="mr-1" /> Delete
-                          </button>
+                      <td className="px-6 py-4 text-sm align-top">
+                        <div className="flex min-w-[240px] flex-col gap-2">
+                          {/* Primary actions */}
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <button
+                              onClick={() => handleViewTest(test)}
+                              className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2.5 py-1.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100"
+                            >
+                              <FiEye size={14} /> View
+                            </button>
+                            <button
+                              onClick={() => handleEditTest(test)}
+                              className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1.5 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-100"
+                            >
+                              <FiEdit size={14} /> Edit
+                            </button>
+                            <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white pl-2 pr-2.5 py-1">
+                              <input
+                                type="checkbox"
+                                checked={!!verifiedTests[test._id]}
+                                onChange={() => toggleVerified(test)}
+                                className="h-4 w-4 cursor-pointer rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                title="Confirm you've checked the whole sheet to enable Assign"
+                              />
+                              <button
+                                onClick={() => {
+                                  if (!verifiedTests[test._id]) { toast.info('Please check the box first — you can assign only after verifying the sheet.'); return }
+                                  handleOpenAssignToStudentModal(test)
+                                }}
+                                className={`inline-flex items-center gap-1.5 text-sm font-medium ${verifiedTests[test._id] ? 'text-purple-700 hover:text-purple-900' : 'cursor-not-allowed text-gray-400'}`}
+                                title={verifiedTests[test._id] ? 'Assign to Student' : 'Check the box first to enable Assign'}
+                              >
+                                <FiUserPlus size={14} /> Assign
+                              </button>
+                            </span>
+                          </div>
+                          {/* Secondary actions (data + delete) */}
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pl-0.5 text-xs">
+                            <button
+                              onClick={() => handleDownloadJson(test)}
+                              className="inline-flex items-center gap-1 font-medium text-slate-500 transition-colors hover:text-slate-800"
+                              title="Download this sheet as JSON (upload format)"
+                            >
+                              <FiDownload size={13} /> JSON
+                            </button>
+                            <EditTestJsonModal test={test} updateUrl="/api/admin/tutor/tests/update" onSaved={fetchTests} className="inline-flex items-center gap-1 font-medium text-indigo-500 transition-colors hover:text-indigo-700" />
+                            <EditTestMetaModal test={test} updateUrl="/api/admin/tutor/tests/update" onSaved={fetchTests} className="inline-flex items-center gap-1 font-medium text-slate-500 transition-colors hover:text-slate-700" />
+                            <button
+                              onClick={() => handleDeleteTest(test._id)}
+                              className="ml-auto inline-flex items-center gap-1 font-medium text-red-500 transition-colors hover:text-red-700"
+                              title="Delete"
+                            >
+                              <FiTrash size={13} /> Delete
+                            </button>
+                          </div>
                         </div>
                       </td>
                     </tr>
