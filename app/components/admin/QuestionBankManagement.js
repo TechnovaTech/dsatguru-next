@@ -123,6 +123,9 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
   const [bulkIndex, setBulkIndex] = useState(0)
   const [bulkDrafts, setBulkDrafts] = useState({})
   const [bulkRemark, setBulkRemark] = useState('')
+  // True only for a real multi-select "Bulk Edit"; false when the modal was opened by
+  // clicking a single row's View/Edit (navigates all questions but isn't bulk).
+  const [browseMode, setBrowseMode] = useState(false)
   const [modalEditing, setModalEditing] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const PAGE_SIZE = 50
@@ -649,7 +652,23 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
     setBulkDrafts({})
     setBulkRemark('')
     setModalEditing(false)
+    setBrowseMode(false)
     setEditItem(mapQuestionToEdit(questions.find(q => q.id === ids[0])))
+  }
+  // Open the full question modal (with the number sidebar + prev/next) at a single question,
+  // navigable across ALL currently-filtered questions. `editing` chooses view vs edit mode.
+  // Both the per-row View and Edit actions use this so every question bank gets the exact
+  // same rich experience (same as the tutor bulk-edit view).
+  const openQuestionAt = (q, editing) => {
+    const ids = getFilteredQuestions().map(x => x.id)
+    const idx = Math.max(0, ids.indexOf(q.id))
+    setBulkIds(ids.length ? ids : [q.id])
+    setBulkIndex(ids.length ? idx : 0)
+    setBulkDrafts({})
+    setBulkRemark('')
+    setModalEditing(!!editing)
+    setBrowseMode(true)
+    setEditItem(mapQuestionToEdit(q))
   }
   // Apply one remark to ALL questions in this bulk-edit set (persisted on "Save All & Close").
   const applyBulkRemark = () => {
@@ -676,16 +695,21 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
   const finishBulk = async () => {
     const drafts = { ...bulkDrafts, [bulkIds[bulkIndex]]: editItem }
     for (const id of bulkIds) { if (drafts[id]) { try { await persistQuestion(drafts[id]) } catch {} } }
-    setBulkIds(null); setBulkIndex(0); setBulkDrafts({}); setEditItem(null)
+    setBulkIds(null); setBulkIndex(0); setBulkDrafts({}); setEditItem(null); setBrowseMode(false)
     setSelectedQuestions([])
     fetchQuestions(selectedBank?.id)
     toast.success('All selected questions saved')
   }
-  // Number-rail jump: save the current question to the bank, then go to question i.
+  // Number-rail jump: when editing, save the current question first; when just viewing,
+  // never write — only navigate.
   const bulkJump = async (i) => {
     if (!bulkIds || i === bulkIndex) return
-    try { await persistQuestion(editItem) } catch {}
+    if (modalEditing) { try { await persistQuestion(editItem) } catch {} }
     bulkGoto(i)
+  }
+  // Close the question modal WITHOUT saving (used for X / Close in view mode).
+  const closeQuestionModal = () => {
+    setBulkIds(null); setBulkIndex(0); setBulkDrafts({}); setEditItem(null); setModalEditing(false); setBulkRemark(''); setBrowseMode(false)
   }
 
   if (currentView === 'questions' && (selectedBank || isTutor)) {
@@ -955,10 +979,10 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                           </td>
                           <td className="px-4 py-4 text-sm">
                             <div className="flex items-center gap-1">
-                              <button title="Edit" aria-label="Edit" className="rounded-lg p-1.5 text-indigo-600 transition-colors hover:bg-indigo-50 hover:text-indigo-800" onClick={() => handleOpenEdit(q)}>
+                              <button title="Edit" aria-label="Edit" className="rounded-lg p-1.5 text-indigo-600 transition-colors hover:bg-indigo-50 hover:text-indigo-800" onClick={() => openQuestionAt(q, true)}>
                                 <FiEdit className="h-4 w-4" />
                               </button>
-                              <button title="Preview" aria-label="Preview" className="rounded-lg p-1.5 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-800" onClick={() => setPreview(q)}>
+                              <button title="View" aria-label="View" className="rounded-lg p-1.5 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-800" onClick={() => openQuestionAt(q, false)}>
                                 <FiPreview className="h-4 w-4" />
                               </button>
                               <button title={q.isActive ? 'Disable' : 'Enable'} aria-label={q.isActive ? 'Disable' : 'Enable'} className="rounded-lg p-1.5 text-amber-600 transition-colors hover:bg-amber-50 hover:text-amber-800" onClick={() => toggleActive(q)}>
@@ -1217,12 +1241,12 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
             <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto" onClick={() => { if (!bulkIds) setEditItem(null) }}>
               <div className="bg-white rounded-2xl shadow-xl w-full max-w-[1600px] h-[96vh] sm:h-[94vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                 <div className="p-4 border-b border-slate-100 flex flex-shrink-0 items-center justify-between">
-                  <h3 className="text-lg font-bold text-slate-900">{bulkIds ? `Bulk Edit — Question ${bulkIndex + 1} of ${bulkIds.length}` : 'Edit Question'}</h3>
+                  <h3 className="text-lg font-bold text-slate-900">{bulkIds ? `${modalEditing ? 'Edit' : 'View'} Question — ${bulkIndex + 1} of ${bulkIds.length}` : 'Edit Question'}</h3>
                   <div className="flex items-center gap-2">
                     <button onClick={() => setModalEditing(v => !v)} className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-300 px-3 py-1.5 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-50">
                       {modalEditing ? <><FiEye /> View</> : <><FiEdit /> Edit</>}
                     </button>
-                    <button aria-label="Close edit dialog" className="text-slate-500 hover:text-slate-700 transition-colors" onClick={() => { if (bulkIds) finishBulk(); else setEditItem(null) }}><FiX /></button>
+                    <button aria-label="Close dialog" className="text-slate-500 hover:text-slate-700 transition-colors" onClick={() => { if (bulkIds && modalEditing) finishBulk(); else closeQuestionModal() }}><FiX /></button>
                   </div>
                 </div>
                 <div className="flex-1 flex min-h-0">
@@ -1237,7 +1261,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                   </nav>
                 )}
                 <div className="flex-1 overflow-y-auto">
-                {bulkIds && (
+                {bulkIds && !browseMode && (
                   <div className="border-b border-slate-100 p-4">
                     <div className="flex items-end gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
                       <div className="flex-1">
@@ -1260,7 +1284,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       {editItem.remark && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800">💬 {editItem.remark}</span>}
                     </div>
                   )}
-                  {!bulkIds && (
+                  {(
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Subject</label>
@@ -1346,7 +1370,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                   )}
                   {/* Title field removed */}
 
-                  {!bulkIds && (
+                  {(
                   <div className="md:col-span-4">
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-medium text-slate-600">Passage (Optional)</label>
@@ -1384,7 +1408,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     />
                     <ImagePreview text={editItem.content} onRemove={(src) => removeImgFromField('content', src)} />
                   </div>
-                  {!bulkIds && (
+                  {(
                   <div className="md:col-span-2">
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-medium text-slate-600">Explanation</label>
@@ -1403,7 +1427,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     <ImagePreview text={editItem.explanation} onRemove={(src) => removeImgFromField('explanation', src)} />
                   </div>
                   )}
-                  {!bulkIds && (
+                  {(
                   <div className="md:col-span-4">
                     <label className="block text-xs font-medium text-slate-600 mb-1">Remark (Admin/Tutor Notes)</label>
                     <textarea
@@ -1479,7 +1503,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     />
                     )}
                   </div>
-                  {!bulkIds && (
+                  {(
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Points</label>
                     <input
@@ -1610,7 +1634,11 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     <button disabled={bulkIndex === 0} onClick={() => bulkGoto(bulkIndex - 1)} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-40">← Previous</button>
                     <span className="text-sm font-medium text-slate-500">Question {bulkIndex + 1} of {bulkIds.length}</span>
                     <div className="flex gap-2">
-                      <button onClick={finishBulk} className="px-4 py-2 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 transition-colors">Save All &amp; Close</button>
+                      {modalEditing ? (
+                        <button onClick={finishBulk} className="px-4 py-2 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 transition-colors">Save All &amp; Close</button>
+                      ) : (
+                        <button onClick={closeQuestionModal} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 transition-colors">Close</button>
+                      )}
                       {bulkIndex < bulkIds.length - 1 && (
                         <button onClick={() => bulkGoto(bulkIndex + 1)} className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">Next →</button>
                       )}
