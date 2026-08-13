@@ -1,0 +1,94 @@
+[
+  {
+    "page": 81,
+    "subject": "Math",
+    "question": "In the xy-plane, line s is parallel to line t. Line s is defined by y+16=7x. What is the slope of line t?",
+    "a": "-16",
+    "b": "-7",
+    "c": "7",
+    "d": "16"
+  },
+  {
+    "page": 82,
+    "subject": "Math",
+    "question": "An artist made 14 pieces of pottery using 48 pounds of clay. The pottery included only bowls and vases. Each bowl used 3 pounds of clay and each vase used 5 pounds of clay. How many vases did the artist make?",
+    "a": "3",
+    "b": "6",
+    "c": "8",
+    "d": "11"
+  },
+  {
+    "page": 83,
+    "subject": "Math",
+    "question": "The function f is defined by f(x) = (x+16)/5, and f(a)=-19, where a is a constant. What is the value of a?",
+    "a": "-111",
+    "b": "-79",
+    "c": "-79/5",
+    "d": "-3/5"
+  },
+  {
+    "page": 84,
+    "subject": "Math",
+    "question": "Cube B has a volume of 125 cubic inches. The length of each edge of cube A is k times the length of each edge of cube B. If cube A has a volume of 3,375 cubic inches, what is the value of k?",
+    "a": "27",
+    "b": "3",
+    "c": "25",
+    "d": "5"
+  },
+  {
+    "page": 85,
+    "subject": "Math",
+    "question": "Carrie has c dollars and Marjani has m dollars. Carrie has 3 times as many dollars as Marjani, and together they have a total of $28.00. Which system of equations represents this situation?",
+    "a": "c = 3m; c + m = 28",
+    "b": "m = 3c; c + m = 28",
+    "c": "c = 28m; c + m = 3",
+    "d": "m = 28c; c + m = 3"
+  },
+  {
+    "page": 86,
+    "subject": "Math",
+    "question": "The figure shown is a right rectangular pyramid, where l=18 units, w=9 units, and h=12 units. What is the surface area, in square units, of the pyramid?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": "",
+    "figure": "A right rectangular pyramid with a rectangular base. The base length is labeled l and the base width is labeled w. The vertical height from the apex straight down to the base is labeled h, and a slant height along a triangular face is also labeled h in the diagram; the slanted base edge is labeled l. Note: Figure not drawn to scale. Given values: l = 18 units, w = 9 units, h = 12 units."
+  },
+  {
+    "page": 87,
+    "subject": "Math",
+    "question": "The line shown can be represented by the equation ax+by=32, where a and b are constants. Which of the following is true about a and b?",
+    "a": "a < 0 and b < 0",
+    "b": "a < 0 and b > 0",
+    "c": "a > 0 and b < 0",
+    "d": "a > 0 and b > 0",
+    "figure": "A straight line with positive slope graphed on an xy-coordinate grid. Both the x-axis and y-axis are marked from -5 to 5. The line rises from lower left to upper right, crossing the x-axis at approximately x = 1 (slightly positive) and continuing up through the first quadrant toward about (4, 4); its steep positive slope is roughly 2."
+  },
+  {
+    "page": 88,
+    "subject": "Math",
+    "question": "A circle has center P and points A and B lie on the circle. The measure of arc AB is 45° and the length of arc AB is 4π units. What is the length of the radius?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 89,
+    "subject": "Math",
+    "question": "(x + k) + (9/2)(y + t) + 19 = 0\n(x + k) - (9/2)(y + t) - 19 = 0\nIn the given system of equations, k and t are constants. The solution to this system is (x, y). What is the value of 18(y+t)?",
+    "a": "-76",
+    "b": "0",
+    "c": "38",
+    "d": "9"
+  },
+  {
+    "page": 90,
+    "subject": "Math",
+    "question": "The point (0, 0) lies on a circle in the xy-plane. An equation of this circle is x^2 + (y + 6)^2 = p + 3, where p is a positive constant. What is the value of p?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  }
+]

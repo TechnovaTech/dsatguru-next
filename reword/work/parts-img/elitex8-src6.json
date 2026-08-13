@@ -1,0 +1,62 @@
+[
+ {
+  "i": 55,
+  "page": 87,
+  "subject": "Math",
+  "gridin": true,
+  "keyAnswer": "-12",
+  "question": "The function f is a quadratic function where f(-20)=0 and f(-4)=0. The graph of y=f(x) in the xy-plane has a vertex at (r, -64). What is the value of r?",
+  "a": "",
+  "b": "",
+  "c": "",
+  "d": ""
+ },
+ {
+  "i": 56,
+  "page": 90,
+  "subject": "Math",
+  "gridin": true,
+  "keyAnswer": "377/2",
+  "question": "x(9x - 2a) + b(9x - 2a) - (x + b) = 0\n\nIn the given equation, a and b are positive constants. A solution to the equation is x=42. What is the value of a?",
+  "a": "",
+  "b": "",
+  "c": "",
+  "d": ""
+ },
+ {
+  "i": 57,
+  "page": 93,
+  "subject": "Math",
+  "gridin": false,
+  "keyAnswer": "D",
+  "question": "A linear model estimates the height, in centimeters (cm), of a Madake bamboo culm, or stem, from the top of the soil x hours after it was first measured. The model estimates that the height of the bamboo culm was 93 cm when it was first measured and that for the next 3 hours, the height increased by 2 cm per hour. The model estimates that during the next 24 hours, the height increased by 4 cm per hour. Which equation best represents this model, where 3 ≤ x ≤ 27?",
+  "a": "y=4x+93",
+  "b": "y=2x+4x+93",
+  "c": "y=4x+93+2(3)",
+  "d": "y=4(x-3)+93+2(3)"
+ },
+ {
+  "i": 58,
+  "page": 94,
+  "subject": "Math",
+  "gridin": true,
+  "keyAnswer": "85/87",
+  "question": "A polygon has exactly 87 sides. If the measure of each of the 87 interior angles of this polygon is (180p)°, what is the value of p?",
+  "a": "",
+  "b": "",
+  "c": "",
+  "d": ""
+ },
+ {
+  "i": 59,
+  "page": 97,
+  "subject": "Math",
+  "gridin": false,
+  "keyAnswer": "A",
+  "question": "A line intersects two parallel lines, forming four acute angles and four obtuse angles. The measure of one of these eight angles is (7x - 250)°. The sum of the measures of four of the eight angles is k°. Which of the following could NOT be equivalent to k, for all values of x?",
+  "a": "-14x+1,540",
+  "b": "14x-320",
+  "c": "-28x+1,720",
+  "d": "360"
+ }
+]

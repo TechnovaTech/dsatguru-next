@@ -1,0 +1,83 @@
+[
+  {
+    "page": 91,
+    "qnum": 15,
+    "subject": "Math",
+    "question": "To investigate the effect of magnesium supplementation on the sleep quality of adults, a researcher selected 190 adults at random from a community center to participate in a study. The researcher first measured the sleep efficiency of each participant. Each participant was then randomly assigned to take a magnesium supplement or a placebo each day for 6 weeks. At the end of the 6 weeks, the researcher measured the sleep efficiency of all participants again and found that the magnesium supplement caused statistically significant improved sleep quality for the adults at the community center.\n\nWhat feature of this study allowed the researcher to conclude that the magnesium supplement caused the improved sleep quality?",
+    "a": "There were more than 100 participants in the study.",
+    "b": "The participants were selected at random from the community center.",
+    "c": "The sleep efficiency of each participant was measured again at the end of 6 weeks.",
+    "d": "Each participant was randomly assigned to take a magnesium supplement or a placebo."
+  },
+  {
+    "page": 92,
+    "qnum": 16,
+    "subject": "Math",
+    "question": "The bone mineral density of a certain person's thoracic spine was estimated to be 0.812 grams per square centimeter. What is this estimated bone mineral density in grams per square millimeter? (1 centimeter = 10 millimeters)",
+    "a": "81.2",
+    "b": "8.12",
+    "c": "0.0812",
+    "d": "0.00812"
+  },
+  {
+    "page": 93,
+    "qnum": 17,
+    "subject": "Math",
+    "question": "| | 0-9 years | 10-19 years | 20+ years | Total |\n| --- | --- | --- | --- | --- |\n| Group A | 15 | 18 | 7 | 40 |\n| Group B | 6 | 7 | 27 | 40 |\n| Group C | 19 | 15 | 6 | 40 |\n| Total | 40 | 40 | 40 | 120 |\n\nThe table summarizes the distribution of age and assigned group for 120 participants in a study. One of these participants will be selected at random. What is the probability of selecting participant from group A, given that the participant is at least 10 years of age?",
+    "a": "5/24",
+    "b": "5/16",
+    "c": "9/20",
+    "d": "5/8"
+  },
+  {
+    "page": 94,
+    "qnum": 18,
+    "subject": "Math",
+    "question": "A certain town has an area of 12,669,184 square yards. What is the area, in square miles, of this town? (1 mile = 1,760 yards)",
+    "a": "2.02",
+    "b": "7,198.4",
+    "c": "4.09",
+    "d": "3,559.38"
+  },
+  {
+    "page": 95,
+    "qnum": 19,
+    "subject": "Math",
+    "question": "The equation 9x^2 + 8 = nx has exactly one solution. What is the value of n^2/8?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 96,
+    "qnum": 20,
+    "subject": "Math",
+    "question": "The function f is defined by f(x) = (x^2 + ax + b)/(2x + c), where a, b, and c are constants. The graph of the function f in the xy-plane, where y = f(x), does not intersect the line x = 4. If f(5) = f(6) = 0, what is the value of a + b + c?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 97,
+    "qnum": 21,
+    "subject": "Math",
+    "question": "The points (0, 15), (10, 8), and (10, 3) are shown in the xy-plane, where the x-axis and y-axis are measured in units.\n\nThese points define one of the bases of a triangular prism. The distance between the two bases of the prism is 20 units. What is the volume, in cubic units, of the prism?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": "",
+    "figure": true
+  },
+  {
+    "page": 98,
+    "qnum": 22,
+    "subject": "Math",
+    "question": "-x^2 + bx - 169 = 0\n\nIn the given equation, b is an integer. The equation has no real solutions. What is the least possible value of b?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  }
+]

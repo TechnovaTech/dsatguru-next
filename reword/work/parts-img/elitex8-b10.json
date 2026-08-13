@@ -1,0 +1,82 @@
+[
+  {
+    "page": 91,
+    "qnum": 15,
+    "subject": "Math",
+    "question": "A research manager selected 2 random samples of ovens of a certain type to estimate the average amount of time this type of oven takes to preheat to 325 degrees Fahrenheit (°F). The research manager recorded the amount of time, in minutes, each oven takes to preheat to 325°F. Based on the first sample, the research manager estimated that this type of oven takes an average of 15.2 minutes to preheat to 325°F, with an associated margin of error of 1 minute. Based on the second sample, the research manager estimated that this type of oven takes an average of 15.4 minutes to preheat to 325°F, with an associated margin of error of 2.2 minutes. Assuming the margins of error were calculated the same way, which of the following best explains why the first sample obtained a smaller margin of error than the second sample?",
+    "a": "The first sample contained more ovens than the second sample.",
+    "b": "The first sample contained fewer ovens than the second sample.",
+    "c": "The first sample took more time on average to preheat to 325°F than the second sample.",
+    "d": "The first sample took less time on average to preheat to 325°F than the second sample."
+  },
+  {
+    "page": 92,
+    "qnum": 16,
+    "subject": "Math",
+    "question": "The functions f and g are defined by the given equations below, where x≥0. Which of the following equations displays, as a constant or coefficient, the minimum value of the function it defines, where x≥0?\nI. f(x)=18(1.4)^(x+5)\nII. g(x)=18(1.16)(1.4)^(x+3)",
+    "a": "I only",
+    "b": "II only",
+    "c": "I and II",
+    "d": "Neither I nor II"
+  },
+  {
+    "page": 93,
+    "qnum": 17,
+    "subject": "Math",
+    "question": "A linear model estimates the height, in centimeters (cm), of a Madake bamboo culm, or stem, from the top of the soil x hours after it was first measured. The model estimates that the height of the bamboo culm was 93 cm when it was first measured and that for the next 3 hours, the height increased by 2 cm per hour. The model estimates that during the next 24 hours, the height increased by 4 cm per hour. Which equation best represents this model, where 3 ≤ x ≤ 27?",
+    "a": "y=4x+93",
+    "b": "y=2x+4x+93",
+    "c": "y=4x+93+2(3)",
+    "d": "y=4(x-3)+93+2(3)"
+  },
+  {
+    "page": 94,
+    "qnum": 18,
+    "subject": "Math",
+    "question": "A polygon has exactly 87 sides. If the measure of each of the 87 interior angles of this polygon is (180p)°, what is the value of p?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 95,
+    "qnum": 19,
+    "subject": "Math",
+    "question": "49/p = 49/q - 49/r - 49/s\nThe given equation relates the positive variables p, q, r, and s. Which of the following is equivalent to q?",
+    "a": "p + r + s",
+    "b": "49(p + r + s)",
+    "c": "prs/(pr+ps+rs)",
+    "d": "prs/(49p+49r+49s)"
+  },
+  {
+    "page": 96,
+    "qnum": 20,
+    "subject": "Math",
+    "question": "The function p is defined by p(x)=a((x+5)^2-b)((x+5)^2-c), where a, b, and c are constants. In the xy-plane, the graph of y=p(x) passes through the points (-6, 30) and (0, 342). What is the value of p(-10)+p(-4)?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 97,
+    "qnum": 21,
+    "subject": "Math",
+    "question": "A line intersects two parallel lines, forming four acute angles and four obtuse angles. The measure of one of these eight angles is (7x - 250)°. The sum of the measures of four of the eight angles is k°. Which of the following could NOT be equivalent to k, for all values of x?",
+    "a": "-14x+1,540",
+    "b": "14x-320",
+    "c": "-28x+1,720",
+    "d": "360"
+  },
+  {
+    "page": 98,
+    "qnum": 22,
+    "subject": "Math",
+    "question": "A researcher investigated two species of mites: a predator and its prey. At the start of a week, there was an equal number of the two species. At the end of the week, the number of prey had increased by 1900% of the number of prey at the start of the week, and the number of predators had increased by 180% of the number of predators at the start of the week. The number of predators at the end of the week was p% less than the number of prey at the end of the week. What is the value of p?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  }
+]

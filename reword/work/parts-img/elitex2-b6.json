@@ -1,0 +1,95 @@
+[
+  {
+    "page": 51,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n\n- “Organ^2/ASLSP (As Slow as Possible)” is a musical piece by avant-garde composer John Cage.\n- A specially designed automated organ in St. Burchardi Church in Halberstadt, Germany, began playing the piece in 2001.\n- It is scheduled to stop playing the piece in 2640.\n- The performance will last 639 years.\n- It will be the longest continuous musical performance in history.\n\nThe student wants to indicate how long John Cage's musical piece will last. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "Lasting 639 years, John Cage's musical piece will be the longest continuous musical performance in history.",
+    "b": "“Organ^2/ASLSP (As Slow as Possible)” is a musical piece currently being played in St, Burchardi church in Halberstadt, Germany.",
+    "c": "An organ in St., Burchardi church in Halberstadt, Germany, began playing a musical piece by avant-garde composer John Cage.",
+    "d": "John Cage is the composer of the musical piece “Organ^2/ASSLSP (As Slow as Possible).”"
+  },
+  {
+    "page": 52,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n\n- The Peloncillo-Pan Duro Mountains are located in northwestern Mexico.\n- They cover an area of 1,360 square miles (mi^2).\n- The Sierrita Mountains are located in the southwestern United States.\n- They cover an area of 63 mi^2.\n- These mountain ranges are two of the dozens of \"sky islands\" in the southwestern US and northwestern Mexico.\n- A sky island is an isolated mountain range whose environment differs drastically from that of the surrounding lowlands.\n\nThe student wants to compare the sizes of the two mountain ranges. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "There are dozens of isolated mountain ranges located in the southwestern US and northwestern Mexico.",
+    "b": "In terms of area, the Peloncill-Pan Duro Mountains (which cover 1,360 mi^2) are larger than the Sierrita Mountains (63 mi^2).",
+    "c": "Sky islands in northwestern Mexico and the southwestern US can vary in size.",
+    "d": "The Peloncillo-Pan Duro Mountains and the Sierrita Mountains are both isolated mountain ranges whose environments differ drastically from that of the surrounding lowlands."
+  },
+  {
+    "page": 53,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n\n- Lou Scheper Berkenkamp was a painter and author born in Wesel, Germany.\n- She began attending the Bauhaus in 1920.\n- The Bauhaus was an influential German art and design school.\n- The school famously espoused the design principle of “form follows function.”\n- \"Form follows function\" means that an object's shape should be determined primarily by its intended purpose.\n\nThe student wants to explain the principle espoused by the Bauhaus. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "According to the Bauhaus, an object's intended purpose (function) should primarily determine its shape (form).",
+    "b": "Lou Scheper Berkenkamp was a painter and author who attended the Bauhaus, famous for espousing the principle of “form follows function.”",
+    "c": "Famous for its principle of “form follows function,” the Bauhaus was an influential German art and design school.",
+    "d": "An object's intended purpose and its shape are two elements of the design principle “form follows function.”"
+  },
+  {
+    "page": 54,
+    "subject": "Reading and Writing",
+    "question": "- Curtis Martin and Jim Brow had historic careers as running backs in the National Football League (NFL).\n- The running back position entails running, or rushing, down the field with the football to gain yards for the team.\n- Curtis Martin gained a total of 14,101 rushing yards in his career.\n- He played for the New England Patriots and the New York Jets.\n- Jim Brown gained a total of 12,312 rushing yards in his career.\n- He played for the Cleveland Browns.\n\nWhich choice most effectively uses information from the given sentences to begin a narrative about one of the athletes?",
+    "a": "Martin began his career with the New England Patriots; Brown started with Cleveland Browns.",
+    "b": "When Martin put on his New England Patriots uniform for his first NFL game, he began what would become a legendary professional career.",
+    "c": "While Martin finished his career with more rushing yards, both Martin and Brown reached the career milestone of rushing for over 10,000 yards total.",
+    "d": "Martin's blend of speed, power, and agility helped him accrue 14,101 rushing yards by the end of his career, etching his name into the NFL's record books."
+  },
+  {
+    "page": 55,
+    "subject": "Math",
+    "question": "Note: Figure not drawn to scale.\n\nIn right triangle ABC shown, what is the measure of ∠C? (In the figure, angle A measures 56° and there is a right angle at B.)",
+    "a": "124°",
+    "b": "146°",
+    "c": "56°",
+    "d": "34°",
+    "figure": true
+  },
+  {
+    "page": 56,
+    "subject": "Math",
+    "question": "Note: Figure not drawn to scale.\n\nThe triangle shown has one side with a length of x inches and two sides each with a length of y inches. The perimeter of the triangle is 47 inches. Which equation represents this situation?",
+    "a": "x+y=47",
+    "b": "x+2y=47",
+    "c": "2x+y=47",
+    "d": "2x+2y=47",
+    "figure": true
+  },
+  {
+    "page": 57,
+    "subject": "Math",
+    "question": "Javier deposits $45 in a savings account at the end of each week. At the beginning of the 1st week of a year there was $700 in that savings account. How much money, in dollars, will be in the account at the end of the 6th week of the year?",
+    "a": "430",
+    "b": "745",
+    "c": "751",
+    "d": "970"
+  },
+  {
+    "page": 58,
+    "subject": "Math",
+    "question": "x^2-2=23\n\nWhich value is a solution to the given equation?",
+    "a": "-23",
+    "b": "-21",
+    "c": "-2",
+    "d": "5"
+  },
+  {
+    "page": 59,
+    "subject": "Math",
+    "question": "y=0\ny=8(x^2-36)\n\nWhich ordered pair (x, y) is a solution to the given system of equations?",
+    "a": "(0, 6)",
+    "b": "(0, 36)",
+    "c": "(6, 0)",
+    "d": "(36, 0)"
+  },
+  {
+    "page": 60,
+    "subject": "Math",
+    "question": "The graph of the linear function f is shown, where y=f(x). What is the slope of the graph of f?",
+    "a": "1/6",
+    "b": "-7",
+    "c": "-1/6",
+    "d": "7",
+    "figure": true
+  }
+]

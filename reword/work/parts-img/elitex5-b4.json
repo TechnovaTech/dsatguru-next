@@ -1,0 +1,104 @@
+[
+  {
+    "page": 31,
+    "qnum": 4,
+    "subject": "Reading and Writing",
+    "question": "Rare tree species growing in the Tyson Research Center are much likelier than common species to be found in conspecific (same-species) aggregations, but in the Mo Singto plot, conspecific aggregation and abundance are nearly ______ , which is to be expected given that rare species in Mo Singto are heavily reliant on seed dispersion via animals, while those in the Tyson Center tend to drop seeds directly to the ground.\n\nWhich choice completes the text with the most logical and precise word or phrase?",
+    "a": "indistinguishable",
+    "b": "independent",
+    "c": "intermittent",
+    "d": "inverted"
+  },
+  {
+    "page": 32,
+    "qnum": 5,
+    "subject": "Reading and Writing",
+    "question": "In an analysis of over 50,000 records of pollinators visiting flowers, botanists determined that flowers with bilateral symmetry (zygomorphs) are visited by a smaller subset of pollinators than the subset that visits flowers with radial symmetry (actinomorphs), thus ______ anecdotal observations that zygomorphic flowers exclude many potential pollinators.\n\nWhich choice completes the text with the most logical and precise word or phrase?",
+    "a": "substantiating",
+    "b": "supplanting",
+    "c": "allocating",
+    "d": "transposing"
+  },
+  {
+    "page": 33,
+    "qnum": 6,
+    "subject": "Reading and Writing",
+    "question": "A trend away from stable, relatively high humidity in the Middle East over the past 8 million years can be inferred from the composition of cave formations dating to different periods. Cave formations from about 7 million years ago mainly consist of transparent columnar calcite, indicative of an underground water system regularly replenished by rainfall. Cave formations younger than approximately 1 million years, however, mainly consist of branching, opaque (and sometimes colorful) material, often with more frequent growth interruptions, indicating an intermittent water supply.\n\nWhich choice best describes the function of the two underlined portions in the text as a whole?",
+    "a": "They identify different characteristics of cave formations that when considered together provide evidence for a long-term shift toward lower and more variable humidity in the Middle East.",
+    "b": "They describe divergent features of cave formations that when taken together imply decreasing variation in Middle Eastern rainfall over time.",
+    "c": "They draw a contrast between Middle Eastern cave formations that is suggestive of geographic differences in the underground water supply.",
+    "d": "They provide evidence from different Middle Eastern cave formations that substantiates the claim that the region has experienced a consistent increase in total annual rainfall over the same period."
+  },
+  {
+    "page": 34,
+    "qnum": 7,
+    "subject": "Reading and Writing",
+    "question": "In many parts of the world, merchants rarely label goods with exact prices like $17.31 or $203.62. Studies have shown that consumers view exact prices as reflecting merchant expertise and careful calculation, so why aren't they more common? One reason is that exact prices may create greater cognitive friction during purchase decisions than do whole-number prices or prices easily rounded to whole numbers (e.g., $5.99, which is little different from $6). Particularly if multiple goods are being considered for purchase, tracking and comparing exact prices may feel onerous to consumers.\n\nWhich choice best states the main purpose of the text?",
+    "a": "To account for the fact that exact prices remain uncommon in many places despite some positive consumer perceptions of them",
+    "b": "To argue that exact prices are relatively uncommon because calculating them is burdensome for merchants",
+    "c": "To address the question of why the use of exact prices is less common in some parts of the world than in others",
+    "d": "To explain why exact prices present greater cognitive friction for some consumers than whole-number prices or easily rounded prices do"
+  },
+  {
+    "page": 35,
+    "qnum": 8,
+    "subject": "Reading and Writing",
+    "question": "Text 1\nFor decades, ornithologists assumed that if they saw a singing Bell's vireo—a bird species found in temperate North America—they must be observing a male. That's because birdsong has long been considered a male trait; researchers have argued that singing enables males to attract mates and claim territory.\n\nText 2\nRecent evidence shows that a female Bell's vireo is as capable of song as a male is. In fact, Karan J. Odom and colleagues found evidence of female song in 71% of the 323 species they examined. They claim that the historical mischaracterization of birdsong as a male trait is largely the result of bias: much of the research ornithologists have carried out has been near universities in the temperate northern hemisphere, where female birdsong is less common than it is in the tropics.\n\nBased on the texts, how would Odom and colleagues (Text 2) most likely respond to the view of birdsong presented in Text 1?",
+    "a": "They would suggest that it reflects a tendency to study male birds rather than female birds.",
+    "b": "They would claim that other factors than mate attraction and territorial defense have driven the evolution of singing in male birds.",
+    "c": "They would underscore that male songbirds in temperate zones are likely using their songs for different purposes than are male songbirds in the tropics.",
+    "d": "They would argue that it was influenced by the kinds of study sites researchers tended to select."
+  },
+  {
+    "page": 36,
+    "qnum": 9,
+    "subject": "Reading and Writing",
+    "question": "Synthetic elements with very heavy nuclei, such as darmstadtium (Ds) and flerovium (Fl), can exhibit behaviors that make these elements challenging to classify. The earliest experiment with Fl revealed properties associated with noble gases, while a second experiment found that Fl acts like a volatile metal. When Yakushev, Lens, et al. studied interactions between Fl and gold surfaces, they found that Fl is less reactive than the volatile metal mercury but is more reactive than the noble gas radon. These results confirm that Fl forms chemical bonds with gold, but the mechanisms of these reactions are unclear.\n\nWhich choice best states the main idea of the text?",
+    "a": "Observed inconsistencies in the behavior of Fl across experiments can be attributed to its interactions with other elements with very heavy nuclei.",
+    "b": "Although experiments have indicated that Fl is similar to the noble gases, it is too reactive to belong to this class of elements.",
+    "c": "Experiments have shown that properties of Fl do not precisely align with existing classifications of elements.",
+    "d": "Although Fl forms chemical bonds with gold surfaces in experiments, it does not react with volatile metals or noble gases."
+  },
+  {
+    "page": 37,
+    "qnum": 10,
+    "subject": "Reading and Writing",
+    "question": "Thurgood Marshall saw litigation as a means to enact social reforms and advance equal justice for US citizens. He cited the law's \"capacity to initiate change and its flexibility to accept and mold change\" as vital, breaking with the historical tradition of wielding the courts primarily to clarify or modify existing laws. This vision was realized in Marshall's successful arguing of the 1954 Brown v. Board of Education case before the US Supreme Court, as the court's decision to overturn the long-standing \"separate but equal\" doctrine revolutionized how the legal system regarded civil rights.\n\nBased on the text, how did Marshall's Brown v. Board of Education case most likely influence the US legal system's approach to civil rights?",
+    "a": "It promoted the idea that legal action is the most efficient way to create social change.",
+    "b": "It established that the courts could be used as a tool for significant social change.",
+    "c": "It inadvertently resulted in the courts taking a more cautious, incremental approach to advancing subsequent civil rights cases.",
+    "d": "It led courts to focus more on clarifying existing civil rights laws than on making modifications to them."
+  },
+  {
+    "page": 38,
+    "qnum": 11,
+    "subject": "Reading and Writing",
+    "question": "While US public charities, such as Kaiser Foundation Hospitals, must file Form 990 yearly with the IRS, private foundations, such as the David and Lucile Packard Foundation, must file a different form, 990-PF. In addition, foundations that engage in certain prohibited activities must also file Form 4720 and pay penalty taxes on the money involved. Prohibited activities for private foundations include \"self-dealing\" (conducting activities that benefit foundation insiders), making taxable expenditures such as outlays for lobbying, and failing to cross a required threshold in making charitable distributions from income. Out of the organizations that filed Form 990-PF in 2005, ______\n\nWhich choice most effectively uses data from the graph to complete the assertion?",
+    "a": "those that filed Form 4720 because they engaged in self-dealing and those that filed Form 4720 because of their taxable expenditures collectively paid a smaller portion of the total penalty than those that filed Form 4720 because they did not meet the minimum charitable distribution requirement.",
+    "b": "those that filed Form 4720 because they engaged in self-dealing paid, on average, lower penalties than those that filed Form 4720 because they did not meet the minimum charitable distribution requirement.",
+    "c": "more filed Form 4720 because they failed to meet the minimum charitable distribution requirement than did so in the following year.",
+    "d": "those that filed Form 4720 because they engaged in self-dealing and those that filed Form 4720 because of their taxable expenditures collectively accounted for a majority of the total penalties assessed.",
+    "figure": true
+  },
+  {
+    "page": 39,
+    "qnum": 12,
+    "subject": "Reading and Writing",
+    "question": "Mollusk shells are mainly composed of calcium carbonate, a chemical compound used in mortar and other construction materials. A research team led by Ariane da Silva Cardoso investigated pulverizing discarded Sururu mussel shells to create a substitute for fine aggregates (such as sand) in mortar mixtures. The team prepared mixtures with Sururu shell aggregate (SSA) replacing varying percentages of sand and then tested the mortars' compressive strength on days 7 and 28 of curing. Based on their findings, the team recommended SSA substitution in relatively small proportions to avoid compromising strength.\n\nWhich choice most effectively uses data from the graph to support the researchers' recommendation?",
+    "a": "The compressive strength of the 10% SSA mixture never surpassed the compressive strength measured for the control mixture on day 28.",
+    "b": "The compressive strength of the 10% SSA mixture remained nearly the same from day 7 to day 28, while that of the 20% and 40% SSA mixtures changed substantially.",
+    "c": "The 10% SSA mixture's compressive strength was greater than or approximately equal to that of the control mixture on day 7 and on day 28, but on both days the 20% and 40% SSA mixtures had less compressive strength than the control mixture did.",
+    "d": "The 10% SSA mixture's compressive strength was greater than that of the control mixture on day 7, but by day 28 the 10% SSA mixture's compressive strength had decreased while that of the control mixture had increased.",
+    "figure": true
+  },
+  {
+    "page": 40,
+    "qnum": 13,
+    "subject": "Reading and Writing",
+    "question": "A student is writing a research paper on the history of irrigation in the state of California, situating the development of the Dodge Reservoir (created in Lassen County, California, in 1893) in a larger historical context. The student claims that innovation in irrigation techniques was driven in part by the climate in some parts of the state.\n\nWhich quotation from a study of California agriculture best supports the student's claim?",
+    "a": "\"While the low humidity of Southern California's desert areas makes irrigation a requirement if agriculture is to be a success there, the relatively high humidity in the northern parts of the state makes such practices less necessary.\"",
+    "b": "\"The necessity of irrigation infrastructure in California today cannot be overstated, since it is the most common means of conveying water for agricultural use.\"",
+    "c": "\"The irrigation system developed by the Hohokam people in the 7th century CE in what is now Arizona was simple but applied hydraulic engineering design features that are still used today in both Arizona and California.\"",
+    "d": "\"Competition for scarce water resources in Southern California inspired the development of sprinkler irrigation systems, a manner of irrigating that requires less use of water than traditional surface irrigation methods.\""
+  }
+]

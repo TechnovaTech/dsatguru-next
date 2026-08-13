@@ -1,0 +1,105 @@
+[
+  {
+    "page": 71,
+    "qnum": 17,
+    "subject": "Math",
+    "question": "A botanist recorded the volume, in quarts, of cherries that grew on a semidwarf cherry tree during each growing season after the tree's transplantation. The scatterplot shows this volume, in quarts, for each of 8 growing seasons after the tree's transplantation.\n\nWhich of the following is closest to the total volume, in quarts, of cherries that grew on the tree over these 8 growing seasons?",
+    "a": "231",
+    "b": "162",
+    "c": "40",
+    "d": "36",
+    "figure": true
+  },
+  {
+    "page": 72,
+    "qnum": 18,
+    "subject": "Math",
+    "question": "((x - 7)(x - 8)) / (x - 3) = 0\n\nWhat is the sum of the solutions to the given equation?",
+    "a": "8",
+    "b": "18",
+    "c": "15",
+    "d": "3"
+  },
+  {
+    "page": 73,
+    "qnum": 19,
+    "subject": "Math",
+    "question": "a, 27, 28, b, 33, 48, c\n\nFor the given data set, the data values are listed in ascending order, where a, b, and c are constants. For this data set, the mean is 35, the median is 28, and the range is 71. What is the value of c?",
+    "a": "53",
+    "b": "71",
+    "c": "76",
+    "d": "98"
+  },
+  {
+    "page": 74,
+    "qnum": 20,
+    "subject": "Math",
+    "question": "The difference between the measure of angle A and the measure of angle B is -(11/12)π radians. Which expression shows the difference between the measure of angle A and the measure of angle B, in degrees?",
+    "a": "-(11/12) · (180°/π)",
+    "b": "-(11/12)π · (π/180°)",
+    "c": "-(11/12)π · (180°/π)",
+    "d": "-(11/12)π · (360°/π)"
+  },
+  {
+    "page": 75,
+    "qnum": 21,
+    "subject": "Math",
+    "question": "(x - 42)^2 = 1\n\nWhat is the sum of the solutions to the given equation?",
+    "a": "42",
+    "b": "43",
+    "c": "84",
+    "d": "85"
+  },
+  {
+    "page": 76,
+    "qnum": 22,
+    "subject": "Math",
+    "question": "In a set of three consecutive integers, where the integers are ordered from least to greatest, the first integer is represented by x. The sum of 9 and the second integer is less than the product of 11 and the third integer. Which inequality represents this situation?",
+    "a": "9 + (x + 1) > 11(x + 2)",
+    "b": "9 + (x + 1) < 11(x + 2)",
+    "c": "9 + (x + 2) > 11(x + 3)",
+    "d": "9 + (x + 2) < 11(x + 3)"
+  },
+  {
+    "page": 77,
+    "qnum": 1,
+    "subject": "Math",
+    "question": "If 9 + x = 6, what is the value of -18 - 2x?",
+    "a": "-12",
+    "b": "-2",
+    "c": "6",
+    "d": "24"
+  },
+  {
+    "page": 78,
+    "qnum": 2,
+    "subject": "Math",
+    "question": "The shaded region shown represents the solutions to which inequality?",
+    "a": "y > 3x + 7",
+    "b": "y > 3x - 7",
+    "c": "y < 3x + 7",
+    "d": "y < 3x - 7",
+    "figure": true
+  },
+  {
+    "page": 79,
+    "qnum": 3,
+    "subject": "Math",
+    "question": "x + 7 = 13\ny = 5x^2 + 5\n\nAt what point (x, y) do the graphs of the equations in the given system intersect?",
+    "a": "(6, 180)",
+    "b": "(6, 185)",
+    "c": "(13, 5)",
+    "d": "(13, 850)"
+  },
+  {
+    "page": 80,
+    "qnum": 4,
+    "subject": "Math",
+    "question": "The function t gives the estimated melting temperature, in degrees Celsius, of a DNA molecule as a function of the percent of guanine-cytosine (GC) content, x, in the DNA molecule. The graph of y = t(x) is shown. According to the graph, which of the following statements is NOT true?",
+    "a": "For each increase of x by 1, t(x) increases by approximately 2/5.",
+    "b": "A DNA molecule with a GC content of 0% has an estimated melting temperature between 60°C and 65°C.",
+    "c": "A DNA molecule with a GC content of 95% has an estimated melting temperature between 100°C and 105°C.",
+    "d": "For each increase of x by 10, t(x) increases by approximately 2/5.",
+    "figure": true
+  }
+]

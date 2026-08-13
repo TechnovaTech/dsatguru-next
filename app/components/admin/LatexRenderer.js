@@ -117,7 +117,10 @@ function renderTextSegment(part, key) {
         if (imgMatch) {
           return (
             <div key={idx} className="my-2">
-              <img src={imgMatch[1]} alt="Question" className="max-w-full h-auto rounded border" onError={e => { e.target.style.border = '2px solid red' }} />
+              {/* Cap BOTH width and height so a tall/large figure (e.g. a unit-circle graph)
+                  scales down to fit instead of overflowing and getting cut off. Aspect ratio
+                  is preserved because width/height stay auto under the two max-* limits. */}
+              <img src={imgMatch[1]} alt="Question" className="max-w-full max-h-[340px] w-auto h-auto object-contain rounded border" onError={e => { e.target.style.border = '2px solid red' }} />
             </div>
           )
         }

@@ -1,0 +1,94 @@
+[
+  {
+    "page": 61,
+    "subject": "Math",
+    "question": "If 8x+7=32, what is the value of 3(8x+7)?",
+    "a": "75",
+    "b": "96",
+    "c": "117",
+    "d": "128"
+  },
+  {
+    "page": 62,
+    "subject": "Math",
+    "question": "A landscaping company mixes oil with gasoline to power its tools. A chainsaw requires 8 ounces of oil per gallon of gasoline. A lawnmower requires 4 ounces of oil per gallon of gasoline. The company uses a total of 21 ounces of oil in its mixes for the chainsaw and lawnmower. Which of the following equations represents this situation, where x represents the amount of gasoline, in gallons, in the mix for the chainsaw and y represents the amount of gasoline, in gallons, in the mix for the lawnmower?",
+    "a": "2(x+2y)=21",
+    "b": "2(2x+y)=21",
+    "c": "4(x+2y)=21",
+    "d": "4(2x+y)=21"
+  },
+  {
+    "page": 63,
+    "subject": "Math",
+    "question": "In the figure shown, line r is parallel to line s. What is the value of x? (In the figure, a transversal line t crosses two parallel lines r and s. Line r is the upper line and line s is the lower line. The angle x° is at the intersection of line t and line r, and an angle of 44° is at the intersection of line t and line s.) Note: Figure not drawn to scale.",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": "",
+    "figure": true
+  },
+  {
+    "page": 64,
+    "subject": "Math",
+    "question": "Which expression is equivalent to 20x^2+3+5x^2?",
+    "a": "25x^4+3",
+    "b": "25x^2+3",
+    "c": "28x^4",
+    "d": "28x^2"
+  },
+  {
+    "page": 65,
+    "subject": "Math",
+    "question": "Circle N has a radius of 6 millimeters (mm). Circle M has an area of 121π mm^2. What is the total area, in mm^2, of circles N and M?",
+    "a": "17π",
+    "b": "133π",
+    "c": "145π",
+    "d": "157π"
+  },
+  {
+    "page": 66,
+    "subject": "Math",
+    "question": "An arborist studying forestland in Illinois estimates that there are at least 40 and no more than 50 hickory trees per acre in a certain forest. Which of the following best represents the arborist's estimate of the number of hickory trees, x, that are in a 3-acre section of this forest?",
+    "a": "150≤x≤300",
+    "b": "120≤x≤150",
+    "c": "43≤x≤53",
+    "d": "40≤x≤50"
+  },
+  {
+    "page": 67,
+    "subject": "Math",
+    "question": "On a particular assembly line, 51 out of every 100 products have a defect. A product from the assembly line will be selected at random. What is the probability of selecting a product that has a defect?",
+    "a": "1/5100",
+    "b": "1/51",
+    "c": "51/100",
+    "d": "51/10"
+  },
+  {
+    "page": 68,
+    "subject": "Math",
+    "question": "A plant nursery classifies a perennial flower species as tall if its typical height when fully grown is more than 100 centimeters. Each of the following inequalities represents the possible heights h, in centimeters, for a specific perennial flower species when fully grown. Which inequality represents the possible heights h, in centimeters, for a tall perennial flower species?",
+    "a": "14<h<95",
+    "b": "41<h<93",
+    "c": "78<h<100",
+    "d": "107<h<160"
+  },
+  {
+    "page": 69,
+    "subject": "Math",
+    "question": "The histograms summarize the distributions of scores for team A and team B. Which statement best compares the standard deviations of scores for these teams? (Team A histogram: scores are clustered near the center, with the tallest bars between 25 and 40 on the Score axis; Frequency axis ranges 0 to 50. Team B histogram: scores are spread toward the two ends, with tall bars near 15-20 and near 45-50 and low frequencies in the middle; Frequency axis ranges 0 to 50.)",
+    "a": "The standard deviation of scores for team A is less than the standard deviation of scores for team B.",
+    "b": "The standard deviation of scores for team A is greater than the standard deviation of scores for team B.",
+    "c": "The standard deviation of scores for team A is equal to the standard deviation of scores for team B.",
+    "d": "There is not enough information to compare the standard deviations.",
+    "figure": true
+  },
+  {
+    "page": 70,
+    "subject": "Math",
+    "question": "x+4y=-3\n4x-y=22\nThe solution to the given system of equations is (x, y). What is the value of 3x-5y?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  }
+]

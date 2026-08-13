@@ -1,0 +1,93 @@
+[
+ {
+  "slug": "elitex2",
+  "page": 10,
+  "subject": "Reading and Writing",
+  "question": "Employment in Agriculture, Hunting, and Forestry in the Czech Republic and Austria, 1995-2013 (graph shows Number of employees, in thousands, on the y-axis and Year on the x-axis, with a line for the ",
+  "answer": "B"
+ },
+ {
+  "slug": "elitex2",
+  "page": 60,
+  "subject": "Math",
+  "question": "The graph of the linear function f is shown, where y=f(x). What is the slope of the graph of f?",
+  "answer": "A"
+ },
+ {
+  "slug": "elitex3",
+  "page": 14,
+  "subject": "Reading and Writing",
+  "question": "Honeybee hives consist mainly of hexagonal (six-sided) units called cells, in which queens lay eggs. Hexagonal cells for eggs that develop into nonreproductive workers are smaller than those for eggs ",
+  "answer": "A"
+ },
+ {
+  "slug": "elitex3",
+  "page": 62,
+  "subject": "Math",
+  "question": "A bank account was opened with an initial deposit. Over the next several months, regular deposits were made into this account, and there were no withdrawals made during this time. The graph of the fun",
+  "answer": "35"
+ },
+ {
+  "slug": "elitex4",
+  "page": 71,
+  "subject": "Math",
+  "question": "A botanist recorded the volume, in quarts, of cherries that grew on a semidwarf cherry tree during each growing season after the tree's transplantation. The scatterplot shows this volume, in quarts, f",
+  "answer": "A"
+ },
+ {
+  "slug": "elitex4",
+  "page": 80,
+  "subject": "Math",
+  "question": "The function t gives the estimated melting temperature, in degrees Celsius, of a DNA molecule as a function of the percent of guanine-cytosine (GC) content, x, in the DNA molecule. The graph of y = t(",
+  "answer": "D"
+ },
+ {
+  "slug": "elitex5",
+  "page": 11,
+  "subject": "Reading and Writing",
+  "question": "In a college course on urban affairs, a student asserts that increased traffic congestion in the 1990s in the United States was present both in very large cities such as New York City, New York, and s",
+  "answer": "B"
+ },
+ {
+  "slug": "elitex5",
+  "page": 39,
+  "subject": "Reading and Writing",
+  "question": "Mollusk shells are mainly composed of calcium carbonate, a chemical compound used in mortar and other construction materials. A research team led by Ariane da Silva Cardoso investigated pulverizing di",
+  "answer": "C"
+ },
+ {
+  "slug": "elitex5",
+  "page": 55,
+  "subject": "Math",
+  "question": "The function w models the weight, in ounces, of the remaining solid wax of a burning candle as a function of the time x, in hours, after the candle was lit. The graph of y = w(x) is shown. According t",
+  "answer": "C"
+ },
+ {
+  "slug": "elitex8",
+  "page": 59,
+  "subject": "Math",
+  "question": "In the given scatterplot, a line of best fit for the data is shown.\n\nWhich of the following equations best represents this line of best fit?",
+  "answer": "A"
+ },
+ {
+  "slug": "elitex8",
+  "page": 65,
+  "subject": "Math",
+  "question": "The scatterplot shows the relationship between two variables, x and y. A line of best fit is also shown.\n\nWhich of the following is closest to the slope of this line of best fit?",
+  "answer": "B"
+ },
+ {
+  "slug": "elitex8",
+  "page": 73,
+  "subject": "Math",
+  "question": "The graph of y=f(x) is shown, where f(x)=ab^x+c, and a, b, and c are constants. For how many values of x does f(x)=0?",
+  "answer": "D"
+ },
+ {
+  "slug": "elitex8",
+  "page": 76,
+  "subject": "Math",
+  "question": "The equation of the graph shown is y=a^x+b, where a and b are constants. What is the value of a - b?",
+  "answer": "9"
+ }
+]

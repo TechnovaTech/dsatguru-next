@@ -1,0 +1,103 @@
+[
+  {
+    "page": 31,
+    "qnum": 4,
+    "subject": "Reading and Writing",
+    "question": "_______ though it seemed to many mathematicians, the Marden tameness conjecture, posed in 1974, eventually yielded to the efforts of Ian Agol, who presented a proof of it in 2004.\n\nWhich choice completes the text with the most logical and precise word or phrase?",
+    "a": "Insuperable",
+    "b": "Unequivocal",
+    "c": "Irreproachable",
+    "d": "Ineluctable"
+  },
+  {
+    "page": 32,
+    "qnum": 5,
+    "subject": "Reading and Writing",
+    "question": "Individual elephants and Arctic herbivores such as caribou tend to have fixed geographic ranges throughout their lifetimes, which had prompted some researchers to speculate that the Arctic woolly mammoth, an extinct elephantid, might have exhibited similar behavior. Mammoth tusks grew in sequential layers, incorporating ingested minerals and organics, and so each ivory stratum reflects the ratio of strontium isotopes (^87Sr/^86Sr) in the local environment; thus, the sequence of strata shows where the animal roamed during life. Recent analysis of the strontium ratios in the strata of one Arctic woolly mammoth tusk in relation to the geographic distribution of strontium ratios in the environment shows the animal's range begin to expand as it reached sexual maturity, only to contract again in its final 1.5 years.\n\nWhich choice best describes the function of the underlined statement in the text as a whole?",
+    "a": "It discusses a characteristic shared by certain animals in order to explain why researchers raised a possibility that turned out not to be supported by data described later in the text.",
+    "b": "It illustrates a pattern of behavior among certain animals in order to present a theory about exceptions to that pattern that is weakened by a finding described later in the text.",
+    "c": "It describes a similarity in the behavior of certain animals in order to show why a method described later in the text did not reveal whether another animal also showed that behavior.",
+    "d": "It introduces a trait shared by certain animals in order to contextualize a hypothesis about the origin of that trait that is advanced later in the text."
+  },
+  {
+    "page": 33,
+    "qnum": 6,
+    "subject": "Reading and Writing",
+    "question": "Text 1\nFor thousands of years, O'odham farmers in the Sonoran desert of the southwestern US and northern Mexico have cultivated elderberries and chia seeds, sometimes planting these species together so that the elderberry bushes provide shade for chia flowers. Doing so helps protect chia flowers from the harshest heat and light and thereby helps prevent soil moisture from evaporating.\n\nText 2\nChia flowers are well adapted to growing in the desert but grow best when shaded. Inspired by O'odham farmers, who often strategically plant chia flowers in the shade of sun-hardy species like elderberry bushes for protection from the sun and heat, Gary Nabhan and colleagues planted chia flowers in the shade of solar panels in the Sonoran desert and found that the plants grew well, suggesting to Nabhan and colleagues that the panels provide a benefit similar to that provided by elderberry bushes.\n\nBased on the texts, the author of Text 1 and the author of Text 2 would most likely agree on which point?",
+    "a": "Elderberry bushes can provide shade that protects chia flowers from high-intensity heat and light.",
+    "b": "Nabhan's team's method could be refined to more actively prevent soil moisture from evaporating.",
+    "c": "Compared with Nabhan's approach, the O'odham approach has the advantage of producing chia seeds.",
+    "d": "Elderberry bushes grow best when planted in shaded areas, while chia flowers do not require shade to thrive."
+  },
+  {
+    "page": 34,
+    "qnum": 7,
+    "subject": "Reading and Writing",
+    "question": "Text 1\nIn parts of New Zealand, the stoat is a major predator of the house mouse. Researcher G.L. Blackwell and colleagues found that when this predation pressure on house mice was temporarily reduced, their numbers significantly increased. This finding illustrates a foundational ecological principle: predators control prey population numbers.\n\nText 2\nWilliam D. Gulsby and colleagues found that excluding coyotes from a site in the state of Georgia where they typically prey on white-tailed deer had no significant effect on white-tailed deer abundance. Many other predation relief studies show an increase in prey abundance, but those studies often focus on small, rapidly reproducing prey, like birds, mice, and frogs, rather than large, slowly reproducing prey, like white-tailed deer, which could account for the difference between those results and Gulsby and colleagues' results.\n\nBased on the texts, the author of Text 2 would most likely agree with which statement about the \"principle\" mentioned in Text 1?",
+    "a": "It is plausible, but many of the studies that support it have methodological flaws.",
+    "b": "It has been challenged by some studies, but the findings of those studies have not been widely accepted.",
+    "c": "It may be true for some predators but only because those predators share certain physical characteristics.",
+    "d": "It has some evidential support, but it should not be regarded as universally applicable."
+  },
+  {
+    "page": 35,
+    "qnum": 8,
+    "subject": "Reading and Writing",
+    "question": "Text 1\nStudies contributing to the body of evidence that people generally enjoy socializing have routinely focused on interactions in ongoing relationships (from spouses to classmates), but psychologist Selin Salman-Engin and colleagues have demonstrated the benefit of making connections with strangers. Greater positive affect was reported by participants in their study who warmly thanked a shuttle driver than by those who didn't speak to the driver.\n\nText 2\nSocial relations research commonly draws on a model that centers an individual within three concentric circles. The innermost circle holds one's strongest ties (e.g., a treasured friend), the next holds close but less important ties (e.g., a teammate), and the outermost holds weak ties (those more distant but important enough to be counted as part of one's social network).\n\nBased on the texts, what would Salman-Engin and colleagues (Text 1) most likely say about the discussion of the model in Text 2?",
+    "a": "It underscores that most research on social interactions fails to capture a category of connection that has the capacity to contribute positively to individuals' sense of well-being.",
+    "b": "It reflects an overemphasis on relationship longevity in researchers' evaluations of the relative importance of various connections in an individual's social network.",
+    "c": "It explains researchers' observations that individuals typically expect interactions with familiar people to be more positive than their interactions with unfamiliar people would be.",
+    "d": "It emphasizes distinctions among types of close connections that aren't adequately represented in social relations research, since most studies categorize relationships as either close or casual."
+  },
+  {
+    "page": 36,
+    "qnum": 9,
+    "subject": "Reading and Writing",
+    "question": "In a paper for an art history class, a student claims that Rosa Bonheur's 1855 painting The Horse Fair marks a significant change in Bonheur's artistic development.\n\nWhich quotation from an art history textbook would most effectively support the student's claim?",
+    "a": "\"The paintings that Bonheur produced before The Horse Fair can be thought of as belonging to her earlier style, to which she never returned.\"",
+    "b": "\"Of all Bonheur's paintings, none so clearly represents her abilities and ideas as The Horse Fair.\"",
+    "c": "\"The Horse Fair has been analyzed extensively since it was first exhibited, as no two viewers seem to agree about exactly what the painting means.\"",
+    "d": "\"Although Bonheur was clearly influenced by other artists of her time, she was also an artist ahead of her time, as The Horse Fair demonstrates.\""
+  },
+  {
+    "page": 37,
+    "qnum": 10,
+    "subject": "Reading and Writing",
+    "question": "Growing seasons in Alaska have been extending further into the year in response to climate warming, potentially enabling increased carbon dioxide (CO2) absorption through greater productivity of marsh cinquefoil (Comarum palustre) plants and other vegetation, but also potentially enabling increased CO2 output through greater heterotrophic respiration (CO2 generated by the activity of soil microorganisms). Hydrologist Yonghong Yi and her colleagues developed a model incorporating numerous inputs—years of solar radiation and snow cover data among them—to evaluate the effects of warming on the CO2 balance in Alaska, concluding that net CO2 is likely to increase if warming hastens spring snow melt.\n\nWhich finding, if true, would most directly support the researchers' conclusion?",
+    "a": "Early snow melt extends the period in which plant species such as C. paluestre can absorb CO2 but has no effect on the rate of heterotrophic respiration.",
+    "b": "Early snow melt slows the growth of plant species such as C. paluestre by reducing soil insulation, and it suppresses heterotrophic respiration.",
+    "c": "Early snow melt reduces the amount of soil moisture available for the growth of plant species such as C. paluestre, and it raises the rate of heterotrophic respiration.",
+    "d": "Early snow melt amplifies the effect of solar radiation on the growth of plant species such as C. paluestre and on the rate of heterotrophic respiration."
+  },
+  {
+    "page": 38,
+    "qnum": 11,
+    "subject": "Reading and Writing",
+    "question": "It is common for freshwater lakes near or above a latitude of 45° north of the equator, like Lake Stechlin in Germany, to accumulate surface ice in winter. A study from 1980 to 2006 showed that, in general, the number of days per winter that such lakes have measurable amounts of surface ice is declining. However, a researcher claimed that some lakes have instead seen an increase in the duration of ice, citing as an example _______\n\nWhich choice most effectively uses data from the graph to complete the researcher's example?",
+    "a": "both Lake Baikal and Oulujärvi, which had more than 100 days of ice in the winter of 2005-06.",
+    "b": "Lake Baikal, which had more days of ice in the winter of 2005-06 than it did in the winter of 1980-81.",
+    "c": "both Lake Baikal and Oulujärvi, which had fewer than 195 days of ice in the winter of 1980-81.",
+    "d": "both Lake Kegonsa and Oulujärvi, which had more days of ice in the winter of 2005-06 than they did in the winter of 1980-81.",
+    "figure": true
+  },
+  {
+    "page": 39,
+    "qnum": 12,
+    "subject": "Reading and Writing",
+    "question": "Early Earth is thought to have been characterized by a stagnant lid tectonic regime, in which the upper lithosphere (the outer rocky layer) was essentially immobile and there was no interaction between the lithosphere and the underlying mantle. Researchers investigated the timing of the transition from a stagnant lid regime to a tectonic plate regime, in which the lithosphere is fractured into dynamic plates that in turn allow lithospheric and mantle material to mix. Examining chemical data from lithospheric and mantle-derived rocks ranging from 285 million to 3.8 billion years old, the researchers dated the transition to 3.2 billion years ago.\n\nWhich finding, if true, would most directly support the researchers' conclusion?",
+    "a": "Mantle-derived rocks older than 3.2 billion years show significantly more compositional diversity than lithospheric rocks older than 3.2 billion years do.",
+    "b": "There is a positive correlation between the age of lithospheric rocks and their chemical similarity to mantle-derived rocks, and that correlation increases significantly in strength at around 3.2 billion years old.",
+    "c": "Mantle-derived rocks younger than 3.2 billion years contain some material that is not found in older mantle-derived rocks but is found in older and contemporaneous lithospheric rocks.",
+    "d": "Among rocks known to be older than 3.2 billion years, significantly more are mantle derived than lithospheric, but the opposite is true for the rocks younger than 3.2 billion years."
+  },
+  {
+    "page": 40,
+    "qnum": 13,
+    "subject": "Reading and Writing",
+    "question": "Some fuel additives contain cerium oxide nanoparticles (CeO2-NPs), which can leach into waterways and soils via wastewater. In a 2015 study, Mael Garaud and colleagues found that CeO2-NPs can accumulate in the bodies of zebra mussels (Dreissena polymorpha). While bioaccumulation of manufactured nanoparticles may be inherently worrisome, it has been hypothesized that CeO2-NP bioaccumulation in invertebrates like D. polymorpha could serve a valuable proxy role, obviating the need for manufacturers to conduct costly and intrusive sampling of vertebrate species—such as rainbow trout (Oncorhynchus mykiss), commonly used in regulatory compliance testing—for nanoparticle bioaccumulation, as environmental protection laws currently require.\n\nWhich finding, if true, would most directly weaken the hypothesis presented in the text?",
+    "a": "When D. polymorpha and O. mykiss are exposed to similar levels of CeO2-NPs, concentrations of CeO2-NPs in animals of both species show little variation from individual to individual.",
+    "b": "The rate of CeO2-NP uptake in D. polymorpha differs from the rate of CeO2-NP uptake in O. mykiss in a way that is not yet well understood by researchers.",
+    "c": "D. polymorpha has been shown to accumulate several other types of manufactured nanoparticles in addition to CeO2-NPs, whereas O. mykiss has been shown to accumulate only CeO2-NPs.",
+    "d": "Compared with O. mykiss, D. polymorpha can accumulate detectable CeO2-NP concentrations with significantly fewer negative effects."
+  }
+]

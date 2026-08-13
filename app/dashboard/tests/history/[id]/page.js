@@ -164,6 +164,32 @@ export default function TestReviewPage() {
     )
   }
 
+  // A test that was auto-submitted mid-way (proctoring violation) must NOT reveal the answer
+  // key + explanations — only a genuinely completed attempt unlocks the question-by-question
+  // review. Show a clear message instead of the answers.
+  if (session.autoSubmitted || session.autoSubmitReason) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-6 lg:p-8 flex items-center justify-center">
+        <div className="flex max-w-md flex-col items-center rounded-2xl border border-amber-100 bg-white p-10 text-center shadow-sm">
+          <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 text-amber-500">
+            <FiSlash size={24} />
+          </span>
+          <h2 className="text-lg font-bold text-slate-900">Answer review isn&apos;t available</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            This test was auto-submitted before it was finished{session.autoSubmitReason ? ` (${session.autoSubmitReason})` : ''}, so the correct
+            answers and explanations are hidden. Finish a full attempt to unlock the review.
+          </p>
+          <button
+            onClick={() => router.push('/dashboard/tests/history')}
+            className="mt-6 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+          >
+            Back to History
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   const correctCount = questions.filter(q => q.isCorrect).length
   const attemptedCount = questions.filter(q => q.wasAttempted).length
   const wrongCount = questions.filter(q => q.wasAttempted && !q.isCorrect).length

@@ -1,0 +1,102 @@
+[
+  {
+    "page": 21,
+    "qnum": 21,
+    "subject": "Reading and Writing",
+    "question": "Not all plants benefit equally or from the same kind of ______ cucumber and marigold, for example, benefit from endomycorrhizal associations; many tree species, such as pine and oak, benefit from ectomycorrhizal associations; and plants in the Brassica family, such as rutabaga, don't benefit from mycorrhizae at all.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+    "a": "mycorrhizae;",
+    "b": "mycorrhizae,",
+    "c": "mycorrhizae",
+    "d": "mycorrhizae:"
+  },
+  {
+    "page": 22,
+    "qnum": 22,
+    "subject": "Reading and Writing",
+    "question": "In skateboarding, the 900—a trick in which the skateboarder spins two and a half times in midair—is so rare that every successful execution of it is a historic occasion. ______ ever since Mitchie Brusco and Tas Pappas performed their 900s (in 2011 and 2014, respectively), fans have revered them as titans of the sport.\n\nWhich choice completes the text with the most logical transition?",
+    "a": "In conclusion,",
+    "b": "By comparison,",
+    "c": "For this reason,",
+    "d": "Regardless,"
+  },
+  {
+    "page": 23,
+    "qnum": 23,
+    "subject": "Reading and Writing",
+    "question": "With their distinctive cone shapes and steeply sloping sides, the volcanoes Almolonga (Guatemala) and Maungawhau (New Zealand) may look similar from afar. Tehnuka Ilanko and other volcanologists, ______ can tell by how each was formed that Almolonga is a composite volcano, while Maungawhau is a cinder cone volcano.\n\nWhich choice completes the text with the most logical transition?",
+    "a": "therefore,",
+    "b": "for example,",
+    "c": "though,",
+    "d": "in addition,"
+  },
+  {
+    "page": 24,
+    "qnum": 24,
+    "subject": "Reading and Writing",
+    "question": "Scientists studying asteroid deflection have focused on secondary objects such as S/2018(2018 EB), a moonlet orbiting the near-Earth asteroid 2018 EB. In 2022 NASA intentionally crashed a probe into just such an object, the moonlet Dimorphos. ______ Dimorphos's orbital period around the near-Earth asteroid Didymos was permanently altered.\n\nWhich choice completes the text with the most logical transition?",
+    "a": "In addition,",
+    "b": "Specifically,",
+    "c": "Consequently,",
+    "d": "In comparison,"
+  },
+  {
+    "page": 25,
+    "qnum": 25,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n\n- Springtails are a group of noninsect hexapods (six-legged animals).\n- Researchers Claudia Marcela Ospina-Sánchez, Felipe N. Soto-Adames, and Grizelle González conducted a study to determine how many springtail species are present in Puerto Rico.\n- They found a total of 146 springtail species.\n- They found 1 springtail species belonging to the genus Hemisotoma.\n- They found 3 springtail species belonging to the genus Sphaeridia.\n\nWhich choice most effectively uses information from the given sentences to present the study and its findings?",
+    "a": "In Puerto Rico, the genus Hemisotoma contains one springtail species, and the genus Sphaeridia contains three springtail species.",
+    "b": "According to a study by researchers Claudia Marcela Ospina-Sánchez, Felipe N. Soto-Adames, and Grizelle González, there are 146 springtail species present in Puerto Rico, including one from the genus Hemisotoma and three from the genus Sphaeridia.",
+    "c": "Researchers Claudia Marcela Ospina-Sánchez, Felipe N. Soto-Adames, and Grizelle González studied springtails in Puerto Rico, and they wanted to know how many species there are in the genus Hemisotoma and the genus Sphaeridia.",
+    "d": "There are 146 species of springtail (noninsect hexapods) in Puerto Rico, but there are more species from the genus Sphaeridia than from the genus Hemisotoma."
+  },
+  {
+    "page": 26,
+    "qnum": 26,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n\n- In botany, strawberries (Fragaria ananassa) are classified as fruits.\n- In botany, green beans (Phaseolus vulgaris) are classified as fruits.\n- Green beans are commonly considered vegetables because they taste savory.\n- Strawberries are commonly considered fruits because they taste sweet.\n\nThe student wants to emphasize a similarity between strawberries and green beans. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "Unlike strawberries, green beans taste savory.",
+    "b": "In botany, strawberries (Fragaria ananassa) and green beans (Phaseolus vulgaris) are both classified as fruits.",
+    "c": "While strawberries are commonly considered fruits, green beans are commonly considered vegetables.",
+    "d": "Strawberries, which are botanically classified as fruits, taste sweet and thus are commonly considered fruits."
+  },
+  {
+    "page": 27,
+    "qnum": 27,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n\n- Francis Halzen is a Belgian particle physicist.\n- Particle physicists study subatomic particles.\n- Neutrinos are some of the least understood subatomic particles.\n- Neutrinos were first discovered in the mid-twentieth century.\n- Halzen is known for his discovery of high-energy astrophysical neutrinos.\n\nThe student wants to provide an example of a particle physicist whose research focuses on neutrinos. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "The research done on high-energy astrophysical neutrinos exemplifies the work particle physicists do to advance our understanding of subatomic particles.",
+    "b": "By studying high-energy astrophysical neutrinos—to name just one example—particle physicists can learn more about neutrinos.",
+    "c": "Particle physicist Francis Halzen is known for his discovery of high-energy astrophysical neutrinos.",
+    "d": "Neutrinos are a type of subatomic particle that particle physicists are still trying to understand."
+  },
+  {
+    "page": 28,
+    "qnum": 1,
+    "subject": "Reading and Writing",
+    "question": "Text corpora such as the Brown Corpus are enormous collections of electronically stored texts that can be used for empirical testing of hypotheses regarding the frequency of typical word usage. For example, a linguist who assumes that the word \"know\" appears quite often in written English could ______ that assumption with data from a corpus: \"know\" is the eighth most commonly used verb.\n\nWhich choice completes the text with the most logical and precise word or phrase?",
+    "a": "substantiate",
+    "b": "entail",
+    "c": "transpose",
+    "d": "refute"
+  },
+  {
+    "page": 29,
+    "qnum": 2,
+    "subject": "Reading and Writing",
+    "question": "Despite stated claims of global relevance, much major research on income inequality performed in the 2010s suffered from a myopic focus on a few countries in North America and Western Europe, partly due to limited data availability. Researchers would later ______ this shortcoming after gaining new access to administrative records located in nations in Africa, such as Ivory Coast, and Eastern Europe, such as Poland.\n\nWhich choice completes the text with the most logical and precise word or phrase?",
+    "a": "postulate",
+    "b": "ameliorate",
+    "c": "sanction",
+    "d": "rationalize"
+  },
+  {
+    "page": 30,
+    "qnum": 3,
+    "subject": "Reading and Writing",
+    "question": "Though it does not guarantee a book's commercial success, ______ can play a big role in that success—a well-executed marketing campaign helped to make Danielle Steel's novel The Gift the fourth-best-selling novel of 1994.\n\nWhich choice completes the text with the most logical and precise word or phrase?",
+    "a": "originality",
+    "b": "publicity",
+    "c": "complexity",
+    "d": "practicality"
+  }
+]

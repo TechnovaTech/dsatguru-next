@@ -1,0 +1,104 @@
+[
+  {
+    "page": 71,
+    "qnum": 17,
+    "subject": "Math",
+    "question": "| x | y |\n| --- | --- |\n| k | 26 |\n| k+4 | 14 |\n| k+8 | 2 |\n\nThe table gives three values of x in terms of constant k and their corresponding values of y. There is a linear relationship between x and y. In the xy-plane, the y-intercept of the line that represents this relationship is (0, 5). What is the value of k?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 72,
+    "qnum": 18,
+    "subject": "Math",
+    "question": "The current value of a house is $174,000, and this value increases by 2.4% each year from the value of the previous year. Which function f gives the value, in dollars, of the house x years from now?",
+    "a": "f(x)=174,000(0.024)^x",
+    "b": "f(x)=174,000(0.24)^x",
+    "c": "f(x)=174,000(1.024)^x",
+    "d": "f(x)=174,000(1.24)^x"
+  },
+  {
+    "page": 73,
+    "qnum": 19,
+    "subject": "Math",
+    "question": "The graph of y=f(x) is shown, where f(x)=ab^x+c, and a, b, and c are constants. For how many values of x does f(x)=0?",
+    "a": "Three",
+    "b": "Two",
+    "c": "One",
+    "d": "Zero",
+    "figure": true
+  },
+  {
+    "page": 74,
+    "qnum": 20,
+    "subject": "Math",
+    "question": "If (x-16)/27 = (x-16)/9, what is the value of x+16?",
+    "a": "0",
+    "b": "3",
+    "c": "16",
+    "d": "32"
+  },
+  {
+    "page": 75,
+    "qnum": 21,
+    "subject": "Math",
+    "question": "Parallelogram ABCD is similar to parallelogram PQRS. The length of each side of parallelogram PQRS is 2 times the length of its corresponding side of parallelogram ABCD. The area of parallelogram ABCD is 5 square centimeters. What is the area, in square centimeters, of parallelogram PQRS?",
+    "a": "7",
+    "b": "10",
+    "c": "20",
+    "d": "25"
+  },
+  {
+    "page": 76,
+    "qnum": 22,
+    "subject": "Math",
+    "question": "The equation of the graph shown is y=a^x+b, where a and b are constants. What is the value of a - b?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": "",
+    "figure": true
+  },
+  {
+    "page": 77,
+    "qnum": 1,
+    "subject": "Math",
+    "question": "As part of a science experiment on evaporation, Ella measured the height of water in a glass over a period of time. The function f(x)=39-0.18x gives the estimated height, in centimeters (cm), of the water in the glass x days after the start of the experiment. Which of the following is the best interpretation of 39 in this context?",
+    "a": "The estimated height, in cm, of the water at the start of the experiment",
+    "b": "The estimated height, in cm, of the water at the end of the experiment",
+    "c": "The estimated change in the height, in cm, of the water each day",
+    "d": "The estimated number of days for all the water in the glass to evaporate"
+  },
+  {
+    "page": 78,
+    "qnum": 2,
+    "subject": "Math",
+    "question": "28, 28, 29, 30, 32, 33, 37\n\nWhat is the mean of the data set shown?",
+    "a": "28",
+    "b": "30",
+    "c": "31",
+    "d": "37"
+  },
+  {
+    "page": 79,
+    "qnum": 3,
+    "subject": "Math",
+    "question": "A plant nursery classifies a perennial flower species as tall if its typical height when fully grown is more than 100 centimeters. Each of the following inequalities represents the possible heights h, in centimeters, for a specific perennial flower species when fully grown. Which inequality represents the possible heights h, in centimeters, for a tall perennial flower species?",
+    "a": "14<h<95",
+    "b": "41<h<93",
+    "c": "78<h<100",
+    "d": "107<h<160"
+  },
+  {
+    "page": 80,
+    "qnum": 4,
+    "subject": "Math",
+    "question": "3y=8x+18\n-3y=7x-26\n\nThe solution to the given system of equations is (x, y). What is the value of 30x?",
+    "a": "-16",
+    "b": "-8",
+    "c": "8",
+    "d": "16"
+  }
+]

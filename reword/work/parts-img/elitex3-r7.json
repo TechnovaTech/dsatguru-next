@@ -1,0 +1,58 @@
+[
+ {
+  "i": 66,
+  "question": "Consider the equation 121x^2 = -110x + 56. Given that 11x + 5 > 0, determine the value of 11x + 5.",
+  "option a": "",
+  "option b": "",
+  "option c": "",
+  "option d": "",
+  "correct answer": "9",
+  "difficulty": "Hard",
+  "subject": "Math",
+  "tags": "quadratic equations, substitution",
+  "shortexplanation": "Rewrite the equation so that 121x^2 + 110x + 56 relates to (11x + 5)^2, then solve for the positive value.",
+  "longexplanation": "Move every term to one side: 121x^2 + 110x - 56 = 0. Notice that (11x + 5)^2 = 121x^2 + 110x + 25. Substituting u = 11x + 5 gives u^2 - 25 - 56 = 0, so u^2 = 81. Taking the square root yields u = 9 or u = -9. Because the problem requires 11x + 5 > 0, the value must be 9."
+ },
+ {
+  "i": 67,
+  "question": "A single gallon of sealant is priced at \\$23 and covers 250 square feet of surface. A deck has a total surface area of d square feet. Which equation gives the cost c, in dollars, of the sealant required to apply two coats over the entire deck?",
+  "option a": "c = 250d/23",
+  "option b": "c = 500d/23",
+  "option c": "c = 23(d/125)",
+  "option d": "c = 23(d/250)",
+  "correct answer": "C",
+  "difficulty": "Medium",
+  "subject": "Math",
+  "tags": "linear models, rates",
+  "shortexplanation": "Covering the deck twice means sealing 2d square feet, and each 250 square feet costs \\$23.",
+  "longexplanation": "One coat of the deck covers d square feet, so two coats cover 2d square feet. The number of gallons needed is 2d/250 = d/125. Since each gallon costs \\$23, the total cost is c = 23(d/125). This matches option C."
+ },
+ {
+  "i": 68,
+  "question": "x^2 - 4x + y^2 - 8y - 80 = 0\n\nThe graph of the equation above is a circle in the xy-plane. Suppose this circle is inscribed inside a square. What is the perimeter of that square?",
+  "option a": "20",
+  "option b": "40",
+  "option c": "80",
+  "option d": "320",
+  "correct answer": "C",
+  "difficulty": "Medium",
+  "subject": "Math",
+  "tags": "circles, completing the square",
+  "shortexplanation": "Complete the square to find the radius, then use that a square around an inscribed circle has side equal to the diameter.",
+  "longexplanation": "Group and complete the square: (x^2 - 4x + 4) + (y^2 - 8y + 16) = 80 + 4 + 16, giving (x - 2)^2 + (y - 4)^2 = 100. The radius is 10, so the diameter is 20. A circle inscribed in a square touches all four sides, so the square's side length equals the diameter, 20. The perimeter is 4 * 20 = 80, which is option C."
+ },
+ {
+  "i": 69,
+  "question": "r^2 + qr = 8r - 97\n\nIn the equation above, q is an integer constant, and the equation has no real solution. What is the greatest possible value of q?",
+  "option a": "",
+  "option b": "",
+  "option c": "",
+  "option d": "",
+  "correct answer": "27",
+  "difficulty": "Hard",
+  "subject": "Math",
+  "tags": "quadratic discriminant, no real solution",
+  "shortexplanation": "Put the equation in standard form and require the discriminant to be negative.",
+  "longexplanation": "Rewrite as r^2 + (q - 8)r + 97 = 0. For no real solution, the discriminant must be negative: (q - 8)^2 - 4(97) < 0, so (q - 8)^2 < 388. Taking square roots gives |q - 8| < 19.7, meaning q - 8 can be at most 19 for an integer. Thus q = 8 + 19 = 27 is the largest integer value that keeps the equation without real solutions."
+ }
+]

@@ -1,0 +1,1103 @@
+Section: Section 2, Module 2: Math, Difficulty: hard (284 questions)
+573. Circle A in the xy-plane has the equation (x + 6)2 + (y - 6)2 = 9. Circle B has the same center as circle A. The radius of circle B is two times the radius of circle A. The equation defining circle B in the xy-plane is (x + 6)2 + (y - 6)2 = k, where k is a constant. What is the value of k?
+Answer: 36
+574.
+
+Line k is shown in the xy-plane. Line j (not shown) is perpendicular to line k and passes through the point (-15, -22). Which equation defines line j?
+
+A. y =
+
+4 x - 10
+5
+
+B. y =
+
+4 x - 34
+5
+
+C. y =
+
+5 4
+
+x
+
+-
+
+10
+
+D. y =
+
+5 4
+
+x
+
+-
+
+34
+
+Answer: A
+
+575. For the linear function f, f(6) = 17 and f(9) = 8. Which equation defines f?
+
+A. f(x) = -3x + 35
+
+B. f(x) = -3x + 23
+
+C. f(x) =
+
+1x+5
+3
+
+D.
+
+f(x)
+
+=
+
+-
+
+1 3
+
+x
+
++
+
+19
+
+Answer: A
+
+577. Which of the following expressions is(are) a factor of 5x2 + 22x - 48? I. x - 6 II. 5x - 8
+A. I only B. II only C. I and II D. Neither I nor II
+Answer: B
+
+578.
+
+Value
+40 45 50 55 60
+
+Data set A frequency
+1 4 5 6 8
+
+Data set B frequency
+8 6 5 4 1
+
+Data set A and data set B each consist of 24 values. The table shows the frequencies of the values for each data set. Which of the following statements best
+compares the means of the two data sets?
+
+A. The mean of data set A is less than the mean of data set B.
+
+B. The mean of data set A is greater than the mean of data set B.
+
+C. The mean of data set A is equal to the mean of data set B.
+
+D. There is not enough information to compare the means of the data sets.
+
+Answer: B
+
+580. If x = 2n 5xn + 50, where n is a positive integer constant, what is the value of xn?
+Answer: 10
+
+582. Each side of a 30-sided polygon has one of three lengths. The number of sides with length 4 centimeters (cm) is 5 times the number of sides n with length 8 cm. There are 6 sides with length 3 cm. Which equation must be true for the value of n? A. 5n + 6 = 30 B. 6n + 6 = 30 C. 4n + 8n + 3n = 30 D. 4(5n) + 8n + 3(6) = 30
+Answer: B
+
+585. The perimeter of an isosceles right triangle is 94 + 942 inches. What is the length, in inches, of the hypotenuse of this triangle? A. 47 B. 472 C. 94 D. 942
+Answer: C
+
+714. x + y = 135 x + y + y = 175
+The solution to the given system of equations is (x, y). What is the value of y?
+Answer: 40
+
+715. For the linear function h, h(0) = 0 and h(11) = 7. Which equation defines h?
+
+A. h(x) =
+
+11 x
+7
+
+B. h(x) =
+
+11 x + 11
+7
+
+C. h(x) = 7 x
+11
+
+D. h(x) =
+
+7 x+7
+11
+
+Answer: C
+
+716. The graph of 3x + y = 11 in the xy-plane is a line. What is the slope of the line?
+Answer: -3
+717. One of the factors of 8x4 + 26x2 + 21 is ax2 + b, where a and b are positive constants. Which of the following is a possible value of ab? A. 3 B. 12 C. 14 D. 28
+Answer: D
+
+718.
+
+A marine biologist is studying a habitat that contains shoal bass, a species of freshwater fish. The box plot shown summarizes the lengths, in centimeters (cm), of a
+sample of 75 shoal bass from this habitat. What is the range, in cm, of the lengths of the shoal bass in the sample? A. 14 B. 19 C. 28 D. 47
+Answer: B
+720. x2 + y2 = 1,088 y - 4x = 0
+A solution to the given system of equations is (x, y), where x < 0. What is the value of y? A. -256 B. -32 C. -8 D. -4
+Answer: B
+723. Which quadratic equation has no real solutions?
+A. 14r2 = 13 B. 14r2 = -13r + 13 C. -14r2 = -13r D. -14r2 = -13r + 13
+Answer: D
+725.
+
+The graph of the equation y = 3x + k is shown, where k is a constant. What is the value of k? A. -4 B. -3 C. 3 D. 4
+Answer: A
+
+861. r > 0.07t The given inequality describes the total rainfall r, in inches, in a certain area over a period of t hours, where t  4. Which of the following describes this rainfall? A. An average rainfall of more than 0.07 inches per hour B. An average rainfall of exactly 0.07 inches per hour C. A total rainfall of exactly 4 inches D. A total rainfall of more than 4 inches
+Answer: A
+
+862.
+
+Number of food tickets
+10 15 25
+
+Total amount paid
+$40.00 $47.50 $62.50
+
+At a fundraiser, a family pays a fixed entrance fee. They then purchase food tickets, which each have the same cost. The table shows the relationship between the
+number of food tickets, x, that are purchased and the total amount paid y, in dollars, for both the entrance fee and the food tickets. Which equation represents the relationship between x and y?
+
+A. y =
+
+3 x + 25
+2
+
+B. y = 3 x - 50
+2
+
+C. y = 2 x + 100
+
+3
+
+3
+
+D. y = 2 x + 50
+
+3
+
+3
+
+Answer: A
+
+864. A student needs at least 150 signatures from classmates to run for class president. The student collects 30 signatures on Monday and collects enough additional signatures on Tuesday to run for class president. Which inequality represents the number of additional signatures, s, that the student collects on Tuesday? A. s + 30  150 B. s + 30  150 C. s - 30  150 D. s - 30  150
+Answer: B
+
+865.
+
+The area of triangle ABC is 20 square centimeters. What is the height h, in centimeters, of this triangle? A. 2 B. 4 C. 8 D. 10
+Answer: B
+
+866. f(x) = 4x + 5 g(x) = 5x - 2 h(x) = 6x + 7
+The functions f, g, and h are defined as shown. If f(x)  g(x) - h(x) = ax2 + bx + c, where a, b, and c are constants, what is the value of b? A. -6 B. 11 C. 23 D. 27
+Answer: B
+867. What is the radius of the circle in the xy-plane defined by (x + 4)2 + (y + 8)2 = 361?
+Answer: 19
+
+868. If 3 - 4x
+
+=
+
+35, what is the value of
+
+1 5
+
+(3
+
+-
+
+4x)?
+
+A. 175
+
+B. 35
+
+C. 7
+
+D. 5
+
+Answer: C
+
+869. How many solutions does the equation 4(x + 10) + 6x = 10(x + 4) have?
+A. Exactly one B. Exactly two C. Infinitely many D. Zero
+Answer: C
+
+870. |4x-72|+4 = 9
+8
+What is the sum of the solutions to the given equation?
+A. 1 B. 35 C. 36 D. 72
+Answer: C
+
+872. The function h is defined by h(x) = ax + b, where a and b are positive constants. The graph of y = h(x) in the xy-plane passes through the points (0, 11) and (2, 35). What is the value of ab? A. 35 B. 50 C. 55 D. 70
+
+Answer: B
+
+873. 2x2 - 16x - 27 = 0
+
+One solution to the given equation can be written as x
+
+=
+
+h-
+
+1 2
+
+k,
+
+where
+
+h
+
+and
+
+k
+
+are
+
+integer
+
+constants.
+
+What
+
+is
+
+the
+
+value
+
+of
+
+h
+
++
+
+k?
+
+A. 14
+
+B. 18
+
+C. 59
+
+D. 122
+
+Answer: D
+
+876. Which expression is equivalent to 5xy + 30x2y + 35xy2? A. 5xy(1 + 30x + 35y) B. 5xy(1 + 6x + 7y) C. 5xy(30x + 35y) D. 5xy(6x + 7y)
+Answer: B
+
+877. An area of 42.00 square nautical miles is equivalent to k square kilometers. To the nearest tenth, what is the value of k? (1 nautical mile = 1.852 kilometers)
+Answer: 144.1
+
+878. The function v is defined by the equation v(x) = x2+bx+c , where b and c are constants. In the xy-plane, the graph of y = v(x) passes through the points
+(x+5)(x-17)
+
+(0,
+
+77 85
+
+)
+
+and (11, 0). If v(q)
+
+=
+
+0, which of the following could be the value of q?
+
+A. -7
+
+B. -5
+
+C. 5
+
+D. 7
+
+Answer: A
+
+1008. A manager is responsible for ordering supplies for a coffee shop. The shop's inventory starts with 6,500 disposable cups, and the manager estimates that 90 of these cups are used each day. Based on this estimate, in how many days will the supply of disposable cups reach 2,000? A. 25 B. 50 C. 75 D. 100
+Answer: B
+
+1009. Zuri has a goal to run at least 16 miles per week while training for a race. This week, she has run 5 miles. If x represents the additional number of miles Zuri
+needs to run this week to meet her goal, which inequality represents this situation?
+A. 5 - x  16 B. 5 + x  16 C. 5 - x  16 D. 5 + x  16
+Answer: D
+
+1012. For the function f, the table shows four values of x and their corresponding values of f(x). x f(x) 1 4,000 2 2,400 3 1,440 4 864
+Which of the following could describe this function? A. Decreasing exponential B. Increasing exponential C. Decreasing linear D. Increasing linear
+Answer: A
+
+1015. The table shows the distribution of people in a certain city by age group.
+
+Age group
+Less than 18 years old 18-40 years old 41-65 years old Greater than 65 years old
+
+Proportion
+29% 27% 23% 21%
+
+If a person in this city is selected at random, which of the following is closest to the probability of selecting a person who is greater than 65 years old, given that the person is at least 18 years old?
+
+A. 0.21
+
+B. 0.30
+
+C. 0.50
+
+D. 0.72
+
+Answer: B
+
+1018. a, 26, 29, b, 33, 46, c For the given data set, the data values are listed in ascending order, where a, b, and c are constants. For this data set, the mean is 36, the median is 29, and the range is 71. What is the value of c? A. 55 B. 71 C. 80 D. 97
+Answer: C
+
+1019. Which of the following expressions is(are) a factor of 4x2 + 27x - 40? I. x - 8 II. 4x - 5
+A. I only B. II only C. I and II D. Neither I nor II
+Answer: B
+
+1021. The function g is defined by g(x) = 16x + 25. For what value of x does g(x) = 29?
+Answer: 1/4
+
+1022. 2x2 - 20x - 21 = 0
+
+One solution to the given equation can be written as x
+
+=
+
+h-
+
+1 2
+
+k,
+
+where
+
+h
+
+and
+
+k
+
+are
+
+integer
+
+constants.
+
+What
+
+is
+
+the
+
+value
+
+of
+
+h
+
++
+
+k?
+
+A. 22
+
+B. 63
+
+C. 71
+
+D. 147
+
+Answer: D
+
+1025. The result of increasing the quantity x by 600% is 168. What is the value of x? A. 24 B. 28 C. 432 D. 1,008
+Answer: A
+
+1156. A total of 50 people attended a conference and were offered a choice of 4 types of entrees. The table shows the number of people who chose each type of
+entree.
+
+Type of entree Beef Chicken Fish Vegetarian
+Total
+
+Number of people
+16 21 6 7 50
+
+If one of these people is selected at random, what is the probability of selecting a person who chose a vegetarian entree? (Express your answer as a decimal or fraction, not as a percent.)
+
+Answer: 7/50
+
+1159.
+
+The shaded region shown represents the solutions to which inequality?
+A. y < -x + 9 B. y < 9x - 1 C. y > -x + 9 D. y > 9x - 1
+Answer: C
+
+1160. Line t in the xy-plane has a slope of
+
+1 9
+
+and passes through the point (45, -7). Which equation defines line t?
+
+A. y
+
+=
+
+-12x +
+
+1 9
+
+B. y = x - 12
+9
+
+C. y = x - 7
+9
+
+D. y = 45x - 7
+
+Answer: B
+
+1163. How many solutions does the equation 10(x + 15) + 5x = 15(x + 10) have?
+A. Exactly one B. Exactly two C. Infinitely many D. Zero
+Answer: C
+
+1169. r(x) = 12(x - 2) s(x) = x3 + nx2 + 2nx + 8
+For the given functions r and s, n is a constant. If r(x)  s(x) = 12(x4 - 16), what is the value of n?
+Answer: 2
+
+1171.
+
+The figure shown is a right rectangular pyramid, where  = 10 units, w = 5 units, and h = 11 units. What is the surface area, in square units, of the pyramid?
+Answer: 50+5*sqrt(509)+5*sqrt(146)
+1302. A toy car is rolled along an elevated track. A quadratic equation models the car's height above the ground y, in inches, x seconds after it started rolling. The model shows that after 1 second the car was at a height of 11 inches and after 5 seconds the car was at its minimum height of 2 inches. Which of the following could
+be the graph of this model? A.
+
+B.
+
+C.
+
+D.
+
+Answer: B
+1303. The ratio of the side length of square A to the side length of square B is 2 to 6. Square A has a side length of 19 inches. What is the side length, in inches, of
+square B? Answer: 57
+1304. The scatterplot shows 12 data points and a line of best fit for the data.
+
+Which of the following is closest to the slope of the line of best fit shown? A. 1
+2
+B. 1
+3
+C. 14 D. 1
+5
+Answer: C
+
+1305. (3x + 8)(2x - 3) = 0
+Which of the following is a solution to the given equation?
+A. - 8
+3
+B. - 3
+2
+C. - 2
+3
+D. - 3
+8
+Answer: A
+
+1306. An environmental scientist studies the decomposition of paper bags when the bags are placed in an environment with a certain type of bacteria. The
+exponential function f(x) = 545(0.91)x gives the estimated remaining mass, in grams, of the paper bags x days after they are placed in an environment with this bacteria, where 0  x  30. If this function is graphed in the xy-plane, where y = f(x), which statement is the best interpretation of the point (1, 495.95) on the
+graph?
+A. The estimated remaining mass of the paper bags 1 day after they are placed in an environment with this bacteria is 495.95 grams less than it was the day before.
+B. The estimated remaining mass of the paper bags after they are placed in an environment with this bacteria is decreasing by 495.95 grams per day.
+C. The estimated remaining mass of the paper bags 1 day after they are placed in an environment with this bacteria is 495.95 grams.
+D. The estimated remaining mass of the paper bags 495.95 days after they are placed in an environment with this bacteria is 1 gram.
+Answer: C
+
+1307. At an amusement park, visitors wait in line for a certain ride. People in this line get on the ride at a rate of 12 people per minute. At the end of a certain day, 201 people are in line for the ride when the line closes. If these 201 people will get on the ride and no additional people are allowed to get in line, which function p models the number of people who remain in line t minutes after it closes? A. p(t) = -12t + 201 B. p(t) = 12t + 201 C. p(t) = 12t - 201 D. p(t) = 213t
+Answer: A
+
+1308. A biologist recorded the head stripe colors for a random sample of sparrows from a certain population. Each sparrow has either a white-striped head or a tanstriped head. The results are shown in the table.
+
+White-striped head
+
+22
+
+Tan-striped head
+
+27
+
+Based on these results, if there are a total of 686 sparrows in this population, which of the following is the best estimate of how many more sparrows in the population
+have a tan-striped head than have a white-striped head?
+
+A. 5
+
+B. 70
+
+C. 308
+
+D. 378
+
+Answer: B
+
+1310. The expression (7x + y)(x + 7y)(3x + y) is equivalent to ax3 + bx2y + cxy2 + dy3, where a, b, c, and d are constants. What is the value of c?
+Answer: 71
+
+1311.
+
+x -13 -1 13
+
+y
+28 + 13
+28
+28 + 1
+28
+28 - 13
+28
+
+The table shows three values of x and their corresponding values of y. There is a linear relationship between x and y. In the xy-plane, what is the x-intercept of the
+graph that represents this relationship?
+
+A.
+
+(-
+
+1 784
+
+,
+
+0)
+
+B. (28, 0)
+
+C. (-28, 0)
+
+D. (784, 0)
+
+Answer: D
+
+1313. y = 2( a )x+c - b
+9
+How many times does the graph of the given equation in the xy-plane cross the x-axis, where a, b, and c are positive constants such that a > 9 and b > c?
+A. Zero B. One C. Two D. Three
+Answer: B
+
+1314.
+
+For the right circular cone shown, OP is a radius of the base and V is the vertex. The cone's lateral surface area, in square meters, is rL, where r is the length, in meters, of OP and L is the length, in meters, of V P . The cone has a base area of 81 square meters and a lateral surface area of 128 square meters. What is the
+height of the cone, to the nearest meter?
+Answer: 11
+
+1315. If 10 + 6(7-x) = 4(7-x) , which equation must also be true?
+
+5
+
+3
+
+A. 7 - x = 148
+
+B. 7 - x = -75
+
+C. x - 7 = 148
+
+D. x - 7 = -75
+
+Answer: D
+
+1316. A square is inscribed in a circle with radius 43 inches. If the perimeter of the square is a2 inches, what is the value of a? A. 43 B. 86 C. 172 D. 344
+Answer: C
+
+1317. Line s is defined by x - 3y = 21. Line t is perpendicular to line s in the xy-plane and passes through the points (k, 0) and (60, -k). What is the value of k?
+Answer: 45
+
+1318. The result of increasing the quantity x by 500% is 150. What is the value of x? A. 25 B. 30 C. 350 D. 750
+Answer: A
+
+1320.
+
+Cylinder A is similar to cylinder B. The volume of cylinder A is 5.13 cubic units and the volume of cylinder B is 1.52 cubic units. The surface area of cylinder A is 22.41
+square units. What is the surface area, in square units, of cylinder B?
+Answer: 9.96
+
+1321. 2x + 5y = 7
+
+8x + 20y = 28
+
+For each real number r, which of the following points lies on the graph of each equation in the xy-plane for the given system?
+
+A. (r, - 5r2 + 72 )
+
+B. (r, 2r + 7 )
+
+5
+
+5
+
+C. ( r4
+
++
+
+7,
+
+-
+
+r 4
+
++ 28)
+
+D. (- 5r + 7 , r)
+
+2
+
+2
+
+Answer: D
+
+1322. The function f is defined by f(x) = x2+ax+b , where a, b, and c are constants. The graph of the function f in the xy-plane, where y = f(x), does not
+2x+c
+intersect the line x = 4. If f(6) = f(8) = 0, what is the value of a + b + c?
+Answer: 26
+
+(x-12)
+1449. If 4 = 15, what is the value of x - 12?
+Answer: 60
+
+1450. What is the slope of a line that is parallel to the graph of y = 5 x + 8 in the xy-plane?
+2
+A. - 5
+2
+B. - 2
+5
+C. 2
+5
+D. 5
+2
+Answer: D
+
+1451. A hotel has rooms with a balcony that cost $100 per night to rent and rooms without a balcony that cost $80 per night to rent. On a given night, the hotel received $6,800 from renting both types of rooms. If a total of 76 rooms were rented, how many rooms with a balcony were rented on that night? A. 34 B. 36 C. 38 D. 40
+Answer: B
+1452. Under a certain magnifying lens, the apparent length, in millimeters, of an object is 350% of its actual length, in millimeters. Which of the following types of
+functions best models the apparent length, in millimeters, of an object under this magnifying lens as a function of its actual length, in millimeters? A. Decreasing exponential B. Decreasing linear C. Increasing exponential D. Increasing linear
+Answer: D
+1453. T (x) = 66 - 8x The function T estimates the temperature, in degrees Fahrenheit (�F), in a certain city one day in January, where x is the number of hours after 10 a.m. and 1  x  7. Which statement is the best interpretation of T (6) = 18 in this context? A. 6 hours after 10 a.m., the function estimates that the temperature is 18�F. B. 6 hours before 10 a.m., the function estimates that the temperature decreased 18�F. C. 6 hours after 10 a.m., the function estimates that the temperature decreased 18�F. D. 6 hours before 10 a.m., the function estimates that the temperature is 18�F.
+Answer: A
+1454.
+
+In the figure, lines a and b are parallel and line c intersects both lines. If r = 8k - 10 and s = 7k - 65, what is the value of t?
+Answer: 126
+
+1456. There is a proportional relationship between p and t. If p = 6,240 when t = 8,320, then what is the value of t when p = 4,992? A. 2,912 B. 3,744 C. 6,656 D. 7,072
+Answer: C
+1457. f(x) = x2 + bx g(x) = 9x2 - 63x
+Functions f and g are given, and in function f, b is a constant. If f(x)  g(x) = 9x4 - 62x3 - 7x2, what is the value of b? A. -62 B. - 62
+9
+C. 1
+9
+D. 9
+Answer: C
+
+1458. The minimum value of x is 9 less than 6 times another number n. Which inequality shows the possible values of x? A. x  6n - 9 B. x  6n - 9 C. x  9 - 6n D. x  9 - 6n
+Answer: B
+
+1459.
+
+The
+
+function
+
+f
+
+is
+
+defined
+
+by
+
+f(x)
+
+=
+
+-
+
+1 2
+
+(x
+
+-
+
+9)
+
++
+
+8.
+
+For
+
+what
+
+value
+
+of
+
+x
+
+does
+
+f(x)
+
+=
+
+4a,
+
+where
+
+a
+
+is
+
+a
+
+constant?
+
+A. -2a + 7
+2
+
+B. -2a + 25
+2
+
+C. -8a + 25
+
+D. -8a - 7
+
+Answer: C
+
+1460. A right isosceles triangle has an area of 48 square units. What is the length, in units, of the hypotenuse? A. 24 B. 48 C. 96 D. 192
+Answer: D
+
+1461.
+
+Red maple Chestnut oak
+Total
+
+Site A
+16 12 28
+
+Site B
+24 30 54
+
+Total
+40 42 82
+
+The table shows the distribution of two types of trees at two different sites. If a tree represented in the table is selected at random, what is the probability of selecting a tree from site A, given that the tree is a red maple? (Express your answer as a decimal or fraction, not as a percent.)
+
+Answer: 2/5
+
+1462. What is the solution to the equation 5x - 19 = 7?
+A. 482
+25
+B. 524
+25
+C. 26
+5
+D. 102
+5
+Answer: A
+
+1463. The function f is defined by f(x) = 8x2 + kx - 17, where k is a constant. In the xy-plane, the graph of y = f(x) passes through the points (r, 21) and (2r, 123), where r is a constant. Which of the following could be the value of k? A. 3 B. 9 C. 102 D. 144
+Answer: A
+1464. r(m) = (1.037)4m The function r is defined by the given equation. The value of r(m) increases by p% for each increase by 1 in the value of m. Which of the following is closest to the value of p? A. 0.912 B. 3.7 C. 15.642 D. 25.925
+Answer: C
+1466. f(x) = 29(b)x + c The function f is defined by the given equation, where b and c are constants and b > 1. In the xy-plane, the graph of y = f(x) contains the point (0, 44). For all values of x, f(x) > k, where k is a constant. What is the greatest possible value of k?
+Answer: 15
+
+1467. The area of a rectangular field is 2,661 square feet. The field's length x, in feet, is 23 feet longer than its width, in feet. Which equation represents this
+situation?
+A. 0 = x2 - 23x - 2,661 B. 0 = x2 - 23x + 2,661 C. 0 = x2 + 23x - 2,661 D. 0 = x2 + 23x + 2,661
+Answer: A
+
+1468. 3x(x + 6) = 11
+
+One solution to the given equation can be written as m +
+
+1 3
+
+n,
+
+where
+
+m
+
+and
+
+n
+
+are
+
+integer
+
+constants.
+
+What
+
+is
+
+the
+
+value
+
+of
+
+m
+
++
+
+n?
+
+Answer: 111
+
+1469. A right rectangular prism has a base area of 32t square centimeters (cm2). The length of the base of the rectangular prism is 16 cm, and the height of the
+3
+rectangular prism is 3 cm. Which expression represents the surface area, in cm2, of the right rectangular prism? A. 64t + 64 B. 100t + 32 C. 1,088t + 32 D. 96t
+Answer: B
+
+1596. If (x-6) = 5, what is the value of x - 6?
+3
+Answer: 15
+
+1600. f(a) = (a2 + 12a + 36)(a + 1)
+
+g(b) = b(b + 4)(b - 2)2
+
+The
+
+functions
+
+f
+
+and
+
+g
+
+are
+
+defined
+
+by
+
+the
+
+given
+
+equations.
+
+If
+
+f(3)
+
+=
+
+c,
+
+where
+
+c
+
+is
+
+a
+
+constant,
+
+what
+
+is
+
+the
+
+value
+
+of
+
+g(
+
+c 54
+
+)?
+
+Answer: 960
+
+1603. There is a proportional relationship between p and t. If p = 3,960 when t = 5,280, then what is the value of t when p = 3,168? A. 4,488 B. 4,224 C. 2,376 D. 1,848
+Answer: B
+
+1605. The minimum value of x is 4 less than 7 times another number n. Which inequality shows the possible values of x? A. x  7n - 4 B. x  7n - 4 C. x  4 - 7n D. x  4 - 7n
+Answer: B
+
+1608. A line in the xy-plane is defined by y = x + b, where b is a constant. This line passes through the point (2, 9). What is the value of b? A. 0 B. 2 C. 7 D. 18
+Answer: C
+
+1610. The function f is defined by f(x) = 8x2 + kx - 21, where k is a constant. In the xy-plane, the graph of y = f(x) passes through the points (r, 19) and (2r, 123), where r is a constant. Which of the following could be the value of k? A. 4 B. 13 C. 104 D. 142
+Answer: A
+1611. r(m) = (1.031)4m The function r is defined by the given equation. The value of r(m) increases by p% for each increase by 1 in the value of m. Which of the following is closest to the value of p? A. 0.766 B. 3.1 C. 12.989 D. 25.775
+Answer: C
+
+1746. The equation y = 66x gives the estimated distance y, in kilometers, that a car traveled x hours after exiting a parking garage. What is the estimated distance, in kilometers, the car traveled 2 hours after exiting the parking garage? A. 0 B. 64 C. 68 D. 132
+Answer: D
+
+1750. There is a proportional relationship between p and t. If p = 7,410 when t = 9,880, then what is the value of t when p = 5,928? A. 3,458 B. 4,446 C. 7,904 D. 8,398
+Answer: C
+
+1756. The function f is defined by f(x) = 9x2 + kx - 17, where k is a constant. In the xy-plane, the graph of y = f(x) passes through the points (r, 27) and (2r, 143), where r is a constant. Which of the following could be the value of k? A. 4 B. 8 C. 116 D. 170
+Answer: A
+1757. r(m) = (1.027)5m The function r is defined by the given equation. The value of r(m) increases by p% for each increase by 1 in the value of m. Which of the following is closest to the value of p? A. 0.534 B. 2.7 C. 14.249 D. 20.54
+Answer: C
+
+1760. An inverter converts 86% of the direct current (DC) power generated by a solar panel into alternating current (AC) power. If the panel generates 350 watts of
+DC power, how many watts of AC power result from the conversion?
+Answer: 301
+
+1894. (7x + 6)(4x - 7) = 0
+Which of the following is a solution to the given equation?
+A. - 74 B. - 7
+6
+C. - 67 D. - 47
+Answer: C
+
+1897. A biologist recorded the head stripe colors for a random sample of sparrows from a certain population. Each sparrow has either a white-striped head or a tanstriped head. The results are shown in the table.
+
+White-striped head
+
+22
+
+Tan-striped head
+
+29
+
+Based on these results, if there are a total of 765 sparrows in this population, which of the following is the best estimate of how many more sparrows in the population
+have a tan-striped head than have a white-striped head?
+
+A. 7
+
+B. 105
+
+C. 330
+
+D. 435
+
+Answer: B
+
+1901.
+
+y
+14 13 12 11 10 9 8 7 6 5 4 3 2 1
+x O 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+
+An equation of the line shown is 11x + By = C, where B and C are constants. What is the value of C?
+
+A. 144
+
+B. 132
+
+C. 121
+
+D. 11
+
+Answer: B
+
+1905. A square is inscribed in a circle with radius 21 inches. If the perimeter of the square is a2 inches, what is the value of a? A. 21 B. 42 C. 84 D. 168
+Answer: C
+
+1907. The result of increasing the quantity x by 700% is 392. What is the value of x? A. 49 B. 56 C. 308 D. 2,744
+Answer: A
+
+2038. During hibernation, American black bears do not eat or replenish calories. A certain black bear weighed 324 pounds when entering hibernation and lost weight at a mean rate of 0.8 pounds per day. At this rate, how many days after entering hibernation would the black bear weigh 260 pounds? A. 52 B. 64 C. 80 D. 208
+Answer: C
+
+2041. 4x2 - 4x - 24 = 0
+What is the product of the solutions to the given equation?
+A. -24 B. -6 C. 6 D. 24
+Answer: B
+
+2043. 22(x - 1) = 2(-11 + 11x)
+How many solutions does the given equation have? A. Zero B. Exactly one C. Exactly two D. Infinitely many
+Answer: D
+
+2045. y = 2x2 - 24x + 54
+The given equation represents a parabola in the xy-plane. Which of the following equations that represent the same parabola displays the x-intercepts as constants or coefficients?
+A. y = 2(x2 - 12x) + 54 B. y = 2x(x - 12) + 54 C. y = 2(x - 6)2 - 18 D. y = 2(x - 9)(x - 3)
+Answer: D
+
+2048. The function f gives the product of a number, x, and a number that is 88 more than x. Which equation defines f? A. f(x) = x2 + x + 88 B. f(x) = x2 + 88 C. f(x) = x2 + 88x D. f(x) = x2 + 88x + 88
+Answer: C
+2049. The function f is defined by f(x) = 53(0.14)x. For any positive integer n, the value of f(n) is p% less than the value of f(n - 1). What is the value of p? A. 14 B. 47 C. 53 D. 86
+Answer: D
+
+2054. A length of 380 meters is equal to how many decimeters? (1 meter = 10 decimeters)
+Answer: 3800
+
+2185. During hibernation, American black bears do not eat or replenish calories. A certain black bear weighed 324 pounds when entering hibernation and lost weight at a mean rate of 0.9 pounds per day. At this rate, how many days after entering hibernation would the black bear weigh 270 pounds? A. 49 B. 54 C. 60 D. 243
+Answer: C
+
+2188. 2x2 - 2x - 60 = 0
+What is the product of the solutions to the given equation?
+A. -60 B. -30 C. 30 D. 60
+Answer: B
+
+2193. 3x = 8 + 9y -3x = 6 + 9y
+The solution to the given system of equations is (x, y). What is the value of 6x?
+Answer: 2
+2196. The function f is defined by f(x) = 54(0.11)x. For any positive integer n, the value of f(n) is p% less than the value of f(n - 1). What is the value of p? A. 11 B. 46 C. 54 D. 89
+Answer: D
+
+2200. If |16 - 2x| = 58, which of the following is a value of 8 - x? A. 0 B. 8 C. 29 D. 42
+Answer: C
+2331. If (x-14) = 15, what is the value of x - 14?
+2
+Answer: 30
+
+2335.
+
+In triangle XY Z,
+
+a c
+
+= k and
+
+b d
+
+= k. What is the value of k?
+
+A. 67
+
+B. 7
+6
+
+C. 7
+13
+
+D. 137
+
+Answer: B
+
+2338. There is a proportional relationship between p and t. If p = 3,570 when t = 4,760, then what is the value of t when p = 2,856? A. 4,046 B. 3,808 C. 2,142 D. 1,666
+Answer: B
+2340. The minimum value of x is 11 less than 10 times another number n. Which inequality shows the possible values of x? A. x  10n - 11 B. x  10n - 11 C. x  11 - 10n D. x  11 - 10n
+Answer: B
+2347. The expression x2 x+7 +2x-35 - 16-x2 x+4 is equivalent to x2+bx+c x-5 , where b and c are constants and x > 5. What is the value of bc?
+Answer: -189
+2351. A right rectangular prism has a base area of 20t square centimeters (cm2). The length of the base of the rectangular prism is 10 cm, and the height of the
+3
+rectangular prism is 12 cm. Which expression represents the surface area, in cm2, of the right rectangular prism? A. 40t + 160 B. 184t + 80 C. 1,640t + 80 D. 240t
+Answer: B
+2485. The table shows values of x and their corresponding values of y for three points on line j in the xy-plane. xy 0 -10 1 -4 22
+Line k also lies in the xy-plane and is defined by the equation y = 4x. At what point (x, y) do lines j and k intersect? A. (5, 20) B. (5, -44) C. (6, 24) D. (6, 26)
+Answer: A
+2486. h(t) = -16t2 + b The function h estimates an object's height, in feet, above the ground t seconds after the object is dropped, where b is a constant. The function estimates that the object is 19.36 feet above the ground when it is dropped at t = 0. How many seconds after being dropped does the function estimate the object will hit the ground?
+Answer: 1.1
+2487. |4x - 3| = -9
+How many solutions does the given equation have? A. Zero B. One C. Two D. Infinitely many Answer: A
+2488. The function h is defined by h(x) = ax + b, where a and b are positive constants. The graph of y = h(x) in the xy-plane passes through the points (0, 10) and (2, 13). What is the value of ab? A. 13 B. 18 C. 20 D. 26
+Answer: B
+2490. The function f is defined by f(x) = 56(0.19)x. For any positive integer n, the value of f(n) is p% less than the value of f(n - 1). What is the value of p? A. 19 B. 44 C. 56 D. 81
+Answer: D

@@ -1,0 +1,93 @@
+[
+  {
+    "page": 61,
+    "subject": "Math",
+    "question": "The function f is defined by f(x) = 2x - 1/4. What is the y-intercept of the graph of y = f(x) in the xy-plane?",
+    "a": "(0, -1/4)",
+    "b": "(0, -2)",
+    "c": "(0, 2)",
+    "d": "(0, 4)"
+  },
+  {
+    "page": 62,
+    "subject": "Math",
+    "question": "During hibernation, American black bears do not eat or replenish calories. A certain black bear weighed 322 pounds when entering hibernation and lost weight at a rate of 0.7 pound per day. At this rate, how many days after entering hibernation did the black bear weigh 280 pounds?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 63,
+    "subject": "Math",
+    "question": "A car travels at a speed of at least 40 miles per hour but no more than 65 miles per hour for a certain part of a trip. Which inequality represents this situation, where x is the speed of the car, in miles per hour, on this part of the trip?",
+    "a": "x ≥ 40",
+    "b": "x ≥ 65",
+    "c": "40 ≤ x ≤ 65",
+    "d": "x ≤ 105"
+  },
+  {
+    "page": 64,
+    "subject": "Math",
+    "question": "Which expression is equivalent to 20x^2 + 3 + 5x^2?",
+    "a": "25x^4 + 3",
+    "b": "25x^2 + 3",
+    "c": "28x^4",
+    "d": "28x^2"
+  },
+  {
+    "page": 65,
+    "subject": "Math",
+    "question": "The function g is defined by g(x) = |10x| + 16. What is the value of g(-4)?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 66,
+    "subject": "Math",
+    "question": "b^2 + 6c = 7d\nThe given equation relates the real numbers b, c, and d, where d > (6/7)c. Which equation correctly expresses b in terms of c and d?",
+    "a": "b = (7d - 6c)/2",
+    "b": "b = (7d + 6c)/2",
+    "c": "b = ±√(7d - 6c)",
+    "d": "b = ±√(7d + 6c)"
+  },
+  {
+    "page": 67,
+    "subject": "Math",
+    "question": "b - 49 = x/y\nThe given equation relates the positive numbers b, x, and y. Which equation correctly expresses x in terms of b and y?",
+    "a": "x = (by - 49)/y",
+    "b": "x = by - 49y",
+    "c": "x = by - 49",
+    "d": "x = (b - 49)/y"
+  },
+  {
+    "page": 68,
+    "subject": "Math",
+    "question": "If (x - 16)/27 = (x - 16)/9, what is the value of x + 16?",
+    "a": "0",
+    "b": "3",
+    "c": "16",
+    "d": "32"
+  },
+  {
+    "page": 69,
+    "subject": "Math",
+    "question": "The histograms summarize the distributions of scores for team A and team B. Which statement best compares the standard deviations of scores for these teams?",
+    "a": "The standard deviation of scores for team A is less than the standard deviation of scores for team B.",
+    "b": "The standard deviation of scores for team A is greater than the standard deviation of scores for team B.",
+    "c": "The standard deviation of scores for team A is equal to the standard deviation of scores for team B.",
+    "d": "There is not enough information to compare the standard deviations.",
+    "figure": "Two histograms. Both share an x-axis labeled 'Score' with gridlines at 15, 20, 25, 30, 35, 40, 45, 50 and a y-axis labeled 'Frequency' with gridlines at 0, 10, 20, 30, 40, 50. Top histogram titled 'Team A': all data is clustered narrowly in the center of the range — bars only in the interval 25 to 40, with the 25–30 bar at about 40, the 30–35 bar at about 50 (tallest), and the 35–40 bar at about 40; no bars elsewhere. Bottom histogram titled 'Team B': data is spread across the whole range and roughly bimodal — a tall bar at 15–20 at about 30, small/low bars in the middle around 30–35 at about 10, and a tall bar at 45–50 at about 30, so the values are spread out toward both extremes rather than concentrated in the center."
+  },
+  {
+    "page": 70,
+    "subject": "Math",
+    "question": "The table gives the distribution of flavor and type of topping for customer orders at an ice cream shop.\n\n| Flavor of ice cream | Sprinkles | No Sprinkles |\n| --- | --- | --- |\n| Chocolate | 60 | 30 |\n| Vanilla | 20 | 30 |\n| Twist | 80 | 20 |\n\nIf a customer order is selected at random, what is the probability of selecting an order with sprinkles, given the flavor of ice cream is vanilla?",
+    "a": "0.08",
+    "b": "0.13",
+    "c": "0.25",
+    "d": "0.40"
+  }
+]

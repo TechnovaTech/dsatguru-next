@@ -154,6 +154,7 @@ export async function GET(request, { params }) {
       studentEmail: sessionUser?.email || null,
       testId: session.testId,
       questionBankId: session.questionBankId,
+      bankSelector: session.bankSelector,
       subject: session.subject,
       sessionType: session.sessionType,
       status: session.status,

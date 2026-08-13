@@ -1,0 +1,104 @@
+[
+  {
+    "page": 61,
+    "qnum": 7,
+    "subject": "Math",
+    "question": "A shopper is purchasing oranges that cost $0.67 each. If the shopper has a coupon for $2 off the entire purchase and there is no sales tax, which inequality represents the number of oranges, x, that the shopper can purchase for no more than $12?",
+    "a": "0.67x+2≤12",
+    "b": "0.67x+2≥12",
+    "c": "0.67x-2≤12",
+    "d": "0.67x-2≥12"
+  },
+  {
+    "page": 62,
+    "qnum": 8,
+    "subject": "Math",
+    "question": "5% of w is 741.41. What is the value of w?",
+    "a": "778.481",
+    "b": "3,707.05",
+    "c": "14,828.2",
+    "d": "70,433.95"
+  },
+  {
+    "page": 63,
+    "qnum": 9,
+    "subject": "Math",
+    "question": "The table shows the distribution of height, in centimeters, of 25 objects.\n\n| Height | Frequency |\n| --- | --- |\n| 0 to 100 | 8 |\n| 101 to 200 | 6 |\n| 201 to 300 | 5 |\n| 301 to 400 | 4 |\n| 401 to 500 | 2 |\n\nWhich of the following could be the median height of these objects?",
+    "a": "355",
+    "b": "255",
+    "c": "155",
+    "d": "55"
+  },
+  {
+    "page": 64,
+    "qnum": 10,
+    "subject": "Math",
+    "question": "For the linear function f, the graph of y=f(x) in the xy-plane has a slope of 28 and passes through the point (0, 0). The function f is defined by f(x)=ax, where a is a constant. What is the value of a?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 65,
+    "qnum": 11,
+    "subject": "Math",
+    "question": "The scatterplot shows the relationship between two variables, x and y. A line of best fit is also shown.\n\nWhich of the following is closest to the slope of this line of best fit?",
+    "a": "-3.3",
+    "b": "-1.1",
+    "c": "1.1",
+    "d": "3.3",
+    "figure": true
+  },
+  {
+    "page": 66,
+    "qnum": 12,
+    "subject": "Math",
+    "question": "The product of a positive number x and the number that is 1 less than x is equal to 272. What is the value of x?",
+    "a": "0.5",
+    "b": "17",
+    "c": "271",
+    "d": "273"
+  },
+  {
+    "page": 67,
+    "qnum": 13,
+    "subject": "Math",
+    "question": "If 5(3x+6)=3(3x+6)+78, what is the value of 3x+6 ?",
+    "a": "78",
+    "b": "39",
+    "c": "33",
+    "d": "11"
+  },
+  {
+    "page": 68,
+    "qnum": 14,
+    "subject": "Math",
+    "question": "If j/k = 62 and 96j/(12xk) = 62, what is the value of x?",
+    "a": "1/8",
+    "b": "6/31",
+    "c": "8",
+    "d": "96"
+  },
+  {
+    "page": 69,
+    "qnum": 15,
+    "subject": "Math",
+    "question": "The table shows three values of x and their corresponding values of f(x), where f(x) = (kx+45)/(x+2) and k is a constant. What is the value of k?\n\n| x | f(x) |\n| --- | --- |\n| -37 | 4 |\n| -9 | 0 |\n| 33 | 6 |",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 70,
+    "qnum": 16,
+    "subject": "Math",
+    "question": "Line k is shown in the xy-plane. Line j (not shown) is perpendicular to line k. What is the slope of line j?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": "",
+    "figure": true
+  }
+]

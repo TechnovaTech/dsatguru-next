@@ -1,0 +1,93 @@
+[
+  {
+    "page": 1,
+    "subject": "Reading and Writing",
+    "question": "The pineapple was domesticated in South America. Its physical structure is no longer identical to the structure of the wild plant it is descended from. Summer squash also _______ its wild ancestor. That ancestor plant had a hard rind and bitter flesh. Indigenous people in eastern North America carefully bred the crop until it had a soft rind and mild-tasting flesh.\n\nWhich choice completes the text with the most logical and precise word or phrase?",
+    "a": "varies from",
+    "b": "helpful with",
+    "c": "argues with",
+    "d": "reacts to"
+  },
+  {
+    "page": 2,
+    "subject": "Reading and Writing",
+    "question": "The influence of William Shakespeare's writings is clear in a vast range of subsequent literary works and is similarly _______ in many works in other media, from fine art (such as Edward Alcock's painting Portia and Shylock) to popular music (such as the musician Elvis Costello's song “Miss Macbeth”).\n\nWhich choice completes the text with the most logical and precise word or phrase?",
+    "a": "subtle",
+    "b": "apparent",
+    "c": "unusual",
+    "d": "excessive"
+  },
+  {
+    "page": 3,
+    "subject": "Reading and Writing",
+    "question": "Steiger Butte Drum, a family ensemble from the Klamath Tribes of the Pacific Northwest, collaborated with composer Michael Gordon to create Natural History, a work featuring traditional drumming and vocals alongside an orchestra and chorus. Steiger Butte Drum's participation is _______ to the piece: members not only contributed to its composition but also must be included in all performances.\n\nWhich choice completes the text with the most logical and precise word or phrase?",
+    "a": "analogous",
+    "b": "tangential",
+    "c": "integral",
+    "d": "subsequent"
+  },
+  {
+    "page": 4,
+    "subject": "Reading and Writing",
+    "question": "Maryam Hosseini and her team used aerial images of well-mapped areas of Manhattan to train a computer program to identify sidewalks. When it was tested on images of Brooklyn, it _______ identified sidewalks in the vast majority of cases and even whether sidewalks were concrete or cobblestone. Hosseini believes the program will improve on this already-strong performance as it gets used more.\n\nWhich choice completes the text with the most logical and precise word or phrase?",
+    "a": "reliably",
+    "b": "clumsily",
+    "c": "rarely",
+    "d": "slowly"
+  },
+  {
+    "page": 5,
+    "subject": "Reading and Writing",
+    "question": "The following text is from Anthony Trollope's 1855 novel The Warden. Charles James is the son of a high-ranking clergy member.\n\nCharles James was an exact and careful boy; he never committed himself; he well knew how much was expected from the eldest son of the Archdeacon of Barchester, and was therefore mindful not to mix too freely with other boys. He had not the great talents of his younger brothers, but he exceeded them in judgment and propriety of demeanour; his fault, if he had one, was an over-attention to words instead of things; there was a thought too much finesse about him, and, as even his father sometimes told him, he was too fond of a compromise.\n\nWhich choice best states the function of the phrase “if he had one” in the text as a whole?",
+    "a": "It acknowledges that the qualities in Charles James the narrator goes on to describe may not actually be undesirable characteristics.",
+    "b": "It concedes that Charles James's attempts to be held in respect are sometimes fruitless.",
+    "c": "It signals a shift in focus from describing Charles James's good qualities to criticizing his tendency to place too much value on artfulness.",
+    "d": "It anticipates readers' objections to the narrator's criticism of Charles James's faults."
+  },
+  {
+    "page": 6,
+    "subject": "Reading and Writing",
+    "question": "The Nazca lines in Peru are designs marked in the earth by ancient peoples. Monuments like these were an inspiration for the land art movement that began in the 1960s. Land art artists create works set in the outdoors. For example, in his 1968 work Annual Rings, Dennis Oppenheim fashioned concentric lines that look like tree rings into the ice that covered a waterway.\n\nWhich choice best states the main purpose of the text?",
+    "a": "The text describes the benefits of being an artist.",
+    "b": "The text argues against placing works of art outside.",
+    "c": "The text describes the popularity of art galleries in the 1960s.",
+    "d": "The text provides information about the land art movement."
+  },
+  {
+    "page": 7,
+    "subject": "Reading and Writing",
+    "question": "Steve Carter's award–winning play Eden was produced in 1976 by the groundbreaking Negro Ensemble Company (NEC). NEC cofounder Douglas Turner Ward, who worked as an actor, director, and playwright, had met actor and producer Robert Hooks while they were performing in a 1960 touring production of Lorraine Hansberry's play A Raisin in the Sun. Together, they envisioned a theater company that would nurture and showcase the work of Black theater professionals. Since NEC's founding in 1967, its workshops and performances have given Black playwrights, including Carter, a forum for their compelling stories.\n\nWhich choice best describes the function of the underlined sentence in the text as a whole?",
+    "a": "It illustrates the widespread influence of a play discussed earlier in the text.",
+    "b": "It provides additional information about a person mentioned in the text.",
+    "c": "It emphasizes the ongoing significance of the theater company discussed in the text.",
+    "d": "It explains the circumstances that led to the formation of the theater company discussed in the text."
+  },
+  {
+    "page": 8,
+    "subject": "Reading and Writing",
+    "question": "Tracks is a 1988 novel by Ojibwe writer Louise Erdrich. It explores how historical events affect families on a reservation in rural North Dakota. Tracks is typical of Erdrich's work. Her writing usually focuses on portrayals of everyday life in Ojibwe communities. Yet some of her novels have fantastical plots and take place outside Ojibwe communities. For example, her 1991 novel The Crown of Columbus is essentially adventure fiction, and the thrilling events in its plot are set largely on a Caribbean island.\n\nAccording to the text, what is one way that The Crown of Columbus differs from most of Erdrich's work?",
+    "a": "It has been adapted into a movie.",
+    "b": "It isn't set in a rural Ojibwe community.",
+    "c": "It contains very little dialogue.",
+    "d": "Its main characters are Ojibwe."
+  },
+  {
+    "page": 9,
+    "subject": "Reading and Writing",
+    "question": "Total Areas of Five Pueblo Nations in New Mexico\n\n| Tribal nation | Area (square miles) |\n| --- | --- |\n| Pueblo of Acoma | 595.7 |\n| Taos Pueblo | 156.2 |\n| Pueblo of Sandia | 38.9 |\n| Pueblo de Cochiti | 82.1 |\n| Pueblo of Pojoaque | 21.4 |\n\nThe Pueblo of Laguna is the largest of the nineteen Pueblo tribal nations in New Mexico, covering nearly 800 square miles. Most Pueblo tribal nations are much smaller. For example, the total area of Pueblo of Sandia is 38.9 square miles, and the total area of Pueblo de Cochiti is _______\n\nWhich choice most effectively uses data from the table to complete the statement?",
+    "a": "156.2 square miles.",
+    "b": "595.7 square miles.",
+    "c": "82.1 square miles.",
+    "d": "21.4 square miles."
+  },
+  {
+    "page": 10,
+    "subject": "Reading and Writing",
+    "question": "Ratified in 2017 by two-thirds of World Trade Organization member nations, the Trade Facilitation Agreement (TFA) is a trade-reform measure that aims to reduce redundant customs procedures and other costly aspects of international trade. In a 2021 report, economist Jayson Beckman modeled global market prices of several agricultural commodities under both the TFA and an alternative trade-reform scenario: removal of agricultural tariffs (taxes on imports that generally increase prices on imported goods). After reviewing data from the report, a student concludes that overall, consumers of the commodities listed in the table would likely benefit more from the TFA than they would from tariff removal.\n\nWhich choice most effectively uses data from the table to support the student's claim?",
+    "a": "Under the tariff-removal scenario, the average prices of processed foods, wheat, and fruits and vegetables would decrease by more than 1%, while the average price of rice would decrease by less than 1%.",
+    "b": "Under the tariff-removal scenario, the average price of processed foods would increase, but the average prices of wheat and rice would decrease.",
+    "c": "Under the TFA scenario, the average prices of all four commodities would decrease, whereas under the tariff-removal scenario, only the average price of processed foods would decrease.",
+    "d": "Under the TFA scenario, the average price of rice would decrease by a smaller amount than any of the other three commodities' prices would, whereas its average price would increase under the tariff-removal scenario.",
+    "figure": "Table titled “Percent Change in Average Global Market Prices by Commodity in Two Agricultural Trade-Reform Scenarios.” Columns: Commodity | Percent change in TFA scenario | Percent change in tariff-removal scenario. Rows: Fruits and vegetables: -1.50, +0.04; Processed foods: -1.76, -1.00; Rice: -0.37, +1.36; Wheat: -1.35, +0.45."
+  }
+]

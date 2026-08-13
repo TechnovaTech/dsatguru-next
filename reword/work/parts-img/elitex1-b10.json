@@ -1,0 +1,74 @@
+[
+  {
+    "page": 91,
+    "subject": "Math",
+    "question": "f(x)=7(4)^x\n\nThe function f is defined by the given equation. If g(x)=f(x+3), which of the following equations defines the function g?",
+    "a": "g(x)=21(4)^x",
+    "b": "g(x)=448(4)^x",
+    "c": "g(x)=21(12)^x",
+    "d": "g(x)=343(64)^x"
+  },
+  {
+    "page": 92,
+    "subject": "Math",
+    "question": "For two acute angles X and Y, the measure of angle Y is 24° and sinX/cosY = 1. What is the measure, in degrees, of angle X?",
+    "a": "24",
+    "b": "45",
+    "c": "66",
+    "d": "69"
+  },
+  {
+    "page": 93,
+    "subject": "Math",
+    "question": "For data set A, the table summarizes the distribution of the number of pieces of mail received by a business each day during a period of 11 days.\n\n| Pieces of mail | Days |\n| --- | --- |\n| 0 | 2 |\n| 4 | 2 |\n| 5 | 2 |\n| 6 | 2 |\n| 7 | 1 |\n| 8 | 1 |\n| 17 | 1 |\n\nThe data value 17 is removed from data set A to create data set B, which consists of the remaining 10 data values. Which statement best compares the median of data set A and the median of data set B?",
+    "a": "The median of data set B is less than the median of data set A.",
+    "b": "The median of data set B is greater than the median of data set A.",
+    "c": "The median of data set B is equal to the median of data set A.",
+    "d": "There is not enough information to compare the medians of the two data sets."
+  },
+  {
+    "page": 94,
+    "subject": "Math",
+    "question": "A certain town has an area of 12,669,184 square yards. What is the area, in square miles, of this town? (1 mile = 1,760 yards)",
+    "a": "2.02",
+    "b": "7,198.4",
+    "c": "4.09",
+    "d": "3,559.38"
+  },
+  {
+    "page": 95,
+    "subject": "Math",
+    "question": "x(x-18) = c\n\nIn the given equation, c is a constant. A solution to the equation is k + 7√2, where k is an integer. What is the value of c?",
+    "a": "98",
+    "b": "17",
+    "c": "9",
+    "d": "-65"
+  },
+  {
+    "page": 96,
+    "subject": "Math",
+    "question": "In the xy-plane, a unit circle with center at the origin O contains point A with coordinates (1, 0) and point B with coordinates (5/√34, -3/√34). If the measure of angle AOB is p radians, what is the value of cosP/sinP?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 97,
+    "subject": "Math",
+    "question": "The function h is defined by h(x) = -√(x² + bx + c), where b and c are constants. In the xy-plane, the graph of y=h(x) contains the points (2, 0) and (0, -√334). If h(m)=0, what is the greatest possible value of m?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 98,
+    "subject": "Math",
+    "question": "A computer repair specialist charges $160 for the first two hours of repair plus an hourly fee for each additional hour. The total cost for 6 hours of repair is $360. Which function f gives the total cost, in dollars, for x hours of repair, where x≥2?",
+    "a": "f(x)=50x+60",
+    "b": "f(x)=50x+160",
+    "c": "f(x)=60x",
+    "d": "f(x)=60x+160"
+  }
+]

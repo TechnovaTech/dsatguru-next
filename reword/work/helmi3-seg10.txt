@@ -1,0 +1,805 @@
+Section: Section 2, Module 2: Math, Difficulty: easy (277 questions)
+1000. The function g is defined by g(x) = 16x + 25. For what value of x does g(x) = 29?
+Answer: 1/4
+
+1002. What is an x-coordinate of an x-intercept of the graph of y = 3(x - 14)(x + 8)(x + 4) in the xy-plane?
+Answer: 14
+
+1006. f(x) = 10(x2 + 33)
+What is the minimum value of the given function?
+A. 0.1 B. 3.3 C. 10 D. 330
+Answer: D
+
+1007. Triangle QRS is similar to triangle F GH
+
+such that Q, R, and S correspond to F , G and H, respectively. Each side of triangle F GH
+
+has
+
+1 3
+
+the length of its
+
+corresponding side in triangle QRS. In triangle F GH, the measure of angle F is 35�, the measure of angle G is 6�, and F G = a. In triangle QRS, the measure of
+
+angle Q is b� and QR = 30. What is the value of a + b?
+
+Answer: 45
+
+1136.
+
+In the triangle shown, P Q = QR. What is the value of x? A. 164 B. 74 C. 32 D. 16
+1138.
+
+The shaded region shown represents the solutions to which inequality?
+A. y < -x + 9 B. y < 9x - 1 C. y > -x + 9 D. y > 9x - 1
+1139. The price to rent an event space is 1,125 dollars for the first 3 hours and 125 dollars for each additional hour. What is the total price, in dollars, to rent the event space for 12 hours? A. 4,500 B. 2,625 C. 2,250 D. 1,125
+1145.
+
+The figure shown is a right rectangular pyramid, where  = 10 units, w = 5 units, and h = 11 units. What is the surface area, in square units, of the pyramid?
+1146. The function f is defined by f(x) = 6 + x. What is the value of f(36)? A. 0 B. 12 C. 15 D. 24
+1153. f(x) = 2x + 5 g(x) = 5x - 3 h(x) = 2x + 3
+The functions f, g, and h are defined as shown. If f(x)  g(x) - h(x) = ax2 + bx + c, where a, b, and c are constants, what is the value of b? A. -2 B. 17 C. 21 D. 29
+1154. x2 - 16 = 0
+25
+How many distinct real solutions does the given equation have? A. Zero B. Exactly one C. Exactly two D. Infinitely many
+1281. For a certain job, an electrician charges $70 per hour for labor plus $125 for parts. Which function f represents the total amount, in dollars, the electrician will charge for this job if it takes x hours? A. f(x) = 70x - 125 B. f(x) = 70x + 125 C. f(x) = 70x D. f(x) = x + 125
+1282. 12x + 40 = 160
+Which equation has the same solution as the given equation?
+A. 12x = 40 B. 12x = 80 C. 12x = 120 D. 12x = 160
+1283. To complete a tree survey at a forest preserve, researchers measured the circumference at shoulder height of the trees within a certain section of the forest preserve. The dot plot gives this circumference, to the nearest inch, of each of the trees in this section of the forest preserve.
+
+Based on the dot plot, how many trees had a circumference, to the nearest inch, of 11 inches? A. 1 B. 3 C. 5 D. 15
+
+1285.
+
+Value
+36 37 38 39 40
+
+Data set A frequency
+n n n n n
+
+Data set B frequency
+n-1 n-1
+n n+1 n+1
+
+The table shows the frequencies of the values for data set A and data set B, where n is a positive integer constant. Which of the following statements best compares
+the means of the two data sets?
+
+A. The mean of data set A is greater than the mean of data set B.
+
+B. The mean of data set A is less than the mean of data set B.
+
+C. The mean of data set A is equal to the mean of data set B.
+
+D. There is not enough information to compare the means of the two data sets.
+
+1286. There are 355 student athletes at Central High School. A sample of the student athletes was selected at random and asked whether they intend to enroll in a new honors program. Of those surveyed, 60% responded that they intend to enroll in the honors program. Based on this survey, which of the following is the best
+estimate of the total number of student athletes at Central High School who intend to enroll in the honors program?
+A. 60
+B. 142
+C. 213
+D. 355
+
+1287. Which expression is equivalent to 14x2 - 4x2? A. -56x2 B. 10x2 C. 18x2 D. 36x2
+
+1290. y
+10
+
+8
+
+6
+
+4
+
+2
+
+8 6 4 2 O 2
+
+x 2468
+
+4
+
+6
+
+The graph shows the linear relationship between x and y. Which table gives three values of x and their corresponding values of y for this relationship?
+A.
+xy 00 1 -7 2 -12
+
+B.
+xy 00 13 28
+
+C.
+xy 0 -2 1 -7 2 -12
+
+D.
+xy 0 -2 13 28
+
+1291.
+
+In the figure, line p is parallel to line r, and line t intersects both lines. What is the value of x? A. 36 B. 72 C. 180 D. 252
+1292.
+
+The graph of y = f(x) is shown in the xy-plane. The value of f(0) is an integer. What is the value of f(0)?
+
+1293. The function f is defined by f(x) = -6x + 50. What is the value of f(-4)? A. -74 B. -26 C. 26 D. 74
+
+1294.
+Atmospheric pressure
+(pounds per square inch)
+
+y
+16 14 12 10 8 6 4 2
+x O 2 4 6 8 10 12
+Height above sea level (miles)
+
+The graph gives the estimated atmospheric pressure y, in pounds per square inch, as a function of the height x, in miles, above sea level. What is the best interpretation of the point (4.4, 5.9) in this context? A. The estimated atmospheric pressure at sea level is 4.4 pounds per square inch. B. The estimated atmospheric pressure at sea level is 5.9 pounds per square inch. C. The estimated atmospheric pressure 5.9 miles above sea level is 4.4 pounds per square inch. D. The estimated atmospheric pressure 4.4 miles above sea level is 5.9 pounds per square inch.
+
+1295. There are 176 teams participating in a basketball tournament that consists of 4 rounds. Each team participating in the tournament will play against another team in round 1. At the end of each round, the losing team of each game from that round is eliminated and the winning team advances to the next round to play a game against another winning team. Which equation gives the number of teams, t, eliminated at the end of round r, where r  4? A. t = 11( 1 )r
+2
+B. t = 11(2)r C. t = 176( 1 )r
+2
+D. t = 176(2)r
+
+1296.
+
+Cylinder A is similar to cylinder B. The volume of cylinder A is 5.13 cubic units and the volume of cylinder B is 1.52 cubic units. The surface area of cylinder A is 22.41
+square units. What is the surface area, in square units, of cylinder B?
+1297. A cube has an edge length of 45 inches. What is the volume, in cubic inches, of the cube? A. 180 B. 2,025 C. 12,150 D. 91,125
+1299. y < -4x + 8
+
+y>x Which point (x, y) is a solution to the given system of inequalities in the xy-plane? A. (-7, -5) B. (7, -5) C. (11, -9) D. (11, 9)
+1300. (x - 228)(x + 229) = 0
+What is a solution to the given equation?
+1427.
+
+The y-intercept of the graph shown is (x, y). What is the value of y?
+
+1428.
+
+School Level Elementary school Middle school High school
+
+Average Number of Books
+369 251 92
+
+For a certain school district, the table shows the average number of books in classroom libraries in 2016 by school level. Based on the table, how much greater was
+the average number of books in elementary school classroom libraries than in high school classroom libraries?
+
+A. 118
+
+B. 159
+
+C. 277
+
+D. 461
+
+1429. In a box of coins, the ratio of pennies to nickels is 7 to 1. There are 21 pennies in the box. How many nickels are in the box? A. 3 B. 7 C. 21 D. 147
+
+1431. Pilar has spent $183 on office supplies for her business this month. She does not want her total monthly expenses on office supplies to exceed her budget of $266. What is the maximum amount of additional money Pilar can spend on office supplies this month and not exceed her budget? A. $83 B. $183 C. $266 D. $449
+
+1432. Under a certain magnifying lens, the apparent length, in millimeters, of an object is 350% of its actual length, in millimeters. Which of the following types of
+functions best models the apparent length, in millimeters, of an object under this magnifying lens as a function of its actual length, in millimeters? A. Decreasing exponential B. Decreasing linear C. Increasing exponential D. Increasing linear
+
+1434.
+
+The graph shows the predicted depth below sea level y, in meters, of a certain seal x minutes after the seal dives into the water. Based on the graph, which of the following is closest to the predicted depth below sea level, in meters, of the seal 2 minutes after the seal dives into the water? A. 324 B. 288 C. 180 D. 0
+1436.
+
+In the figure, line n intersects lines r and s. Line r is parallel to line s. What is the value of x?
+1437. Which expression is equivalent to 6(y19 + 5)? A. y19 + 11 B. y19 + 30 C. 6y19 + 5 D. 6y19 + 30
+
+1438. 10x + 20 = 140
+Which equation has the same solution as the given equation?
+A. 10x = 7 B. 10x = 160 C. x + 2 = 10 D. x + 2 = 14
+
+1440. What is the solution to the equation 5x - 19 = 7?
+A. 482
+25
+B. 524
+25
+C. 26
+5
+D. 102
+5
+
+1441. The function g is defined by g(x) =
+
+2x+
+9
+
+7 . What is the value of g(18)?
+9
+
+A. 43
+9
+
+B. 29
+9
+
+C. 25
+9
+
+D. 11
+9
+
+1442. An object that was launched from the top of a building reached its maximum height of 250 feet above the ground 1.3 seconds after the object was launched. Which of the following graphs could represent the height y, in feet, of the object x seconds after the object was launched?
+
+A.
+
+y
+
+600 500 400 Height (feet) 300 200 100
+O
+
+x 123456
+Time (seconds)
+
+B.
+
+y
+
+600 500 400 Height (feet) 300 200 100
+O
+
+x 123456
+Time (seconds)
+
+C.
+
+y
+
+600 500 400 Height (feet) 300 200 100
+O
+
+x 123456
+Time (seconds)
+
+D.
+
+y
+
+600 500 400 Height (feet) 300 200 100
+O
+
+x 123456
+Time (seconds)
+
+1443. Hakim has a bag of 20 tiles, where 18 are labeled with a letter and 2 are blank. If Hakim selects a tile from the bag at random, what is the probability of
+selecting a blank tile? (Express your answer as a decimal or fraction, not as a percent.)
+1444. Line k is defined by y = 19x + 6. Line j is parallel to line k in the xy-plane. What is the slope of line j? A. -19
+B. 6
+19
+C. 19
+6
+D. 19
+1446. 6x + 6y = 9 9x - 6y = 78
+In the xy-plane, the graphs of the given equations intersect at (x, y). What is the value of x + y?
+1447. (x + 4)2 + (y + 7)2 = 192
+In the xy-plane, the graph of the given equation is a circle. What is the length of a radius of this circle?
+A. 192 B. 19
+C. 19
+2
+D. 19
+1448.
+
+The scatterplot shows the relationship between two variables, x and y. An equation for the exponential model shown can be written as y = a(b)x, where a and b are positive constants. Which of the following is closest to the value of b? A. 0.81 B. 1.81 C. 32.37 D. 125.88
+
+1576. f(a) = (a2 + 12a + 36)(a + 1)
+
+g(b) = b(b + 4)(b - 2)2
+
+The
+
+functions
+
+f
+
+and
+
+g
+
+are
+
+defined
+
+by
+
+the
+
+given
+
+equations.
+
+If
+
+f(3)
+
+=
+
+c,
+
+where
+
+c
+
+is
+
+a
+
+constant,
+
+what
+
+is
+
+the
+
+value
+
+of
+
+g(
+
+c 54
+
+)?
+
+1577. 13x + 20 = 150
+Which equation has the same solution as the given equation?
+A. 13x = 20 B. 13x = 110 C. 13x = 130 D. 13x = 150
+
+1578. To complete a tree survey at a forest preserve, researchers measured the circumference at shoulder height of the trees within a certain section of the forest preserve. The dot plot gives this circumference, to the nearest inch, of each of the trees in this section of the forest preserve.
+
+Based on the dot plot, how many trees had a circumference, to the nearest inch, of 15 inches? A. 2 B. 4 C. 6 D. 20
+1580. There are 132 10th-grade students at Central High School. A sample of the 10th-grade students was selected at random and asked whether they intend to enroll in a new honors program. Of those surveyed, 25% responded that they intend to enroll in the honors program. Based on this survey, which of the following is
+the best estimate of the total number of 10th-grade students at Central High School who intend to enroll in the honors program?
+A. 25 B. 33 C. 99 D. 132
+1587. The function f is defined by f(x) = -3x + 30. What is the value of f(-5)? A. -45 B. -15 C. 15 D. 45
+1589. A line in the xy-plane is defined by y = x + b, where b is a constant. This line passes through the point (2, 9). What is the value of b? A. 0 B. 2 C. 7 D. 18
+1591. A cube has an edge length of 22 inches. What is the volume, in cubic inches, of the cube? A. 88 B. 484 C. 2,904 D. 10,648
+1594. (x - 240)(x + 241) = 0
+What is a solution to the given equation?
+1726. There are 140 10th-grade students at Central High School. A sample of the 10th-grade students was selected at random and asked whether they intend to enroll in a new honors program. Of those surveyed, 25% responded that they intend to enroll in the honors program. Based on this survey, which of the following is
+the best estimate of the total number of 10th-grade students at Central High School who intend to enroll in the honors program?
+A. 25 B. 35 C. 105 D. 140
+1730. The equation y = 66x gives the estimated distance y, in kilometers, that a car traveled x hours after exiting a parking garage. What is the estimated distance, in kilometers, the car traveled 2 hours after exiting the parking garage? A. 0 B. 64 C. 68 D. 132
+1735. An inverter converts 86% of the direct current (DC) power generated by a solar panel into alternating current (AC) power. If the panel generates 350 watts of
+DC power, how many watts of AC power result from the conversion?
+1738. A cube has an edge length of 29 inches. What is the volume, in cubic inches, of the cube? A. 116 B. 841 C. 5,046 D. 24,389
+1870.
+
+In the right triangle shown, XY = 26 and XZ = 1017. What is the value of tan X?
+1871. In a box of marbles, the ratio of blue marbles to green marbles is 8 to 1. There are 56 blue marbles in the box. How many green marbles are in the box? A. 7 B. 8 C. 56 D. 448
+1875.
+
+The graph shows the predicted depth below sea level y, in meters, of a certain seal x minutes after the seal dives into the water. Based on the graph, which of the following is closest to the predicted depth below sea level, in meters, of the seal 2 minutes after the seal dives into the water? A. 371 B. 308 C. 186 D. 0
+
+1881.
+
+y
+14 13 12 11 10 9 8 7 6 5 4 3 2 1
+x O 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+
+An equation of the line shown is 11x + By = C, where B and C are constants. What is the value of C?
+
+A. 144
+
+B. 132
+
+C. 121
+
+D. 11
+
+1889.
+
+The scatterplot shows the relationship between two variables, x and y. An equation for the exponential model shown can be written as y = a(b)x, where a and b are positive constants. Which of the following is closest to the value of b? A. 0.83 B. 1.83 C. 17.28 D. 123.80
+2018. In a box of coins, the ratio of pennies to nickels is 9 to 1. There are 36 pennies in the box. How many nickels are in the box? A. 4 B. 9 C. 36 D. 324
+2019. y = 2x2 - 24x + 54
+The given equation represents a parabola in the xy-plane. Which of the following equations that represent the same parabola displays the x-intercepts as constants or coefficients?
+A. y = 2(x2 - 12x) + 54 B. y = 2x(x - 12) + 54 C. y = 2(x - 6)2 - 18 D. y = 2(x - 9)(x - 3)
+2020. x + y + z = 53 The given equation relates the number of miles, x, that a cyclist biked on Monday, the number of miles, y, the cyclist biked on Tuesday, and the number of miles, z, that the cyclist biked on Wednesday in a certain week. If the cyclist biked 12 miles on Monday and 16 miles on Tuesday, how many miles did the cyclist bike on
+Wednesday?
+A. 12 B. 24 C. 25 D. 36
+2027. In F GH, the measures of F and G are each 36�. What is the measure of H? A. 72� B. 108� C. 126� D. 144�
+2028. A length of 380 meters is equal to how many decimeters? (1 meter = 10 decimeters)
+
+2032. A survey of the daily commuting times, in minutes, of seven different Chicago-based employees at a certain company yielded a data set consisting of the
+values 31, 13, 44, 32, 53, 22, and 44. A survey of the daily commuting times, in minutes, of seven different San Francisco-based employees at the same company yielded a data set consisting of the values 46, 31, 19, 33, 48, x, and 38. If the means of the two data sets are equal, what is the value of x?
+2033. James purchased a certain baseball card on January 1. The function f(x) = 55(1.03)x, where 0  x  10, gives the predicted value, in dollars, of the baseball card x years after James purchased it. What is the best interpretation of the statement "f(9) is approximately equal to 72" in this context? A. When the baseball card's predicted value is approximately 72 dollars, it is 9% greater than the predicted value, in dollars, on January 1 of the previous year. B. When the baseball card's predicted value is approximately 72 dollars, it is 9 times the predicted value, in dollars, on January 1 of the previous year. C. From the day James purchased the baseball card to 9 years after James purchased the card, its predicted value increased by a total of approximately 72 dollars. D. 9 years after James purchased the baseball card, its predicted value is approximately 72 dollars.
+2036. x2 - 2x = 14
+What is one of the solutions to the given equation?
+A. 14 B. 1 + 15 C. 15 D. 14 + 2
+2165. In a box of coins, the ratio of pennies to nickels is 7 to 1. There are 42 pennies in the box. How many nickels are in the box? A. 6 B. 7 C. 42 D. 294
+2172. 3x = 8 + 9y -3x = 6 + 9y
+The solution to the given system of equations is (x, y). What is the value of 6x?
+2176. If |16 - 2x| = 58, which of the following is a value of 8 - x? A. 0 B. 8 C. 29 D. 42
+2313.
+
+In triangle XY Z,
+
+a c
+
+= k and
+
+b d
+
+= k. What is the value of k?
+
+A. 67
+
+B. 7
+6
+
+C. 7
+13
+
+D. 137
+
+2315. There are 385 student athletes at Central High School. A sample of the student athletes was selected at random and asked whether they intend to enroll in a new honors program. Of those surveyed, 60% responded that they intend to enroll in the honors program. Based on this survey, which of the following is the best
+estimate of the total number of student athletes at Central High School who intend to enroll in the honors program?
+A. 60
+B. 154
+C. 231
+D. 385
+
+2322. The function f is defined by f(x) = -4x + 30. What is the value of f(-3)? A. -42 B. -18 C. 18 D. 42
+2325. The expression x2 x+7 +2x-35 - 16-x2 x+4 is equivalent to x2+bx+c x-5 , where b and c are constants and x > 5. What is the value of bc?
+
+2326. A cube has an edge length of 35 inches. What is the volume, in cubic inches, of the cube? A. 42,875 B. 7,350 C. 1,225 D. 140
+2466. The table shows values of x and their corresponding values of y for three points on line j in the xy-plane. xy 0 -10 1 -4 22
+Line k also lies in the xy-plane and is defined by the equation y = 4x. At what point (x, y) do lines j and k intersect? A. (5, 20) B. (5, -44) C. (6, 24) D. (6, 26)
+Answer: A
+2467.
+
+The scatterplot shows the relationship between the square footage of 12 clothing stores and their annual sales, in millions of dollars. According to the trend shown by the data, which of the following is the best prediction for the annual sales, in millions of dollars, of a clothing store that is 4 thousand square feet? A. 4.1 B. 5.4 C. 7.5 D. 10.1
+Answer: C
+x
+2472. The function f(x) = 1,200(0.5) 17 gives the predicted intensity of a beam f(x), in number of photons in the beam, x millimeters below the surface of a certain material. What is the best interpretation of f(17) = 600? A. A beam at the surface of the material has a predicted intensity of 17 photons in the beam. B. A beam at the surface of the material has a predicted intensity of 600 photons in the beam. C. A beam 17 millimeters below the surface of the material has a predicted intensity of 600 photons in the beam. D. A beam 600 millimeters below the surface of the material has a predicted intensity of 1,200 photons in the beam.
+Answer: C
+
+2473. x2 + (k - 3)x + 42 = 0 In the given equation, k is a constant. The equation has exactly one real solution. What is the value of k? A. 171 B. 168 C. 165 D. 45
+Answer: A
+2474. In the xy-plane, the graph of y = 4x intersects the graph of y = x2 - 45 at two points. What is the sum of the x-coordinates of the two points of intersection? A. -45 B. -5 C. 4 D. 9
+Answer: C
+
+2475. For the linear function h, h(0) = 0 and h(4) = 3. Which equation defines h?
+
+A. h(x) =
+
+4x
+3
+
+B. h(x) =
+
+4x+4
+3
+
+C. h(x) =
+
+3x
+4
+
+D. h(x) =
+
+3x+3
+4
+
+Answer: C
+
+2604.
+
+During a physics demonstration, an object was thrown upward and then fell to the ground. The graph shows the height above the ground y, in feet, of the object x
+seconds after it was thrown. To the nearest whole number, what was the total distance, in feet, that the object fell after reaching its highest point above the ground?
+Answer: 22
+
+2606. In a box of marbles, the ratio of blue marbles to green marbles is 7 to 1. There are 28 blue marbles in the box. How many green marbles are in the box? A. 4 B. 7 C. 28 D. 196
+Answer: A
+
+2610. A carnival charges $2 for each ride ticket and $5 for each game ticket. A family purchased ride tickets and game tickets worth a total of $35. Which equation represents this situation, where x is the number of ride tickets and y is the number of game tickets that this family purchased? A. 2(x + y) = 35 B. 2x + 5y = 35 C. 5(x + y) = 35 D. 5x + 2y = 35
+Answer: B
+
+2612. The function g is defined by g(x) = 7x + 1. What is the value of g(x) when x = 1? A. 0 B. 1 C. 7 D. 8
+Answer: D
+
+2614. The measures of the interior angles of triangle ABC are 21�, 42�, and x�. What is the value of x? A. 21 B. 63 C. 117 D. 180
+Answer: C
+
+2616. A line in the xy-plane passes through the points (9, 1), (0, 8), and (c, 0). What is the value of c?
+Answer: 72/7
+
+2618. A manager is responsible for ordering supplies for a coffee shop. The shop's inventory starts with 4,600 disposable cups, and the manager estimates that 70 of these cups are used each day. Based on this estimate, in how many days will the supply of disposable cups reach 1,800? A. 20 B. 40 C. 60 D. 80
+Answer: B
+
+2623. A group of 10 gardeners recorded data on the germination rates of their tomato crop for one growing season. The scatterplot shows the relationship between the number of tomato seeds planted, x, and the number of tomato seeds that germinated, y, for each of the gardeners. A line of best fit is also shown.
+y 500
+
+400
+
+300
+
+200
+
+100
+
+x
+
+O
+
+100 200 300 400 500
+
+Which of the following is the best interpretation of the slope of the line of best fit in this context?
+A. The number of tomato seeds planted is predicted to increase by 70 seeds every 100 days. B. The number of tomato seeds planted is predicted to increase by 350 seeds every 100 days. C. The number of tomato seeds that germinate is predicted to increase by 70 seeds for every additional 100 tomato seeds that are planted. D. The number of tomato seeds that germinate is predicted to increase by 350 seeds for every additional 100 tomato seeds that are planted.
+
+Answer: C
+
+2752. An ice cream shop buys spoons for $0.05 each and bowls for $0.48 each. The total cost of x spoons and y bowls is $578.10. Which equation represents this
+situation?
+A. 0.48x + 0.05y = 578.10 B. 0.05x + 0.48y = 578.10 C. 0.48x - 0.05y = 578.10 D. 0.05x - 0.48y = 578.10
+Answer: B
+
+2762. A jar has 830 marbles, and 20% of these marbles are orange. How many marbles in the jar are orange? A. 166 B. 332 C. 415 D. 810
+Answer: A
+
+2765. What is the graph of the equation y = 1.0(x - 2)2?
+
+A. y
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+4 2 O 2
+
+x 2 4 6 8 10 12
+
+4
+
+B. y
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+
+4 2 O 2
+
+x 2 4 6 8 10 12
+
+4
+
+C. y
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+
+4 2 O 2
+
+x 2 4 6 8 10 12
+
+4
+
+D. y
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+
+4 2 O 2
+
+x 2 4 6 8 10 12
+
+4
+
+Answer: B
+
+3048.
+
+In the triangle shown, P Q = QR. What is the value of x? A. 156 B. 66 C. 48 D. 24
+Answer: D
+3057. A linear function g is defined by g(x) = ax + b, where a and b are constants. If g(-2) = -7 and g(1) = 5, what is the value of a?
+Answer: 4
+3065.
+xy 0r 3 r - 21 6 r - 42 For a linear relationship between x and y, the table gives three values of x and their corresponding values of y in terms of a constant r. What is the slope of the line in
+the xy-plane that represents this relationship?
+A. -21 B. -7 C. 7 D. 21
+Answer: B
+3195.
+
+In the triangle shown, P Q = QR. What is the value of x? A. 145 B. 70 C. 55 D. 35
+Answer: D
+3198. The equation d = 26w + 100 gives the total amount of money d, in dollars, that James plans to save w weeks after he starts to save. What is the total amount of money, in dollars, he plans to save in 10 weeks? A. 310 B. 360 C. 410 D. 460
+Answer: B
+3199. In the xy-plane, the graph of the equation y = 7x is translated 6 units down. What is an equation of the resulting graph? A. y = 7x + 6 B. y = 7x - 6 C. y = 7(x+6) D. y = 7(x-6)
+Answer: B
+3205. In the ancient Roman measurement system, a leuga was a unit of length that was equal to 7,500 pedes. In this measurement system, how many pedes were equivalent to 3.8 leugas?
+Answer: 28500
+3342.
+
+In the triangle shown, P Q = QR. What is the value of x? A. 158 B. 68 C. 44 D. 22
+Answer: D
+3346. In the xy-plane, the graph of the equation y = 5x is translated 4 units down. What is an equation of the resulting graph? A. y = 5x + 4 B. y = 5x - 4 C. y = 5(x+4) D. y = 5(x-4)
+Answer: B
+3347. x2 - 9 = 40
+Which value is a solution to the given equation?
+A. -40 B. -31 C. -9 D. 7
+Answer: D
+3350. The scatterplot shows the relationship between two variables, x and y. A line of best fit for the data is also shown.
+
+For how many of the 9 data points is the actual y-value greater than the y-value predicted by the line of best fit? A. 2
+
+B. 4 C. 6 D. 8
+Answer: B
+3487. If x - 3 = 5, what is the value of (x - 3)? A. 5 B. 22 C. 25 D. 50
+Answer: C 3490.
+In the triangle shown, P Q = QR. What is the value of x? A. 149 B. 62 C. 59 D. 31
+Answer: D
+3496. The function f is defined by f(x) = 2 + x. What is the value of f(144)? A. 0 B. 14 C. 38 D. 74
+Answer: B
+3497. The scatterplot shows the relationship between x and y. A line of best fit is also shown.
+
+Which of the following is closest to the slope of the line of best fit shown?
+A. -1.52 B. -0.66 C. 0.66 D. 1.52
+Answer: C
+
+3501. The function f is defined by f(x) = 4x - 6. If f(a) + 1 = 3a, what is the value of a? A. 7 B. 5 C. 1 D. -1
+Answer: B
+3503. P (t) = 19.5(1.036)t The function P gives the predicted population, in millions, of a certain country for the period from 1984 to 2018, where t is the number of years after 1984. According to this function, what is the best interpretation of the statement "P (7) is approximately equal to 24.98"? A. In 1984, the predicted population of this country was approximately 7 million. B. In 1984, the predicted population of this country was approximately 24.98 million. C. 24.98 years after 1984, the predicted population of this country was approximately 7 million. D. 7 years after 1984, the predicted population of this country was approximately 24.98 million.
+Answer: D
+
+3634. In a box of marbles, the ratio of blue marbles to green marbles is 6 to 1. There are 30 blue marbles in the box. How many green marbles are in the box? A. 5 B. 6 C. 30 D. 180
+Answer: A
+
+3639. What is the x-intercept of the graph of y = 21-x in the xy-plane, where a and b are positive constants?
+ax+b
+
+A. (21, 0)
+
+B. (0, -21)
+
+C. (0, 21b )
+
+D.
+
+(-
+
+b a
+
+,
+
+0)
+
+Answer: A
+
+3642. What is the y-intercept of the graph of y = 3x2 + 2x + 8 in the xy-plane? A. (0, 2) B. (0, 3) C. (0, 8) D. (0, 13)
+Answer: C
+
+3646.
+
+In the figure shown, line k intersects lines r and s. If w = 158, which additional piece of information is sufficient to prove that lines r and s are parallel? A. x = 22 B. y = 158 C. w + y = 180 D. y + z = 180
+Answer: B
+
+3648. A certain university's research farm is 1,000 acres, of which 72 acres contain rice. What percentage of the acres of this research farm contain rice? A. 0.72% B. 7.2% C. 72% D. 720%
+Answer: B
+
+3779. What is 50% of 400? A. 600 B. 400 C. 200 D. 40
+Answer: C
+
+3785. If x - 1 = 2, what is the value of (x - 1)? A. 2 B. 3 C. 4 D. 8
+Answer: C
+
+3926. What is 50% of 820? A. 1,230 B. 820 C. 410 D. 82
+Answer: C
+
+3935. x2 - 4 = 21
+Which value is a solution to the given equation?
+A. -21 B. -17 C. -4 D. 5
+Answer: D
+
+3939. What is the graph of the equation y = 0.2(x - 3)2?
+
+A. y
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+4 2 O 2
+
+x 2 4 6 8 10 12
+
+4
+
+B. y
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+
+4 2 O 2
+
+x 2 4 6 8 10 12
+
+4
+
+C. y
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+
+4 2 O 2
+
+x 2 4 6 8 10 12
+
+4
+
+D. y
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+
+4 2 O 2
+
+x 2 4 6 8 10 12
+
+4
+
+Answer: B
+
+3940. Line p in the xy-plane contains the points (23, 0) and (23, 23). Which equation defines line p? A. x = 23 B. x = 0 C. y = 23 D. y = 0
+Answer: A

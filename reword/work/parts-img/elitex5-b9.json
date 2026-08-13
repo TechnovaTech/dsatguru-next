@@ -1,0 +1,93 @@
+[
+  {
+    "page": 81,
+    "qnum": 5,
+    "subject": "Math",
+    "question": "R = 0.48l / A\n\nThe given equation relates the resistance R, in ohms, of a wire to its length l, in meters, and its cross-sectional area A, in square meters. Which equation correctly expresses the length, in meters, of the wire in terms of its resistance, in ohms, and its cross-sectional area, in square meters?",
+    "a": "l = AR / 0.48",
+    "b": "l = 0.48R / A",
+    "c": "l = (R + A) / 0.48",
+    "d": "l = (R - A) / 0.48"
+  },
+  {
+    "page": 82,
+    "qnum": 6,
+    "subject": "Math",
+    "question": "For the polynomial function f, the graph of y = f(x) in the xy-plane passes through the points (-5, 0), (3, 0), and (8, 0). Which of the following must be a factor of f(x)?",
+    "a": "x + 3",
+    "b": "x + 8",
+    "c": "x - 3",
+    "d": "x - 5"
+  },
+  {
+    "page": 83,
+    "qnum": 7,
+    "subject": "Math",
+    "question": "Which shaded region represents the solutions to the inequality 4x + 5y < 9?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": "",
+    "figure": true
+  },
+  {
+    "page": 85,
+    "qnum": 8,
+    "subject": "Math",
+    "question": "In the xy-plane, line k has a slope of 6/13, an x-intercept of (-6, 0), and a y-intercept of (0, p). What is the value of p?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 86,
+    "qnum": 9,
+    "subject": "Math",
+    "question": "The measure of angle S is 8π/13 radians. The measure of angle T is 3 times the measure of angle S. Which expression represents the measure, in degrees, of angle T?",
+    "a": "(8/13)(90)(3)",
+    "b": "(8/13)(180)(3)",
+    "c": "(8/(13π))(90)(3)",
+    "d": "(8π/13)(180)(3)"
+  },
+  {
+    "page": 87,
+    "qnum": 10,
+    "subject": "Math",
+    "question": "What is the x-intercept of the graph of y = (33 - x) / (ax + b) in the xy-plane, where a and b are positive constants?",
+    "a": "(-b/a, 0)",
+    "b": "(0, 33/b)",
+    "c": "(0, -33)",
+    "d": "(33, 0)"
+  },
+  {
+    "page": 88,
+    "qnum": 11,
+    "subject": "Math",
+    "question": "The ratio x to y is equivalent to the ratio 7 to 9. If x = 10t, what is the value of y in terms of t?",
+    "a": "(7/90)t",
+    "b": "(9/70)t",
+    "c": "(70/9)t",
+    "d": "(90/7)t"
+  },
+  {
+    "page": 89,
+    "qnum": 12,
+    "subject": "Math",
+    "question": "A research manager selected 2 random samples of ovens of a certain type to estimate the average amount of time this type of oven takes to preheat to 325 degrees Fahrenheit (°F). The research manager recorded the amount of time, in minutes, each oven takes to preheat to 325°F. Based on the first sample, the research manager estimated that this type of oven takes an average of 15.2 minutes to preheat to 325°F, with an associated margin of error of 1 minute. Based on the second sample, the research manager estimated that this type of oven takes an average of 15.4 minutes to preheat to 325°F, with an associated margin of error of 2.2 minutes. Assuming the margins of error were calculated the same way, which of the following best explains why the first sample obtained a smaller margin of error than the second sample?",
+    "a": "The first sample contained more ovens than the second sample.",
+    "b": "The first sample contained fewer ovens than the second sample.",
+    "c": "The first sample took more time on average to preheat to 325°F than the second sample.",
+    "d": "The first sample took less time on average to preheat to 325°F than the second sample."
+  },
+  {
+    "page": 90,
+    "qnum": 13,
+    "subject": "Math",
+    "question": "f(x) = 25(1.40)^(x/3)\n\nFor the given function f, the value of f(x) increases by p% for every increase of x by 6. What is the value of p?",
+    "a": "40",
+    "b": "49",
+    "c": "80",
+    "d": "96"
+  }
+]

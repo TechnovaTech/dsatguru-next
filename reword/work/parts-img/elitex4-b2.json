@@ -1,0 +1,103 @@
+[
+  {
+    "page": 11,
+    "qnum": 11,
+    "subject": "Reading and Writing",
+    "question": "The Underdogs is a 1915 novel by Mariano Azuela, originally written in Spanish. In the novel, Azuela depicts a traveling group of soldiers as having a renewed sense of agency and authority as they set off on a new stage of their journey: ______\n\nWhich quotation from a translation of The Underdogs most effectively illustrates the claim?",
+    "a": "“The sonorous, joyful bells rang again. From within the church, the honeyed voices of a female chorus rose melancholy and grave.”",
+    "b": "“All day long [the soldiers] rode through the canyon, up and down the steep, round hills, dirty and bald as a man's head, hill after hill in endless succession. At last, late in the afternoon, they descried several stone church towers in the heart of a bluish ridge, and, beyond, the white road with its curling spirals of dust and its gray telegraph poles.”",
+    "c": "“The men threw out their chests as if to breathe the widening horizon, the immensity of the sky, the blue from the mountains and the fresh air, redolent with the various odors of the sierra. They spurred their horses to a gallop as if in that mad race they laid claims of possession to the earth.”",
+    "d": "“Before Juchipila was lost from sight, Valderrama got off his horse, bent down, kneeled, and gravely kissed the ground.”"
+  },
+  {
+    "page": 12,
+    "qnum": 12,
+    "subject": "Reading and Writing",
+    "question": "Auxins are a class of hormones that influence plant growth, including leaf orientation (the tendency of leaves to be larger on one side of their long central axis than the other). University of California, Berkeley biologist Ciera Martinez and colleagues noted that in certain plants in which leaves grow in pairs, auxins will typically be concentrated in opposite sides of each leaf in the pair (e.g., on the left side of one leaf in the pair and the right side of the other). Accordingly, they hypothesized that paired leaves should tend to show opposite-side orientation, and they tested their hypothesis by examining paired leaves from several species of grapevines.\n\nOrientation of Leaf Pairs in Grapevines (Number of pairs vs. Orientation of leaves in pair, for Amur grape, July grape, and graybark grape):\n\n| Orientation | Amur grape | July grape | graybark grape |\n| --- | --- | --- | --- |\n| opposite side | ~148 | ~202 | ~267 |\n| same side | ~60 | ~102 | ~92 |\n\nWhich choice best describes data from the graph that support Martinez and colleagues’ hypothesis?",
+    "a": "Although the number of leaf pairs showing same-side orientation is fairly high in the July grape, it is much lower in both the Amur grape and graybark grape.",
+    "b": "In the graybark grape, Amur grape, and July grape, all the leaf pairs show opposite-side orientation.",
+    "c": "Although the exact ratio varies by species, the graybark grape, Amur grape, and July grape all show more leaf pairs with opposite-side orientations than with same-side orientations.",
+    "d": "The number of leaf pairs showing opposite-side orientation is fairly high in the July grape, but not as high as it is in the graybark grape.",
+    "figure": true
+  },
+  {
+    "page": 13,
+    "qnum": 13,
+    "subject": "Reading and Writing",
+    "question": "The Age of Innocence is a 1920 novel by Edith Wharton set in New York City in the 1870s. In the novel, Newland Archer arrives late to an opera performance, which the narrator attributes to Newland's enjoyment of anticipation: ______\n\nWhich quotation from The Age of Innocence best illustrates the claim?",
+    "a": "\"To come to the Opera in a [carriage for hire] was almost as honourable a way of arriving as in one's own carriage.\"",
+    "b": "\"[T]hinking over a pleasure to come often gave [Newland] a subtler satisfaction than its realisation.\"",
+    "c": "\"When Newland Archer opened the door at the back of the club box the curtain had just gone up on the garden scene. There was no reason why the young man should not have come earlier, for he had dined at seven, alone with his mother and sister.\"",
+    "d": "\"No expense had been spared on the setting, which was acknowledged to be very beautiful even by people who shared [Newland's] acquaintance with the Opera houses of Paris and Vienna.\""
+  },
+  {
+    "page": 14,
+    "qnum": 14,
+    "subject": "Reading and Writing",
+    "question": "Mooseberry (Viburnum edule) plants are native to Alaska, where harsh conditions have historically impeded potential invasive species. As the boreal climate has warmed in recent decades, however, common knotgrass (Polygonum aviculare) plants have established themselves in Alaska. It has been suggested that warming-induced delays in the onset of subfreezing temperatures in autumn can benefit invasives more than native species: to evaluate this possibility, biologists Christa Mulder and Katie Spellman tracked V. edule and P. aviculare, along with other native and invasive species, over several years, concluding that invasives are advantaged by delays in subfreezing temperature onset in Alaska.\n\nWhich finding, if true, would most directly support Mulder and Spellman's conclusion?",
+    "a": "Although V. edule and P. aviculare both tended to produce leaves later into autumn in years with late subfreezing temperature onset, the extension was much greater for P. aviculare than for V. edule.",
+    "b": "Although significant interannual variations in subfreezing temperature onset were observed during the study, neither P. aviculare nor V. edule showed any significant interannual variation in the cessation of leaf production.",
+    "c": "Although V. edule and P. aviculare tended to stop producing leaves at about the same time in years with historically typical temperature patterns, P. aviculare stopped producing leaves sooner than V. edule did in years with late subfreezing temperature onset.",
+    "d": "Although V. edule and P. aviculare both tended to produce more leaves overall in years with late subfreezing temperature onset than they did in years with historically typical temperature patterns, the years with late subfreezing temperature onset also had early growing season onset in spring."
+  },
+  {
+    "page": 15,
+    "qnum": 15,
+    "subject": "Reading and Writing",
+    "question": "Museo Francisco Pancho Coímbre, a sports museum in Ponce, Puerto Rico, is one of more than eighty museums in the US territory. Puerto Rico's museums ______ visitors about everything from the territory's sports to its architecture to its coffee.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+    "a": "inform",
+    "b": "having informed",
+    "c": "to inform",
+    "d": "informing"
+  },
+  {
+    "page": 16,
+    "qnum": 16,
+    "subject": "Reading and Writing",
+    "question": "Trade with other societies was vital to the Byzantine Empire, which reigned in the Mediterranean from around 330 CE to 1453 CE. Its people profited by selling salt, textiles, and iron, items that ______ greatly in demand.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+    "a": "has been",
+    "b": "were",
+    "c": "was",
+    "d": "is"
+  },
+  {
+    "page": 17,
+    "qnum": 17,
+    "subject": "Reading and Writing",
+    "question": "In the periodic table, an element's atomic number indicates how many protons there are in an atom of the element. For example, a helium atom ______ 2 protons. Professor Raymond Chang explains this concept in more detail in the textbook Chemistry.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+    "a": "has had",
+    "b": "has",
+    "c": "is having",
+    "d": "had"
+  },
+  {
+    "page": 18,
+    "qnum": 18,
+    "subject": "Reading and Writing",
+    "question": "With one in Finland and another in Australia, the observatory sites that form the Super Dual Auroral Radar Network—or SuperDARN, as space physicists like Mark Lester call it—number nearly five ______ across the globe, the radars track ionospheric irregularities and other geospace phenomena.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+    "a": "dozen. Located",
+    "b": "dozen, located",
+    "c": "dozen, which are located",
+    "d": "dozen located"
+  },
+  {
+    "page": 19,
+    "qnum": 19,
+    "subject": "Reading and Writing",
+    "question": "The giant sequoia (Sequoiadendron giganteum) known as D-23, located in the United States, was one of the oldest known trees in the world, at 3,075 years old. With over three millennia of climate data in its tree ______ single tree like this, claims dendrochronologist Valerie Trouet, can tell the history of the world.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+    "a": "rings. A",
+    "b": "rings; a",
+    "c": "rings and a",
+    "d": "rings, a"
+  },
+  {
+    "page": 20,
+    "qnum": 20,
+    "subject": "Reading and Writing",
+    "question": "A worker cooperative is a business that is owned and operated by its workers. This model stands in contrast to traditional models in which a smaller group of owners controls a company. Because the profits made by a cooperative are shared by all workers—who are also owners—the workers ______ directly from its success.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+    "a": "benefit",
+    "b": "had benefited",
+    "c": "benefited",
+    "d": "were benefiting"
+  }
+]

@@ -1,0 +1,27 @@
+Section: Section 2, Module 2: Math, Difficulty: hard (53 questions)
+815. Which of the following lists represents a data set with the smallest standard deviation?
+A. 31, 32, 34, 36, 37 B. 32, 32, 34, 36, 36 C. 32, 33, 34, 35, 36 D. 33, 34, 34, 34, 35
+Answer: D
+x
+834. f(x) = 8,830(0.34) 12 The function f gives the value, in dollars, of a certain piece of equipment after x months of use. If the value of the equipment decreases each year by p% of its value the preceding year, what is the value of p? A. 3 B. 9 C. 34 D. 66
+Answer: D
+
+861. Which expression is equivalent to (7x2 + 6x + 9) - (7x2 + 4)? A. 5 B. 13 C. 6x + 5 D. 6x + 13
+Answer: C
+873. x2 + 6x + c = 0 In the given equation, c is a constant. The equation has no real solutions if c > n. What is the least possible value of n? A. -9 B. -6 C. 6 D. 9
+Answer: D
+1008. Which expression is equivalent to (6x2 + 2x + 4) - (6x2 + 3)? A. 1 B. 7 C. 2x + 1 D. 2x + 7
+Answer: C
+1020. x2 + 24x + c = 0 In the given equation, c is a constant. The equation has no real solutions if c > n. What is the least possible value of n? A. -144 B. -24 C. 24 D. 144
+Answer: D
+1155. Which expression is equivalent to (9x2 + 7x + 6) - (9x2 + 3)? A. 3 B. 9 C. 7x + 3 D. 7x + 9
+Answer: C
+1167. x2 + 2x + c = 0 In the given equation, c is a constant. The equation has no real solutions if c > n. What is the least possible value of n? A. -2 B. -1 C. 1 D. 2
+Answer: C
+1597. Which of the following lists represents a data set with the smallest standard deviation?
+A. 74, 75, 77, 79, 80 B. 75, 75, 77, 79, 79 C. 75, 76, 77, 78, 79 D. 76, 77, 77, 77, 78
+Answer: D
+1611. Which expression is NOT a factor of 7,290x4 - 56,250? A. 9x2 + 25 B. 3x2 - 5 C. 3x + 5 D. 90
+Answer: B
+
+

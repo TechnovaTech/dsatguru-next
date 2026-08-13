@@ -1,0 +1,102 @@
+[
+  {
+    "page": 51,
+    "qnum": 24,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n- The human tongue contains taste receptors for a rich, savory flavor called umami.\n- Umami is triggered by the compounds in a variety of foods, including tuna and soy sauce.\n- Participants in a study tasted a sample of sugar kelp, a type of brown seaweed.\n- They rated its umami intensity as moderate.\n- The participants tasted a sample of ma-konbu, another type of brown seaweed.\n- They rated its umami intensity as high.\n\nThe student wants to emphasize a difference between the two seaweeds. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "Some types of brown seaweed, like sugar kelp and ma-konbu, trigger umami flavor in human taste buds.",
+    "b": "While sugar kelp and ma-konbu contain umami flavor, umami can also be found in tuna and soy sauce.",
+    "c": "Although sugar kelp and ma-konbu are types of brown seaweed, the latter's umami flavor is more intense.",
+    "d": "Sugar kelp is a type of brown seaweed, but so is ma-konbu."
+  },
+  {
+    "page": 52,
+    "qnum": 25,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n- Carbon can exist in several distinct structural forms called allotropes.\n- Graphite is a carbon allotrope.\n- Graphite is composed of stacked graphene sheets.\n- Each graphene sheet is composed of carbon atoms arranged in a flat honeycomb pattern.\n- Carbon nanotubes are carbon allotropes.\n- They are composed of one or more graphene sheets wrapped into a cylindrical shape.\n\nThe student wants to emphasize a difference between carbon nanotubes and graphite. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "Composed of sheets wrapped into a cylindrical shape, carbon nanotubes contrast with graphite, a carbon allotrope composed of graphene sheets.",
+    "b": "Graphite and carbon nanotubes are allotropes composed of stacked or wrapped graphene sheets, but carbon can exist in several distinct structural forms.",
+    "c": "Unlike carbon nanotubes, which are composed of sheets of carbon atoms arranged in a flat honeycomb pattern, graphite is cylindrical carbon allotrope.",
+    "d": "The graphene sheets in graphite are stacked, whereas in carbon nanotubes, they form a cylinder."
+  },
+  {
+    "page": 53,
+    "qnum": 26,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n- The Museu de les Ciencies Principe Felipe is in Valencia, Spain.\n- It is home to a Foucault pendulum.\n- Vasile Alecsandri National College is in Galati, Romania.\n- It is home to a Foucault pendulum.\n- A Foucault pendulum dangles from a fixed point that ensures the swing path of the pendulum doesn't change.\n- To an observer, the swing path of a Foucault pendulum appears to change over time because Earth rotates beneath it.\n\nThe student wants to emphasize a similarity between the two locations. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "Because Earth rotates beneath it, the swing path of the Foucault pendulum at the Museu de les Ciencies Principe Felipe appears to change over time.",
+    "b": "The Museu de les Ciencies Principe Felipe, which is home to a Foucault pendulum, is in Spain, not Romania.",
+    "c": "The Museu de les Ciencies Principe Felipe in Valencia, Spain, and Vasile Alecsandri National College in Galati, Romania, both house Foucault pendulums.",
+    "d": "One Foucault pendulum is in Spain, and the other is in Romania."
+  },
+  {
+    "page": 54,
+    "qnum": 27,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n- A river's stream length is the length of a line that follows along the river path.\n- A river's valley length is the length of a straight line drawn from the beginning of the river to the end.\n- The river's curviness, or sinuosity, is the ratio of the river's stream length to its valley length.\n- Low-sinuosity rivers have a stream length 1-1.5 times longer than their valley length, and high-sinuosity rivers have a stream length 1.5 or more times longer than their valley length.\n- The Embarras River in Canada has high sinuosity.\n- The Luni River in India has low sinuosity.\n\nThe student wants to compare the curviness of the two rivers. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "The high-sinuosity Luni River in India is curvier than the low-sinuosity Embarras River in Canada.",
+    "b": "In both the Embarras and the Luni rivers, curviness is determined by comparing stream length to valley length.",
+    "c": "By comparing the stream lengths of the Embarras and Luni rivers to their valley lengths, one can calculate their curviness, or sinuosity.",
+    "d": "The Embarras River's ratio of stream length to valley length, also known as sinuosity, is greater than that of the Luni River."
+  },
+  {
+    "page": 55,
+    "qnum": 1,
+    "subject": "Math",
+    "question": "A certain hybrid car uses 39 gallons of gasoline to travel 1,950 miles. At this rate, how many kilometers does the car travel using 39 gallons of gasoline? (Use 1 mile=1.6 kilometers.)",
+    "a": "312",
+    "b": "3,120",
+    "c": "31,200",
+    "d": "312,000"
+  },
+  {
+    "page": 56,
+    "qnum": 2,
+    "subject": "Math",
+    "question": "A rectangle has a length of 29 meters and a width of 37 meters. What is the area, in square meters, of the rectangle?",
+    "a": "8",
+    "b": "66",
+    "c": "528",
+    "d": "1,073"
+  },
+  {
+    "page": 57,
+    "qnum": 3,
+    "subject": "Math",
+    "question": "The width of a rectangle is 5 centimeters. The length of the rectangle is 30 centimeters longer than the width. What is the area, in square centimeters, of this rectangle?",
+    "a": "175",
+    "b": "40",
+    "c": "10",
+    "d": "5"
+  },
+  {
+    "page": 58,
+    "qnum": 4,
+    "subject": "Math",
+    "question": "The equation 58=2x+2y gives the perimeter of a rectangular garden that has length x, in feet, and width y, in feet. The width of the garden is 14 feet. What is the length, in feet, of the garden?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 59,
+    "qnum": 5,
+    "subject": "Math",
+    "question": "n = p/(23v)\n\nThe given equation relates the variables n, p, and v. Which equation correctly expresses p in terms of n and v?",
+    "a": "p=n-23v",
+    "b": "p=n+23v",
+    "c": "p = n/(23v)",
+    "d": "p=23vn"
+  },
+  {
+    "page": 60,
+    "qnum": 6,
+    "subject": "Math",
+    "question": "A group of students purchase ice cream cones and ice cream sundaes. The cones cost \\$1.40 each, and the cost for 19 sundaes is \\$64.60. The total cost for the cones and sundaes is \\$85.60. Which equation represents this situation, where x is the number of cones purchased and y is the number of sundaes purchased?",
+    "a": "1.40x+64.60y=85.60",
+    "b": "64.60x+1.40y=85.60",
+    "c": "3.40x+1.40y=85.60",
+    "d": "1.40x+3.40y=85.60"
+  }
+]

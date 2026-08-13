@@ -1,0 +1,110 @@
+[
+ {
+  "i": 66,
+  "page": 90,
+  "subject": "Math",
+  "gridin": false,
+  "keyAnswer": "D",
+  "question": "f(x) = 25(1.40)^(x/3)\n\nFor the given function f, the value of f(x) increases by p% for every increase of x by 6. What is the value of p?",
+  "a": "40",
+  "b": "49",
+  "c": "80",
+  "d": "96"
+ },
+ {
+  "i": 67,
+  "page": 91,
+  "subject": "Math",
+  "gridin": false,
+  "keyAnswer": "D",
+  "question": "A model estimates that in a particular forest, the number of trees with any given diameter measured at shoulder height is 21% less for each 1-inch increase in tree diameter measured at shoulder height. The model can be written in the form f(x)=ab^x, where a and b are constants and x is the tree's diameter, in inches, measured at shoulder height, and x>=5. The model estimates that 3,100 trees in this forest have a diameter of 13 inches measured at shoulder height. Which function best represents this model?",
+  "a": "f(x)=3,100(0.21)^x",
+  "b": "f(x)=3,100(0.79)^x",
+  "c": "f(x)=66,000(0.21)^x",
+  "d": "f(x)=66,000(0.79)^x"
+ },
+ {
+  "i": 68,
+  "page": 93,
+  "subject": "Math",
+  "gridin": false,
+  "keyAnswer": "A",
+  "question": "The function f is defined by f(x)=a^x-b, where a and b are constants. In the xy-plane, the graph of y=f(x) passes through the points (c, 7) and (2c, 117), where c is a constant. Which of the following could be the value of b?",
+  "a": "4",
+  "b": "17",
+  "c": "110",
+  "d": "124"
+ },
+ {
+  "i": 69,
+  "page": 94,
+  "subject": "Math",
+  "gridin": true,
+  "keyAnswer": "6.25",
+  "question": "The price of an item increased by p% from $64 to $68. What is the value of p?",
+  "a": "",
+  "b": "",
+  "c": "",
+  "d": ""
+ },
+ {
+  "i": 70,
+  "page": 95,
+  "subject": "Math",
+  "gridin": false,
+  "keyAnswer": "C",
+  "question": "In triangle ABC, the measure of angle A is 52 degrees and AC=35. In triangle PQR, the measure of angle P is 52 degrees and PR=105. Which additional piece of information is sufficient to prove that triangle ABC is similar to triangle PQR?",
+  "a": "AB=30 and PQ=30.",
+  "b": "AB=30 and QR=90.",
+  "c": "The measures of angle B and angle R are 34 degrees and 94 degrees, respectively.",
+  "d": "The measures of angle B and angle Q are 52 degrees and 34 degrees, respectively."
+ },
+ {
+  "i": 71,
+  "page": 96,
+  "subject": "Math",
+  "gridin": true,
+  "keyAnswer": "27/4",
+  "question": "(4/9)(4x + 9)(x + sqrt(4k + 9))(x - sqrt(4k + 9)) = 0\n\nIn the given equation, k is a positive constant. The product of the solutions to the equation is 81. What is the value of k?",
+  "a": "",
+  "b": "",
+  "c": "",
+  "d": ""
+ },
+ {
+  "i": 72,
+  "page": 97,
+  "subject": "Math",
+  "gridin": false,
+  "keyAnswer": "C",
+  "question": "4x^2 - px + w = -86\n\nIn the given equation, p and w are integer constants. The equation has exactly one real solution. Which is NOT a possible value of w?",
+  "a": "-22",
+  "b": "14",
+  "c": "25",
+  "d": "314"
+ },
+ {
+  "i": 73,
+  "page": 98,
+  "subject": "Math",
+  "gridin": false,
+  "keyAnswer": "C",
+  "question": "If (x-5)/4 = (x-5)/11, the value of x-5 is between which of the following pairs of values?",
+  "a": "-11 and -7",
+  "b": "-6 and -3",
+  "c": "-3 and 3",
+  "d": "4 and 6"
+ },
+ {
+  "i": 74,
+  "page": 99,
+  "subject": "Math",
+  "gridin": true,
+  "keyAnswer": "17/2",
+  "question": "The expression 6x^4+17x^2+7 can be rewritten as (3x^2+a)(2x^2+b), where a and b are positive integers, or as (3x^2+c)(2x^2+d), where c and d are positive nonintegers. What is the value of a+c?",
+  "a": "",
+  "b": "",
+  "c": "",
+  "d": ""
+ }
+]

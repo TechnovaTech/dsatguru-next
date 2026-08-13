@@ -1,0 +1,103 @@
+[
+  {
+    "page": 51,
+    "qnum": 24,
+    "subject": "Reading and Writing",
+    "question": "Scientists studying asteroid deflection have focused on secondary objects such as S/2020 (2013 PY6), a moonlet orbiting the near-Earth asteroid 2013 PY6. In 2022 NASA intentionally crashed a probe into just such an object, successfully altering its orbit. Scientists have yet to demonstrate, ______ that 2013 PY6 and other primary objects would be similarly affected.\n\nWhich choice completes the text with the most logical transition?",
+    "a": "for example,",
+    "b": "though,",
+    "c": "likewise,",
+    "d": "moreover,"
+  },
+  {
+    "page": 52,
+    "qnum": 25,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n\n- A copyright prevents a book's contents from being reproduced (published) without permission from the copyright holder.\n- When a book's copyright expires, the book enters the public domain and can be legally reproduced by anyone.\n- Cane is a novel by Jean Toomer.\n- It entered the public domain in 2019.\n- Billy Budd, Sailor is a novella by Herman Melville.\n- It entered the public domain in 2020.\n\nThe student wants to emphasize a similarity between Jean Toomer and Herman Melville. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "Cane, a novel by Jean Toomer, entered the public domain in 2019, unlike Herman Melville's novella Billy Budd, Sailor.",
+    "b": "Both Cane and Billy Budd, Sailor are in the public domain; however, one is a novel and the other a novella.",
+    "c": "The year was 2020, and the copyright to Herman Melville's Billy Budd, Sailor had finally expired.",
+    "d": "Jean Toomer and Herman Melville are two authors whose works recently entered the public domain."
+  },
+  {
+    "page": 53,
+    "qnum": 26,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n\n- A sailing trip that goes in a complete circle around the world is called a circumnavigation.\n- Most circumnavigations include stops on land.\n- Anne Liardet is a French sailor.\n- Liardet sailed the boat Roxy on a nonstop, 119-day circumnavigation.\n- Asia Pajkowska is a Polish sailor.\n- Pajkowska sailed the boat FanFan on a nonstop, 216-day circumnavigation.\n\nThe student wants to make a generalization about circumnavigations. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "Pajkowska sailed FanFan around the world, while Liardet sailed Roxy.",
+    "b": "Pajkowska and Liardet have both embarked on sailing journeys around the world, also called circumnavigations.",
+    "c": "Most circumnavigations include stops on land, but some circumnavigations are nonstop.",
+    "d": "A circumnavigation is defined as a sailing trip that goes in a complete circle around the world."
+  },
+  {
+    "page": 54,
+    "qnum": 27,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n\n- A river's stream length is the length of a line that follows along the river path.\n- A river's valley length is the length of a straight line drawn from the beginning of the river to the end.\n- The river's curviness, or sinuosity, is the ratio of the river's stream length to its valley length.\n- Low-sinuosity rivers have a stream length 1-1.5 times longer than their valley length, and high-sinuosity rivers have a stream length 1.5 or more times longer than their valley length.\n- The Embarras River in Canada has high sinuosity.\n- The Luni River in India has low sinuosity.\n\nThe student wants to compare the curviness of the two rivers. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "The high-sinuosity Luni River in India is curvier than the low-sinuosity Embarras River in Canada.",
+    "b": "The Embarras River's ratio of stream length to valley length, also known as sinuosity, is greater than that of the Luni River.",
+    "c": "In both the Embarras and the Luni rivers, curviness is determined by comparing stream length to valley length.",
+    "d": "By comparing the stream lengths of the Embarras and Luni rivers to their valley lengths, one can calculate their curviness, or sinuosity."
+  },
+  {
+    "page": 55,
+    "qnum": 1,
+    "subject": "Math",
+    "question": "| | Live north of Center St. | Live south of Center St. | Total |\n| --- | --- | --- | --- |\n| Less than 45 years old | 15 | 15 | 30 |\n| At least 45 years old | 20 | 85 | 105 |\n| Total | 35 | 100 | 135 |\n\nThe table summarizes members of a local organization by age and whether they live north or south of Center St. If a member of the organization is selected at random, what is the probability that the selected member is at least 45 years old?",
+    "a": "30/135",
+    "b": "35/135",
+    "c": "100/135",
+    "d": "105/135"
+  },
+  {
+    "page": 56,
+    "qnum": 2,
+    "subject": "Math",
+    "question": "4x+13y=150\n\nThe equation gives the possible combinations of the number of mugs, x, and the number of plates, y, in a collection that is worth a total of $150. If there are 6 plates in the collection, how many mugs are in the collection?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 57,
+    "qnum": 3,
+    "subject": "Math",
+    "question": "The function f is defined by f(x)=5x^2. What is the value of f(7)?",
+    "a": "35",
+    "b": "45",
+    "c": "70",
+    "d": "245"
+  },
+  {
+    "page": 58,
+    "qnum": 4,
+    "subject": "Math",
+    "question": "Sophia bought confetti and balloons for $56. Each package of confetti cost $3, and each balloon cost $1. If Sophia bought 10 packages of confetti, how many balloons did she buy?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 59,
+    "qnum": 5,
+    "subject": "Math",
+    "question": "In the given scatterplot, a line of best fit for the data is shown.\n\nWhich of the following equations best represents this line of best fit?",
+    "a": "y=1.1x",
+    "b": "y=-1.1x",
+    "c": "y=5.2",
+    "d": "y=-5.2",
+    "figure": true
+  },
+  {
+    "page": 60,
+    "qnum": 6,
+    "subject": "Math",
+    "question": "A geologist estimates that the volume of a boulder is greater than 12.7 cubic feet but less than 15.7 cubic feet. The geologist also estimates that the boulder weighs 160 pounds per cubic foot of volume. Which inequality represents this situation, where x represents the estimated total weight, in pounds, of the boulder?",
+    "a": "160-15.7<x<160-12.7",
+    "b": "160+12.7<x<160+15.7",
+    "c": "160(12.7)<x<160(15.7)",
+    "d": "160/15.7 < x < 160/12.7"
+  }
+]

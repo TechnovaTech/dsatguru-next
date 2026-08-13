@@ -1,0 +1,50 @@
+[
+ {
+  "i": 66,
+  "page": 93,
+  "subject": "Math",
+  "gridin": true,
+  "keyAnswer": "9",
+  "question": "If 121x^2 = -110x + 56, what is the value of 11x + 5, where 11x + 5 > 0?",
+  "a": "",
+  "b": "",
+  "c": "",
+  "d": ""
+ },
+ {
+  "i": 67,
+  "page": 94,
+  "subject": "Math",
+  "gridin": false,
+  "keyAnswer": "C",
+  "question": "One gallon of sealant costs $23 and will cover 250 square feet of a surface. A deck has a total surface area of d square feet. Which equation represents the cost c, in dollars, of the sealant needed to cover the deck twice?",
+  "a": "c = 250d/23",
+  "b": "c = 500d/23",
+  "c": "c = 23(d/125)",
+  "d": "c = 23(d/250)"
+ },
+ {
+  "i": 68,
+  "page": 95,
+  "subject": "Math",
+  "gridin": false,
+  "keyAnswer": "C",
+  "question": "x^2 - 4x + y^2 - 8y - 80 = 0\n\nIn the xy-plane, the graph of the given equation is a circle. If this circle is inscribed in a square, what is the perimeter of the square?",
+  "a": "20",
+  "b": "40",
+  "c": "80",
+  "d": "320"
+ },
+ {
+  "i": 69,
+  "page": 98,
+  "subject": "Math",
+  "gridin": true,
+  "keyAnswer": "27",
+  "question": "r^2 + qr = 8r - 97\n\nIn the given equation, q is an integer constant. The given equation has no real solution. What is the largest possible value of q?",
+  "a": "",
+  "b": "",
+  "c": "",
+  "d": ""
+ }
+]

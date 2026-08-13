@@ -1,0 +1,103 @@
+[
+  {
+    "page": 71,
+    "qnum": 17,
+    "subject": "Math",
+    "question": "On January 1, 2000, the population of a town was 26,255 and on January 1, 2010, the population was 26,956. The equation 10x+26,255=26,956 describes this situation. Which of the following is the best interpretation of x in this context?",
+    "a": "The total increase in population between 2000 and 2010",
+    "b": "The average increase per year of the population between 2000 and 2010",
+    "c": "The percentage by which the population of the town increased each year between 2000 and 2010",
+    "d": "The projected population of the town 10 years after 2010"
+  },
+  {
+    "page": 72,
+    "qnum": 18,
+    "subject": "Math",
+    "question": "For the linear function f, f(-2)=-9, and the slope of the graph of y=f(x) in the xy-plane is 8. Which equation defines f?",
+    "a": "f(x)=8x-11",
+    "b": "f(x)=8x-9",
+    "c": "f(x)=8x-2",
+    "d": "f(x)=8x+7"
+  },
+  {
+    "page": 73,
+    "qnum": 19,
+    "subject": "Math",
+    "question": "In the xy-plane, an equation of circle A is (x-2)^2+(y-3)^2=9. Circle B has the same center as circle A but has a radius that is twice the radius of circle A. Which equation represents circle B?",
+    "a": "(x-2)^2+(y-3)^2=18",
+    "b": "(x-2)^2+(y-3)^2=36",
+    "c": "(x-2)^2+(y-3)^2=54",
+    "d": "(x-2)^2+(y-3)^2=81"
+  },
+  {
+    "page": 74,
+    "qnum": 20,
+    "subject": "Math",
+    "question": "Line k contains the points (-3,-60), (v, 0), and (5,76). What is the value of v?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 75,
+    "qnum": 21,
+    "subject": "Math",
+    "question": "In right triangle FGH shown, what is the value of cosF? (In the figure, hypotenuse FH = 68, the angle at G is 60°, and the right angle is at H.)",
+    "a": "√3/68",
+    "b": "1/2",
+    "c": "√3/2",
+    "d": "34√3",
+    "figure": true
+  },
+  {
+    "page": 76,
+    "qnum": 22,
+    "subject": "Math",
+    "question": "Based on a model, on day 1 of an 8-day experiment, a lima bean plant had an estimated mass of 253 grams, and each day after day 1 of the experiment, the estimated mass of the plant decreased by 4 grams. Which equation represents this model, where m is the estimated mass, in grams, of the plant on day x of the experiment and 1 ≤ x ≤ 8?",
+    "a": "m=-4x+245",
+    "b": "m=-4x+249",
+    "c": "m=-4x+253",
+    "d": "m=-4x+257"
+  },
+  {
+    "page": 77,
+    "qnum": 1,
+    "subject": "Math",
+    "question": "A cable company charges new customers a onetime installation fee and a monthly service fee for cable service. The equation y = 50x + 120 gives the total amount y, in dollars, the cable company charges new customers for x months of cable service. What is the amount, in dollars, of the onetime installation fee the cable company charges new customers?",
+    "a": "170",
+    "b": "120",
+    "c": "70",
+    "d": "0"
+  },
+  {
+    "page": 78,
+    "qnum": 2,
+    "subject": "Math",
+    "question": "Data set X: 13, 16, 19, 21, 24, 25, 25, 26, 38\nData set Y: 13, 16, 19, 21, 24, 25, 25, 26, 33\nData set Y is created by replacing the number 38 in data set X with the number 33. Which of the following statements is true about the means and medians of data set X and data set Y?",
+    "a": "The mean of data set X is greater than the mean of data set Y, and the median of data set X equals the median of data set Y.",
+    "b": "The mean of data set X is greater than the mean of data set Y, and the median of data set X is greater than the median of data set Y.",
+    "c": "The mean of data set X equals the mean of data set Y, and the median of data set X equals the median of data set Y.",
+    "d": "The mean of data set X is less than the mean of data set Y, and the median of data set X is greater than the median of data set Y."
+  },
+  {
+    "page": 79,
+    "qnum": 3,
+    "subject": "Math",
+    "question": "y=4x+36\nOne of the two equations in a system of linear equations is given. The system has infinitely many solutions. Which equation could be the second equation in this system?",
+    "a": "y-4x=-36",
+    "b": "y-4x=36",
+    "c": "y-9x=18",
+    "d": "y-9x=0"
+  },
+  {
+    "page": 80,
+    "qnum": 4,
+    "subject": "Math",
+    "question": "If x+4y=41 and 7x-20y=-97, what is the value of y?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  }
+]

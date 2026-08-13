@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import mongoose from 'mongoose'
 import { connectDB } from '../../../lib/db'
 import TestSession from '../../../lib/models/TestSession'
 import Test from '../../../lib/models/Test'
@@ -214,7 +215,16 @@ export async function POST(request) {
       sessionData.totalQuestions = total || test.totalQuestions || 50
       sessionData.status = sessionData.status || 'InProgress'
     }
-    
+
+    // Carry the raw bank selector (may be a synthetic bucket id like 'admin-math') as a
+    // string, and keep questionBankId as a valid ObjectId or null — otherwise Mongoose
+    // throws a CastError on create and the practice session 500s before it can start.
+    if (sessionData.questionBankId != null) {
+      const raw = String(sessionData.questionBankId)
+      if (sessionData.bankSelector == null) sessionData.bankSelector = raw
+      if (!mongoose.Types.ObjectId.isValid(raw)) sessionData.questionBankId = null
+    }
+
     const session = await TestSession.create(sessionData)
     logger.debug('Session created with ID:', session._id)
     return NextResponse.json({ message: 'Session created', session }, { status: 201 })

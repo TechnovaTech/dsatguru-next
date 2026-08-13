@@ -1,0 +1,102 @@
+[
+  {
+    "page": 61,
+    "qnum": 7,
+    "subject": "Math",
+    "question": "y = 0\ny = 8(x^2 - 36)\n\nWhich ordered pair (x, y) is a solution to the given system of equations?",
+    "a": "(0, 6)",
+    "b": "(0, 36)",
+    "c": "(6, 0)",
+    "d": "(36, 0)"
+  },
+  {
+    "page": 62,
+    "qnum": 8,
+    "subject": "Math",
+    "question": "When a scientist began observing a sample of an isotope, the mass of the sample was 530,000 milligrams. The mass of the sample decreases by half approximately every 5 days. Which of the following is closest to the mass, in milligrams, of the sample 35 days after the scientist began observing the sample?",
+    "a": "4,141",
+    "b": "15,143",
+    "c": "16,563",
+    "d": "75,714"
+  },
+  {
+    "page": 63,
+    "qnum": 9,
+    "subject": "Math",
+    "question": "The height of a right circular cylinder is 31 inches, and the circumference of its base is 310 inches. Which expression represents the total surface area, in square inches, of the cylinder?",
+    "a": "(31)(310)",
+    "b": "π(155/π)^2 (31)",
+    "c": "(31)(310) + π(155/π)^2",
+    "d": "(31)(310) + 2π(155/π)^2"
+  },
+  {
+    "page": 64,
+    "qnum": 10,
+    "subject": "Math",
+    "question": "The function f(w) = 6w^2 gives the area of a rectangle, in square feet (ft^2), if its width is w ft and its length is 6 times its width. Which of the following is the best interpretation of f(14) = 1,176 ?",
+    "a": "If the width of the rectangle is 14 ft, then the area of the rectangle is 1,176 ft^2 .",
+    "b": "If the width of the rectangle is 14 ft, then the length of the rectangle is 1,176 ft.",
+    "c": "If the width of the rectangle is 1,176 ft, then the length of the rectangle is 14 ft.",
+    "d": "If the width of the rectangle is 1,176 ft, then the area of the rectangle is 14 ft^2 ."
+  },
+  {
+    "page": 65,
+    "qnum": 11,
+    "subject": "Math",
+    "question": "The expression (2x+5)(7x-10) can be written in the form ax^2 + bx + c, where a, b, and c are constants. What is the value of a+b ?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 66,
+    "qnum": 12,
+    "subject": "Math",
+    "question": "The ratio a to b is equivalent to the ratio 49 to 26. What is the value of a when b = 182?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 67,
+    "qnum": 13,
+    "subject": "Math",
+    "question": "At the beginning of the year, Imani has $170 in her account. Each month this year, she will deposit between $30 and $60 into the account. Which inequality represents all possibilities for the total amount of money x, in dollars, in Imani's account after 10 months of deposits this year?",
+    "a": "x ≤ 300",
+    "b": "x ≥ 600",
+    "c": "170 ≤ x ≤ 620",
+    "d": "470 ≤ x ≤ 770"
+  },
+  {
+    "page": 68,
+    "qnum": 14,
+    "subject": "Math",
+    "question": "The function f is defined by f(x) = (x - 2)(x - 8)(x + 3). In the xy-plane, the graph of y = h(x) is the result of translating the graph of y = f(x) up 6 units. What is the y-coordinate of the y-intercept of the graph of y = h(x)?",
+    "a": "54",
+    "b": "48",
+    "c": "6",
+    "d": "0"
+  },
+  {
+    "page": 69,
+    "qnum": 15,
+    "subject": "Math",
+    "question": "A circle has a circumference of 42π centimeters. What is the diameter, in centimeters, of the circle?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 70,
+    "qnum": 16,
+    "subject": "Math",
+    "question": "How many solutions does the equation 35x - 25 = 5(7x - 5) have?",
+    "a": "Exactly one",
+    "b": "Exactly two",
+    "c": "Infinitely many",
+    "d": "Zero"
+  }
+]

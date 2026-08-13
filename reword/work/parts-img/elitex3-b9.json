@@ -1,0 +1,103 @@
+[
+  {
+    "page": 81,
+    "qnum": 5,
+    "subject": "Math",
+    "question": "Which expression is equivalent to 6v^12 / 18v^3, where v > 0?",
+    "a": "v^4 / 3",
+    "b": "v^9 / 3",
+    "c": "3v^4",
+    "d": "3v^9"
+  },
+  {
+    "page": 82,
+    "qnum": 6,
+    "subject": "Math",
+    "question": "f(x) = (2x - 3)(x + 8)\ng(x) = 3(6x - 9)\n\nThe functions f and g are defined by the equations shown. Which of the following is equivalent to f(x) - g(x)?",
+    "a": "2x^2 + 7x - 15",
+    "b": "2x^2 - 5x + 3",
+    "c": "2x^2 - x - 3",
+    "d": "2x^2 + 31x - 51"
+  },
+  {
+    "page": 83,
+    "qnum": 7,
+    "subject": "Math",
+    "question": "y > 17\n4x + y < 21\n\nThe point (x, 54) is a solution to the given system of inequalities in the xy-plane. Which of the following could be the value of x?",
+    "a": "9",
+    "b": "5",
+    "c": "-5",
+    "d": "-9"
+  },
+  {
+    "page": 84,
+    "qnum": 8,
+    "subject": "Math",
+    "question": "In triangle ABC, angle B is a right angle. The length of side AB is 10√39 and the length of side BC is 24√39. What is the length of side AC?",
+    "a": "14√39",
+    "b": "26√39",
+    "c": "34√39",
+    "d": "√(34*39)"
+  },
+  {
+    "page": 85,
+    "qnum": 9,
+    "subject": "Math",
+    "question": "For a certain type of rope, the equation y = 900ax^2, where a is a constant, gives the estimated breaking strength y, in pounds, of a rope with a circumference of x inches. Based on this equation, if a rope of this type has a circumference of 0.75 inches, it has an estimated breaking strength of 708.75 pounds. What is the estimated breaking strength, in pounds, of a rope of this type that has a circumference of 4.50 inches?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 86,
+    "qnum": 10,
+    "subject": "Math",
+    "question": "y = -2x - 10\ny = 2x + 16\n\nThe solution to the given system of equations is (x, y). What is the value of y?",
+    "a": "16",
+    "b": "6",
+    "c": "3",
+    "d": "-10"
+  },
+  {
+    "page": 87,
+    "qnum": 11,
+    "subject": "Math",
+    "question": "The dot plots represent the distributions of values in data sets A and B.\n\nWhich of the following statements must be true?\nI. The median of data set A is equal to the median of data set B.\nII. The standard deviation of data set A is equal to the standard deviation of data set B.",
+    "a": "I and II",
+    "b": "I only",
+    "c": "II only",
+    "d": "Neither I nor II",
+    "figure": true
+  },
+  {
+    "page": 88,
+    "qnum": 12,
+    "subject": "Math",
+    "question": "A carnival receives $10 for each adult admission ticket sold and $5 for each child admission ticket sold. On a particular day, the carnival received a total of $4,100 from selling adult and child admission tickets. If 220 adult admission tickets were sold on that day, how many child admission tickets were sold?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 89,
+    "qnum": 13,
+    "subject": "Math",
+    "question": "The function g is defined by g(x) = 3x. For what value of x is g(x) = 12?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 90,
+    "qnum": 14,
+    "subject": "Math",
+    "question": "4x^2 + 19 = 32x + r\n\nIn the given equation, r is a constant. The equation has exactly one real solution. What is the value of r?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  }
+]

@@ -1,0 +1,623 @@
+Section: Section 2, Module 1: Math, Difficulty: unknown (316 questions)
+1705. A square has a side length of 32 inches. What is the area, in square inches, of the square? A. 1,024 B. 128 C. 64 D. 32
+Answer: A
+
+1707. Three line segments have different lengths: 28, 52, and p. Which statement provides sufficient information to prove that a triangle can be formed with these
+three segments as its sides?
+A. p > 24 B. 28 < p < 52 C. p < 80
+D. No additional information is necessary to determine that a triangle can be formed with these three segments as its sides.
+Answer: B
+
+1708. Two candidates ran for the office of mayor of a town. A total of 4,020 votes were cast, and one candidate received twice as many votes as the other. How many
+votes did the winning candidate receive?
+A. 3,015 B. 2,680 C. 2,010 D. 1,340
+Answer: B
+
+1710. A soccer team needs new equipment. The team will buy soccer balls for $19.50 each and shin guards for $10.25 per pair. The soccer team cannot spend more than $550 on this equipment. Every player needs a pair of shin guards, so the team will buy at least 12 pairs. Under these conditions, which system of inequalities gives the possible number of soccer balls, x, and possible number of pairs of shin guards, y, the team can buy? A. 10.25x + 19.50y  550 x  12 B. 10.25x + 19.50y  550 x  12 C. 19.50x + 10.25y  550 y  12 D. 19.50x + 10.25y  550 y  12
+Answer: D
+1713. x2 - 64 = 0
+81
+How many distinct real solutions does the given equation have? A. Zero B. Exactly one C. Exactly two D. Infinitely many
+Answer: C
+
+1714. In triangle LMN, the measure of angle L is 90�, MN = 105, and LM = 2. What is the value of tan M?
+A. 105
+2
+B. 11,021
+2
+C. 11,021
+105
+D. 2
+105
+Answer: B
+
+1716. An online store is offering two different discounts on its sweaters: a bulk discount for large orders and a coupon discount. For orders of n sweaters, where 10 < n < 50, a bulk discount of n% off the original price of $41 is applied to the price of each sweater. If a coupon is applied to the order, a discount of an additional $4 is applied to the price of each sweater, after the bulk discount is applied. For a certain order with both the bulk discount and the coupon discount applied, the total price after the discounts for the sweaters purchased was $741. How many sweaters were purchased in this order? A. 18 B. 20 C. 30 D. 44
+Answer: C
+1717. f(x) = (x - 1)2 + 6
+What is the minimum value of the given function?
+A. 1 B. 5 C. 6 D. 7
+Answer: C
+
+1718.
+
+The circle shown has center Q, and points B, C, and D lie on the circle. Line m is tangent to the circle at point C, and line m is parallel to line segment BD (not shown). Line DQ (not shown) intersects line m at point A, and line BQ (not shown) intersects line m at point P . If the length of line segment AQ (not shown) is 90 and the length of line segment AC is 72, what is the perimeter of triangle CP Q?
+Answer: 216
+
+1719. The concentration of calcium, in milligrams per liter (mg/L), is found for three samples of water: bottled, tap, and mineral. The concentration of calcium in the sample of bottled water is 48% of the concentration of calcium in the sample of tap water and 24% of the concentration of calcium in the sample of mineral water. If the concentration of calcium in the sample of tap water is 36 mg/L, what is the concentration of calcium, in mg/L, in the sample of mineral water?
+Answer: 72
+1720. x = w-23y+z
+46wy
+The given equation relates the variables w, x, y, and z, where the values of w, x, and z are distinct and positive. Which expression is equivalent to y?
+A. -2x(w+z)
+w
+B. - 12 x(w+z)
+w
+C. w+z
+23(2wx)
+D. w+z
+23(1+2wx)
+Answer: D
+
+1850. A furniture company is selling all tables with a 20% discount off their original price for the month of September. What is the discount, in dollars, on a table with an original price of $160? A. 140 B. 120 C. 64 D. 32
+Answer: D
+
+1853. An airplane begins its descent from a cruising altitude of 33,000 feet and descends at a constant rate of 1,800 feet per minute. Which of the following
+statements best describes how the plane's distance from its cruising altitude changes over time? A. The plane's distance from its cruising altitude is increasing linearly over time. B. The plane's distance from its cruising altitude is decreasing linearly over time. C. The plane's distance from its cruising altitude is increasing exponentially over time. D. The plane's distance from its cruising altitude is decreasing exponentially over time.
+Answer: A
+
+1861.
+
+y
+
+13 12 11 10 9 8 7 6 5 4 3 2 1
+
+4
+
+2
+
+O
+
+1
+
+x
+
+2
+
+4
+
+6
+
+The graph of y = f(x) is shown. Which equation could define f? A. f(x) = ( 1 )x - 4
+2
+B. f(x) = ( 1 )x + 4
+2
+C. f(x) = 2x - 4 D. f(x) = 2x
+
+Answer: B
+
+1995. Triangle ABC is similar to triangle DEF , where angle A corresponds to angle D, and angles C and F are right angles. If cos B = 413 , what is the value of cos E?
+A. 143 B. 144 C. 4243 D. 4344
+Answer: A
+
+1997. The height of a right circular cylinder is 59 inches, and the circumference of its base is 590 inches. Which expression represents the total surface area, in
+square inches, of the cylinder?
+A. (59)(590) B. ( 295 )2(59)
+
+C. (59)(590) + ( 295 )2
+
+D. (59)(590) + 2( 295 )2
+
+Answer: D
+
+2001. Which expression is equivalent to 9x3 + 72x2y + xy2 + 8y3? A. (9x2 + 8y)(x + y2) B. (9x2 + y2)(x + 8y) C. (9x3 + y2)(x2 + 8y3) D. (9x3 + y3)(x + 8y)
+Answer: B
+
+2003. A student needs at least 80 signatures from classmates to run for class secretary. The student collects 35 signatures on Monday and collects enough additional signatures on Tuesday to run for class secretary. Which inequality represents the number of additional signatures, s, that the student collects on Tuesday? A. s + 35  80 B. s + 35  80 C. s - 35  80 D. s - 35  80
+Answer: B
+
+2008. For the linear function g, g(6) = 10 and g(x + 1) - g(x) = 4. Which equation defines g? A. g(x) = 6x + 10 B. g(x) = 6x + 4 C. g(x) = 4x - 14 D. g(x) = 4x - 24
+Answer: C
+
+2152. A number f is 180% greater than a positive number g. A number h is 55% less than the number f. The number h is how many times the number g?
+
+A. 0.81 B. 0.99 C. 1.26 D. 1.54
+Answer: C
+
+2287. An object's average acceleration, in meters per second squared, is the change in the object's speed, in meters per second, divided by the time during which
+the change occurred, in seconds. A certain object's speed changes by 48 meters per second in 5 seconds. What is this object's average acceleration, in meters per
+second squared, during this time period?
+A. 0.1 B. 9.6 C. 43 D. 53
+Answer: B
+2288. Which expression is equivalent to 6x2 + 5x? A. x(6x + 5) B. 5x(6x + 1) C. 6x(x + 5) D. x2(6x + 5)
+Answer: A
+
+2293. A square has a side length of 56 inches. What is the area, in square inches, of the square? A. 56 B. 112 C. 224 D. 3,136
+Answer: D
+
+2295. y
+10 9 8 7 6 5 4 3 2 1
+x O 1 2 3 4 5 6 7 8 9 10
+The graph of the function f is shown, where y = f(x). What is the value of f(3)?
+A. 0
+B. 3
+C. 6
+D. 9
+Answer: D
+
+2304. f(x) = (x - 11)2 + 12
+What is the minimum value of the given function?
+A. 1 B. 11 C. 12 D. 23
+Answer: C
+
+2305. Line p is defined by the equation y = 7 x - 49 and line r is defined by the equation ax + by = 1, where a and b are constants. In the xy-plane, line r is
+
+5
+
+5
+
+perpendicular to line p and passes through the point (12, 7). What is the value of b?
+
+A. - 7
+11
+
+B. - 5
+11
+
+C. 5
+109
+
+D. 7
+109
+
+Answer: D
+
+2434. If 9x + 4 = 67, what is the value of 90x + 40? A. 7 B. 70 C. 130 D. 670
+Answer: D
+
+2436. A length of 450 meters is equal to how many decimeters? (1 meter = 10 decimeters)
+Answer: 4500
+
+2438. The relationship between the variables x and y is defined by an exponential equation. When x = 0, the value of y is 40, and for every increase in the value of x by 1, the corresponding value of y increases by 50% of its previous value. Which equation represents this relationship? A. y = 40(1.50)x B. y = 40(1.05)x C. y = 50(1.40)x D. y = 50(1.04)x
+Answer: A
+
+2441. x + 6y = 28 6y = 14
+The solution to the given system of equations is (x, y). What is the value of x?
+Answer: 14
+
+2443. During hibernation, American black bears do not eat or replenish calories. A certain black bear weighed 293 pounds when entering hibernation and lost weight at a mean rate of 0.9 pounds per day. At this rate, how many days after entering hibernation would the black bear weigh 230 pounds? A. 57 B. 63 C. 70 D. 207
+Answer: C
+
+2451. Line h is defined by
+
+1x+
+2
+
+1 y - 54
+9
+
+=
+
+0. Line j is perpendicular to line h in the xy-plane. What is the slope of line j?
+
+A. - 9
+2
+
+B. - 2
+9
+
+C. 9
+2
+
+D. 2
+9
+
+Answer: D
+
+2454. y = 9( a )x+c - b
+7
+How many times does the graph of the given equation in the xy-plane cross the x-axis, where a, b, and c are positive constants such that a > 7 and b > c?
+A. Zero B. One C. Two D. Three
+Answer: B
+
+2455. A certain town has an area of 4.29 square miles. What is the area, in square yards, of this town? (1 mile = 1,760 yards) A. 410 B. 7,550 C. 722,051 D. 13,288,704
+Answer: D
+
+2581. y = 9x + 19 One of the two equations in a system of linear equations is given. The system has infinitely many solutions. If the second equation in this system is y = mx + b, where m and b are constants, what is the value of b?
+Answer: 19
+
+2582. If 5x + 2 = 32, what is the value of 50x + 20? A. 6 B. 60 C. 70 D. 320
+Answer: D
+
+2584. A jar has 430 marbles, and 20% of these marbles are blue. How many marbles in the jar are blue? A. 86 B. 172 C. 215 D. 410
+Answer: A
+2598. |3x-30|+3 = 5
+6
+What is the sum of the solutions to the given equation?
+A. 1 B. 19 C. 20 D. 30
+Answer: C
+
+2600. The width of a rectangle is 16 inches less than 2 times its length, in inches. The area of the rectangle is 130 square inches. What is the width, in inches, of the
+rectangle?
+A. 5 B. 10 C. 13 D. 18
+Answer: B
+
+2602. An exponential model for the number of squirrels in a certain area estimates that there were 200 squirrels in the area in the year 2003, and that at the end of each 4-year period for the next 20 years, the number of squirrels in the area was 120% more than the number at the end of the previous 4-year period. Which of the following equations represents this model, where N is the estimated number of squirrels in this area t years after 2003, and 0  t  20? A. N = 200(2.20)4t B. N = 200(1.20)4t
+t
+C. N = 200(1.20) 4
+t
+D. N = 200(2.20) 4
+Answer: D
+
+2728. If 5x + 7 = 52, what is the value of 50x + 70? A. 9 B. 90 C. 120 D. 520
+Answer: D
+
+2734. A sample was selected at random from a population. Based on the sample, it is estimated that the mean value of a variable for this population is 178, with an associated margin of error of 1.5. Based on the estimate and associated margin of error, which of the following best describes the range of plausible values for the
+population mean?
+A. Any value between 175 and 178 B. Any value between 176.5 and 179.5 C. Any value less than 176.5 D. Any value greater than 179.5
+Answer: B
+
+2736. During hibernation, American black bears do not eat or replenish calories. A certain black bear weighed 258 pounds when entering hibernation and lost weight at a mean rate of 0.8 pounds per day. At this rate, how many days after entering hibernation would the black bear weigh 210 pounds? A. 39 B. 48 C. 60 D. 168
+Answer: C
+
+2742. The table gives the perimeters of similar triangles T UV and XY Z, where T U corresponds to XY . The length of T U is 18.
+
+Triangle T UV Triangle XY Z
+
+Perimeter
+43 387
+
+What is the length of XY ? A. 2 B. 18 C. 61 D. 162
+Answer: D
+2743. What is 5% of 220? A. 11 B. 44 C. 110 D. 215
+Answer: A
+2749. A certain town has an area of 3.72 square miles. What is the area, in square yards, of this town? (1 mile = 1,760 yards) A. 473 B. 6,547 C. 832,688 D. 11,523,072
+Answer: D
+2877. A jar has 470 marbles, and 20% of these marbles are blue. How many marbles in the jar are blue? A. 94 B. 188 C. 235 D. 450
+Answer: A
+2882. 5x + 9y = 20 rx + 18y = 40
+In the given system of equations, r is a constant. The system has infinitely many solutions. What is the value of r? A. 2 B. 5 C. 9 D. 10
+Answer: D
+2883. If 9x - 10 = 8, what is the value of 9x + 10? A. -2 B. 2 C. 12 D. 28
+Answer: D
+2888. Which expression is equivalent to 5xy + 30x2y + 35xy2? A. 5xy(1 + 30x + 35y) B. 5xy(1 + 6x + 7y) C. 5xy(30x + 35y) D. 5xy(6x + 7y)
+Answer: B
+2891. Square A has side lengths that are 82 times the side lengths of square B. The area of square A is k times the area of square B. What is the value of k? A. 41 B. 82 C. 164 D. 6,724
+Answer: D
+3024. Which expression is equivalent to 42x3 + 7x? A. 7x(6 + 7x) B. 7x(6x2 + 1) C. 7x2(6 + 7x) D. 7x2(6x + 1)
+Answer: B
+3028. If 6x - 8 = 4, what is the value of 6x + 8? A. -4 B. 2 C. 10 D. 20
+Answer: D
+3031.
+
+In the right triangle shown, a, b, and c are positive constants. For an acute angle D, sin D =
+
+b . What is the measure of angle D, in degrees?
+c
+
+Answer: 32
+
+3036. x2 + y2 = 1,088 y - 4x = 0
+A solution to the given system of equations is (x, y), where x < 0. What is the value of y? A. -256 B. -32 C. -8 D. -4
+Answer: B
+
+3038. The function j is defined by j(x) = 10x+5 , and the function k is defined by k(x) = j(x)p , where p is a positive constant. What is the value of k(9)?
+
+3p
+
+x+1
+
+A. 19
+6
+
+B. 10
+3
+
+C. 95
+13
+
+D. 85
+3
+
+Answer: A
+
+3040. 3x + 2y = 10
+How many solutions does the given system of equations have? A. Exactly one B. Exactly two C. Infinitely many D. Zero Answer: C
+
+18x + 12y = 60
+
+3171. If 9x + 2 = 56, what is the value of 90x + 20? A. 560 B. 110 C. 60 D. 6
+Answer: A
+
+3176. y  x + 6 y  -3x - 6
+Which point (x, y) is a solution to the given system of inequalities in the xy-plane? A. (-4, 5) B. (-4, 1) C. (-2, 5) D. (-2, 1)
+Answer: A
+3185. |4x-40|+4 = 5
+8
+What is the sum of the solutions to the given equation?
+A. 1 B. 19 C. 20 D. 40
+Answer: C
+
+3189.
+
+The shaded region shown represents the solutions to which inequality?
+A. y > 4x - 25 B. y < 4x - 25 C. y > 20x - 25 D. y < 20x - 25
+Answer: C 3190.
+The graph of the equation y = 3x + k is shown, where k is a constant. What is the value of k? A. -9 B. -8 C. 8 D. 9
+Answer: A
+3318. If 8x + 2 = 74, what is the value of 80x + 20? A. 9 B. 90 C. 100 D. 740
+Answer: D
+
+3334. Which expression is a factor of 81p21 - 121p19? A. 9p + 11 B. 81p2 + 121 C. 11p - 9 D. -40p44
+Answer: A
+
+3463. A carnival charges $3 for each ride ticket and $4 for each game ticket. A family purchased ride tickets and game tickets worth a total of $35. Which equation represents this situation, where x is the number of ride tickets and y is the number of game tickets that this family purchased? A. 3(x + y) = 35 B. 3x + 4y = 35 C. 4(x + y) = 35 D. 4x + 3y = 35
+Answer: B
+
+3466. A jar has 370 marbles, and 20% of these marbles are blue. How many marbles in the jar are blue? A. 74 B. 148 C. 185 D. 350
+Answer: A
+
+3470. v(t) = 9t + 70 The function v gives the volume of water, in liters, in a tank being filled by a hose t minutes after the hose was turned on. Which of the following is the best interpretation of 70 in this context? A. The volume of water in the tank increases at a rate of 70 liters per minute. B. The tank holds a maximum of 70 liters. C. It takes 70 hours to fill the tank completely. D. There were 70 liters of water in the tank when the hose was turned on.
+Answer: D
+
+3473. 13, 17, 23, 6, 4, 8, 17, 15, 16 The list gives the low temperatures, in degrees Fahrenheit, for 9 days in December in a certain city. According to the list, what is the median low temperature, in degrees Fahrenheit, for these 9 days?
+Answer: 15
+
+3476. The graph of a polynomial function y = f(x) in the xy-plane passes through the point (9, 8). What is the value of f(9)? A. 8 B. 9 C. 17 D. 72
+Answer: A
+3480. 4 |6x-36|+6 = 9
+What is the sum of the solutions to the given equation?
+A. 1 B. 11 C. 12 D. 36
+Answer: C
+
+3482. A certain town has an area of 4.12 square miles. What is the area, in square yards, of this town? (1 mile = 1,760 yards) A. 427 B. 7,251 C. 751,845 D. 12,762,112
+Answer: D
+
+3483. The function h is defined by h(x) = ax + b, where a and b are positive constants. The graph of y = h(x) in the xy-plane passes through the points (0, 11) and (2, 19). What is the value of ab? A. 19 B. 30 C. 33 D. 38
+Answer: B
+
+3610. A factory produces identical objects at a constant rate of 49 objects per minute. At what rate, in objects per hour, does the factory produce the objects?
+Answer: 2940
+
+3612. If 8x + 4 = 52, what is the value of 80x + 40? A. 520 B. 120 C. 60 D. 6
+Answer: A
+
+3618. 17x + 16y = c 16x - 17y = c
+In the given system of equations, c is a positive constant. Which of the following could be the point where the graphs of the equations in this system intersect in the
+xy-plane?
+A. (10, - 10 )
+33
+B. (10, 330) C. (c, c )
+33
+D. (c, 0)
+Answer: A
+
+3619. Sonja purchased a laptop in September 2019 when the laptop had a value of $1,000. Each month for the next 50 months, the value of the laptop decreased by 2% of the previous month's value. Which equation represents this situation, where v is the value of the laptop, in dollars, m is the number of months since Sonja purchased the laptop, and m  50? A. v = 2,019(0.98)m B. v = 2,019(2)m C. v = 1,000(0.98)m D. v = 1,000(2)m
+Answer: C
+
+3622. 4x + 5 = rx + 6 In the given equation, r is a constant. The equation has no solution. What is the value of r? A. 4 B. 6 C. 9 D. 30
+Answer: A
+
+3627. 2x + 5y = 9
+How many solutions does the given system of equations have? A. Exactly one B. Exactly two C. Infinitely many D. Zero Answer: C
+
+6x + 15y = 27
+
+3757. If 4x + 3 = 35, what is the value of 40x + 30? A. 350 B. 80 C. 70 D. 8
+Answer: A
+
+3761.
+
+In the figure, lines r and s are parallel. If x = 7k + 16 and y = 9k - 12, what is the value of k? A. 166 B. 114 C. 66 D. 14
+Answer: D
+
+3763. During a physics experiment, the speed of an object was determined to be 177.0 inches per second. What is this speed in feet per second? (12 inches = 1 foot)
+Answer: 14.75
+
+3771. f(x) = 3x + 7 g(x) = 4x - 3 h(x) = 5x + 6
+The functions f, g, and h are defined as shown. If f(x)  g(x) - h(x) = ax2 + bx + c, where a, b, and c are constants, what is the value of b? A. -5 B. 14 C. 24 D. 32
+Answer: B
+
+3775. The length of a rectangle's diagonal is 106, and the length of one of the rectangle's sides is 9. What is the perimeter of the rectangle? A. 106 B. 45 C. 28 D. 14
+Answer: C
+
+3904. The equation d = 17w + 100 gives the total amount of money d, in dollars, that James plans to save w weeks after he starts to save. What is the total amount of money, in dollars, he plans to save in 10 weeks? A. 220 B. 270 C. 320 D. 370
+Answer: B
+
+3910. The table shows values of x and their corresponding values of y for three points on line j in the xy-plane. xy 0 -10 1 -4 22
+Line k also lies in the xy-plane and is defined by the equation y = 4x. At what point (x, y) do lines j and k intersect? A. (5, 20) B. (5, -44) C. (6, 24) D. (6, 26)
+Answer: A
+
+4200. Which expression is equivalent to 20x3 + 4x? A. 4x(5 + 4x) B. 4x(5x2 + 1) C. 4x2(5 + 4x) D. 4x2(5x + 1)
+Answer: B
+
+4205. The expression 6(9x + 16)(x - 5) - (4x + 17) can be written in the form ax2 + bx + c, where a, b, and c are constants. What is the value of b?
+Answer: -178
+
+4216. 5x + 4y = 8
+How many solutions does the given system of equations have? A. Exactly one B. Exactly two C. Infinitely many D. Zero Answer: C
+
+20x + 16y = 32
+
+4345. The surface of Lake Erie is 9,910 square miles. On a certain day, ice covers 41% of the lake's surface. Approximately how many square miles of the surface of
+Lake Erie are covered by ice on that day?
+A. 9,869 B. 5,847 C. 4,063 D. 406
+Answer: C
+
+4346. If 5x + 6 = 46, what is the value of 50x + 60? A. 460 B. 110 C. 80 D. 8
+Answer: A
+
+4351. The measure of angle F
+
+is
+
+ 15
+
+radians. If the measure of angle F
+
+is 6n degrees, where n is a constant, what is the value of n?
+
+A. 2
+
+B. 6
+
+C. 12
+
+D. 15
+
+Answer: A
+
+4360. 5x2 + 13x - 25 = 0
+What is one of the solutions to the given equation? A. -13+669
+2
+B. -13+669
+2(5)
+C. -13+669
+2(13)
+D. -13+669
+2(25)
+Answer: B
+
+4493. A jar has 290 marbles, and 20% of these marbles are blue. How many marbles in the jar are blue? A. 58 B. 116 C. 145 D. 270
+Answer: A
+
+4494. The measures of the interior angles of triangle ABC are 32�, 64�, and x�. What is the value of x? A. 32 B. 84 C. 96 D. 180
+Answer: B
+
+4497. If 6x - 9 = 3, what is the value of 6x + 9? A. -6 B. 2 C. 11 D. 21
+Answer: D
+
+4498. Marko purchased a camera in September 2019 when the camera had a value of $4,000. Each month for the next 50 months, the value of the camera decreased by 2% of the previous month's value. Which equation represents this situation, where v is the value of the camera, in dollars, m is the number of months since Marko purchased the camera, and m  50? A. v = 2,019(0.98)m B. v = 2,019(2)m C. v = 4,000(0.98)m D. v = 4,000(2)m
+Answer: C
+
+4505. Which equation has no solution?
+A. 6x + 2 = 2(3x + 1) B. 6x + 20 = 2(3x + 4) C. 6x + 1 = 3x + 1 D. 6x + 3 = -6x - 3
+Answer: B
+
+4639. s = 50 + 4t The equation gives the speed s, in miles per hour, of a certain car t seconds after it began to accelerate. What is the speed, in miles per hour, of the car 2 seconds
+after it began to accelerate?
+A. 50 B. 52 C. 54 D. 58
+Answer: D
+
+4640. A jar has 790 marbles, and 20% of these marbles are orange. How many marbles in the jar are orange? A. 158 B. 316 C. 395 D. 770
+Answer: A
+
+4645. During hibernation, American black bears do not eat or replenish calories. A certain black bear weighed 286 pounds when entering hibernation and lost weight at a mean rate of 0.8 pounds per day. At this rate, how many days after entering hibernation would the black bear weigh 230 pounds? A. 45 B. 56 C. 70 D. 184
+Answer: C
+
+4648. If 9(3x + 4) = 7(3x + 4) + 74, what is the value of 3x + 4? A. 74 B. 37 C. 33 D. 11
+Answer: B
+
+4651. A survey of the daily commuting times, in minutes, of seven different Chicago-based employees at a certain company yielded a data set consisting of the
+values 31, 14, 43, 32, 52, 23, and 44. A survey of the daily commuting times, in minutes, of seven different San Francisco-based employees at the same company yielded a data set consisting of the values 46, 31, 17, 33, 47, x, and 37. If the means of the two data sets are equal, what is the value of x?
+Answer: 28
+
+4786. x2 - 4 = 32
+Which value is a solution to the given equation?
+A. -32 B. -28 C. -4 D. 6
+Answer: D
+
+4787. A jar has 190 marbles, and 20% of these marbles are blue. How many marbles in the jar are blue? A. 38 B. 76 C. 95 D. 170
+Answer: A
+
+4791. x + 7y = 28 7y = 11
+The solution to the given system of equations is (x, y). What is the value of x?
+Answer: 17
+
+4794. Zuri has a goal to run at least 17 miles per week while training for a race. This week, she has run 8 miles. If x represents the additional number of miles Zuri
+needs to run this week to meet her goal, which inequality represents this situation?
+A. 8 - x  17 B. 8 + x  17 C. 8 - x  17 D. 8 + x  17
+Answer: D
+
+4795. If 7(2x + 6) = 5(2x + 6) + 76, what is the value of 2x + 6? A. 76 B. 38 C. 32 D. 16
+Answer: B
+
+4807. A certain town has an area of 4.17 square miles. What is the area, in square yards, of this town? (1 mile = 1,760 yards) A. 422 B. 7,339 C. 742,830 D. 12,916,992
+Answer: D
+
+4949. 4x2 - 12x - 72 = 0
+What is the product of the solutions to the given equation?
+A. -72 B. -18 C. 18 D. 72
+Answer: B
+
+4950. 5x + 3y = 7
+How many solutions does the given system of equations have? A. Exactly one B. Exactly two C. Infinitely many D. Zero Answer: C
+
+30x + 18y = 42
+
+4951. Which quadratic equation has no real solutions?
+A. 28r2 = 27 B. 28r2 = -27r + 27 C. -28r2 = -27r D. -28r2 = -27r + 27
+Answer: D
+
+4952. The function h is defined by h(x) = ax + b, where a and b are positive constants. The graph of y = h(x) in the xy-plane passes through the points (0, 11) and (2, 14). What is the value of ab?
+
+A. 14 B. 20 C. 22 D. 28
+Answer: B
+
+5081. A jar has 810 marbles, and 20% of these marbles are orange. How many marbles in the jar are orange? A. 162 B. 324 C. 405 D. 790
+Answer: A
+
+5086. x + 2y = 27 2y = 11
+The solution to the given system of equations is (x, y). What is the value of x?
+Answer: 16
+
+5096. Triangle QRS is similar to triangle F GH
+
+such that Q, R, and S correspond to F , G and H, respectively. Each side of triangle F GH
+
+has
+
+1 3
+
+the length of its
+
+corresponding side in triangle QRS. In triangle F GH, the measure of angle F is 35�, the measure of angle G is 6�, and F G = a. In triangle QRS, the measure of
+
+angle Q is b� and QR = 60. What is the value of a + b?
+
+Answer: 55
+
+5097. y = 2x2 - 24x + 54
+The given equation represents a parabola in the xy-plane. Which of the following equations that represent the same parabola displays the x-intercepts as constants or coefficients?
+A. y = 2(x2 - 12x) + 54 B. y = 2x(x - 12) + 54 C. y = 2(x - 6)2 - 18 D. y = 2(x - 9)(x - 3)
+Answer: D
+
+5100.
+
+Value
+30 34 38 42 46
+
+Data set A frequency
+1 3 4 6 8
+
+Data set B frequency
+8 6 4 3 1
+
+Data set A and data set B each consist of 22 values. The table shows the frequencies of the values for each data set. Which of the following statements best
+compares the means of the two data sets?
+
+A. The mean of data set A is less than the mean of data set B.
+
+B. The mean of data set A is greater than the mean of data set B.
+
+C. The mean of data set A is equal to the mean of data set B.
+
+D. There is not enough information to compare the means of the data sets.
+
+Answer: B
+
+5228. A jar has 590 marbles, and 20% of these marbles are orange. How many marbles in the jar are orange? A. 118 B. 236 C. 295 D. 570
+Answer: A
+
+5232. The function g is defined by g(x) = 16x + 25. For what value of x does g(x) = 29?
+Answer: 1/4
+
+5234. If 6x - 10 = 8, what is the value of 6x + 10? A. -2 B. 3 C. 13 D. 28
+Answer: D
+
+5241.
+
+The three points shown define a circle. The circumference of this circle is k, where k is a constant. What is the value of k?
+Answer: 8
+
+5244. Line p in the xy-plane contains the points (34, 0) and (34, 34). Which equation defines line p? A. x = 0 B. x = 34 C. y = 0 D. y = 34
+Answer: B

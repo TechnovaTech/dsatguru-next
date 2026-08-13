@@ -22,6 +22,7 @@ export async function GET(request) {
     const questionBanks = searchParams.get('question-banks')
     const bankId = searchParams.get('bankId')
     const tag = searchParams.get('tag')
+    const region = searchParams.get('region')
     const isTutor = searchParams.get('isTutor')
     const isAdminTest = searchParams.get('isAdminTest')
     const ids = searchParams.get('ids')
@@ -229,7 +230,8 @@ export async function GET(request) {
       }
     }
     if (tag) filter.tags = { $regex: tag, $options: 'i' }
-    
+    if (region) filter.region = region
+
     // Filter by isTutor / isAdminTest
     if (isTutor === 'true') {
       filter.isTutor = true

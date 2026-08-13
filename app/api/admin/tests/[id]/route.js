@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import Test from '../../../../../lib/models/Test'
 import TestSession from '../../../../../lib/models/TestSession'
+// Registering the Question model here is required: `.populate('questions')` below
+// throws MissingSchemaError on a cold start if nothing else imported it first.
+import Question from '../../../../../lib/models/Question'
 import { requireAuth, requireRole } from '../../../../../lib/auth'
 import { ADMIN_ROLES, STAFF_ROLES } from '../../../../../lib/constants/roles'
 import { canRevealAnswers, stripAnswerFields } from '../../../../../lib/serializers/question'
@@ -96,10 +99,27 @@ export async function GET(request, { params }) {
     if (test.customQuestions && typeof test.customQuestions === 'object') {
       test.questions = test.questions.map(q => {
         const customVersion = test.customQuestions[q._id.toString()]
-        if (customVersion) {
-          return { ...q, ...customVersion }
+        if (!customVersion) return q
+        const merged = { ...q, ...customVersion }
+        // The formatting loop above derived `question` and optionA-D from the BASE
+        // content. The override just replaced `content` (and maybe options), so those
+        // derived fields still point at the base — and the exam renders
+        // `question || content`. Re-derive them from the merged override so the
+        // student sees the tutor's edited stem/figure, not the original.
+        merged.question = merged.content || merged.title || ''
+        if (typeof merged.options === 'string' && merged.options.trim()) {
+          try { merged.options = JSON.parse(merged.options) } catch (e) { merged.options = [] }
         }
-        return q
+        if (Array.isArray(merged.options)) {
+          const raw = merged.options
+          merged.options = ['', '', '', '']
+          for (let i = 0; i < 4; i++) merged.options[i] = raw[i] != null ? String(raw[i]) : ''
+          merged.optionA = merged.options[0]
+          merged.optionB = merged.options[1]
+          merged.optionC = merged.options[2]
+          merged.optionD = merged.options[3]
+        }
+        return merged
       })
     }
 
@@ -108,7 +128,9 @@ export async function GET(request, { params }) {
       test.questions = test.questions.map(stripAnswerFields)
     }
 
-    return NextResponse.json(test)
+    // No caching: a tutor's just-saved customQuestions edit (image/text/answer) must reach the
+    // student's exam immediately — a cached response could keep serving the pre-edit figure.
+    return NextResponse.json(test, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } })
   } catch (error) {
     console.error('Error fetching test:', error)
     return NextResponse.json({ error: 'Failed to fetch test' }, { status: 500 })

@@ -1,0 +1,102 @@
+[
+  {
+    "page": 51,
+    "qnum": 24,
+    "subject": "Reading and Writing",
+    "question": "In a given rock formation, Capitanian rock from 264.3 million years ago might directly abut Messinian rock from 7.2 million years ago, with millions of years of material missing in between. ______ time did not stand still during these intervening years; the unaccounted-for sedimentary material was likely removed from the stratigraphic record via erosion and weathering.\n\nWhich choice completes the text with the most logical transition?",
+    "a": "On the contrary,",
+    "b": "In particular,",
+    "c": "Of course,",
+    "d": "As a result,"
+  },
+  {
+    "page": 52,
+    "qnum": 25,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n- The Highpointers Club is a hiking club.\n- One of the main goals among club members is to reach the highest points in all fifty US states.\n- Those who achieve this are called 50 Completers.\n- In Suk Han became a 50 Completer on November 15, 2013.\n- The highest point in West Virginia is Spruce Knob, at 4,863 ft.\n- The highest point in Colorado is Mount Elbert, at 14,440 ft.\n\nWhich choice most effectively uses information from the given sentences to explain the 50 Completers hiking challenge to a new audience?",
+    "a": "Hikers aiming to count themselves among the 50 Completers must reach not only West Virginia's Spruce Knob but also the even higher peak of Mount Elbert in Colorado.",
+    "b": "Not until after you have reached the highest points in all fifty US states—including Spruce Knob in West Virginia and Mount Elbert in Colorado—can you include yourself among the 50 Completers of the Highpointers Club.",
+    "c": "If you are looking for a new hiking challenge, consider joining the Highpointers Club, as did In Suk Han, a hiker who successfully reached the highest point in every US state.",
+    "d": "On November 15, 2013, In Suk Han finally completed the feat of reaching the highest point in all fifty US states, including Spruce Knob in West Virginia and Mount Elbert in Colorado."
+  },
+  {
+    "page": 53,
+    "qnum": 26,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n- There are around 90 automated snow measurement sites in Wyoming.\n- One site is at Cottonwood Creek.\n- At the start of February 2021, the site's snow depth was 75 inches.\n- At the start of March 2021, the site's snow depth was 50 inches.\n\nThe student wants to specify the snow depth at Cottonwood Creek at the start of March 2021. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "In 2021, the site at Cottonwood Creek was one of about 90 automated snow measurement stations in Wyoming.",
+    "b": "At the Cottonwood Creek site, there were 75 inches of snow on the ground at the start of February 2021.",
+    "c": "Located in Wyoming, the Cottonwood Creek site monitors snow conditions, such as snow depth.",
+    "d": "At the start of March 2021, 50 inches of snow covered the ground at the Cottonwood Creek site."
+  },
+  {
+    "page": 54,
+    "qnum": 27,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n- When the electrons of a chemical element change energy states, certain wavelengths of light are released.\n- This unique collection of wavelengths is known as the emission spectrum of the element.\n- Magnesium's emission spectrum includes the 517.2 nanometer (nm) wavelength.\n- Helium's emission spectrum includes the 587.5 nm wavelength.\n- The green portion of the visible spectrum is made up of light with wavelengths of 500-570 nm.\n\nThe student wants to identify an emission spectrum that includes a wavelength in the green portion of the visible spectrum. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "Containing the 517.2 nm and 587.5 nm wavelengths, respectively, both magnesium's and helium's emission spectra include wavelengths in the green portion of the visible spectrum.",
+    "b": "Magnesium's emission spectrum includes the 517.2 nm wavelength, which is in the green portion of the visible spectrum.",
+    "c": "The 587.5 nm wavelength, which is in the green portion of the visible spectrum, is one wavelength in the emission spectrum of helium.",
+    "d": "Since the 517.2 nm wavelength of light is within the 500-570 nm range, it is part of the green portion of the visible spectrum."
+  },
+  {
+    "page": 55,
+    "qnum": 1,
+    "subject": "Math",
+    "question": "x+21=2(21)\n\nWhat value of x is the solution to the given equation?",
+    "a": "-42",
+    "b": "-21",
+    "c": "21",
+    "d": "42"
+  },
+  {
+    "page": 56,
+    "qnum": 2,
+    "subject": "Math",
+    "question": "What is 5% of 760?",
+    "a": "755",
+    "b": "380",
+    "c": "152",
+    "d": "38"
+  },
+  {
+    "page": 57,
+    "qnum": 3,
+    "subject": "Math",
+    "question": "If the equations -9x + y = 17 and 9x + y = 17 are graphed in the xy-plane, at what point (x, y) do the graphs intersect?",
+    "a": "(0, 17)",
+    "b": "(0, 9)",
+    "c": "(9, 0)",
+    "d": "(17, 0)"
+  },
+  {
+    "page": 58,
+    "qnum": 4,
+    "subject": "Math",
+    "question": "The function f is defined by\nf(x) = (5/7)x + 15/7\n. What is the slope of the graph of y=f(x) in the xy-plane?",
+    "a": "1/3",
+    "b": "5/7",
+    "c": "15/7",
+    "d": "3"
+  },
+  {
+    "page": 59,
+    "qnum": 5,
+    "subject": "Math",
+    "question": "Line j defined by 4x+5y=55. Line k is parallel to line j in the xy-plane. An equation of line k is 24x+ry=15, where r is a constant. If line k passes through the point (0, b), what is the value of b?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 60,
+    "qnum": 6,
+    "subject": "Math",
+    "question": "f(x)=4x+900\n\nThe function shown gives the total cost f(x), in dollars, for making x units of a certain product. What is the total cost, in dollars, for making 100 units of this product?",
+    "a": "100",
+    "b": "400",
+    "c": "900",
+    "d": "1,300"
+  }
+]

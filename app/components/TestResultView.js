@@ -839,6 +839,11 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
     scaledScoreRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   const isSecondAutoSubmit = session?.attemptCount >= 2 && !!(session?.autoSubmitted || session?.autoSubmitReason)
+  // A test that was auto-submitted mid-way (proctoring violation) must NOT reveal the answer
+  // key + explanations to the student — only a genuinely completed attempt unlocks the detailed
+  // question-wise review. Admin/tutor viewers always see it (they need it to grade/reassign).
+  const isAutoSubmitted = !!(session?.autoSubmitted || session?.autoSubmitReason)
+  const hideDetailedReview = viewMode !== 'admin' && isAutoSubmitted
   const unlockReq = session?.unlockRequest
   const totalQuestions = questions.length
   const correctCount = questions.filter(q => q.isCorrect).length
@@ -1378,7 +1383,21 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                 </div>
             </div>
 
-            {/* Question Wise Report */}
+            {/* Question Wise Report — hidden for students when the test was auto-submitted
+                mid-way: only a genuinely completed attempt reveals the answer key + explanations.
+                Admin/tutor viewers always see it. */}
+            {hideDetailedReview ? (
+            <div className="bg-white rounded-xl shadow-sm border border-amber-200 overflow-hidden">
+                <div className="p-8 text-center">
+                    <FiAlertCircle className="w-10 h-10 text-amber-400 mx-auto mb-3" />
+                    <p className="text-gray-800 font-bold mb-1">Answer review isn&apos;t available for this attempt</p>
+                    <p className="text-sm text-gray-500 max-w-md mx-auto">
+                        This test was auto-submitted before you finished it, so the correct answers and
+                        explanations are hidden. Finish a full attempt to unlock the detailed review.
+                    </p>
+                </div>
+            </div>
+            ) : (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
                     <h2 className="text-sm font-bold text-gray-900">
@@ -1961,6 +1980,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                     })()}
                 </div>
             </div>
+            )}
         </div>
 
         {showReassignModal && (

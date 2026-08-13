@@ -13,9 +13,12 @@ const mongoose = require('mongoose')
 
 const args = process.argv.slice(2)
 const DRY = args.includes('--dry')
-const [jsonFile, title, durationArg] = args.filter(a => a !== '--dry')
-if (!jsonFile || !title) { console.error('usage: node scripts/create-tutor-sheet.cjs <json> "<title>" <durationMins> [--dry]'); process.exit(2) }
+const [jsonFile, title, durationArg, subjectArg] = args.filter(a => a !== '--dry')
+if (!jsonFile || !title) { console.error('usage: node scripts/create-tutor-sheet.cjs <json> "<title>" <durationMins> [subject] [--dry]'); process.exit(2) }
 const duration = parseInt(durationArg || '0', 10)
+// Subject drives which tutor tab the sheet appears under. R&W sheets MUST be
+// "Reading and Writing" (the tab filters on exactly that string); default Math.
+const subject = (subjectArg || 'Math').trim()
 const uri = process.env.MONGO_URI
 if (!uri) { console.error('NO_MONGO_URI'); process.exit(2) }
 
@@ -34,7 +37,7 @@ function toDoc(q, i) {
     options: JSON.stringify(options),
     correctAnswer: norm(q['correct answer']),
     difficulty: norm(q.difficulty) || 'Medium',
-    subject: norm(q.subject) || 'Math',
+    subject: norm(q.subject) || subject,
     type: 'MultipleChoice', // fill-in is detected by empty options, not by type
     tags: JSON.stringify(tags),
     shortExplanation: norm(q.shortexplanation),
@@ -68,7 +71,7 @@ function toDoc(q, i) {
   const inserted = await Question.insertMany(docs, { ordered: true })
   const ids = inserted.map((d) => d._id)
   const test = await Test.create({
-    title: title.trim(), subject: 'Math', questions: ids,
+    title: title.trim(), subject: subject, questions: ids,
     duration, isTimed: duration > 0,
     isTutorTest: true, practiceMode: 'tutor', testType: 'Practice', isActive: true,
   })

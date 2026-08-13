@@ -81,10 +81,13 @@ export default function TutorTestSheets() {
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
+      // no-store: a tutor's just-saved customQuestions edit must be visible on the very
+      // next view — a cached list would keep showing the pre-edit override.
       const res = await fetch('/api/admin/tutor/tests/list', {
+        cache: 'no-store',
         headers: { Authorization: `Bearer ${token}` }
       })
-      
+
       if (res.ok) {
         const data = await res.json()
         setTests(data)
@@ -512,12 +515,13 @@ export default function TutorTestSheets() {
       const token = localStorage.getItem('token')
       const questionIds = test.questions.join(',')
       const res = await fetch(`/api/questions?ids=${questionIds}`, {
+        cache: 'no-store',
         headers: { Authorization: `Bearer ${token}` }
       })
-      
+
       if (res.ok) {
         const questions = await res.json()
-        
+
         // Apply custom questions if they exist
         if (test.customQuestions) {
           const customQuestionsMap = test.customQuestions
@@ -620,12 +624,13 @@ export default function TutorTestSheets() {
       const token = localStorage.getItem('token')
       const questionIds = test.questions.join(',')
       const res = await fetch(`/api/questions?ids=${questionIds}`, {
+        cache: 'no-store',
         headers: { Authorization: `Bearer ${token}` }
       })
-      
+
       if (res.ok) {
         const questions = await res.json()
-        
+
         // Apply custom questions if they exist
         if (test.customQuestions) {
           const customQuestionsMap = test.customQuestions

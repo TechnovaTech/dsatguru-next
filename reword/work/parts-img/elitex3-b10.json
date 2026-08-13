@@ -1,0 +1,82 @@
+[
+  {
+    "page": 91,
+    "qnum": 15,
+    "subject": "Math",
+    "question": "x^2 - 6x + y^2 - 4y - 51 = 0\n\nIn the xy-plane, the graph of the given equation is a circle. If this circle is inscribed in a square, what is the perimeter of the square?",
+    "a": "16",
+    "b": "32",
+    "c": "64",
+    "d": "204"
+  },
+  {
+    "page": 92,
+    "qnum": 16,
+    "subject": "Math",
+    "question": "The daily precipitation total at a weather station is recorded by a weather instrument each day. The daily precipitation total recorded on Monday was 19.00 millimeters. The daily precipitation total recorded on Tuesday was a 134.00% increase from the daily precipitation total recorded on Monday. What was the daily precipitation total, in millimeters, recorded on Tuesday?",
+    "a": "8.12",
+    "b": "14.18",
+    "c": "25.46",
+    "d": "44.46"
+  },
+  {
+    "page": 93,
+    "qnum": 17,
+    "subject": "Math",
+    "question": "If 121x^2 = -110x + 56, what is the value of 11x + 5, where 11x + 5 > 0?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 94,
+    "qnum": 18,
+    "subject": "Math",
+    "question": "One gallon of sealant costs $23 and will cover 250 square feet of a surface. A deck has a total surface area of d square feet. Which equation represents the cost c, in dollars, of the sealant needed to cover the deck twice?",
+    "a": "c = 250d/23",
+    "b": "c = 500d/23",
+    "c": "c = 23(d/125)",
+    "d": "c = 23(d/250)"
+  },
+  {
+    "page": 95,
+    "qnum": 19,
+    "subject": "Math",
+    "question": "x^2 - 4x + y^2 - 8y - 80 = 0\n\nIn the xy-plane, the graph of the given equation is a circle. If this circle is inscribed in a square, what is the perimeter of the square?",
+    "a": "20",
+    "b": "40",
+    "c": "80",
+    "d": "320"
+  },
+  {
+    "page": 96,
+    "qnum": 20,
+    "subject": "Math",
+    "question": "The area of a rectangular region is increasing at a rate of 180 square centimeters per hour. What is this rate, in square meters per minute? (1 meter = 100 centimeters)",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 97,
+    "qnum": 21,
+    "subject": "Math",
+    "question": "The function h is defined by h(x) = -sqrt(x^2 + bx + c), where b and c are constants. In the xy-plane, the graph of y = h(x) contains the points (2, 0) and (0, -sqrt(358)). If h(m) = 0, what is the greatest possible value of m?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 98,
+    "qnum": 22,
+    "subject": "Math",
+    "question": "r^2 + qr = 8r - 97\n\nIn the given equation, q is an integer constant. The given equation has no real solution. What is the largest possible value of q?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  }
+]

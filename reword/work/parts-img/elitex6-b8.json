@@ -1,0 +1,104 @@
+[
+  {
+    "page": 71,
+    "qnum": 17,
+    "subject": "Math",
+    "question": "An exponential function f gives the estimated amount of an X-ray beam's initial intensity remaining after passing through a w-centimeter-thick window made of beryllium. The function estimates that after passing through a 1.7-centimeter-thick window, the amount of the X-ray beam's initial intensity remaining is 0.67. Which equation could define f?",
+    "a": "f(w) = 0.67(0.79)^(w−1.7)",
+    "b": "f(w) = 0.67(0.79)^(w/1.7)",
+    "c": "f(w) = 0.67(1.7)^w",
+    "d": "f(w) = 1.7(0.67)^w"
+  },
+  {
+    "page": 72,
+    "qnum": 18,
+    "subject": "Math",
+    "question": "A polygon with 22 sides has a perimeter of 131 inches. The length of one side is 5 inches. The other 21 sides have equal lengths. What is the length, in inches, of one of the 21 sides with equal lengths?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 73,
+    "qnum": 19,
+    "subject": "Math",
+    "question": "What is the solution to the equation 5√(x − 14) = √7 ?",
+    "a": "357/25",
+    "b": "399/25",
+    "c": "21/5",
+    "d": "77/5"
+  },
+  {
+    "page": 74,
+    "qnum": 20,
+    "subject": "Math",
+    "question": "In triangles RST and XYZ shown, XY is parallel to TS and tan R = 140/171. What is the value of sin X in triangle XYZ ?",
+    "a": "140/311",
+    "b": "140/221",
+    "c": "171/221",
+    "d": "171/140",
+    "figure": true
+  },
+  {
+    "page": 75,
+    "qnum": 21,
+    "subject": "Math",
+    "question": "If x ≥ -8 represents all solutions to the inequality ax − 18 ≤ 14, where a is a constant, what is the greatest possible value of a?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 76,
+    "qnum": 22,
+    "subject": "Math",
+    "question": "A circle in the xy-plane has a diameter with endpoints (7, −12) and (7, −24). Which equation represents this circle?",
+    "a": "(x − 7)^2 + (y + 18)^2 = 6",
+    "b": "(x − 7)^2 + (y + 18)^2 = 36",
+    "c": "(x + 7)^2 + (y − 18)^2 = 6",
+    "d": "(x + 7)^2 + (y − 18)^2 = 36"
+  },
+  {
+    "page": 77,
+    "qnum": 1,
+    "subject": "Math",
+    "question": "A line in the xy-plane has a slope of −1/6 and passes through the point (0, 8). Which equation represents this line?",
+    "a": "y = −1/6 x − 8",
+    "b": "y = −1/6 x + 8",
+    "c": "y = 1/6 x − 8",
+    "d": "y = 1/6 x + 8"
+  },
+  {
+    "page": 78,
+    "qnum": 2,
+    "subject": "Math",
+    "question": "A right triangle has the dimensions shown, in centimeters (cm). The two legs measure 9 cm and 4 cm. What is the area of this triangle, in cm^2?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": "",
+    "figure": true
+  },
+  {
+    "page": 79,
+    "qnum": 3,
+    "subject": "Math",
+    "question": "-3x + 6rx = 42\n\nIn the given equation, r is a constant. The equation has no solution. What is the value of r?",
+    "a": "1/7",
+    "b": "1/2",
+    "c": "2",
+    "d": "7"
+  },
+  {
+    "page": 80,
+    "qnum": 4,
+    "subject": "Math",
+    "question": "If |12 − 2x| = 48, which of the following is a value of 6 − x?",
+    "a": "0",
+    "b": "6",
+    "c": "24",
+    "d": "36"
+  }
+]

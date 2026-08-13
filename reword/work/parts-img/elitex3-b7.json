@@ -1,0 +1,105 @@
+[
+  {
+    "page": 61,
+    "qnum": 7,
+    "subject": "Math",
+    "question": "2.5c + 5d = 60\n\nThe given equation describes the relationship between the number of cats, c, and the number of dogs, d, that can be cared for at a pet care business during a week. If the business cares for 12 dogs during a week, how many cats can it care for during this week?",
+    "a": "0",
+    "b": "5",
+    "c": "30",
+    "d": "60"
+  },
+  {
+    "page": 62,
+    "qnum": 8,
+    "subject": "Math",
+    "question": "A bank account was opened with an initial deposit. Over the next several months, regular deposits were made into this account, and there were no withdrawals made during this time. The graph of the function f shown, where y = f(x), estimates the account balance, in dollars, in this bank account x months since the initial deposit. To the nearest whole dollar, what is the amount of the initial deposit estimated by the graph?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": "",
+    "figure": true
+  },
+  {
+    "page": 63,
+    "qnum": 9,
+    "subject": "Math",
+    "question": "The y-intercept of the graph of y = x^2 + 15 in the xy-plane is (0, y). What is the value of y?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 64,
+    "qnum": 10,
+    "subject": "Math",
+    "question": "| x | y |\n|---|---|\n| 1 | 13 |\n| 2 | 21 |\n| 3 | a |\n\nThe table shows three values of x and their corresponding values of y for the equation y = 4(2)^x + 5. In the table, a is a constant. What is the value of a?",
+    "a": "69",
+    "b": "37",
+    "c": "32",
+    "d": "29"
+  },
+  {
+    "page": 65,
+    "qnum": 11,
+    "subject": "Math",
+    "question": "If 3(7x) = 12, what is the value of 7x?",
+    "a": "9/7",
+    "b": "7/4",
+    "c": "4",
+    "d": "9"
+  },
+  {
+    "page": 66,
+    "qnum": 12,
+    "subject": "Math",
+    "question": "In the right triangle shown, the value of tan x° is c/39. What is the value of c?\n\n(The right triangle has a vertical leg labeled 39, a horizontal leg labeled 40, and angle x° at the top vertex. Note: Figure not drawn to scale.)",
+    "a": "79",
+    "b": "40",
+    "c": "39",
+    "d": "1",
+    "figure": true
+  },
+  {
+    "page": 67,
+    "qnum": 13,
+    "subject": "Math",
+    "question": "In the right triangle shown, c is a constant. The value of sin x° = k/c, where k is a constant. What is the value of k?\n\n(The right triangle has a vertical leg labeled 22, a horizontal leg labeled 39, the hypotenuse labeled c, and angle x° at the bottom-right vertex. Note: Figure not drawn to scale.)",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": "",
+    "figure": true
+  },
+  {
+    "page": 68,
+    "qnum": 14,
+    "subject": "Math",
+    "question": "If -7(13 - 5x) + 3 = -8(13 - 5x) + 21, what is the value of 13 - 5x?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 69,
+    "qnum": 15,
+    "subject": "Math",
+    "question": "| x | g(x) |\n|---|------|\n| 1 | 46 |\n| 2 | 43 |\n| 3 | 40 |\n| 4 | 37 |\n\nFor the linear function g, the table shows four values of x and their corresponding values of g(x). The function can be written as g(x) = mx + b, where m and b are constants. What is the value of b?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 70,
+    "qnum": 16,
+    "subject": "Math",
+    "question": "x + 21y = 33\n5x + 3y = 29\n\nThe solution to the given system of equations is (x, y). What is the value of y?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  }
+]

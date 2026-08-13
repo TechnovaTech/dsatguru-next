@@ -1,0 +1,94 @@
+[
+  {
+    "page": 81,
+    "subject": "Math",
+    "question": "In the xy-plane, line s is parallel to line t. Line s is defined by y+16=7x. What is the slope of line t?",
+    "a": "-16",
+    "b": "-7",
+    "c": "7",
+    "d": "16"
+  },
+  {
+    "page": 82,
+    "subject": "Math",
+    "question": "Note: Figure not drawn to scale.\n\nIn triangle XYZ, the measure of angle Y is 90 degrees. Triangle RST (not shown) is similar to triangle XYZ such that R, S, and T correspond to X, Y, and Z, respectively. Each side of triangle RST is 19 times the length of the corresponding side of triangle XYZ. What is the measure, in degrees, of one of the angles in triangle RST?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": "",
+    "figure": true
+  },
+  {
+    "page": 83,
+    "subject": "Math",
+    "question": "Rectangle X has a length of 24 millimeters (mm) and a width of 7.5 mm. Right triangle Y has a base of 60 mm. The area of rectangle X is 3 times the area of right triangle Y. What is the height, in mm, of right triangle Y?",
+    "a": "1",
+    "b": "2",
+    "c": "3",
+    "d": "6"
+  },
+  {
+    "page": 84,
+    "subject": "Math",
+    "question": "The function j is defined by j(x)=(10x+5)/(3p), and the function k is defined by k(x)=(j(x)·p)/(x+1), where p is a positive constant. What is the value of k(9)?",
+    "a": "19/6",
+    "b": "10/3",
+    "c": "95/13",
+    "d": "85/3"
+  },
+  {
+    "page": 85,
+    "subject": "Math",
+    "question": "In triangle ABC, angle B is a right angle. The length of side AB is 10√69 and the length of side BC is 24√69. What is the length of side AC?",
+    "a": "14√69",
+    "b": "26√69",
+    "c": "34√69",
+    "d": "√(34*69)"
+  },
+  {
+    "page": 86,
+    "subject": "Math",
+    "question": "Note: Figure not drawn to scale.\n\nThe figure shown is a right rectangular pyramid, where l=18 units, w=9 units, and h=12 units. What is the surface area, in square units, of the pyramid?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": "",
+    "figure": true
+  },
+  {
+    "page": 87,
+    "subject": "Math",
+    "question": "ax-by=72\n2ax-8y=48\n\nIn the given system of equations, a and b are constants. The graphs of these equations in the xy-plane intersect at the point (x, 6). What is the value of b?",
+    "a": "-8",
+    "b": "-4",
+    "c": "4",
+    "d": "6"
+  },
+  {
+    "page": 88,
+    "subject": "Math",
+    "question": "x^2 + (√(k-2))x + 37 = 0\n\nIn the given equation, k is a constant. The equation has exactly one real solution. What is the value of k?",
+    "a": "150",
+    "b": "148",
+    "c": "146",
+    "d": "39"
+  },
+  {
+    "page": 89,
+    "subject": "Math",
+    "question": "(3/2)x - (1/3)y = 24\nx+2y=-4\n\nThe solution to the given system of equations is (x, y). What is the value of x+y?",
+    "a": "-5",
+    "b": "-4",
+    "c": "4",
+    "d": "5"
+  },
+  {
+    "page": 90,
+    "subject": "Math",
+    "question": "An object's speed, in meters per hour, is increasing at a rate of 1.490 meters per hour per second. Which of the following is closest to this rate in feet per second squared? (Use 1 meter = 3.28 feet.)",
+    "a": "0.126",
+    "b": "1.36",
+    "c": "7.57",
+    "d": "81.5"
+  }
+]

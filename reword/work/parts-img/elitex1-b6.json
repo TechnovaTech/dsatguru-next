@@ -1,0 +1,93 @@
+[
+  {
+    "page": 51,
+    "subject": "Reading and Writing",
+    "question": "The names of geological eras uniformly describe phases in Earth's evolutionary history (e.g., Cenozoic means \"new life\"). Names given to geological periods, ______ are of diverse origins. The Silurian period is named after the Celtic tribe the Silures, for example, while the Permian period takes its name from the historical region of Perm in Russia.\n\nWhich choice completes the text with the most logical transition?",
+    "a": "in turn,",
+    "b": "furthermore,",
+    "c": "on the other hand,",
+    "d": "therefore,"
+  },
+  {
+    "page": 52,
+    "subject": "Reading and Writing",
+    "question": "According to climate envelope models, individual organisms that inhabit the coolest areas of their species' geographic distribution are expected to benefit from a warming climate, while individuals in the warmest areas will struggle. A 2024 University of Arizona study, ______ found that warmer-than-average temperatures resulted in a decrease in growth across all areas of the common pinon tree's distribution range.\n\nWhich choice completes the text with the most logical transition?",
+    "a": "though,",
+    "b": "therefore,",
+    "c": "for example,",
+    "d": "moreover,"
+  },
+  {
+    "page": 53,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n- Hyde Park is a 1931 color linocut print by Canadian artist Sybil Andrews.\n- It depicts a tranquil, everyday scene (a spring day in a city park).\n- Amanzi Amthatha (\"The cold water takes him\") is a 2001 black-and-white linocut print by South African artist Nomathemba Tana.\n- It features a scene with an explicitly political point of view (a Xhosa warrior fighting British colonial rule).\n- Relief printing is a technique in which an image is carved onto a printing block, covered in ink or paint, and stamped onto paper.\n- Lino cutting is a type of relief printing that uses linoleum tile as the printing block.\n\nThe student wants to contrast the subject matter of the two prints. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "The print by Tana is a black-and-white linocut; by contrast, Andrews's is a relief print.",
+    "b": "Tana's print expresses an explicitly political point of view, while Andrews's depicts a tranquil, everyday scene.",
+    "c": "Andrews made Hyde Park in 1931, while Tana made Amanzi Amthatha (\"The cold water takes him\") later, in 2001.",
+    "d": "The scenes depicted in both works were first carved onto a printing block, then stamped onto paper; however, one work is a linocut, while the other is a relief print."
+  },
+  {
+    "page": 54,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n- Francis Halzen is a Belgian particle physicist.\n- Particle physicists study subatomic particles.\n- Neutrinos are some of the least understood subatomic particles.\n- Neutrinos were first discovered in the mid-twentieth century.\n- Halzen is known for his discovery of high-energy astrophysical neutrinos.\n\nThe student wants to provide an example of a particle physicist whose research focuses on neutrinos. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+    "a": "The research done on high-energy astrophysical neutrinos exemplifies the work particle physicists do to advance our understanding of subatomic particles.",
+    "b": "By studying high-energy astrophysical neutrinos—to name just one example—particle physicists can learn more about neutrinos.",
+    "c": "Particle physicist Francis Halzen is known for his discovery of high-energy astrophysical neutrinos.",
+    "d": "Neutrinos are a type of subatomic particle that particle physicists are still trying to understand."
+  },
+  {
+    "page": 55,
+    "subject": "Math",
+    "question": "x+21=2(21)\n\nWhat value of x is the solution to the given equation?",
+    "a": "-42",
+    "b": "-21",
+    "c": "21",
+    "d": "42"
+  },
+  {
+    "page": 56,
+    "subject": "Math",
+    "question": "In the figure shown, lines r and s are parallel, and line t intersects both lines. What is the value of a?",
+    "a": "77",
+    "b": "90",
+    "c": "167",
+    "d": "180",
+    "figure": "A transversal line t crosses two parallel horizontal lines, r (upper) and s (lower). At the upper intersection where t meets line r, two angles are marked on the upper side: 103° to the left of t and 77° to the right of t. At the lower intersection where t meets line s, the angle a° is marked above line s to the right of the transversal, and 77° is marked below line s to the left of the transversal. Note: Figure not drawn to scale."
+  },
+  {
+    "page": 57,
+    "subject": "Math",
+    "question": "The width of a rectangle is 5 centimeters. The length of the rectangle is 30 centimeters longer than the width. What is the area, in square centimeters, of this rectangle?",
+    "a": "175",
+    "b": "40",
+    "c": "10",
+    "d": "5"
+  },
+  {
+    "page": 58,
+    "subject": "Math",
+    "question": "A designer used a total of 25 yards of blue fabric and yellow fabric for a sewing project. The designer used 17 yards of blue fabric. How many yards of yellow fabric were used?",
+    "a": "8",
+    "b": "17",
+    "c": "25",
+    "d": "33"
+  },
+  {
+    "page": 59,
+    "subject": "Math",
+    "question": "y=0\ny=8(x^2-36)\n\nWhich ordered pair (x, y) is a solution to the given system of equations?",
+    "a": "(0, 6)",
+    "b": "(0, 36)",
+    "c": "(6, 0)",
+    "d": "(36, 0)"
+  },
+  {
+    "page": 60,
+    "subject": "Math",
+    "question": "f(x)=4x+900\n\nThe function shown gives the total cost f(x), in dollars, for making x units of a certain product. What is the total cost, in dollars, for making 100 units of this product?",
+    "a": "100",
+    "b": "400",
+    "c": "900",
+    "d": "1,300"
+  }
+]

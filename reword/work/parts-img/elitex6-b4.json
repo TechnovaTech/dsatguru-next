@@ -1,0 +1,103 @@
+[
+  {
+    "page": 31,
+    "qnum": 4,
+    "subject": "Reading and Writing",
+    "question": "Although more documentaries are being made than ever before, too many seem ______, offering stories without any depth. In a refreshing contrast, Ahmir \"Questlove\" Thompson's 2021 documentary Summer of Soul (...or, When the Revolution Could Not Be Televised) draws from present-day interviews to supply compelling historical and social context for footage of the 1969 Harlem Cultural Festival.\n\nWhich choice completes the text with the most logical and precise word or phrase?",
+    "a": "cryptic",
+    "b": "inaccessible",
+    "c": "haughty",
+    "d": "perfunctory"
+  },
+  {
+    "page": 32,
+    "qnum": 5,
+    "subject": "Reading and Writing",
+    "question": "Paul Linebarger is often recognized as an influential science fiction writer (under the pen name Cordwainer Smith), but his most significant work was a 1940s classified US Army guide exploring the role of propaganda in times of war. Citing the uniquely absorbing nature of motion pictures, he contended that US propaganda should equal popular films in its appeal, entertaining audiences while engendering views of the nation as an ally. Linebarger's work shaped the distinctive US approach to promoting national interests, one that continues to draw inspiration from elements of pop culture.\n\nWhich choice best describes the overall structure of the text?",
+    "a": "It distinguishes a work from others in its genre, outlines the central objective of that work, and then addresses a recent resurgence of interest in that work.",
+    "b": "It sketches the development of a prominent work, familiarizes readers with an argument in that work, and then suggests that the work has had repercussions in other fields.",
+    "c": "It characterizes a work as having been underappreciated, describes a core concept in that work, and then argues that the influence of that concept is recognizable in other works.",
+    "d": "It introduces a significant work, summarizes a noteworthy idea in that work, and then places that idea into a context that demonstrates its broader implications."
+  },
+  {
+    "page": 33,
+    "qnum": 6,
+    "subject": "Reading and Writing",
+    "question": "Alternative-history fiction is a subgenre of science fiction in which plots center on \"what if?\" questions. What if India had started the Industrial Revolution? What if Soviet cosmonauts had been first to land on the moon? Speculative counterfactuals like these can be great fodder for stories, but they're also commonly deployed by academic historians to better understand factors influencing historical events. Well-realized and coherent alternative-history stories can thus complement historians' speculations about the past.\n\nWhich choice best describes the function of the underlined portion in the text as a whole?",
+    "a": "It provides examples of the types of scenarios addressed in alternative-history fiction.",
+    "b": "It illustrates how academic historians have influenced writers of alternative-history fiction.",
+    "c": "It indicates specific ideas that were first raised by writers of alternative-history fiction and that subsequently inspired scholarship by academic historians.",
+    "d": "It acknowledges counterfactual questions that academic historians have largely overlooked."
+  },
+  {
+    "page": 34,
+    "qnum": 7,
+    "subject": "Reading and Writing",
+    "question": "Text 1\nIn separate studies, Lingbo Meng and colleagues and Xinhua He and colleagues examined whether plants transfer nutrients to one another using a common mycorrhizal network (CMN)—a lattice of fungal strands in the soil. Meng and colleagues excluded all pathways other than the CMN by using barriers to keep the plants' root systems separate while allowing mycorrhizal strands through—a crucial step He and colleagues' study did not take.\n\nText 2\nMeng and colleagues took the necessary precaution of separating the plants' root systems (thereby excluding root-to-root transmission). However, any barrier used must allow the thread-like hyphae of a CMN to pass through, and this permeability would also allow liquids through. Thus, the researchers' experimental design cannot ensure that any nutrient transfer observed can be attributed to a CMN and not to some other pathway.\n\nBased on the texts, how would the author of Text 2 most likely respond to the characterization of Meng and colleagues' study in Text 1?",
+    "a": "By asserting that the author of Text 1 has overstated the effectiveness of the method that Meng and colleagues used",
+    "b": "By pointing out that the author of Text 1 has overlooked studies that reported results that contradict those reported by Meng and colleagues",
+    "c": "By claiming that the author of Text 1 has misrepresented what Meng and colleagues were trying to achieve with their experimental design",
+    "d": "By arguing that the author of Text 1 has conflated the method used by Meng and colleagues with that used by He and colleagues"
+  },
+  {
+    "page": 35,
+    "qnum": 8,
+    "subject": "Reading and Writing",
+    "question": "The fifteenth-century English Heege Manuscript is unusual among collections of its kind and time given its focus on fantasy tales over more acclaimed works by celebrated medieval authors like Hoccleve. But according to professor James Wade, even more unusually, the three texts in the manuscript's first booklet were likely copied by Richard Heege from a traveling minstrel's repertoire book. The evidence includes performative elements such as the narrator politely addressing the audience, joking about peasants and royalty, and making jokes that could be modified to refer to the town of Radford when in nearby Brackonwet to avoid giving offense.\n\nAs presented in the text, Wade would most likely agree with which statement about the first booklet of the Heege Manuscript?",
+    "a": "It was likely a copy Heege intended to give to a traveling minstrel working in the area around Radford and Brackonwet.",
+    "b": "The texts it includes were based on stories about the area around Radford and Brackonwet, but these names were later removed.",
+    "c": "It was copied from a text that originated from a traveling minstrel who worked in the area around Radford and Brackonwet.",
+    "d": "It was written down by Heege from memory based on a performance by a traveling minstrel who worked in the area around Radford and Brackonwet."
+  },
+  {
+    "page": 36,
+    "qnum": 9,
+    "subject": "Reading and Writing",
+    "question": "Within higher education, studying philosophy requires that students be conversant with the field's foundational texts and historical figures. By contrast, doing philosophy within or beyond the academy demands the creative, self-directed application of acquired expertise to enduring questions about the nature of existence and knowledge. While both approaches engage with influential figures, those who do philosophy treat such figures as vital interlocutors who facilitate new insights rather than as ossified authorities who, though relevant to the present, primarily represent the discipline's past.\n\nBased on the text, which choice best describes the relationship between doing philosophy and studying philosophy?",
+    "a": "Doing philosophy involves developing novel ideas through imagined dialogue with past philosophers based on knowledge of those philosophers' views acquired by studying philosophy.",
+    "b": "Doing philosophy helps students formulate concrete solutions to practical issues, whereas studying philosophy prioritizes engagement with historical arguments in the field.",
+    "c": "Doing philosophy represents a departure from the norms that govern scholarly inquiry, whereas studying philosophy requires conformation to these norms.",
+    "d": "Doing philosophy requires students to challenge the ideas articulated by past philosophers, especially when these ideas are broadly accepted by other people studying philosophy."
+  },
+  {
+    "page": 37,
+    "qnum": 10,
+    "subject": "Reading and Writing",
+    "question": "Archaeologist Weiwei Wang and her colleagues analyzed footed grinding slabs and other food-preparation tools excavated from Óc Eo, a Southeast Asian port city that flourished between the first and sixth centuries CE. Wang and colleagues recovered microscopic remnants of turmeric and other spices from the surfaces of the tools. Turmeric is native to South Asia, more than a thousand miles west of Óc Eo, and the researchers showed that the footed grinding slabs at Óc Eo are very similar to footed grinding slabs common throughout South Asia from around 500 BCE to 300 CE. Wang and colleagues' findings therefore indicate that there must have been a trade link, whether direct or indirect, between the two regions.\n\nWhich finding, if true, would directly weaken the conclusion about Wang and her colleagues' findings that is presented in the text?",
+    "a": "Other types of artifacts originating in South Asia and dating to the first through sixth centuries CE have been found throughout Southeast Asia.",
+    "b": "In the first through third centuries CE, there was a significant migration of people from South Asia to Southeast Asia.",
+    "c": "The people of Óc Eo and several communities in South Asia regularly traded with people in the region that is now the Southeast Asian country of Malaysia no later than the first century CE.",
+    "d": "Some of the spices recovered from Óc Eo are native to the Maluku Islands, which are located approximately 2,000 miles southeast of Óc Eo."
+  },
+  {
+    "page": 38,
+    "qnum": 11,
+    "subject": "Reading and Writing",
+    "question": "Strontium Isotope Ratios and Corresponding Numerical Ages in the Global Seawater Curve\n\n| 87Sr/86Sr | Age (Ma) |\n|-----------|----------|\n| 0.708980 | 6.20 |\n| 0.709000 | 5.86 |\n| 0.709020 | 5.40 |\n| 0.709040 | 4.75 |\n| 0.709060 | 3.00 |\n\nThe late Hemphillian (Hh) North American Land Mammal Age includes the subdivisions Hh3, 6.8 million years ago (Ma) to 6 Ma, and Hh4, 6 Ma to 4.75 Ma. While mammalian fossils have indicated that Florida's Montbrook Fossil Site (MFS) and Palmetto Fauna of the Bone Valley Region (PFBV) date to Hh4, a more precise determination of the sites' ages has proved challenging. Stephanie R. Killingsworth et al. compared average ratios of strontium-87 to strontium-86 (87Sr/86Sr) in fossil shark teeth from MFS and PFBV—0.709000 and 0.709028, respectively—to 87Sr/86Sr ratios in the global strontium seawater curve, a record that shows how 87Sr/86Sr ratios in seawater correspond to numerical ages and that is used to date fossils and, by extension, fossil sites. The researchers concluded that ______\n\nWhich choice most effectively uses data from the table to complete the statement?",
+    "a": "mammalian fossil evidence offers less dating precision than do 87Sr/86Sr ratios in fossil shark teeth and that PFBV likely was deposited closer to the Hh3-Hh4 boundary than was MFS.",
+    "b": "the average 87Sr/86Sr ratios in the fossil shark teeth from MFS and PFBV resolve previous uncertainty about the sites' relative ages by indicating that both sites were deposited contemporaneously during the late Hh.",
+    "c": "the average 87Sr/86Sr ratios in the fossil shark teeth from MFS and PFBV only partially support the site age estimates previously established through mammalian fossil evidence.",
+    "d": "the average 87Sr/86Sr ratios in the fossil shark teeth from MFS and PFBV corroborate that both MFS and PFBV fall within Hh4 but suggest that PFBV was likely deposited more recently than MFS."
+  },
+  {
+    "page": 39,
+    "qnum": 12,
+    "subject": "Reading and Writing",
+    "question": "Researchers used anonymized location data from the US and Côte d'Ivoire to document people's daily patterns of mobility, using these results to test the efficacy of the researchers' predictive computer model. In each country, unidirectional cycles among two, three, or four locations were empirically the most common pattern types; the graph shows each of these pattern types as a proportion of all pattern instances found for that country (e.g., the measured value for CI 3 in the graph, 0.12, indicates that the three-location pattern constituted 12% of all pattern instances in the Côte d'Ivoire data). The researchers ran their model twice under different assumptions, concluding that emphasizing the salience of local population density over personal preferences generally yielded the best results.\n\nWhich choice most effectively uses data from the graph to illustrate the researchers' conclusion?",
+    "a": "Under the assumption that density is more salient than preferences, the US 2 and CI 2 proportions are approximately 0.65 and 0.85, respectively, significantly higher than the values predicted under the other assumption and thus farther than those predictions from the measured values.",
+    "b": "Under the assumption that preferences are more salient than density, the two-location patterns (US 2 and CI 2) were predicted to be most frequent in the data even though neither proportion was projected to exceed 0.5, well below the proportion predicted under the other assumption.",
+    "c": "Under the assumption that preferences are more salient than density, the US 2 and CI 2 proportions were predicted to be in the range of 0.3 to 0.5, placing them farther from the measured values than were those predicted under the other assumption.",
+    "d": "Under the assumption that preferences are more salient than density, the US 2 and CI 2 proportions were predicted to be approximately 0.45 and 0.35, respectively, both below the measured values, whereas under the other assumption, the model overestimated the proportion for US 2 and overestimated that for CI 2.",
+    "figure": true
+  },
+  {
+    "page": 40,
+    "qnum": 13,
+    "subject": "Reading and Writing",
+    "question": "There is a growing belief that teaching medical students about art alongside standard science and clinical coursework helps them become more observant, develop greater patient empathy, and strengthen their communication skills. But some medical program educators are skeptical, questioning if arts and humanities experiences can be clearly shown to have any worthwhile advantages for their students. Research into the effectiveness of arts programs for medical students by Neha Mukunda and her colleagues found that evidence is largely anecdotal and based on studies that were short in duration, limited to single institutions, or restricted to small numbers of students. To strengthen the evidence base in support of incorporating humanities into the coursework for medical students, then, ______\n\nWhich choice most logically completes the text?",
+    "a": "institutions may need to provide medical students with exposure to larger numbers of artworks than have been used in previous studies.",
+    "b": "researchers must prove that scientific training alone is insufficient for developing clinical skills.",
+    "c": "medical schools should highlight more student testimonials about how arts education benefits their clinical abilities.",
+    "d": "larger-scale, multi-institutional research studies tracking outcomes for medical students over longer periods are needed."
+  }
+]

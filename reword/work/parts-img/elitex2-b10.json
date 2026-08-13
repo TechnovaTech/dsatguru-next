@@ -1,0 +1,75 @@
+[
+  {
+    "page": 91,
+    "subject": "Math",
+    "question": "f(x)=7(4)^x\n\nThe function f is defined by the given equation. If g(x)=f(x+3), which of the following equations defines the function g?",
+    "a": "g(x)=21(4)^x",
+    "b": "g(x)=448(4)^x",
+    "c": "g(x)=21(12)^x",
+    "d": "g(x)=343(64)^x"
+  },
+  {
+    "page": 92,
+    "subject": "Math",
+    "question": "For two acute angles A and B, cos A - sin B = 0. The measure of angle A is x degrees, where 8x-13= 321. What is the measure of angle B, in degrees?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 93,
+    "subject": "Math",
+    "question": "In the xy-plane, line r passes through the points (3, 15) and (7, 16). Line s passes through the point (1, 2) and is perpendicular to line r. An equation of line s is ax+7y=c, where a and c are constants. What is the value of c ?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 94,
+    "subject": "Math",
+    "question": "c(x-2)=-5(x+k)\n\nIn the given equation, c and k are constant. The equation has exactly one solution. Which of the following statements must be true?",
+    "a": "The value of c cannot be -5.",
+    "b": "The value of c cannot be -5/2.",
+    "c": "The value of k cannot be 2/5.",
+    "d": "The value of k cannot be -2."
+  },
+  {
+    "page": 95,
+    "subject": "Math",
+    "question": "38z^18 + bz^9 +30\n\nIn the given expression, b is a positive integer. If qz^9 + r is a factor of the expression, where q and r are positive integers, what is the greatest possible value of b?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 96,
+    "subject": "Math",
+    "question": "In the xy-plane, a unit circle with center at the origin O contains point A with coordinates (1, 0) and point B with coordinates (5/√34, -3/√34). If the measure of angle AOB is p radians, what is the value of cos P / sin P ?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 97,
+    "subject": "Math",
+    "question": "Data Set A\n\n| Value | Frequency |\n|-------|-----------|\n| c | 12 |\n| 2c | 21 |\n| 3c | 30 |\n\nData Set B\n\n| Value | Frequency |\n|-------|-----------|\n| c | 30 |\n| 2c | 21 |\n| 3c | 12 |\n\nThe frequency tables represent data sets A and B, where c is a negative integer constant. The mean of data set A is r and the mean of data set B is q. What is the value of r/q ?",
+    "a": "-4/3",
+    "b": "1",
+    "c": "4/3",
+    "d": "There is not enough information to determine the value of r/q."
+  },
+  {
+    "page": 98,
+    "subject": "Math",
+    "question": "In the figure shown, points A, B, C, and E lie on the circle, and AB < BC. Segment AC is perpendicular to segment BE at point D, and BD = √226. The diameter of the circle is 115. If CD/AD = r, what is the value of r?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": "",
+    "figure": true
+  }
+]

@@ -1,0 +1,93 @@
+[
+  {
+    "page": 91,
+    "qnum": 14,
+    "subject": "Math",
+    "question": "A model estimates that in a particular forest, the number of trees with any given diameter measured at shoulder height is 21% less for each 1-inch increase in tree diameter measured at shoulder height. The model can be written in the form f(x)=ab^x, where a and b are constants and x is the tree's diameter, in inches, measured at shoulder height, and x>=5. The model estimates that 3,100 trees in this forest have a diameter of 13 inches measured at shoulder height. Which function best represents this model?",
+    "a": "f(x)=3,100(0.21)^x",
+    "b": "f(x)=3,100(0.79)^x",
+    "c": "f(x)=66,000(0.21)^x",
+    "d": "f(x)=66,000(0.79)^x"
+  },
+  {
+    "page": 92,
+    "qnum": 15,
+    "subject": "Math",
+    "question": "The scatterplot shows the relationship between two variables, t and d.\n\nWhich of the following equations is the most appropriate linear model for the data shown?",
+    "a": "d=-65.1+2.02t",
+    "b": "d=165.1+2.02t",
+    "c": "d=354.8+2.02t",
+    "d": "d=389.8+2.02t",
+    "figure": true
+  },
+  {
+    "page": 93,
+    "qnum": 16,
+    "subject": "Math",
+    "question": "The function f is defined by f(x)=a^x-b, where a and b are constants. In the xy-plane, the graph of y=f(x) passes through the points (c, 7) and (2c, 117), where c is a constant. Which of the following could be the value of b?",
+    "a": "4",
+    "b": "17",
+    "c": "110",
+    "d": "124"
+  },
+  {
+    "page": 94,
+    "qnum": 17,
+    "subject": "Math",
+    "question": "The price of an item increased by p% from $64 to $68. What is the value of p?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 95,
+    "qnum": 18,
+    "subject": "Math",
+    "question": "In triangle ABC, the measure of angle A is 52 degrees and AC=35. In triangle PQR, the measure of angle P is 52 degrees and PR=105. Which additional piece of information is sufficient to prove that triangle ABC is similar to triangle PQR?",
+    "a": "AB=30 and PQ=30.",
+    "b": "AB=30 and QR=90.",
+    "c": "The measures of angle B and angle R are 34 degrees and 94 degrees, respectively.",
+    "d": "The measures of angle B and angle Q are 52 degrees and 34 degrees, respectively."
+  },
+  {
+    "page": 96,
+    "qnum": 19,
+    "subject": "Math",
+    "question": "(4/9)(4x + 9)(x + sqrt(4k + 9))(x - sqrt(4k + 9)) = 0\n\nIn the given equation, k is a positive constant. The product of the solutions to the equation is 81. What is the value of k?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 97,
+    "qnum": 20,
+    "subject": "Math",
+    "question": "4x^2 - px + w = -86\n\nIn the given equation, p and w are integer constants. The equation has exactly one real solution. Which is NOT a possible value of w?",
+    "a": "-22",
+    "b": "14",
+    "c": "25",
+    "d": "314"
+  },
+  {
+    "page": 98,
+    "qnum": 21,
+    "subject": "Math",
+    "question": "If (x-5)/4 = (x-5)/11, the value of x-5 is between which of the following pairs of values?",
+    "a": "-11 and -7",
+    "b": "-6 and -3",
+    "c": "-3 and 3",
+    "d": "4 and 6"
+  },
+  {
+    "page": 99,
+    "qnum": 22,
+    "subject": "Math",
+    "question": "The expression 6x^4+17x^2+7 can be rewritten as (3x^2+a)(2x^2+b), where a and b are positive integers, or as (3x^2+c)(2x^2+d), where c and d are positive nonintegers. What is the value of a+c?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  }
+]

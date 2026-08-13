@@ -80,6 +80,20 @@ export default function TakeTestPage() {
   // Time Tracking
   const [questionTimes, setQuestionTimes] = useState({})
 
+  // A genuine full/adaptive DSAT test's question pool spans BOTH subjects (R&W + Math);
+  // a single-subject tutor sheet does not. This is the reliable signal — the `sections`
+  // field is unreliable (some tutor sheets have it wrongly set to {math,rw}). It drives:
+  // fullscreen proctoring (isProctored), whether Module-2 adaptive routing runs (isSecureMode),
+  // and whether loadModule uses the 2-module structure vs. dumping every question.
+  const isFullAdaptiveTest = (() => {
+    const subs = new Set()
+    for (const q of (allQuestions || [])) {
+      subs.add(q?.subject === 'Math' ? 'math' : 'rw')
+      if (subs.size > 1) return true
+    }
+    return false
+  })()
+
   useEffect(() => {
     if (!loading && !checkingHistory && !showModuleSummary && !testCompleted && !showRWInstructions && !showMathInstructions && moduleQuestions.length > 0) {
       const timer = setInterval(() => {
@@ -266,7 +280,7 @@ export default function TakeTestPage() {
   // instructor-assigned tests (tutor/admin). Student self-practice ('timed'/'untimed')
   // is never force-terminated — that was the "the test ends by itself" complaint.
   useEffect(() => {
-    const isProctored = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+    const isProctored = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin' || isFullAdaptiveTest
 
     const handleVisibilityChange = async () => {
       if (isProctored && document.hidden && isFullscreen && !testCompleted && !showModuleSummary) {
@@ -342,6 +356,11 @@ export default function TakeTestPage() {
 
   const enterFullscreen = async () => {
     try {
+      // Fullscreen ONLY the test container so the dashboard nav bar (outside it) is hidden.
+      // This is called from the auto-effect once the container has mounted, while the
+      // Start click's user activation is still valid — do NOT fall back to documentElement
+      // (that reveals the nav bar) or fire a second request (that spuriously exits/re-enters
+      // fullscreen and trips the proctoring auto-submit).
       if (testContainerRef.current) {
         await testContainerRef.current.requestFullscreen()
         setIsFullscreen(true)
@@ -355,7 +374,7 @@ export default function TakeTestPage() {
   // Auto-enter fullscreen only for genuinely proctored tests (tutor/admin).
   // Self-practice runs in a normal window so a student can freely leave without penalty.
   useEffect(() => {
-    const isProctored = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+    const isProctored = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin' || isFullAdaptiveTest
     if (isProctored && !loading && !checkingHistory && !testCompleted && !showModuleSummary && moduleQuestions.length > 0 && !isFullscreen) {
       enterFullscreen()
     }
@@ -395,12 +414,19 @@ export default function TakeTestPage() {
     try {
       const token = localStorage.getItem('token')
       
-      // Step 1: Fetch Test Data and History first to determine mode
+      // Step 1: Fetch Test Data and History first to determine mode.
+      // cache:'no-store' — always pull the LATEST test (a tutor's just-saved customQuestions
+      // image/text edit must reach the student immediately; a cached response could show the
+      // old figure even after the tutor edited it).
       const [testRes, historyRes] = await Promise.all([
-        fetch(`/api/admin/tests/${testId}`, {
+        // Unique URL per load (?t=…) so the browser can never reuse a cached response —
+        // a tutor's just-saved figure must reach the student even on a soft reload.
+        fetch(`/api/admin/tests/${testId}?t=${Date.now()}`, {
+          cache: 'no-store',
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         }),
         fetch('/api/test-sessions', {
+          cache: 'no-store',
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         })
       ])
@@ -649,8 +675,12 @@ export default function TakeTestPage() {
     console.log('Test filters:', testData?.filters)
     console.log('Sample questions subjects:', questions.slice(0, 3).map(q => ({ id: q._id, subject: q.subject })))
     
-    // Check if this is a Tutor-Created Test (admin/teacher assigned test)
-    const isTutorCreatedTest = testData?.isTutorTest === true || (testData?.questions && testData.questions.length > 0)
+    // Check if this is a Tutor-Created Test (admin/teacher assigned test).
+    // A full/adaptive test whose pool spans BOTH subjects must use the 2-module structure
+    // below (27 R&W / 22 Math per module), NOT dump every question into one module — even
+    // when it is mistakenly flagged isTutorTest (e.g. "Full Practice Test" with 98 questions).
+    const poolSubjects = new Set((questions || []).map(q => (q?.subject === 'Math' ? 'math' : 'rw')))
+    const isTutorCreatedTest = poolSubjects.size <= 1 && (testData?.isTutorTest === true || (testData?.questions && testData.questions.length > 0))
     
     let filteredQuestions = []
     
@@ -679,23 +709,40 @@ export default function TakeTestPage() {
     }
     
     let selectedQuestions = []
-    
+
+    // A full/adaptive test that carries its OWN fixed question set (both subjects, pre-populated)
+    // is a LINEAR full test: split each section's questions into modules by COUNT (27 R&W / 22 Math),
+    // in order. It can't route by difficulty — the set is fixed and often lacks the exact
+    // easy/medium/hard mix a distribution needs — so no distribution is enforced here.
+    const isPrePopulatedFull = poolSubjects.size > 1 && !!(testData?.questions && testData.questions.length > 0)
+
     if (isTutorCreatedTest) {
-      // TUTOR-CREATED TEST: Use all available questions, no module structure enforcement
+      // TUTOR SHEET (single subject): use all its questions, no module structure enforcement
       console.log('Tutor-created test detected - using all available questions')
       selectedQuestions = shuffleArray(filteredQuestions)
-      
+
       if (selectedQuestions.length === 0) {
         toast.error(`No questions available for ${subject}.`)
         router.push(returnUrl)
         return
       }
+    } else if (isPrePopulatedFull) {
+      // LINEAR full practice test: Module 1 = first `questionCount`, Module 2 = next `questionCount`.
+      if (moduleNum === 1) {
+        if (section === 'rw') setShowRWInstructions(true)
+        else if (section === 'math') setShowMathInstructions(true)
+      }
+      const start = (moduleNum - 1) * questionCount
+      selectedQuestions = filteredQuestions.slice(start, start + questionCount)
+
+      if (selectedQuestions.length === 0) {
+        toast.error(`No ${subject} questions available for module ${moduleNum}.`)
+        router.push(returnUrl)
+        return
+      }
     } else {
-      // STUDENT PRACTICE TESTS: Use 2-module structure with fixed question counts
-      // Standard: 27 R&W / 22 Math per module
-      // Customize: 27 R&W / 22 Math per module
-      // Tutor Mode: 27 R&W / 22 Math per module (but shows answers immediately)
-      
+      // STANDARD/CUSTOM adaptive drawn from the bank: 2-module structure with a difficulty
+      // distribution and real Module-2 routing (the bank has enough questions per difficulty).
       if (moduleNum === 1) {
         // Module 1 - Show instructions for all modes
         if (section === 'rw') {
@@ -703,12 +750,12 @@ export default function TakeTestPage() {
         } else if (section === 'math') {
           setShowMathInstructions(true)
         }
-        
+
         // Use standard distribution for Module 1
-        const distribution = section === 'rw' 
+        const distribution = section === 'rw'
           ? { easy: 7, medium: 12, hard: 8 }  // R&W Module 1: 27 questions
           : { easy: 6, medium: 11, hard: 5 }  // Math Module 1: 22 questions
-        
+
         selectedQuestions = selectQuestionsByDistribution(filteredQuestions, distribution)
       } else {
         // Module 2 — adaptive. Prefer the SERVER-computed distribution (real Module-1 score
@@ -723,7 +770,7 @@ export default function TakeTestPage() {
         }
         selectedQuestions = selectQuestionsByDistribution(filteredQuestions, distribution)
       }
-      
+
       // Check if we have enough questions
       if (selectedQuestions.length < questionCount) {
         console.warn(`Not enough questions: need ${questionCount}, have ${selectedQuestions.length}`)
@@ -846,7 +893,7 @@ export default function TakeTestPage() {
   }
 
   const handleAutoSubmit = async (reason) => {
-    const isProctored = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+    const isProctored = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin' || isFullAdaptiveTest
 
     // First offense on a proctored test: warn once, don't submit. A single accidental
     // focus loss should never cost a student their whole test.
@@ -944,7 +991,7 @@ export default function TakeTestPage() {
 
     setModuleAnswers(prev => ({ ...prev, [moduleKey]: { answers, questionIds } }))
 
-    const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+    const isSecureMode = (test?.practiceMode === 'tutor' || test?.practiceMode === 'admin') && !isFullAdaptiveTest
 
     // Adaptive practice, end of Module 1: grade it on the SERVER so Module 2 can route on
     // the real score and honor the test's custom config. Fully defensive — any failure
@@ -986,7 +1033,7 @@ export default function TakeTestPage() {
     setEliminatedAnswers({}) // Clear eliminations for new module
     setMarkedQuestions(new Set()) // Clear marks for new module
     
-    const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+    const isSecureMode = (test?.practiceMode === 'tutor' || test?.practiceMode === 'admin') && !isFullAdaptiveTest
     if (isSecureMode) {
         // Tutor and Admin tests should not have multiple adaptive modules
         calculateFinalScore()
@@ -1017,7 +1064,7 @@ export default function TakeTestPage() {
     submittingRef.current = true
     setSaveError(false)
     // Check if we are in tutor or admin mode, if so, calculate simple score
-    const isSecureMode = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+    const isSecureMode = (test?.practiceMode === 'tutor' || test?.practiceMode === 'admin') && !isFullAdaptiveTest
     if (isSecureMode) {
         const correct = Object.keys(answers).filter(qId => {
             const q = moduleQuestions.find(mq => mq._id === qId)
@@ -1295,7 +1342,7 @@ export default function TakeTestPage() {
   }
 
   if (!isFullscreen && moduleQuestions.length === 0) {
-    const isProctored = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin'
+    const isProctored = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin' || isFullAdaptiveTest
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-6">
         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
@@ -1340,6 +1387,12 @@ export default function TakeTestPage() {
                     loadModule('rw', 1, allQuestions, test)
                   } else if (test.sections?.math) {
                     loadModule('math', 1, allQuestions, test)
+                  } else {
+                    // Tutor/admin tests are single-subject and have no `sections` object,
+                    // so neither branch above fired and the test never started. Use the
+                    // section resolved from the test's subject in fetchTestData. Fullscreen
+                    // itself is handled by the auto-effect once the container mounts.
+                    loadModule(currentSection, 1, allQuestions, test)
                   }
                   if (isProctored) enterFullscreen()
                 }}
@@ -1601,11 +1654,26 @@ export default function TakeTestPage() {
   )
 
   return (
-    <div ref={testContainerRef} className="h-screen flex flex-col bg-white">
+    <div
+      ref={testContainerRef}
+      className={`flex flex-col bg-white ${
+        // Proctored tutor/admin tests must NEVER show the site nav bar (the test would be
+        // "exposed"): render as a fixed full-viewport overlay that covers the dashboard chrome
+        // even if the browser rejects fullscreen. Standard self-practice stays a normal window
+        // (a student is allowed to leave), so it keeps h-screen.
+        (test?.practiceMode === 'tutor' || test?.practiceMode === 'admin' || isFullAdaptiveTest)
+          ? 'fixed inset-0 z-[200] overflow-y-auto'
+          : 'h-screen'
+      }`}
+    >
       {/* Top Header */}
       <div className="bg-white border-b px-6 py-3 flex flex-wrap gap-2 items-center justify-between z-50 relative">
         <div className="text-base font-bold text-gray-900">
-          Section 1, Module {currentModule}: {currentSection === 'rw' ? 'Reading and Writing' : 'Math'}
+          {/* Tutor/admin tests are single, named sheets — show the sheet's real title, not the
+              generic SAT "Section 1, Module N" label (which only fits standard practice tests). */}
+          {(test?.practiceMode === 'tutor' || test?.practiceMode === 'admin' || test?.isTutorTest)
+            ? (test?.title || 'Tutor Test')
+            : `Section 1, Module ${currentModule}: ${currentSection === 'rw' ? 'Reading and Writing' : 'Math'}`}
         </div>
         {/* Show timer for timed tests (including timed tutor tests) */}
         {!(test?.practiceMode === 'untimed' || (test?.practiceMode === 'tutor' && (!test?.duration || test.duration === 0))) && (
@@ -2698,7 +2766,12 @@ export default function TakeTestPage() {
                     This is your one warning. If you leave the test window again, your test will be submitted automatically.
                   </p>
                   <button
-                    onClick={() => setShowAutoSubmitModal(false)}
+                    onClick={() => {
+                      setShowAutoSubmitModal(false)
+                      // Re-enter fullscreen from this click (a real user gesture) so a proctored
+                      // test doesn't stay windowed with the site nav bar after the warning.
+                      if (test?.practiceMode === 'tutor' || test?.practiceMode === 'admin' || isFullAdaptiveTest) enterFullscreen()
+                    }}
                     className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700"
                   >
                     Return to Test

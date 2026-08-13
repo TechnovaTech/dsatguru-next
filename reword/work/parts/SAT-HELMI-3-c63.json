@@ -1,0 +1,62 @@
+[
+  {
+    "i": 1240,
+    "question": "Which of the following is equivalent to the expression (3x + 7)² − (x − 6)?",
+    "option a": "9x² + 41x + 43",
+    "option b": "9x² + 41x + 55",
+    "option c": "9x² − x + 43",
+    "option d": "9x² − x + 55",
+    "correct answer": "B",
+    "difficulty": "Hard",
+    "subject": "Math",
+    "tags": "",
+    "shortexplanation": "Expanding (3x + 7)² gives 9x² + 42x + 49, and subtracting (x − 6) yields 9x² + 41x + 55.",
+    "longexplanation": "",
+    "remark": "SAT HELMI 3"
+  },
+  {
+    "i": 1241,
+    "question": "The xy-plane above displays a line segment. Suppose line ℓ, which is not drawn, is perpendicular to that segment and goes through the point (0, 4). Which of the following equations represents line ℓ?",
+    "option a": "−9x + 7y = 28",
+    "option b": "9x + 7y = 28",
+    "option c": "−7x + 9y = 36",
+    "option d": "7x + 9y = 36",
+    "correct answer": "A",
+    "difficulty": "Hard",
+    "subject": "Math",
+    "tags": "",
+    "shortexplanation": "The line perpendicular to the segment and passing through (0, 4) corresponds to −9x + 7y = 28.",
+    "longexplanation": "",
+    "remark": "SAT HELMI 3"
+  },
+  {
+    "i": 1242,
+    "question": "x | f(x)\n1 | −55\n2 | 0\n3 | 55\n\nThe table lists three input values of x alongside their outputs for the linear function f. This function is given by f(x) = ax + b, where a and b are constants. What does a − b equal?",
+    "option a": "−55",
+    "option b": "53",
+    "option c": "110",
+    "option d": "165",
+    "correct answer": "D",
+    "difficulty": "Hard",
+    "subject": "Math",
+    "tags": "",
+    "shortexplanation": "The slope a = 55 and the intercept b = −110, so a − b = 55 − (−110) = 165.",
+    "longexplanation": "",
+    "remark": "SAT HELMI 3"
+  },
+  {
+    "i": 1243,
+    "question": "Triangle ABC is isosceles with AB congruent to AC. A point D on side BC is placed so that BD measures 3/7 of BC. Point E is on side AB and point F is on side AC, and segments DE and DF are drawn so that angle BED is congruent to angle CFD. Given that BE = 9, find the length of CF.",
+    "option a": "12",
+    "option b": "21",
+    "option c": "27",
+    "option d": "63",
+    "correct answer": "A",
+    "difficulty": "Hard",
+    "subject": "Math",
+    "tags": "",
+    "shortexplanation": "By the similar triangles formed, CF = BD·CD / BE relationships give CF = 12.",
+    "longexplanation": "",
+    "remark": "SAT HELMI 3"
+  }
+]

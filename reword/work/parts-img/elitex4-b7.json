@@ -1,0 +1,104 @@
+[
+  {
+    "page": 61,
+    "qnum": 7,
+    "subject": "Math",
+    "question": "There are 950 objects in a bag. Of these objects, 6% are cubes. How many cubes are in the bag?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 62,
+    "qnum": 8,
+    "subject": "Math",
+    "question": "During hibernation, American black bears do not eat or replenish calories. A certain black bear weighed 322 pounds when entering hibernation and lost weight at a rate of 0.7 pound per day. At this rate, how many days after entering hibernation did the black bear weigh 280 pounds?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 63,
+    "qnum": 9,
+    "subject": "Math",
+    "question": "The length of a side of square X is 9 centimeters. The area of rectangle Y is 24 square centimeters. What is the total area, in square centimeters, of square X and rectangle Y?",
+    "a": "66",
+    "b": "81",
+    "c": "105",
+    "d": "129"
+  },
+  {
+    "page": 64,
+    "qnum": 10,
+    "subject": "Math",
+    "question": "Which expression is equivalent to (133y)^(1/2), where y>1?",
+    "a": "133 · √y",
+    "b": "√133 · y",
+    "c": "√(133y)",
+    "d": "√((133y)^2)"
+  },
+  {
+    "page": 65,
+    "qnum": 11,
+    "subject": "Math",
+    "question": "A company opens an account with an initial balance of $35,600.00. The account earns interest, and no additional deposits or withdrawals are made. The account balance is given by an exponential function A, where A(t) is the account balance, in dollars, t years after the account is opened. The account balance after 15 years is $129,672.38. Which equation could define A?",
+    "a": "A(t)=35,600.00(1.09)^t",
+    "b": "A(t)=35,600.00(0.09)^t",
+    "c": "A(t)=94,072.38(1.09)^t",
+    "d": "A(t)=94,072.38(0.09)^t"
+  },
+  {
+    "page": 66,
+    "qnum": 12,
+    "subject": "Math",
+    "question": "y=-18x+22\ny=-26x+30\nWhat is the solution (x, y) to the given system of equations?",
+    "a": "(1, 4)",
+    "b": "(22, 30)",
+    "c": "(30, 22)",
+    "d": "(4, 1)"
+  },
+  {
+    "page": 67,
+    "qnum": 13,
+    "subject": "Math",
+    "question": "b - 49 = x/y\nThe given equation relates the positive numbers b, x, and y. Which equation correctly expresses x in terms of b and y ?",
+    "a": "x = (by - 49)/y",
+    "b": "x = by - 49y",
+    "c": "x = by - 49",
+    "d": "x = (b - 49)/y"
+  },
+  {
+    "page": 68,
+    "qnum": 14,
+    "subject": "Math",
+    "question": "Triangle ABC and A'B'C' are shown. Triangle ABC is dilated by a scale factor of 6 to form triangle A'B'C'. If the length of AB is 18, what is the length of A'B' ?",
+    "a": "3",
+    "b": "6",
+    "c": "24",
+    "d": "108",
+    "figure": true
+  },
+  {
+    "page": 69,
+    "qnum": 15,
+    "subject": "Math",
+    "question": "In the xy-plane, which of the following does NOT contain any points that are part of the solution set to 2x-6y>12?",
+    "a": "The region where x<0 and y>0",
+    "b": "The region where x<0 and y<0",
+    "c": "The region where x>0 and y>0",
+    "d": "The x-axis"
+  },
+  {
+    "page": 70,
+    "qnum": 16,
+    "subject": "Math",
+    "question": "Circle A shown is defined by the equation x^2+(y-5)^2=7. Circle B (not shown) has the same radius but is translated 91 units to the right. If the equation of circle B is (x-h)^2+(y-k)^2=a, where h, k, and a are constants, what is the value of 4a?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": "",
+    "figure": true
+  }
+]

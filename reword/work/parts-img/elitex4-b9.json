@@ -1,0 +1,102 @@
+[
+  {
+    "page": 81,
+    "qnum": 5,
+    "subject": "Math",
+    "question": "A marine biologist uses a linear model to estimate the weight of a blue whale after it is born. The model estimates that a certain blue whale weighs 5,710 pounds at birth and gains 10.0 pounds per hour, for 120 hours, after it is born. Based on this model, what is the estimated weight, in pounds, of this blue whale 7 hours after it is born?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 82,
+    "qnum": 6,
+    "subject": "Math",
+    "question": "Scientists collected fallen acorns that each housed a colony of the ant species P. ohioensis and analyzed each colony's structure. For any of these colonies, if the colony has x worker ants, the equation y=0.67x+2.6, where 20≤x≤110, gives the predicted number of larvae, y, in the colony. If one of these colonies has 39 worker ants, which of the following is closest to the predicted number of larvae in the colony?",
+    "a": "29",
+    "b": "42",
+    "c": "54",
+    "d": "128"
+  },
+  {
+    "page": 83,
+    "qnum": 7,
+    "subject": "Math",
+    "question": "R = 0.48l / A\n\nThe given equation relates the resistance R, in ohms, of a wire to its length l, in meters, and its cross-sectional area A, in square meters. Which equation correctly expresses the length, in meters, of the wire in terms of its resistance, in ohms, and its cross-sectional area, in square meters?",
+    "a": "l = AR / 0.48",
+    "b": "l = 0.48R / A",
+    "c": "l = (R+A) / 0.48",
+    "d": "l = (R-A) / 0.48"
+  },
+  {
+    "page": 84,
+    "qnum": 8,
+    "subject": "Math",
+    "question": "Cube B has a volume of 125 cubic inches. The length of each edge of cube A is k times the length of each edge of cube B. If cube A has a volume of 3,375 cubic inches, what is the value of k?",
+    "a": "27",
+    "b": "3",
+    "c": "25",
+    "d": "5"
+  },
+  {
+    "page": 85,
+    "qnum": 9,
+    "subject": "Math",
+    "question": "h(t) = -16t^2 + b\n\nThe function h estimates an object's height, in feet, above the ground t seconds after the object is dropped, where b is a constant. The function estimates that the object is 2.56 feet above the ground when it is dropped at t=0. How many seconds after being dropped does the function estimate the object will hit the ground?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 86,
+    "qnum": 10,
+    "subject": "Math",
+    "question": "The equation\n\nh = 9(v - 273.15) / 5 + 32\n\ngives the corresponding temperature h, in degrees Fahrenheit, of any substance that has a temperature of v kelvins, where v>0. If a substance has a temperature of 809.33 degrees Fahrenheit, what is the corresponding temperature, in kelvins, of this substance?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 87,
+    "qnum": 11,
+    "subject": "Math",
+    "question": "The function\n\nf(x) = (1/7)(x - 6)^2 + 4\n\ngives a toy car's height above the ground f(x), in inches, x seconds after it started moving on an elevated track, where 0≤x≤10. Which of the following is the best interpretation of the vertex of the graph of y=f(x) in the xy-plane?",
+    "a": "The toy car's minimum height was 4 inches above the ground.",
+    "b": "The toy car's minimum height was 6 inches above the ground.",
+    "c": "The toy car's height was 4 inches above the ground when it started moving.",
+    "d": "The toy car's height was 6 inches above the ground when it started moving."
+  },
+  {
+    "page": 88,
+    "qnum": 12,
+    "subject": "Math",
+    "question": "A number x is less than 8 more than 1/2 times the value of a number y. If y is an integer and x = 17, what is the least possible value of y?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 89,
+    "qnum": 13,
+    "subject": "Math",
+    "question": "(x + k) + (9/2)(y + t) + 19 = 0\n(x + k) - (9/2)(y + t) - 19 = 0\n\nIn the given system of equations, k and t are constants. The solution to this system is (x, y). What is the value of 18(y+t)?",
+    "a": "-76",
+    "b": "0",
+    "c": "38",
+    "d": "9"
+  },
+  {
+    "page": 90,
+    "qnum": 14,
+    "subject": "Math",
+    "question": "In the equation\n\nx^2 + (√k - 3)x + 42 = 0\n\nk is a constant. The equation has exactly one real solution. What is the value of k?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  }
+]

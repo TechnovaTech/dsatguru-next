@@ -1,0 +1,102 @@
+[
+  {
+    "page": 81,
+    "qnum": 5,
+    "subject": "Math",
+    "question": "Circle K has a radius of 2 millimeters (mm). Circle L has an area of 144π mm^2. What is the total area, in mm^2, of circles K and L?",
+    "a": "14π",
+    "b": "28π",
+    "c": "56π",
+    "d": "148π"
+  },
+  {
+    "page": 82,
+    "qnum": 6,
+    "subject": "Math",
+    "question": "y = 6x + 16\n-7x - y = 36\n\nWhat is the solution (x, y) to the given system of equations?",
+    "a": "(-4, -8)",
+    "b": "(-20/13, -80/13)",
+    "c": "(4, 40)",
+    "d": "(20, 136)"
+  },
+  {
+    "page": 83,
+    "qnum": 7,
+    "subject": "Math",
+    "question": "James purchased a certain baseball card on January 1. The function f(x)=85(1.04)^x, where 0 ≤ x ≤ 10, gives the predicted value, in dollars, of the baseball card x years after James purchased it. What is the best interpretation of the statement \"f(8) is approximately equal to 116\" in this context?",
+    "a": "When the baseball card's predicted value is approximately 116 dollars, it is 8% greater than the predicted value, in dollars, on January 1 of the previous year.",
+    "b": "When the baseball card's predicted value is approximately 116 dollars, it is 8 times the predicted value, in dollars, on January 1 of the previous year.",
+    "c": "From the day James purchased the baseball card to 8 years after James purchased the card, its predicted value increased by a total of approximately 116 dollars.",
+    "d": "8 years after James purchased the baseball card, its predicted value is approximately 116 dollars."
+  },
+  {
+    "page": 84,
+    "qnum": 8,
+    "subject": "Math",
+    "question": "How many solutions does the equation 7(x+12)+5x=12(x+7) have?",
+    "a": "Exactly one",
+    "b": "Exactly two",
+    "c": "Infinitely many",
+    "d": "Zero"
+  },
+  {
+    "page": 85,
+    "qnum": 9,
+    "subject": "Math",
+    "question": "f(x) = -(x - 6)^2 + 4\n\nThe function f is defined by the given equation. For what value of x does f(x) reach its maximum?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 86,
+    "qnum": 10,
+    "subject": "Math",
+    "question": "In the xy-plane, an equation of circle A is (x-2)^2+(y-3)^2=9. Circle B has the same center as circle A but has a radius that is twice the radius of circle A. Which equation represents circle B?",
+    "a": "(x-2)^2+(y-3)^2=18",
+    "b": "(x-2)^2+(y-3)^2=36",
+    "c": "(x-2)^2+(y-3)^2=54",
+    "d": "(x-2)^2+(y-3)^2=81"
+  },
+  {
+    "page": 87,
+    "qnum": 11,
+    "subject": "Math",
+    "question": "The function f is a quadratic function where f(-20)=0 and f(-4)=0. The graph of y=f(x) in the xy-plane has a vertex at (r, -64). What is the value of r?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 88,
+    "qnum": 12,
+    "subject": "Math",
+    "question": "In a collection of items, 10% are red, 25% are green, 35% are blue, and 30% are yellow. If there are 40 green items, how many blue items are in the collection?",
+    "a": "14",
+    "b": "16",
+    "c": "48",
+    "d": "56"
+  },
+  {
+    "page": 89,
+    "qnum": 13,
+    "subject": "Math",
+    "question": "(x+k)^2+37=37\n\nIn the given equation, k is a constant. How many distinct real solutions does this equation have?",
+    "a": "Zero",
+    "b": "Exactly one",
+    "c": "Exactly two",
+    "d": "Infinitely many"
+  },
+  {
+    "page": 90,
+    "qnum": 14,
+    "subject": "Math",
+    "question": "x(9x - 2a) + b(9x - 2a) - (x + b) = 0\n\nIn the given equation, a and b are positive constants. A solution to the equation is x=42. What is the value of a?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  }
+]

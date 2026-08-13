@@ -1,0 +1,1005 @@
+Section: Section 2, Module 1: Math, Difficulty: unknown (316 questions)
+5374. Which expression is equivalent to 16(x2 - 6)? A. 16x2 + 10 B. 16x2 - 6 C. 16x2 - 22 D. 16x2 - 96
+Answer: D
+
+5375. A jar has 690 marbles, and 20% of these marbles are orange. How many marbles in the jar are orange? A. 138 B. 276 C. 345 D. 670
+Answer: A
+5381. 33(k+2)
+3(k+2)
+The given expression is equivalent to c, where c is a constant and k > -2. What is the value of c?
+Answer: 11
+
+5383. If 7(2x + 4) = 5(2x + 4) + 56, what is the value of 2x + 4? A. 56 B. 28 C. 24 D. 12
+Answer: B
+
+5390. 2x + 4y = 8
+How many solutions does the given system of equations have? A. Exactly one B. Exactly two C. Infinitely many D. Zero Answer: C
+
+6x + 12y = 24
+
+5521. If 7x + 5 = 47, what is the value of 70x + 50? A. 6 B. 60 C. 120 D. 470
+Answer: D
+
+5525. 3x = 6 + 7y -3x = 2 + 7y
+The solution to the given system of equations is (x, y). What is the value of 6x?
+Answer: 4
+
+5532. (x - 15)(x - 4) = 0
+Which value is a solution to the given equation?
+A. 0 B. 15 C. 19 D. 60
+Answer: B
+
+5538. For the linear function f, f(4) = 17 and f(8) = 1. Which equation defines f?
+
+A.
+
+f(x)
+
+=
+
+-
+
+1 4
+
+x
+
++
+
+18
+
+B. f(x) =
+
+1 4
+
+x
+
+-
+
+1
+
+C. f(x) = -4x + 21
+
+D. f(x) = -4x + 33
+
+Answer: D
+
+5541.
+
+1 x2 - 7x + k
+3
+
+=
+
+5
+
+In the given equation, k is a constant. A solution to the equation is 21 - 373 . What is the value of k?
+
+2
+
+2
+
+A. 13
+
+B. 5
+
+C. -13
+
+D. -18
+
+Answer: C
+
+5669. If 7x + 6 = 62, what is the value of 70x + 60? A. 620 B. 130 C. 80 D. 8
+Answer: A
+
+5673. In F GH, the measures of F and G are each 41�. What is the measure of H? A. 139� B. 131� C. 98� D. 82�
+Answer: C
+
+5674. The scatterplot shows the relationship between two variables, x and y.
+
+Which of the following equations is the most appropriate linear model for the data shown?
+A. y = -0.80x B. y = 89.87x C. y = 0.80 + 89.87x D. y = 89.87 + 0.80x
+Answer: D
+5678. p(x) = 158 - 4x The function p shown gives the number of blank sheets of paper, p(x), remaining in a printer x days after the printer had been loaded with paper. Which statement is the best interpretation of p(8) = 126? A. The number of blank sheets of paper remaining in the printer decreased by a total of 8 sheets after 126 days. B. There were 8 blank sheets of paper remaining in the printer 126 days after the printer had been loaded with paper. C. There were 126 blank sheets of paper remaining in the printer 8 days after the printer had been loaded with paper. D. The number of blank sheets of paper remaining in the printer decreased by a total of 126 sheets after 8 days.
+Answer: C
+5683. The equation y = -4.9(x - 8.7)2 + 11,900 gives the estimated height above ground, y, in meters, of a plane, where x is the number of seconds since it
+started a parabolic maneuver. If this equation is graphed in the xy-plane, which of the following is the best interpretation of the vertex of the graph?
+A. The plane reached an estimated maximum height of 8.7 meters 11,900 seconds after it started the parabolic maneuver. B. The plane reached an estimated maximum height of 4.9 meters 11,900 seconds after it started the parabolic maneuver. C. The plane reached an estimated maximum height of 11,900 meters 8.7 seconds after it started the parabolic maneuver. D. The plane reached an estimated maximum height of 11,900 meters 4.9 seconds after it started the parabolic maneuver.
+Answer: C
+5688. The function f is defined by f(x) = 57(0.18)x. For any positive integer n, the value of f(n) is p% less than the value of f(n - 1). What is the value of p? A. 18 B. 43 C. 57 D. 82
+Answer: D
+5816. The function f(x) = 44.10 - 0.22x gives a person's estimated grip strength, in kilograms, x years after the person's grip strength was first measured. Based on the function, what is this person's estimated grip strength, in kilograms, 31.50 years after the person's grip strength was first measured? A. 12.38 B. 37.17 C. 44.10 D. 51.03
+Answer: B
+5818. The function g is defined by g(x) = x + 800. What is the value of g(x) when x = 36? A. 6 B. 800 C. 806 D. 836
+Answer: C
+5820. If 16x = 11x + 15, what is the value of 6x?
+Answer: 18
+5821.
+
+In rectangle P QRS, the length of line segment QS is 3,560 and the length of side P S is 8 more than the length of side RS. What is the length of side QR?
+Answer: 46
+
+5827. Data set J: 14, 14, 15, 15, 16, 17, 17, 18, 18 Data set K: 14, 16, 16, 16, 16, 16, 16, 16, 18
+The lists give the values in data sets J and K. Which of the following statistics is greater for data set J than it is for data set K? A. Mean B. Median C. Range D. Standard deviation
+Answer: D
+
+5829. If k(x+4) + x+4 - 1 = 4, where k is a positive constant, what is the value of (5k + 4)(x + 4)?
+
+12
+
+15
+
+A. 180
+
+B. 300
+
+C. 720
+
+D. 900
+
+Answer: B
+
+5831.
+xy -12 150 -6 102
+66 12 -42
+The table shows four values of x and their corresponding values of y. There is a linear relationship between x and y. Which of the following equations represents this
+relationship?
+A. 48x + 6y = 54 B. 48x + 6y = 324 C. 6x + 48y = 54 D. 6x + 48y = 324
+Answer: B
+
+5962. An object's average acceleration, in meters per second squared, is the change in the object's speed, in meters per second, divided by the time during which
+the change occurred, in seconds. A certain object's speed changes by 10 meters per second in 8 seconds. What is this object's average acceleration, in meters per
+second squared, during this time period?
+A. 0.8 B. 1.25 C. 2 D. 18
+Answer: B
+
+5963. Which expression is equivalent to 7x2 + 3x? A. x(7x + 3) B. 3x(7x + 1) C. 7x(x + 3) D. x2(7x + 3)
+Answer: A
+
+5964. Two sets of blocks include both wood-finish and painted blocks. The table summarizes the types of blocks in each set.
+
+Set
+A B Total
+
+Wood-finish blocks Painted blocks
+
+4
+
+8
+
+14
+
+5
+
+18
+
+13
+
+Total
+12 19 31
+
+If one of these blocks is selected at random, what is the probability of selecting a wood-finish block that is in set A? (Express your answer as a decimal or fraction, not as a percent.)
+
+Answer: 0.129
+
+5969. A square has a side length of 54 inches. What is the area, in square inches, of the square? A. 2,916 B. 216 C. 108 D. 54
+Answer: A
+
+6113. y
+10
+
+8
+
+6
+
+4
+
+2
+
+x
+
+O
+
+2 4 6 8 10 12
+
+2
+
+4
+
+6
+
+The graph shows three points. What is the area, in square units, of the triangle defined by the three points?
+A. 29 B. 58 C. 108 D. 116
+
+Answer: A
+
+6116. A square has a side length of 44 inches. What is the area, in square inches, of the square? A. 1,936 B. 176 C. 88 D. 44
+Answer: A
+
+6123. If k(x+3) + x+3 - 1 = 3, where k is a positive constant, what is the value of (7k + 5)(x + 3)?
+
+15
+
+21
+
+A. 210
+
+B. 420
+
+C. 945
+
+D. 1,260
+
+Answer: B
+
+Number of pumpkins sold each day
+
+Section: Section 2, Module 2: Math, Difficulty: easy (277 questions)
+104. The owner of a pumpkin patch recorded the number of pumpkins sold each day during a four-day period in the fall. If the number of pumpkins sold increased each day, which of the following line graphs could represent the number of pumpkins sold during this four-day period? A.
+30
+20
+10
+0 Day D 1 ay D 2 ay D 3 ay 4
+
+Number of pumpkins sold each day
+
+B.
+30 20 10
+0 Day D 1 ay D 2 ay D 3 ay 4
+
+Number of pumpkins sold each day
+
+C.
+30 20 10
+0 Day D 1 ay D 2 ay D 3 ay 4
+
+D.
+
+Number of pumpkins sold each day
+
+30 20 10
+0 Day D 1 ay D 2 ay D 3 ay 4
+Answer: D 105.
+
+The graph shows the estimated balance of a bank account, in dollars, x years after an initial deposit is made. According to the graph, which of the following is closest to the number of years it took for the estimated balance to increase from the initial deposit to 125 dollars? A. 0 B. 8 C. 100 D. 125
+Answer: B
+106. Bella has read 130 pages of a 180-page book. On average, she reads 1 page every minute. At this rate, how much time, in minutes, will she spend reading the
+remaining pages of the book? Answer: 50
+107. For a psychology class, a student's research paper needs to have no more than 5,000 words. If a student has already written 3,029 words, what is the maximum
+number of additional words the student can write for the research paper?
+A. 8,029 B. 5,000 C. 3,029 D. 1,971
+Answer: D
+108.
+In the triangle shown, P Q = QR. What is the value of x? A. 159 B. 69 C. 42 D. 21
+Answer: D
+109. What value of p is the solution to the equation p - 24 = 1?
+A. 124
+B. 23 C. 24 D. 25
+Answer: D
+110. The equation d = 22w + 100 gives the total amount of money d, in dollars, that James plans to save w weeks after he starts to save. What is the total amount of money, in dollars, he plans to save in 10 weeks? A. 270 B. 320 C. 370 D. 420
+Answer: B
+111. In the xy-plane, the graph of the equation y = 6x is translated 3 units down. What is an equation of the resulting graph? A. y = 6x + 3 B. y = 6x - 3 C. y = 6(x+3) D. y = 6(x-3)
+Answer: B
+112. x2 - 3 = 22
+Which value is a solution to the given equation?
+A. -22 B. -19 C. -3 D. 5
+Answer: D
+113. x + y = 105 x + y + y = 195
+The solution to the given system of equations is (x, y). What is the value of y?
+Answer: 90
+114.
+
+What is an equation of the graph shown?
+A. y = 4-x + 3 B. y = 4x + 3 C. y = 4-x + 2 D. y = 4x + 2
+Answer: D
+
+115. Data set A: 1, 1, 1, 4, 4, 7, 10, 10, 13, 13, 13 Data set B: 1, 4, 4, 7, 7, 7, 7, 7, 10, 10, 13
+Data set A and data set B each have 11 values. Which of the following statements best compares the median of data set A and the median of data set B?
+A. The median of data set A is greater than the median of data set B. B. The median of data set A is less than the median of data set B. C. The medians of data sets A and B are equal. D. There is not enough information to compare the medians.
+Answer: C
+
+116. In triangle RST , RS = ST and the length of RT is 76 units. If tan R = 398 , what is the area, in square units, of triangle RST ? A. 722 B. 684 C. 342 D. 171
+Answer: C
+
+117. The function f is defined by f(x) =
+
+1 3x
+
+.
+
+What
+
+is
+
+the
+
+value
+
+of
+
+f(x)
+
+when
+
+x
+
+=
+
+8?
+
+Answer: 1/24
+
+118. The function f
+
+is defined by f(x)
+
+=
+
+2x -
+
+1 7
+
+.
+
+What
+
+is
+
+the
+
+y-intercept
+
+of
+
+the
+
+graph
+
+of
+
+y
+
+=
+
+f(x) in the xy-plane?
+
+A.
+
+(0,
+
+-
+
+1 7
+
+)
+
+B. (0, -2)
+
+C. (0, 2)
+
+D. (0, 7)
+
+Answer: A
+
+119. A line in the xy-plane has a slope of 0 and passes through the point (7, 3). Which equation represents this line? A. y = 3 B. y = 7 C. y = 3x D. y = 7x
+Answer: A
+120. The expression 10x3 + 50 is equivalent to k(x3 + 5), where k is a constant. What is the value of k?
+Answer: 10
+
+121. Sonja purchased a laptop in September 2018 when the laptop had a value of $1,000. Each month for the next 50 months, the value of the laptop decreased by 3% of the previous month's value. Which equation represents this situation, where v is the value of the laptop, in dollars, m is the number of months since Sonja purchased the laptop, and m  50? A. v = 2,018(0.97)m B. v = 2,018(3)m C. v = 1,000(0.97)m D. v = 1,000(3)m
+Answer: C
+
+122. p(x) = 145 - 3x The function p shown gives the number of blank sheets of paper, p(x), remaining in a printer x days after the printer had been loaded with paper. Which statement is the best interpretation of p(5) = 130? A. The number of blank sheets of paper remaining in the printer decreased by a total of 5 sheets after 130 days. B. There were 5 blank sheets of paper remaining in the printer 130 days after the printer had been loaded with paper. C. There were 130 blank sheets of paper remaining in the printer 5 days after the printer had been loaded with paper. D. The number of blank sheets of paper remaining in the printer decreased by a total of 130 sheets after 5 days.
+Answer: C
+
+123.
+
+The function f is defined by f(x) = ax+b + k, where a, b, c, and k are constants. The graph of y = f(x) is shown. For how many values of x does f(x) = 0?
+x+c
+A. Three B. Two C. One D. Zero Answer: C 124.
+Triangle XY Z shown is a right triangle. Which of the following has the same value as sin X? A. tan X B. tan Y C. cos X D. cos Y
+Answer: D
+125. What is the radius of the circle in the xy-plane defined by (x + 4)2 + (y + 6)2 = 289?
+Answer: 17
+251. What is 50% of 480? A. 720 B. 480 C. 240 D. 48
+Answer: C 253.
+
+What is the y-intercept of the graph shown?
+A. (0, - 1 )
+9
+B. (0, 9) C. (0, 0) D. (0, 1 )
+9
+Answer: B
+
+255. 32x + 31y = c 31x - 32y = c
+In the given system of equations, c is a positive constant. Which of the following could be the point where the graphs of the equations in this system intersect in the
+xy-plane?
+A. (c, 0) B. (c, c )
+63
+C. (10, 630) D. (10, - 10 )
+63
+Answer: D
+
+256. During a 6-day period, a weather station recorded a total of 2.3 inches of rain and snow. During this period, the weather station recorded r inches of rain and s
+inches of snow. Which equation represents this situation?
+A. r + s = 2.3 B. r - s = 2.3 C. s - r = 2.3 D. rs = 2.3
+Answer: A
+
+257. y = 7x + 14 One of the two equations in a system of linear equations is given. The system has infinitely many solutions. If the second equation in this system is y = mx + b, where m and b are constants, what is the value of b?
+Answer: 14
+
+258. A rectangle has a length of 35 inches and a width of 1 inch. What is the area, in square inches, of the rectangle?
+Answer: 35
+
+259. A ball is thrown up into the air from an initial height of 9 feet. It reaches a maximum height of 13 feet 0.5 seconds after it is thrown. Which graph best models this situation, where x is the time, in seconds, after the ball was thrown and y is the height of the ball, in feet, above the ground?
+
+A.
+
+y
+
+22
+
+20
+
+18
+
+16
+
+14
+
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+
+x
+
+O
+
+1
+
+2
+
+B.
+
+y
+
+22
+
+20
+
+18
+
+16
+
+14
+
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+
+x
+
+O
+
+1
+
+2
+
+C.
+
+y
+
+22
+
+20
+
+18
+
+16
+
+14
+
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+
+x
+
+O
+
+1
+
+2
+
+D.
+
+y
+
+22
+
+20
+
+18
+
+16
+
+14
+
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+
+x
+
+O
+
+1
+
+2
+
+Answer: C
+
+260. s = 20 + 2t The equation gives the speed s, in miles per hour, of a certain car t seconds after it began to accelerate. What is the speed, in miles per hour, of the car 5 seconds
+after it began to accelerate?
+A. 20 B. 22 C. 25 D. 30
+Answer: D
+
+261. x2 - 7 = 29
+Which value is a solution to the given equation?
+A. -29 B. -22 C. -7 D. 6
+Answer: D
+
+262. Triangle ABC is similar to triangle DEF , where angle A corresponds to angle D, and angles C and F are right angles. If cos B =
+
+1 , what is the value of
+53
+
+cos E?
+
+A. 1
+53
+
+B. 154
+
+C. 52
+53
+
+D. 5354
+
+Answer: A
+
+264. A sample was selected at random from a population. Based on the sample, it is estimated that the mean value of a variable for this population is 133, with an associated margin of error of 1.5. Based on the estimate and associated margin of error, which of the following best describes the range of plausible values for the
+population mean?
+A. Any value between 130 and 133 B. Any value between 131.5 and 134.5 C. Any value less than 131.5 D. Any value greater than 134.5
+Answer: B
+
+265. v(t) = 3t + 60 The function v gives the volume of water, in liters, in a tank being filled by a hose t minutes after the hose was turned on. Which of the following is the best interpretation of 60 in this context? A. The volume of water in the tank increases at a rate of 60 liters per minute. B. The tank holds a maximum of 60 liters. C. It takes 60 hours to fill the tank completely. D. There were 60 liters of water in the tank when the hose was turned on.
+Answer: D
+
+266. The expression 6(9x + 16)(x - 5) - (4x + 17) can be written in the form ax2 + bx + c, where a, b, and c are constants. What is the value of b?
+Answer: -178
+
+267. Which expression is equivalent to 4x3 + 48x2y + xy2 + 12y3? A. (4x2 + 12y)(x + y2) B. (4x2 + y2)(x + 12y) C. (4x3 + y2)(x2 + 12y3) D. (4x3 + y3)(x + 12y)
+Answer: B
+
+268.
+
+In the figure shown, lines  and k are parallel and line t intersects both lines. If x > 112, which of the following must be true? A. y < 68 B. y > 68 C. x + y < 180 D. x + y > 180
+Answer: A
+269. 15, 19, 28, 9, 7, 14, 19, 17, 18 The list gives the low temperatures, in degrees Fahrenheit, for 9 days in December in a certain city. According to the list, what is the median low temperature, in degrees Fahrenheit, for these 9 days?
+
+Answer: 17
+
+270. Line t in the xy-plane has a slope of
+
+1 3
+
+and passes through the point (15, -6). Which equation defines line t?
+
+A. y
+
+=
+
+-11x +
+
+1 3
+
+B. y = x - 11
+3
+
+C. y = x - 6
+3
+
+D. y = 15x - 6
+
+Answer: B
+
+271. In the xy-plane, which of the following does NOT contain any points that are part of the solution set to 7x - 4y > 28? A. The region where x < 0 and y > 0 B. The region where x < 0 and y < 0 C. The region where x > 0 and y > 0
+D. The x-axis
+Answer: A
+
+272. How many solutions does the equation 5(x + 13) + 8x = 13(x + 5) have?
+A. Exactly one B. Exactly two C. Infinitely many D. Zero
+Answer: C
+
+398. What is 50% of 420? A. 630 B. 420 C. 210 D. 42
+Answer: C
+
+400. A factory produces identical objects at a constant rate of 44 objects per minute. At what rate, in objects per hour, does the factory produce the objects?
+Answer: 2640
+
+402. x + y = 300 The given equation relates the total number of bur oak trees, x, and the total number of other oak trees, y, planted in a 12-acre forest preserve. If 270 bur oak trees
+were planted in the forest preserve, how many other oak trees were planted in the forest preserve?
+A. 270 B. 30 C. 25 D. 12
+Answer: B
+
+403. f(x) = 11x10 + 2x8 g(x) = -14x7 + 9x5
+The polynomial p(x) is defined as the product of the given polynomials, f(x) and g(x). What is the coefficient of x15 in p(x)? A. 15 B. 71 C. 99 D. 127
+Answer: B
+407. Q = M
+53
+The given equation relates the quantities M and Q. Which equation correctly expresses M in terms of Q? A. M = Q
+53
+B. M = 53Q C. M = Q + 53 D. M = Q - 53
+Answer: B
+
+408. For a project, Kayla recorded the heights of 21 people in her neighborhood. The histogram summarizes the heights, in inches (in), of these 21 people in Kayla's neighborhood. The first bar represents people with a height of at least 51 in but less than 54 in. The second bar represents people with a height of at least 54 in but less than 57 in, and so on.
+
+How many of these 21 people in Kayla's neighborhood had a height of at least 51 in but less than 57 in?
+Answer: 8
+
+409. Which measure, in radians, is equivalent to (47  180)�? A. 47 B.  + 47 C. - 47 D.  - 47
+Answer: A
+
+410. The measures of the interior angles of triangle ABC are 26�, 52�, and x�. What is the value of x? A. 26 B. 78 C. 102 D. 180
+Answer: C
+
+411. r + g < 36 For which of the following tables are all the values of r and their corresponding values of g solutions to the given inequality?
+A.
+rg 0 31 2 33 4 35
+B.
+rg 0 31 2 35 4 33
+C.
+rg 0 33 2 35 4 31
+D.
+rg 0 35 2 33 4 31
+Answer: D
+413. 54(k+4)
+6(k+4)
+The given expression is equivalent to c, where c is a constant and k > -4. What is the value of c?
+Answer: 9
+
+414. If 6x - 7 = 5, what is the value of 6x + 7? A. -2 B. 2 C. 9 D. 19
+Answer: D
+415. The graph of y = ( 1 )x + 1 in the xy-plane is shifted up 2 units. What is an equation of the resulting graph?
+6
+A. y = ( 61 )(x+2) + 1 B. y = ( 1 )(x-2) + 1
+6
+C. y = 2( 1 )x + 1
+6
+D. y = ( 1 )x + 3
+6
+Answer: D
+
+416. Line q in the xy-plane passes through the points (0, 20) and (1, 34). Which equation defines line q?
+
+A. 14x - y + 20 = 0
+
+B. 14x - y +
+
+1 20
+
+=0
+
+C. 14x - y -
+
+1 20
+
+=0
+
+D. 14x - y - 20 = 0
+
+Answer: A
+
+418. 3x2 - 6x - 72 = 0
+What is the product of the solutions to the given equation?
+A. -72 B. -24 C. 24 D. 72
+Answer: B
+
+419. A circle in the xy-plane has its center at (2, 1) and has a radius of length 7. Which equation represents this circle? A. (x + 2)2 + (y + 1)2 = 7 B. (x - 2)2 + (y - 1)2 = 7 C. (x + 2)2 + (y + 1)2 = 49 D. (x - 2)2 + (y - 1)2 = 49
+Answer: D
+
+545. What is 50% of 840? A. 84 B. 420 C. 840 D. 1,260
+Answer: B
+
+548. For the linear function f, f(6) = 17 and f(9) = 8. Which equation defines f?
+
+A. f(x) = -3x + 35
+
+B. f(x) = -3x + 23
+
+C. f(x) =
+
+1x+5
+3
+
+D.
+
+f(x)
+
+=
+
+-
+
+1 3
+
+x
+
++
+
+19
+
+Answer: A
+
+549.
+
+In the triangle shown, P Q = QR. What is the value of x? A. 162 B. 72 C. 36 D. 18
+Answer: D
+550. 2.7 + x = 2.8 What value of x is the solution to the given equation?
+Answer: 0.1
+551. The price to rent an event space is 1,200 dollars for the first 3 hours and 200 dollars for each additional hour. What is the total price, in dollars, to rent the event space for 10 hours? A. 5,000 B. 3,200 C. 2,600 D. 1,400
+Answer: C
+552. The scatterplot shows the relationship between two variables, x and y. A line of best fit is also shown.
+
+Which of the following equations best represents the line of best fit shown?
+A. y = -x - 3.6 B. y = -x + 3.6 C. y = x - 3.6 D. y = x + 3.6
+Answer: D
+
+553. The equation d = 35w + 100 gives the total amount of money d, in dollars, that Janna plans to save w weeks after she starts to save. What is the total amount of money, in dollars, she plans to save in 10 weeks? A. 400 B. 450 C. 500 D. 550
+Answer: B
+561. If x = 2n 5xn + 50, where n is a positive integer constant, what is the value of xn?
+Answer: 10
+
+563. (x - 11)(x - 6) = 0
+Which value is a solution to the given equation?
+A. 0 B. 11 C. 17 D. 66
+Answer: B
+
+564. The function f is defined by f(x) = 3( 1 - x)2 + 5 . What is the value of f( 1 )?
+
+6
+
+6
+
+6
+
+Answer: 5/6
+
+566. 4x + 5y = 18 If the graph of the given equation is shifted up 9 units in the xy-plane, what is the y-intercept of the resulting graph? A. (0, 63 )
+5
+B. (0, 18 )
+5
+C. (0, 41 )
+5
+D. (0, 27)
+Answer: A
+
+692. What is 50% of 620? A. 930 B. 620 C. 310 D. 62
+Answer: C
+
+693. A biologist is studying the growth of a sunflower plant. The graph models the height y, in centimeters, of the sunflower plant after x weeks of observation.
+y 140 130 120 110 100 90 80 70 60 50 40 30 20 10
+x O 12345678
+According to the model, what is the estimated height, in centimeters, of the sunflower plant after 2 weeks of observation?
+A. 2
+B. 10
+C. 30
+D. 50
+Answer: D
+
+698. A dog walker charges $15 per walk. Which equation gives the total amount t, in dollars, that the dog walker charges for w walks? A. t = 15w B. t = w + 15 C. 15 = tw D. 15 = t + w
+Answer: A
+
+699. A triathlon is a multisport race consisting of three different consecutive events. A triathlon participant plans to complete the cycling event with an average speed
+of 19,536 yards per hour. What is this average speed, in miles per hour? (1 mile = 1,760 yards)
+Answer: 11.1
+701. One of the factors of 8x4 + 26x2 + 21 is ax2 + b, where a and b are positive constants. Which of the following is a possible value of ab? A. 3 B. 12 C. 14 D. 28
+Answer: D
+
+703. The relationship between the variables x and y is defined by an exponential equation. When x = 0, the value of y is 30, and for every increase in the value of x by 1, the corresponding value of y increases by 70% of its previous value. Which equation represents this relationship? A. y = 30(1.70)x B. y = 30(1.07)x C. y = 70(1.30)x D. y = 70(1.03)x
+Answer: A
+
+705. What is the graph of the equation y = 0.3(x - 4)2?
+
+A. y
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+4 2 O 2
+
+x 2 4 6 8 10 12
+
+4
+
+B. y
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+
+4 2 O 2
+
+x 2 4 6 8 10 12
+
+4
+
+C. y
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+
+4 2 O 2
+
+x 2 4 6 8 10 12
+
+4
+
+D. y
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+
+4 2 O 2
+
+x 2 4 6 8 10 12
+
+4
+
+Answer: B
+
+706. During hibernation, American black bears do not eat or replenish calories. A certain black bear weighed 286 pounds when entering hibernation and lost weight at a mean rate of 0.8 pounds per day. At this rate, how many days after entering hibernation would the black bear weigh 230 pounds? A. 45 B. 56 C. 70 D. 184
+Answer: C
+
+708. The sides of a rectangle are such that the length is 13 centimeters more than 6 times the width, in centimeters. If the width of the rectangle is 9 centimeters,
+what is the area, in square centimeters, of the rectangle?
+Answer: 603
+
+710.
+
+The shaded region shown represents the solutions to which inequality?
+A. y > 3x + 7 B. y > 3x - 7 C. y < 3x + 7 D. y < 3x - 7
+Answer: A
+
+713. y = 3x - 6 2x + y = 34
+The solution to the given system of equations is (x, y). What is the value of x + y?
+Answer: 26
+
+842. If 3 - 4x
+
+=
+
+35, what is the value of
+
+1 5
+
+(3
+
+-
+
+4x)?
+
+A. 175
+
+B. 35
+
+C. 7 D. 5
+Answer: C
+845. 1.4x = 140 What value of x is the solution to the given equation?
+Answer: 100
+846. A rectangle has a length of 11 and a width of 5. What is the perimeter of the rectangle? A. 10 B. 22 C. 32 D. 44
+Answer: C
+847. The equation d = 38w + 100 gives the total amount of money d, in dollars, that Janna plans to save w weeks after she starts to save. What is the total amount of money, in dollars, she plans to save in 10 weeks? A. 430 B. 480 C. 530 D. 580
+Answer: B
+849. A jar has 610 marbles, and 20% of these marbles are orange. How many marbles in the jar are orange? A. 122 B. 244 C. 305 D. 590
+Answer: A
+851.
+
+In the figure, lines r and s are parallel. If x = 7k + 15 and y = 9k - 19, what is the value of k? A. 163 B. 134 C. 46 D. 17
+Answer: D
+852. Which expression is equivalent to 7xy(2x2 + 6y)? A. 9x3y + 13xy2 B. 14x2y + 6y C. 14x2y + 42xy D. 14x3y + 42xy2
+Answer: D
+854.
+
+In the right triangle shown, a, b, and c are positive constants. For an acute angle D, sin D =
+
+b . What is the measure of angle D, in degrees?
+c
+
+Answer: 17
+
+855. Which expression is equivalent to 5xy + 30x2y + 35xy2? A. 5xy(1 + 30x + 35y) B. 5xy(1 + 6x + 7y) C. 5xy(30x + 35y) D. 5xy(6x + 7y)
+Answer: B
+
+858. (x - 20)(x - 16)(x + 5)(x + 13) = 0
+What is a positive solution to the given equation? Answer: 16
+
+859. x2 + y2 = 153 y - 4x = 0
+A solution to the given system of equations is (x, y), where x < 0. What is the value of y? A. -36 B. -12 C. -4 D. -3
+Answer: B
+
+994. For the function f, the table shows four values of x and their corresponding values of f(x). x f(x) 1 4,000 2 2,400 3 1,440 4 864
+Which of the following could describe this function? A. Decreasing exponential B. Increasing exponential C. Decreasing linear D. Increasing linear
+Answer: A
+
+997. An event planner is planning an ice-skating event. It costs the event planner a onetime fee of $50 to rent the skating rink and $10.50 per attendee. The event planner has a budget of $225. What is the greatest number of attendees possible without exceeding the budget?
+Answer: 16
+998. Which expression is equivalent to 24x3 + 4x? A. 4x2(6x + 1) B. 4x2(6 + 4x) C. 4x(6x2 + 1) D. 4x(6 + 4x)
+Answer: C
+
+999. A survey was conducted in Madison to estimate the percent of adult residents who support the addition of a parking garage in their town. Based on the survey, it
+is estimated that 63% of all adult residents of Madison support the addition of a parking garage in their town, with an associated margin of error of 3%. Which of the
+following is the most appropriate conclusion about all adult residents of Madison?
+A. Plausible values for the percent of all adult residents of Madison who support the addition of a parking garage in their town are between 60% and 66%. B. Plausible values for the percent of all adult residents of Madison who support the addition of a parking garage in their town are either less than 60% or more than 66%. C. The addition of a parking garage in the town is supported by exactly 60% of all adult residents of Madison. D. The addition of a parking garage in the town is supported by more than 66% of all adult residents of Madison.
+Answer: A

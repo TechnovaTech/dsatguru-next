@@ -1,0 +1,103 @@
+[
+  {
+    "page": 61,
+    "qnum": 7,
+    "subject": "Math",
+    "question": "x^2-15x+12=0\n\nWhat is the sum of the solutions to the given equation?",
+    "a": "15",
+    "b": "12",
+    "c": "3",
+    "d": "0"
+  },
+  {
+    "page": 62,
+    "qnum": 8,
+    "subject": "Math",
+    "question": "A soccer team's goal is to earn at least $1,320 by selling coupon books. The team earns $12 from selling each coupon book. Which of the following inequalities describes all possible values for the number of coupon books, n, the team can sell to meet the goal?",
+    "a": "n+12≤1,320",
+    "b": "n+12≥1,320",
+    "c": "12n≤1,320",
+    "d": "12n≥1,320"
+  },
+  {
+    "page": 63,
+    "qnum": 9,
+    "subject": "Math",
+    "question": "Which expression is equivalent to\n(8x^4 + x^2) + (x^4 + 10x^2) ?",
+    "a": "9x^8 + 11x^4",
+    "b": "8x^16 + 10x^4",
+    "c": "9x^4 + 11x^2",
+    "d": "10x^8 + 8x^6"
+  },
+  {
+    "page": 64,
+    "qnum": 10,
+    "subject": "Math",
+    "question": "If x/2 + 17 = 17(x/2), what is the value of x/2?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 65,
+    "qnum": 11,
+    "subject": "Math",
+    "question": "The function g is defined by g(x) = |10x| + 16. What is the value of g(-4)?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 66,
+    "qnum": 12,
+    "subject": "Math",
+    "question": "x + 13 = y(z + 8)\n\nThe given equation relates the distinct positive variables x, y, and z. Which equation correctly represents z in terms of x and y?",
+    "a": "z = (x+5)/y",
+    "b": "z = x/y + 5",
+    "c": "z = (x+13)/y + 8",
+    "d": "z = (x+13)/y - 8"
+  },
+  {
+    "page": 67,
+    "qnum": 13,
+    "subject": "Math",
+    "question": "The measure of angle G is (π/10) radians. If the measure of angle G is 9n degrees, where n is a constant, what is the value of n?",
+    "a": "2",
+    "b": "9",
+    "c": "10",
+    "d": "18"
+  },
+  {
+    "page": 68,
+    "qnum": 14,
+    "subject": "Math",
+    "question": "12x+8 = k(6x+8) + 6x\n\nIn the given equation, k is a constant. The equation has exactly one solution. Which value CANNOT be the value of k?",
+    "a": "-1",
+    "b": "0",
+    "c": "1",
+    "d": "2"
+  },
+  {
+    "page": 69,
+    "qnum": 15,
+    "subject": "Math",
+    "question": "A group of 10 gardeners recorded data on the germination rates of their tomato crop for one growing season. The scatterplot shows the relationship between the number of tomato seeds planted, x, and the number of tomato seeds that germinated, y, for each of the gardeners. A line of best fit is also shown.\n\nWhich of the following is the best interpretation of the slope of the line of best fit in this context?",
+    "a": "The number of tomato seeds planted is predicted to increase by 70 seeds every 100 days.",
+    "b": "The number of tomato seeds planted is predicted to increase by 350 seeds every 100 days.",
+    "c": "The number of tomato seeds that germinate is predicted to increase by 70 seeds for every additional 100 tomato seeds that are planted.",
+    "d": "The number of tomato seeds that germinate is predicted to increase by 350 seeds for every additional 100 tomato seeds that are planted.",
+    "figure": true
+  },
+  {
+    "page": 70,
+    "qnum": 16,
+    "subject": "Math",
+    "question": "The table gives the distribution of flavor and type of topping for customer orders at an ice cream shop.\n\n| Flavor of ice cream | Sprinkles | No Sprinkles |\n| --- | --- | --- |\n| Chocolate | 60 | 30 |\n| Vanilla | 20 | 30 |\n| Twist | 80 | 20 |\n\nIf a customer order is selected at random, what is the probability of selecting an order with sprinkles, given the flavor of ice cream is vanilla?",
+    "a": "0.08",
+    "b": "0.13",
+    "c": "0.25",
+    "d": "0.40"
+  }
+]

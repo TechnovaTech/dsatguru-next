@@ -1,0 +1,93 @@
+[
+  {
+    "page": 71,
+    "subject": "Math",
+    "question": "The table shows the distribution of people in a certain city by age group.\n\n| Age group | Proportion |\n| --- | --- |\n| Less than 18 years old | 34% |\n| 18-40 years old | 23% |\n| 41-65 years old | 22% |\n| Greater than 65 years old | 21% |\n\nIf a person in this city is selected at random, which of the following is closest to the probability of selecting a person who is greater than 65 years old, given that the person is at least 18 years old?",
+    "a": "0.21",
+    "b": "0.32",
+    "c": "0.45",
+    "d": "0.62"
+  },
+  {
+    "page": 72,
+    "subject": "Math",
+    "question": "((x - 7)(x - 8)) / (x - 3) = 0\n\nWhat is the sum of the solutions to the given equation?",
+    "a": "8",
+    "b": "18",
+    "c": "15",
+    "d": "3"
+  },
+  {
+    "page": 73,
+    "subject": "Math",
+    "question": "A book-of-the-month club charges $13 for the first book purchased during the month and an additional $11 for each book after the first. Which equation describes this situation, where y is the total cost, in dollars, for books purchased during a month, x is the number of books purchased during the month, and x>0?",
+    "a": "y=x+13",
+    "b": "y=11x+13",
+    "c": "y=11(x-1)+13",
+    "d": "y=(x-1)+13"
+  },
+  {
+    "page": 74,
+    "subject": "Math",
+    "question": "A rectangular banner has an area of 2,300 square inches. A copy of the banner is made in which the length and width of the original banner are each increased by 20%. What is the area of the copy, in square inches?",
+    "a": "2,320",
+    "b": "2,340",
+    "c": "2,760",
+    "d": "3,312"
+  },
+  {
+    "page": 75,
+    "subject": "Math",
+    "question": "If x≥-8 represents all solutions to the inequality ax-18≤14, where a is a constant, what is the greatest possible value of a?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 76,
+    "subject": "Math",
+    "question": "A circle in the xy-plane has a diameter with endpoints (7,-12) and (7,-24). Which equation represents this circle?",
+    "a": "(x - 7)^2 + (y + 18)^2 = 6",
+    "b": "(x - 7)^2 + (y + 18)^2 = 36",
+    "c": "(x + 7)^2 + (y - 18)^2 = 6",
+    "d": "(x + 7)^2 + (y - 18)^2 = 36"
+  },
+  {
+    "page": 77,
+    "subject": "Math",
+    "question": "A line in the xy-plane has a slope of -1/6 and passes through the point (0, 8). Which equation represents this line?",
+    "a": "y = -(1/6)x - 8",
+    "b": "y = -(1/6)x + 8",
+    "c": "y = (1/6)x - 8",
+    "d": "y = (1/6)x + 8"
+  },
+  {
+    "page": 78,
+    "subject": "Math",
+    "question": "Note: Figure not drawn to scale.\n\nIn the figure shown, line k intersects lines r and s, if w=160, which additional piece of information is sufficient to prove that lines r and s are parallel?",
+    "a": "x=20",
+    "b": "y=160",
+    "c": "w+y=180",
+    "d": "y+z=180",
+    "figure": "A transversal line k crosses two other lines, r and s. Line r is the upper line and line s is the lower line (both labeled at the top right where they begin). At the intersection of line k with line r, two angles are marked: w° (above) and x° (below). At the intersection of line k with line s (lower down), two angles are marked: y° (above) and z° (below). w and x are the angles at the top crossing point; y and z are the angles at the bottom crossing point."
+  },
+  {
+    "page": 79,
+    "subject": "Math",
+    "question": "x+7=13\ny=5x^2+5\n\nAt what point (x, y) do the graphs of the equations in the given system intersect?",
+    "a": "(6, 180)",
+    "b": "(6, 185)",
+    "c": "(13, 5)",
+    "d": "(13, 850)"
+  },
+  {
+    "page": 80,
+    "subject": "Math",
+    "question": "Which expression is equivalent to (7nr^2 + 2nr) + (5n^2r + 4nr)?",
+    "a": "12n^2r^2 + 6nr",
+    "b": "12n^3r^3 + 6n^2r^2",
+    "c": "35n^3r^3 + 8n^2r^2",
+    "d": "7nr^2 + 5n^2r + 6nr"
+  }
+]

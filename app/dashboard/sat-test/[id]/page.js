@@ -31,6 +31,16 @@ export default function SatTestRunner() {
   const [answeredMap, setAnsweredMap] = useState({})
   const [selectedMap, setSelectedMap] = useState({})
   const [gridMap, setGridMap] = useState({}) // typed answers for grid-in (fill-in-the-blank) questions
+  const [phase, setPhase] = useState('base') // 'base' = Module 1, 'adaptive' = Module 2
+
+  // Normalize a session question payload into the shape the runner renders.
+  const mapQuestion = (q) => ({
+    id: q.id || q._id,
+    content: q.content,
+    options: q.options,
+    questionParagraph: q.questionParagraph,
+    imageUrl: q.imageUrl,
+  })
 
   useEffect(() => {
     const init = async () => {
@@ -59,8 +69,13 @@ export default function SatTestRunner() {
         setAnsweredMap(amap)
         setSelectedMap(smap)
         if (s?.state === 'IN_PROGRESS_BASE' || s?.state === 'CREATED') {
-          const easyRes = await axios.get(`/api/questions?bankId=${s.questionBankId}&testType=Base&difficulty=Easy&isActive=true${s?.subject ? `&subject=${encodeURIComponent(s.subject)}` : ''}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-          const medRes = await axios.get(`/api/questions?bankId=${s.questionBankId}&testType=Base&difficulty=Medium&isActive=true${s?.subject ? `&subject=${encodeURIComponent(s.subject)}` : ''}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+          setPhase('base')
+          // Use the raw bank selector ('admin-math' etc.) — questionBankId is null for
+          // synthetic banks, so /api/questions?bankId= must get the selector to resolve the pool.
+          const bank = encodeURIComponent(s.bankSelector || s.questionBankId || '')
+          const subjQ = s?.subject ? `&subject=${encodeURIComponent(s.subject)}` : ''
+          const easyRes = await axios.get(`/api/questions?bankId=${bank}&testType=Base&difficulty=Easy&isActive=true${subjQ}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+          const medRes = await axios.get(`/api/questions?bankId=${bank}&testType=Base&difficulty=Medium&isActive=true${subjQ}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
           const allEasy = Array.isArray(easyRes.data) ? easyRes.data : (easyRes.data?.data || easyRes.data?.questions || [])
           const allMed = Array.isArray(medRes.data) ? medRes.data : (medRes.data?.data || medRes.data?.questions || [])
           const all = [...allEasy, ...allMed]
@@ -76,14 +91,9 @@ export default function SatTestRunner() {
           const limit = Number(s?.baseTarget || Math.floor(Number(s?.totalQuestions || 50) / 2))
           setBaseQuestions(filtered.slice(0, limit))
         } else if (s?.state === 'IN_PROGRESS_ADAPTIVE') {
-          // use adaptiveQuestions provided by session endpoint
-          setBaseQuestions((s?.adaptiveQuestions || []).map(q => ({
-            id: q.id,
-            content: q.content,
-            options: q.options,
-            questionParagraph: q.questionParagraph,
-            imageUrl: q.imageUrl
-          })))
+          // Resuming into Module 2: render the already-assigned adaptive questions.
+          setPhase('adaptive')
+          setBaseQuestions((s?.adaptiveQuestions || []).map(mapQuestion))
         } else if (s?.state === 'COMPLETED') {
           router.push(`/dashboard/analytics`)
         }
@@ -133,12 +143,9 @@ export default function SatTestRunner() {
         const sRes = await axios.get(`/api/test-sessions/${sessionId}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
         const s = sRes.data
         setSession(s)
-        setBaseQuestions((s?.adaptiveQuestions || []).map(q => ({
-          id: q.id,
-          content: q.content,
-          options: q.options
-        })))
+        setBaseQuestions((s?.adaptiveQuestions || []).map(mapQuestion))
         setCurrentIndex(0)
+        setPhase('adaptive')
         setRemaining(moduleDurationSeconds(s))
       } else {
         router.push(`/dashboard/analytics`)
@@ -146,6 +153,25 @@ export default function SatTestRunner() {
     } catch (e) {
       setError('Failed to submit module')
     }
+  }
+
+  // Complete + grade the session server-side, then leave the runner. /submit transitions
+  // IN_PROGRESS_ADAPTIVE -> COMPLETED (and re-grades); if the session is somehow still in the
+  // base phase it first builds Module 2 (returns next:'adaptive'), so call once more to finish.
+  const finishTest = async () => {
+    try {
+      const token = typeof window !== 'undefined'
+        ? (localStorage.getItem('token') || localStorage.getItem('authToken'))
+        : null
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
+      let res = await axios.post(`/api/test-sessions/${sessionId}/submit`, {}, { headers })
+      if (res.data?.next === 'adaptive') {
+        res = await axios.post(`/api/test-sessions/${sessionId}/submit`, {}, { headers })
+      }
+    } catch (e) {
+      // Non-fatal: the session is graded server-side when it reaches COMPLETED.
+    }
+    router.push(`/dashboard/analytics`)
   }
 
   const submitAnswer = async (opt) => {
@@ -167,23 +193,25 @@ export default function SatTestRunner() {
       const nextIndex = currentIndex + 1
       if (nextIndex < baseQuestions.length) {
         setCurrentIndex(nextIndex)
-      } else {
+      } else if (phase === 'base') {
+        // Module 1 finished. The server auto-builds Module 2 on the final base answer, so
+        // fetch the assigned adaptive questions and continue into the adaptive module.
         const sRes = await axios.get(`/api/test-sessions/${sessionId}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
         const s = sRes.data
         setSession(s)
-        if (s?.state === 'IN_PROGRESS_ADAPTIVE' && (s?.adaptiveQuestions || []).length > 0) {
-          setBaseQuestions((s.adaptiveQuestions || []).map(q => ({
-            id: q.id,
-            content: q.content,
-            options: q.options,
-            questionParagraph: q.questionParagraph,
-            imageUrl: q.imageUrl
-          })))
+        const adaptiveQs = s?.adaptiveQuestions || []
+        if (s?.state === 'IN_PROGRESS_ADAPTIVE' && adaptiveQs.length > 0) {
+          setBaseQuestions(adaptiveQs.map(mapQuestion))
           setCurrentIndex(0)
+          setPhase('adaptive')
           setRemaining(moduleDurationSeconds(s))
         } else {
-          router.push(`/dashboard/analytics`)
+          // No Module 2 available — complete + grade now instead of looping.
+          await finishTest()
         }
+      } else {
+        // Module 2 finished — submit to grade + complete the session.
+        await finishTest()
       }
     } catch (e) {
       setError('Failed to submit answer')

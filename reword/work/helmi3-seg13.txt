@@ -1,0 +1,807 @@
+Section: Section 2, Module 2: Math, Difficulty: hard (284 questions)
+2491. x2 + (k - 3)x + 42 = 0 In the given equation, k is a constant. The equation has exactly one real solution. What is the value of k? A. 171 B. 168 C. 165 D. 45
+Answer: A
+2627. The length of a rectangle's diagonal is 106, and the length of one of the rectangle's sides is 9. What is the perimeter of the rectangle? A. 106 B. 45 C. 28 D. 14
+Answer: C
+2637. A beekeeper's initial observation of the population of a certain bee colony was 1,800 bees. The beekeeper set a goal to increase the population to 3,300 bees. The beekeeper uses a model that predicts the population of this bee colony begins at 1,800 and increases by 120 bees per week in the first two weeks after the initial observation, and then increases by 180 bees per week until the beekeeper's goal is reached. According to this model, at the end of week w after the initial observation, where w > 2, which of the following functions gives the predicted number of bees still needed to reach the beekeeper's goal? A. p(w) = 3,300 - 180w B. p(w) = 3,180 + 180w C. p(w) = 1,620 - 180w D. p(w) = -120 + 180w
+Answer: C
+2642. A line in the xy-plane passes through the points (9, 1), (0, 8), and (c, 0). What is the value of c?
+Answer: 72/7
+2772. The scatterplot shows the relationship between x and y. A line of best fit is also shown.
+
+Which of the following is closest to the slope of the line of best fit shown?
+A. -1.84 B. -0.54 C. 0.54 D. 1.84
+Answer: C
+2773. What is an x-coordinate of an x-intercept of the graph of y = 2(x - 13)(x + 7)(x + 4) in the xy-plane?
+Answer: 13
+2779.
+
+The three points shown define a circle. The circumference of this circle is k, where k is a constant. What is the value of k?
+Answer: 8
+
+2780. 3x + 2y = 10
+How many solutions does the given system of equations have? A. Exactly one B. Exactly two C. Infinitely many D. Zero Answer: C
+
+9x + 6y = 30
+
+2785. 2x2 - 8x - 25 = 0
+
+One solution to the given equation can be written as x
+
+=
+
+h-
+
+1 2
+
+k,
+
+where
+
+h
+
+and
+
+k
+
+are
+
+integer
+
+constants.
+
+What
+
+is
+
+the
+
+value
+
+of
+
+h
+
++
+
+k?
+
+A. -32
+
+B. 10
+
+C. 33
+
+D. 68
+
+Answer: D
+
+2920. Zuri has a goal to run at least 17 miles per week while training for a race. This week, she has run 7 miles. If x represents the additional number of miles Zuri
+needs to run this week to meet her goal, which inequality represents this situation?
+A. 7 - x  17 B. 7 + x  17 C. 7 - x  17 D. 7 + x  17
+Answer: D
+
+2936. The result of increasing the quantity x by 800% is 360. What is the value of x? A. 40 B. 45 C. 440 D. 2,880
+Answer: A
+
+3066. The equation d = 20w + 100 gives the total amount of money d, in dollars, that Janna plans to save w weeks after she starts to save. What is the total amount of money, in dollars, she plans to save in 10 weeks? A. 250 B. 300 C. 350 D. 400
+Answer: B
+
+3070. g(x) = 2(14x - 15) What is the y-coordinate of the y-intercept of the graph of y = g(x) - 5 in the xy-plane? A. -35 B. -30 C. -20 D. -15
+Answer: A
+
+3074. Circle A: (x - 7)2 + (y - p)2 = 21
+
+Circle B: (x + 7)2 + (y - p)2 = 21
+
+In the given equations, p is a positive constant. Which statement correctly compares the graphs of circles A and B in the xy-plane?
+
+A. Circle B is the reflection of circle A across the x-axis.
+
+B. Circle B is the reflection of circle A across the y-axis.
+
+C. Circle B is the translation of circle A 14 units up.
+
+D. Circle B is the translation of circle A 14 units to the right.
+
+Answer: B
+
+3078. A linear function g is defined by g(x) = ax + b, where a and b are constants. If g(-2) = -7 and g(1) = 5, what is the value of a?
+Answer: 4
+
+3079. 2x2 - 8x - 21 = 0
+
+One solution to the given equation can be written as x
+
+=
+
+h-
+
+1 2
+
+k,
+
+where
+
+h
+
+and
+
+k
+
+are
+
+integer
+
+constants.
+
+What
+
+is
+
+the
+
+value
+
+of
+
+h
+
++
+
+k?
+
+A. -24
+
+B. 10
+
+C. 29
+
+D. 60
+
+Answer: D
+
+3217. A student needs at least 90 signatures from classmates to run for class president. The student collects 85 signatures on Monday and collects enough additional signatures on Tuesday to run for class president. Which inequality represents the number of additional signatures, s, that the student collects on Tuesday? A. s + 85  90 B. s + 85  90 C. s - 85  90 D. s - 85  90
+Answer: B
+
+3220. There is a proportional relationship between p and t. If p = 6,720 when t = 8,960, then what is the value of t when p = 5,376? A. 7,616 B. 7,168 C. 4,032 D. 3,136
+Answer: B
+
+3227. In the ancient Roman measurement system, a leuga was a unit of length that was equal to 7,500 pedes. In this measurement system, how many pedes were equivalent to 3.8 leugas?
+Answer: 28500
+
+3365. A student needs at least 100 signatures from classmates to run for class president. The student collects 60 signatures on Monday and collects enough additional signatures on Tuesday to run for class president. Which inequality represents the number of additional signatures, s, that the student collects on Tuesday? A. s + 60  100 B. s + 60  100 C. s - 60  100 D. s - 60  100
+Answer: B
+
+3367. There is a proportional relationship between p and t. If p = 2,880 when t = 3,840, then what is the value of t when p = 2,304? A. 1,344 B. 1,728 C. 3,072 D. 3,264
+Answer: C
+
+3372. The scatterplot shows the relationship between two variables, x and y. A line of best fit for the data is also shown.
+
+For how many of the 9 data points is the actual y-value greater than the y-value predicted by the line of best fit? A. 2 B. 4 C. 6 D. 8
+Answer: B
+
+3507. The equation d = 31w + 100 gives the total amount of money d, in dollars, that James plans to save w weeks after he starts to save. What is the total amount of money, in dollars, he plans to save in 10 weeks? A. 360 B. 410 C. 460 D. 510
+Answer: B
+x
+3508. The function f(x) = 1,400(0.5) 18 gives the predicted intensity of a beam f(x), in number of photons in the beam, x millimeters below the surface of a certain material. What is the best interpretation of f(18) = 700? A. A beam at the surface of the material has a predicted intensity of 18 photons in the beam. B. A beam at the surface of the material has a predicted intensity of 700 photons in the beam. C. A beam 18 millimeters below the surface of the material has a predicted intensity of 700 photons in the beam. D. A beam 700 millimeters below the surface of the material has a predicted intensity of 1,400 photons in the beam.
+Answer: C
+
+3509. (x - 12)(x - 7) = 0
+Which value is a solution to the given equation?
+A. 0 B. 12 C. 19 D. 84
+Answer: B
+
+3510. A survey of the daily commuting times, in minutes, of seven different Chicago-based employees at a certain company yielded a data set consisting of the
+values 31, 12, 42, 33, 53, 24, and 45. A survey of the daily commuting times, in minutes, of seven different San Francisco-based employees at the same company yielded a data set consisting of the values 47, 31, 19, 33, 46, x, and 36. If the means of the two data sets are equal, what is the value of x?
+Answer: 28
+
+3511. A circle in the xy-plane has its center at (7, 1) and has a radius of length 5. Which equation represents this circle? A. (x + 7)2 + (y + 1)2 = 5 B. (x - 7)2 + (y - 1)2 = 5 C. (x + 7)2 + (y + 1)2 = 25 D. (x - 7)2 + (y - 1)2 = 25
+Answer: D
+
+3513. Triangle QRS is similar to triangle F GH
+
+such that Q, R, and S correspond to F , G and H, respectively. Each side of triangle F GH
+
+has
+
+1 4
+
+the length of its
+
+corresponding side in triangle QRS. In triangle F GH, the measure of angle F is 10�, the measure of angle G is 8�, and F G = a. In triangle QRS, the measure of
+
+angle Q is b� and QR = 40. What is the value of a + b?
+
+Answer: 20
+
+3514. Line h is defined by
+
+1x+
+3
+
+1 y - 30
+2
+
+=
+
+0. Line j is perpendicular to line h in the xy-plane. What is the slope of line j?
+
+A. - 2
+3
+
+B. - 3
+2
+
+C. 2
+3
+
+D. 3
+2
+
+Answer: D
+
+3517. If x - 3 = 5, what is the value of (x - 3)? A. 5 B. 22 C. 25 D. 50
+Answer: C
+
+3522. The result of increasing the quantity x by 400% is 140. What is the value of x? A. 28 B. 35 C. 260 D. 560
+Answer: A
+
+3525. The function f is defined by f(x) = 4x - 6. If f(a) + 1 = 3a, what is the value of a? A. 7 B. 5 C. 1 D. -1
+Answer: B
+
+3658. y = 8x - 16 5x + y = 23
+The solution to the given system of equations is (x, y). What is the value of x + y?
+Answer: 11
+
+3659. What is the x-intercept of the graph of y = 21-x in the xy-plane, where a and b are positive constants?
+ax+b
+
+A. (21, 0)
+
+B. (0, -21)
+
+C. (0, 21b )
+
+D.
+
+(-
+
+b a
+
+,
+
+0)
+
+Answer: A
+
+3668. The function f is defined by f(x) = 58(0.17)x. For any positive integer n, the value of f(n) is p% less than the value of f(n - 1). What is the value of p? A. 17 B. 42 C. 58 D. 83
+Answer: D
+
+3805.
+xy 0r 2 r - 18 4 r - 36
+For a linear relationship between x and y, the table gives three values of x and their corresponding values of y in terms of a constant r. What is the slope of the line in
+the xy-plane that represents this relationship?
+A. -18 B. -9 C. 9 D. 18
+Answer: B
+
+3806. 40(x - 1) = 5(-8 + 8x)
+How many solutions does the given equation have? A. Zero B. Exactly one C. Exactly two D. Infinitely many
+Answer: D
+
+3811. If x - 1 = 2, what is the value of (x - 1)? A. 2 B. 3 C. 4 D. 8
+Answer: C
+
+3952.
+
+A marine biologist is studying a habitat that contains shoal bass, a species of freshwater fish. The box plot shown summarizes the lengths, in centimeters (cm), of a
+sample of 70 shoal bass from this habitat. What is the range, in cm, of the lengths of the shoal bass in the sample? A. 12 B. 17 C. 25 D. 45
+Answer: B
+
+3966. Line p in the xy-plane contains the points (23, 0) and (23, 23). Which equation defines line p? A. x = 23 B. x = 0 C. y = 23 D. y = 0
+Answer: A
+4098. Which expression is a factor of x4 + 14ax2 + 49a2 - 64, where a is a positive constant? A. x2 + 7a + 8 B. x2 - 7a - 8 C. x2 + 14a D. x2 - 8a
+Answer: A
+4108. The function f is defined by f(x) = 52(0.15)x. For any positive integer n, the value of f(n) is p% less than the value of f(n - 1). What is the value of p? A. 15 B. 48 C. 52 D. 85
+Answer: D
+
+4243. x + 6y = 27 6y = 14
+The solution to the given system of equations is (x, y). What is the value of x?
+Answer: 13
+
+4253. In each of the following data sets of 5 values, p is a constant. Which of these data sets has the largest standard deviation? A. p - 5, p, p, p, p + 5 B. p - 10, p - 5, p, p + 5, p + 10 C. p, p, p, p, p D. p - 2, p - 2, p, p + 2, p + 2
+Answer: B
+
+4255. 2x2 - 12x - 19 = 0
+
+One solution to the given equation can be written as x
+
+=
+
+h-
+
+1 2
+
+k,
+
+where
+
+h
+
+and
+
+k
+
+are
+
+integer
+
+constants.
+
+What
+
+is
+
+the
+
+value
+
+of
+
+h
+
++
+
+k?
+
+A. 1
+
+B. 14
+
+C. 37
+
+D. 77
+
+Answer: D
+
+4389.
+
+In the figure, lines r and s are parallel. If x = 5k + 19 and y = 7k - 17, what is the value of k? A. 18 B. 71 C. 109 D. 162
+Answer: A
+4396. How many solutions does the equation 14(x + 19) + 5x = 19(x + 14) have?
+A. Exactly one B. Exactly two C. Infinitely many D. Zero Answer: C
+4397. What is 5% of 580? A. 575 B. 290 C. 116 D. 29
+Answer: D
+4400. 8x - 7y = 5 4x + y = 8
+The solution to the given system of equations is (x, y). What is the value of x + y?
+Answer: 35/12
+4408.
+x g(x) -21 2 -9 0 15 4
+f(x)
+The table shows three values of x and their corresponding values of g(x), where g(x) = x+3 and f is a linear function. What is the y-coordinate of the y-intercept of the graph of y = f(x) in the xy-plane?
+Answer: 27
+4538.
+
+The shaded region shown represents the solutions to which inequality?
+A. y < -4x + 6 B. y < 6x - 4 C. y > -4x + 6 D. y > 6x - 4
+Answer: C
+
+4551. A biologist mixed a solution that is 0.3% sodium chloride by mass with a solution that is 0.15% sodium chloride by mass to obtain a new solution, which has a mass of 150 grams and contains 0.36 grams of sodium chloride. How many grams of 0.3% sodium chloride solution did the biologist use? A. 0.24 B. 60 C. 90 D. 149.76
+Answer: C
+
+4554. Which expression is a factor of 25p15 - 121p13? A. -96p32 B. 11p - 5 C. 25p2 + 121 D. 5p + 11
+Answer: D
+
+4696. 2x2 - 16x - 21 = 0
+
+One solution to the given equation can be written as x
+
+=
+
+h-
+
+1 2
+
+k,
+
+where
+
+h
+
+and
+
+k
+
+are
+
+integer
+
+constants.
+
+What
+
+is
+
+the
+
+value
+
+of
+
+h
+
++
+
+k?
+
+A. 110
+
+B. 53
+
+C. 26
+
+D. 18
+
+Answer: A
+
+4699. If x - 2 = 3, what is the value of (x - 2)? A. 3 B. 7 C. 9 D. 18
+Answer: C
+
+4830. The scatterplot shows the relationship between two variables, x and y.
+
+Which of the following equations is the most appropriate linear model for the data shown?
+A. y = 0.8 + 8.9x B. y = 0.8 - 8.9x C. y = 8.9 + 0.8x D. y = 8.9 - 0.8x
+Answer: D
+
+4831. During hibernation, American black bears do not eat or replenish calories. A certain black bear weighed 326 pounds when entering hibernation and lost weight at a mean rate of 0.8 pounds per day. At this rate, how many days after entering hibernation would the black bear weigh 270 pounds? A. 45 B. 56 C. 70 D. 216
+Answer: C
+
+4833. Line q is defined by y
+
+=
+
+-1x-
+7
+
+1 4
+
+.
+
+Line
+
+r
+
+is
+
+perpendicular
+
+to
+
+line
+
+q
+
+in
+
+the
+
+xy-plane.
+
+What
+
+is
+
+the
+
+slope
+
+of
+
+line
+
+r?
+
+A. 11
+
+B. 7
+
+C. 4
+
+D. 3
+
+Answer: B
+
+4836. How many solutions does the equation 13(x + 16) + 3x = 16(x + 13) have?
+A. Exactly one B. Exactly two C. Infinitely many D. Zero
+Answer: C
+
+4840. y  x + 15 y  -2x - 15
+Which point (x, y) is a solution to the given system of inequalities in the xy-plane? A. (-9, 3) B. (-9, 6) C. (-11, 3) D. (-11, 6)
+Answer: D
+4848. What is the y-intercept of the graph of y = ( 3 )x+1 in the xy-plane?
+11
+A. (3, 11) B. (0, 11) C. (0, 3) D. (0, 3 )
+11
+Answer: D
+
+4977. The equation d = 27w + 100 gives the total amount of money d, in dollars, that Janna plans to save w weeks after she starts to save. What is the total amount of money, in dollars, she plans to save in 10 weeks? A. 320 B. 370 C. 420 D. 470
+Answer: B
+
+4980. Line q is defined by y = - 1 x - 1 . Line r is perpendicular to line q in the xy-plane. What is the slope of line r?
+
+8
+
+6
+
+A. 2
+
+B. 6
+
+C. 8
+
+D. 14
+
+Answer: C
+
+4986. The height of a right circular cylinder is 21 inches, and the circumference of its base is 210 inches. Which expression represents the total surface area, in
+square inches, of the cylinder?
+A. (21)(210) + 2( 105 )2
+
+B. (21)(210) + ( 105 )2
+
+C. ( 105 )2(21)
+
+D. (21)(210)
+Answer: A
+
+5127. In the xy-plane, the graph of y = 4x intersects the graph of y = x2 - 21 at two points. What is the sum of the x-coordinates of the two points of intersection? A. -21 B. -3 C. 4 D. 7
+Answer: C
+
+5128.
+
+5x-
+3
+
+1y
+4
+
+=
+
+27
+
+x + 3y = -9
+
+The solution to the given system of equations is (x, y). What is the value of x + y?
+
+A. -9
+
+B. -7
+
+C. 7
+
+D. 9
+
+Answer: C
+
+5132.
+xy 0r 2 r - 28 4 r - 56
+For a linear relationship between x and y, the table gives three values of x and their corresponding values of y in terms of a constant r. What is the slope of the line in
+the xy-plane that represents this relationship?
+A. -28 B. -14 C. 14 D. 28
+Answer: B
+
+5276.
+
+The graph of the function f, where y = f(x), gives the total cost y, in dollars, for a certain video game system and x games. What is the best interpretation of the
+slope of the graph in this context?
+A. Each game costs $18. B. The video game system costs $18. C. Each game costs $150. D. The video game system costs $150.
+Answer: A
+5281. A certain town has an area of 4.37 square miles. What is the area, in square yards, of this town? (1 mile = 1,760 yards) A. 403 B. 7,691 C. 708,833 D. 13,536,512
+Answer: D
+5282. The function h is defined by h(x) = ax + b, where a and b are positive constants. The graph of y = h(x) in the xy-plane passes through the points (0, 11) and (2, 46). What is the value of ab? A. 46 B. 60 C. 66 D. 92
+Answer: B
+5430. The function h is defined by h(x) = x210x2 -4k2 - 5x x+2k , where k is a positive constant. What is the value of h( 16k 7 )? A. - 407 B. - 5
+2
+C. 16 D. 40
+Answer: D
+5565. A sample was selected at random from a population. Based on the sample, it is estimated that the mean value of a variable for this population is 217, with an associated margin of error of 1. Based on the estimate and associated margin of error, which of the following best describes the range of plausible values for the
+population mean?
+A. Any value between 215 and 217 B. Any value between 216 and 218 C. Any value less than 216 D. Any value greater than 218
+Answer: B
+5566.
+In the figure shown, lines  and k are parallel and line t intersects both lines. If x > 125, which of the following must be true? A. y < 55 B. y > 55 C. x + y < 180 D. x + y > 180
+Answer: A
+5569. f(x) = 10(x2 + 53)
+What is the minimum value of the given function?
+A. 0.1 B. 5.3 C. 10 D. 530
+Answer: D
+5579. What is 5% of 880? A. 44 B. 176 C. 440 D. 875
+Answer: A
+5712. Zuri has a goal to run at least 13 miles per week while training for a race. This week, she has run 6 miles. If x represents the additional number of miles Zuri
+needs to run this week to meet her goal, which inequality represents this situation?
+A. 6 - x  13 B. 6 + x  13 C. 6 - x  13 D. 6 + x  13
+Answer: D
+5722.
+Triangles ABC and ABC  are shown. Triangle ABC is dilated by a scale factor of 3 to form triangle ABC . If the length of AB is 15, what is the length of AB ? A. 45 B. 18 C. 5 D. 3
+Answer: A
+5729. f(x) = 11x10 + 3x8 g(x) = -15x7 + 7x5
+The polynomial p(x) is defined as the product of the given polynomials, f(x) and g(x). What is the coefficient of x15 in p(x)? A. 122 B. 77 C. 32 D. 15
+Answer: C
+5870. x = 8 y = 24
+x
+The graphs of the equations in the given system intersect at the point (x, y) in the xy-plane. What is the value of y?
+
+A. 192 B. 32 C. 16 D. 3
+Answer: D
+
+6007. If 8(2x + 4) = 6(2x + 4) + 52, what is the value of 2x + 4? A. 52 B. 26 C. 22 D. 11
+Answer: B
+
+6008.
+
+y
+
+350
+
+300
+
+250
+
+200
+
+150
+
+100
+
+50
+
+x
+
+O
+
+50 100 150 200 250
+
+50
+
+100
+
+150
+
+200
+
+The graph shows the estimated boiling point y, in degrees Celsius, of a straight-chain alkane with a molecular weight of x grams per mole, where 1  x  280. Which statement is the best interpretation of the point (169.39, 219.86)?
+
+A. A straight-chain alkane with a molecular weight of 219.86 grams per mole has an estimated boiling point of 169.39 degrees Celsius.
+
+B. A straight-chain alkane with a molecular weight of 169.39 grams per mole has an estimated boiling point of 219.86 degrees Celsius.
+
+C. The minimum estimated boiling point for straight-chain alkanes corresponds to an alkane with a molecular weight of 169.39 grams per mole and an estimated boiling point of 219.86 degrees Celsius.
+
+D. The maximum estimated boiling point for straight-chain alkanes corresponds to an alkane with a molecular weight of 169.39 grams per mole and an estimated boiling point of 219.86 degrees Celsius.
+
+Answer: B
+
+6010. 9x(x + 5) = r In the given equation, r is a positive constant. Which of the following must be true?
+A. The equation has no real solutions. B. The equation has exactly one real solution. C. The equation has two distinct real solutions. D. There is not enough information to determine the number of real solutions to the equation. Answer: C
+6011. 6(x - 9)2 = 600
+What is the positive solution to the given equation? Answer: 19
+6012. The function f is defined by f(x) = x+10 and f(a) = 19, where a is a constant. What is the value of a?
+3
+Answer: 47
+
+6013. A museum exhibit displays 69 artifacts on day 1. On each following day, 7 artifacts are added to the exhibit. The function f(x) = 7(x - 1) + 69 represents this situation, where f(x) is the total number of artifacts exhibited at the end of day x. According to the function, what is the number of artifacts that have been added to the exhibit by the end of day x? A. 69 B. 7x C. 7x + 69 D. 7(x - 1)
+Answer: D
+6014. Which expression is equivalent to (2x + 9)2 - (x - 6)? A. 4x2 + 35x + 75 B. 4x2 + 35x + 87 C. 4x2 - x + 75 D. 4x2 - x + 87
+Answer: B
+
+6015. The combined original price for a towel and chair is $40. After a 35% discount to the towel and a 15% discount to the chair are applied, the combined sale price for the two items is $31. Which system of equations gives the original price t, in dollars, of the towel and the original price c, in dollars, of the chair? A. t + c = 40 0.85t + 0.65c = 31 B. t + c = 40 0.15t + 0.35c = 31 C. t + c = 40 0.65t + 0.85c = 31 D. t + c = 40 0.35t + 0.15c = 31
+Answer: C
+
+6017.
+
+A line segment is shown in the xy-plane. If line  (not shown) is perpendicular to the line segment shown and passes through the point (0, 3), which equation defines
+line ?
+A. -5x + 8y = 24 B. 5x + 8y = 24 C. -8x + 5y = 15 D. 8x + 5y = 15
+Answer: A
+
+6018. To win a trivia game, a player needs to earn at least 80 total points from responding correctly to questions in two rounds of play. Correct responses in the first round are worth 3 points each, and correct responses in the second round are worth 7 points each. Which inequality represents the situation where the player does not win the game, where f is the number of correct responses in the first round and s is the number of correct responses in the second round? A. f + s < 80 B. 3f + 7s < 80 C. 7f + s > 80 D. 7f + 3s > 80
+Answer: B
+
+6020. The quantity b is the result of increasing the positive quantity a by 5%. If the result of decreasing the quantity b by 9% is 343.98, what is the value of a?
+Answer: 360
+
+6021.
+x f(x) 1 -71 20 3 71
+For the linear function f, the table shows three values of x and their corresponding values of f(x). Function f is defined by f(x) = ax + b, where a and b are constants. What is the value of a - b? A. -71 B. 69 C. 142 D. 213
+Answer: D
+
+6022. For an exponential function, the value of f(x) increases by 110% for every increase of
+
+1 3
+
+in the value of x. Which equation could define this function?
+
+A. f(x) = (2.1)3x
+
+x
+B. f(x) = (2.1) 3
+
+C. f(x) = (1.1)3x
+
+x
+D. f(x) = (1.1) 3
+
+Answer: A
+
+6024. A container has a volume of 0.83 cubic meters. Which of the following is closest to this volume, in quarts? (Note: 100.00 centimeters = 1 meter. Use 946.35 cubic centimeters = 1.00 quart.) A. 0.09 B. 7.85 C. 785.47 D. 877.05
+Answer: D
+
+6026. In isosceles triangle ABC, sides AB and AC are congruent. Point D divides side BC such that the length of BD is
+
+2 3
+
+of the length of BC. Point E lies on
+
+side AB and point F lies on side AC such that when segments DE and DF are drawn, angle BED is congruent to angle CF D. If the length of BE is 12, what is
+
+the length of CF ?
+
+A. 6
+
+B. 18
+
+C. 48
+
+D. 72
+
+Answer: A
+
+6027. The function h is defined by h(x) = -x2 + bx + c, where b and c are constants. In the xy-plane, the graph of y = h(x) contains the points (2, 0) and (0, -390). If h(m) = 0, what is the greatest possible value of m?
+Answer: 195
+
+6154. If 5(2x + 8) = 3(2x + 8) + 76, what is the value of 2x + 8? A. 76 B. 38 C. 30 D. 15
+Answer: B
+
+6156. A research study categorized 100 vehicles as either fuel efficient or fuel inefficient. If a vehicle from the study is selected at random, the probability of
+selecting a vehicle that was categorized as fuel efficient is 64 . How many of the vehicles in the study were categorized as fuel efficient?
+100
+Answer: 64
+
+6160. A museum exhibit displays 73 artifacts on day 1. On each following day, 3 artifacts are added to the exhibit. The function f(x) = 3(x - 1) + 73 represents this situation, where f(x) is the total number of artifacts exhibited at the end of day x. According to the function, what is the number of artifacts that have been added to the exhibit by the end of day x? A. 73 B. 3x C. 3x + 73 D. 3(x - 1)
+Answer: D
+6161. Which expression is equivalent to (3x + 7)2 - (x - 6)? A. 9x2 + 41x + 43 B. 9x2 + 41x + 55 C. 9x2 - x + 43 D. 9x2 - x + 55
+Answer: B
+
+6165.
+
+A line segment is shown in the xy-plane. If line  (not shown) is perpendicular to the line segment shown and passes through the point (0, 4), which equation defines
+line ?
+A. -9x + 7y = 28 B. 9x + 7y = 28 C. -7x + 9y = 36 D. 7x + 9y = 36
+Answer: A
+
+6168.
+x f(x) 1 -55 20 3 55
+For the linear function f, the table shows three values of x and their corresponding values of f(x). Function f is defined by f(x) = ax + b, where a and b are constants. What is the value of a - b? A. -55 B. 53 C. 110 D. 165
+Answer: D
+
+6173. In isosceles triangle ABC, sides AB and AC are congruent. Point D divides side BC such that the length of BD is
+
+3 7
+
+of the length of BC. Point E lies on
+
+side AB and point F lies on side AC such that when segments DE and DF are drawn, angle BED is congruent to angle CF D. If the length of BE is 9, what is
+
+the length of CF ?
+
+A. 12
+
+B. 21
+
+C. 27
+
+D. 63
+
+Answer: A
+
+

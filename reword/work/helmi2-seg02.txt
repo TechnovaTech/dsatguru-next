@@ -1,0 +1,844 @@
+Section: Section 1, Module 2: Reading and Writing, Difficulty: easy (68 questions)
+925. Which choice completes the text so that it conforms to the conventions of Standard English? When residents of Potosi, Missouri, founded their town in 1826, they chose ______ it after the Bolivian city of Potosi. A. had named B. to name C. named D. were naming
+Answer: B
+
+1064. Which choice best states the main idea of the text? The following text is adapted from Matthew Arnold's 1869 nonfiction book Culture and Anarchy.
+The Times [a British newspaper], replying to some foreign strictures on the dress, looks, and behaviour of the English abroad, urges that the English ideal is that every one should be free to do and to look just as he likes. But culture indefatigably tries, not to make what each raw person may like, the rule by which he fashions himself; but to draw ever nearer to a sense of what is indeed beautiful, graceful, and becoming, and to get the raw person to like that. A. Most people disagree with each other on what is beautiful. B. Culture's duty is to use scientific methods to determine what is beautiful. C. The English are often subject to unfair critiques of their sense of taste. D. One of the functions of culture is to create a consensus about matters of good taste.
+Answer: D
+
+1068. Which choice most effectively uses data from the table to complete the example?
+
+Reported Annual Travel Distances in Four Studies of Migrating Animal Populations
+
+Species
+
+Continent Distance (km) Measurement method
+
+Brown bear
+
+North America 1,325 GPS
+
+Tibetan antelope Asia
+
+700
+
+RTD
+
+Caribou
+
+North America 4,868 GPS
+
+Reindeer
+
+Asia
+
+1,200 RTD
+
+Some studies of migrating animals measure how far the animals travel in a year by fitting individuals with GPS tracking collars. Other studies track annual round-trip distance (RTD), which is equal to double the distance separating the two habitats a population migrates between each year. A researcher argues that since GPS records all of an animal's movements, using the GPS method to track a population would result in significantly higher recorded travel distances than using the RTD method would. For example, it's very likely that the distance reported for the ______
+
+A. Tibetan antelope would be less than 700 kilometers if the GPS method had been used.
+
+B. caribou would be less than 4,868 kilometers if the RTD method had been used.
+
+C. caribou would be greater than 1,325 kilometers if the RTD method had been used.
+
+D. Tibetan antelope would be greater than 4,868 kilometers if the GPS method had been used.
+
+Answer: B
+
+1072. Which choice completes the text so that it conforms to the conventions of Standard English?
+
+When residents of Dublin, New Hampshire, founded their town in 1771, they chose ______ it after the Irish city of Dublin. A. to name B. named C. had named D. were naming
+Answer: A
+1364. Which choice most logically completes the text? The advent of online streaming has led many music listeners to drift away from ownership of music (through downloads or through physical media such as compact discs) and toward the streaming services LiveXLive and Tidal, among others. Datta et al. studied the impact of this change on the variety of music that listeners consume. The researchers reasoned that the ownership model of music assigns a cost per song to acquiring a variety of music, while streaming services typically charge a flat fee for access to an entire music catalog, making variety free, which suggests that ______ A. music publishers who choose to forgo releasing music on physical media are likely to see no change in revenue. B. the music choices of listeners who use streaming services would likely be more varied than those of listeners who do not use streaming services. C. listeners who prefer to purchase compact discs rather than use a service such as LiveXLive or Tidal would tend to listen to older music. D. listeners who use streaming services would be more likely to give physical copies of music as gifts to others than to purchase physical copies for themselves.
+Answer: B
+1500. Which choice completes the text with the most logical and precise word or phrase? Whatever the general attitude toward Spike Lee's 1992 film Malcolm X and Carl Franklin's 1995 film Devil in a Blue Dress when they were initially released, both films now tend to be regarded quite ______. In 2018, for example, critics for the New York Times praised the former as "electrifying" and the latter as "picture-perfect." A. neutrally B. skeptically C. strangely D. favorably
+Answer: D
+1506. Which finding, if true, would most directly support the student's claim? A film studies student is researching early 20th-century film serials, which consisted of individual episodes of a single long story that were shown weekly in theaters. The Painted Stallion is a 1937 serial that, over its 12 episodes, kept its audience interested with the suspense and drama that are typical of the western genre. The student, however, claims that ultimately audiences of the time preferred resolution and closure over ongoing tension. A. The 12th episode of The Painted Stallion was the most expensive episode of the series to produce. B. Modern critics generally regard the first episode as the best installment of The Painted Stallion. C. Audiences of the time considered The Painted Stallion to belong to a genre other than the western genre. D. The 12th episode of The Painted Stallion was viewed by more people than was any previous episode in the series.
+Answer: D
+
+Section: Section 1, Module 2: Reading and Writing, Difficulty: hard (50 questions)
+55. Which choice completes the text with the most logical and precise word or phrase? Noah Fierer and colleagues ______ pots of sterilized soil with slurries of live microbes collected from soil in five sites across Colorado, including areas of ponderosa pine forest and dry pasture. Fierer and team then grew mustard plants in the pots to see if the different microbial slurries affected levels of spicy glucosinolates like 3methylthiopropyl in the plants' seeds. A. populated B. precluded C. sanitized D. estimated
+Answer: A
+
+56. Which choice completes the text with the most logical and precise word or phrase? The collectibles market is one of the most difficult segments of the consumer economy to ______. Few economists would have predicted, for example, that the prices of vintage movie posters would soar in the 2010s, but soar they did. A. forecast B. avoid C. exchange D. monitor
+Answer: A
+
+57. Which choice completes the text with the most logical and precise word or phrase? Derived from research conducted with factory workers from 1924 to 1933, the Hawthorne effect suggests that participants' awareness that they are being studied alters their behavior and influences study outcomes. Since then, several researchers have claimed to invalidate this phenomenon, positing that the Hawthorne effect cannot be ______ because attempts to detect it invariably involve faulty research methods. A. inculcated B. rectified C. substantiated D. hypothesized
+Answer: C
+
+58. Which choice completes the text with the most logical and precise word or phrase? Paleontologists think that Anhanguera, Saltasaurus, and other long-extinct pterosaurs and sauropods may have breathed using air sacs connected to tubelike extensions inside the animals' bones. Such structures are found in modern birds, which is why some paleontologists treat the respiratory systems of birds as ______ those of Anhanguera, Saltasaurus, and other pterosaurs and sauropods. A. emissaries for B. subordinates of C. harbingers of D. proxies for
+Answer: D
+
+60. Which choice best describes the overall structure of the text?
+Advancements like the emergence of glassmaking in Mesopotamia circa 3500 BCE are overemphasized in innovation studies, contributing to the idea that technological change always brings greater complexity. Research by Nathaniel Erb-Satullo reveals an important exception: gold metallurgy flourished in the Caucasus in the Bronze Age, but a steep drop during that time (circa 1500 BCE) in objects featuring gold filigree (in which fine threads of gold are arranged in intricate patterns) and other sophisticated goldsmithing techniques suggests that simpler processes supplanted advanced methods.
+A. It details the near-consensus among researchers in a particular field of study regarding how technology evolves and then indicates the controversial nature of a study challenging that broadly accepted view.
+B. It summarizes the findings of several studies into the origins of a particular invention and then presents additional evidence from a more recent study that contradicts those findings.
+C. It advances a claim made by researchers in one academic field about the nature of technological change and then critiques a contrasting claim presented by a researcher from a related academic field.
+D. It explains that a particular interpretation of technological development has been perpetuated in an academic field and then provides a counterexample demonstrating that the interpretation isn't always accurate.
+Answer: D
+
+61. Which choice best states the main purpose of the text? In their study of the steering muscles regulating sclerites (minute hardened structures) in the Drosophila (fruit fly) wing hinge, Johan M. Melis et al. used machine learning to devise a convolutional neural network (CNN) model capable of predicting the pattern of wing motion produced by the maximum activity of the muscles. The CNN model's output aligned with results of prior studies by other researchers measuring muscle activity patterns directly--one of several indications, said Melis et al., that the model accurately represents important biomechanical processes underlying wing motion. A. To account for Melis et al.'s reliance in their study on a CNN model in lieu of direct measurement B. To provide an overview of how Melis et al. honed the accuracy of their CNN model C. To present evidence from Melis et al.'s study in support of the efficacy of their CNN model D. To compare results obtained by Melis et al. using their CNN model to prior results obtained from other researchers' models
+Answer: C
+
+62. Based on the text, why does Miguel accompany his brother to the sisters' house one day? The following text is from Julia Alvarez's 2000 novel In the Name of Salom�. The narrator and her sister, daughters of a famous poet, are being tutored by Alejandro Rom�n.
+Our tutor, Alejandro Rom�n, brought his younger brother, Miguel, to class one day. By now I was eighteen and had learned everything Alejandro had to teach me, so I was glad for a new face. Miguel was an aspiring poet, and he had heard from his brother that the Ure�a girls were none other than the daughters of Nicol�s Ure�a, and they were smart as clockwork. Miguel was hoping not only to meet us but to make the acquaintance of the poet himself at Mam�'s house.
+�2000 by Julia Alvarez A. Miguel has not received formal instruction in poetry and wants to ask the sisters' famous father to be his mentor. B. Miguel wants to recite his poems to the sisters and inquire about their perspectives on his work. C. Miguel has learned all his brother can teach him and now desires to be taught by the sisters. D. Miguel anticipates having the opportunity to be introduced to both the sisters and their father.
+Answer: D
+
+63. What does the text most strongly suggest about paintings by Roberts?
+Motivated to sell as many paintings as possible, Alfred Hair, an influential figure among the landscape artists known as the Florida Highwaymen, pioneered "fast painting," which in part involved swift applications of paint. That many of Hair's acolytes, including Livingston Roberts, imitated the technique accounts in part for the impressionistic qualities that are now synonymous with the group's shared aesthetic. But not all Highwaymen fully embraced this approach; for instance, though Charles Walker was also prolific, his paintings were executed with greater attention to detail.
+A. Roberts's reliance on the technique of fast painting likely accounts for his works being more aesthetically interesting than works by Walker are.
+B. The lack of precision with which they were executed suggests that they are inferior to works by either Hair or Walker.
+C. Although it is evident that Roberts adopted some of Hair's preferred techniques, Roberts's works are less derivative of works by Hair than is typically acknowledged.
+D. Because of the manner in which they were created, they likely have visual qualities that are regarded as more typical of Florida Highwaymen paintings than the qualities in works by Walker are.
+Answer: D
+
+65. Which choice most effectively uses data from the graph to complete the assertion?
+
+Percentage of total penalty
+
+Tax Penalties Assessed on Private Foundations That Filed Form 4720,
+by Reason, 2003-2005
+
+80
+
+70
+
+60
+
+50
+
+40
+
+30
+
+20
+
+10
+
+0
+
+dealing
+
+income
+
+ditures n
+
+oldings
+
+self- ted ribu le expe ss h sine
+
+undist taxab bu ess
+
+exc
+
+Reason for tax penalty
+
+2003 2004 2005
+
+While US public charities, like Commonfund, must file Form 990 yearly with the IRS, private foundations, such as Lilly Endowment Inc., must file a different form, 990PF. In addition, foundations that engage in certain prohibited activities must also file Form 4720 and pay a penalty tax on the money involved. Private foundations are prohibited from holding excess interests in a business enterprise, "self-dealing" (conducting activities that benefit foundation insiders), making taxable expenditures such as outlays for lobbying, and failing to cross a required threshold in making charitable distributions from income. Out of the organizations that filed Form 990-PF in the years 2003-2005, ______
+A. those that were also required to file Form 4720 because they had excess holdings in a business enterprise paid, on average, a larger penalty than those organizations that filed Form 4720 because they engaged in self-dealing.
+B. those that also filed Form 4720 collectively paid larger penalties for failing to meet the minimum charitable distribution requirement than for other reasons.
+C. a smaller percentage of those that also filed Form 4720 did so because they engaged in self-dealing than the percentage of those that filed Form 4720 because they did not meet the minimum charitable distribution requirement.
+D. those that also filed Form 4720 paid a larger penalty for failing to meet a minimum charitable distribution requirement than those organizations that filed Form 990 but also filed Form 4720 for the same reason.
+Answer: B
+
+66. Assuming that the Volga and Don basins supported similarly sized hunter-gatherer populations 6,500-8,000 years ago, which finding, if true, would most directly support Courel and colleagues' explanation?
+Blandine Courel and her colleagues analyzed pottery fragments from thirty-five sites across the Volga and Don river basins to determine whether the ways in which hunter-gatherer societies used pottery in these regions around 6,500-8,000 years ago were influenced primarily by local food availability or primarily by cultural factors. Analysis of organic residues on the pottery fragments showed different prevailing uses for pottery in these locations--cooking and storing terrestrial animal protein at Volga sites and cooking and storing aquatic animal protein at Don sites--which Courel and colleagues attribute to cultural differences.
+A. There were many more bodies of water in a comparably sized area in the Don basin than in the Volga basin.
+B. In both the Volga and Don basins, most of the sites from which pottery has been recovered appear to have been seasonal fishing and hunting encampments rather than year-round settlements.
+C. The people of the Volga basin acquired the techniques used to create pottery for cooking and storing food from the people of the Don basin.
+D. Across the Volga and Don basins, people had broadly similar access to the same terrestrial and aquatic animal resources.
+Answer: D
+
+67. Which finding, if true, would most directly support the scientist's conclusion?
+To boost the performance of oil-absorbing resins, which are used to remove oil and other organic compounds from wastewater, one team of materials researchers created a resin with a novel--albeit very expensive--monomer (a molecule that can chemically bond with analogous molecules to form polymers) synthesized from cyclodextrin. Other researchers have produced resins consisting of various much cheaper, commercially available methacrylate monomers, including one derived from benzyl methacrylate (BZMA). Testing all these resins' capacity to absorb toluene and trichloromethane, two organic compounds, a scientist concluded that when practical considerations were taken into account, the BZMA-derived resin showed the greatest potential for use in wastewater cleanup.
+A. Whereas the resin synthesized from -cyclodextrin exhibited the highest absorption capacity for toluene, the BZMA-derived resin and other resins consisting of commercially available methacrylate monomers exhibited the highest absorption capacity for trichloromethane.
+B. For both toluene and trichloromethane, the BZMA-derived resin exhibited similar absorption capacity as other resins consisting of commercially available methacrylate monomers and a slightly higher absorption capacity than the resin synthesized from -cyclodextrin.
+C. For both toluene and trichloromethane, the BZMA-derived resin exhibited only modestly lower absorption capacity than the resin synthesized from -cyclodextrin but higher absorption capacity than other resins consisting of commercially available methacrylate monomers.
+D. Relative to the resin synthesized from -cyclodextrin and to other resins consisting of commercially available methacrylate monomers, the BZMA-derived resin exhibited superior absorption capacity for toluene but not for trichloromethane.
+Answer: C
+
+68. Which choice most logically completes the text?
+Southwestern Kentucky's Livingston County is among the most rural counties in the United States: the US Census Bureau classified it as 95.4% rural in 2010. Researchers often struggle to recruit residents of counties like Livingston for inclusion in studies. Melissa Valerio and colleagues tested whether an approach called snowball sampling improves recruitment. Working in two rural counties, they recruited a few people (known as "seeds") with the characteristics desired for a proposed study and asked them to recruit additional participants from their social networks. Though the seeds were given minimal guidance, many more people they recruited had the desired characteristics for the study than would be expected by chance alone, most likely because ______
+A. most seeds' social networks include some people who do not know one another and who share few characteristics.
+B. the seeds' social networks tend to be somewhat smaller than the networks of people who do not live in rural areas.
+C. the seeds' social networks include a high proportion of people who share characteristics with the seeds.
+D. the characteristics that made the seeds desirable for inclusion in the proposed study may be unknown to some members of the seeds' social networks.
+Answer: C
+
+69. Which choice most logically completes the text?
+In classical Greek and Roman mythology, female characters are typically cast as either villains lacking in psychological depth or passive victims who are marginal to these stories, which usually focus on the exploits of male characters. Recently, a subgenre has emerged in which writers reimagine these stories from the perspectives of their female characters, giving them agency and complex motivations. Purists argue that such efforts represent a distinctively modern tendency to impose our own values on past civilizations, obscuring those civilizations' beliefs. Defenders of the subgenre counter that reimaginings of the myths for new cultural contexts are almost as old as the myths themselves, suggesting that ______
+A. purists are overlooking a long tradition of adapting Greek and Roman myths to focus on female characters.
+B. the complex motivations given to female characters in modern retellings of Greek and Roman myths reflect a recent shift toward psychological depth in fictional representation.
+C. bringing female perspectives to the forefront is not indicative of a novel attitude regarding fidelity to Greek and Roman myths' ideologies.
+D. modern writers' foregrounding of female characters is chiefly motivated by a desire to counterbalance the primacy of male perspectives among earlier adaptations of Greek and Roman myths.
+Answer: C
+
+70. Which choice completes the text so that it conforms to the conventions of Standard English? The world's many geothermal power plants leverage an array of ______ the Nga Awa Purua plant uses a flash steam system that transforms high-temperature geothermal fluid into steam; in Mexico, the Cerro Prieto plant's dry steam system pumps superheated steam from a reservoir; and in the US, the Mammoth plant's binary cycle system uses lower-temperature geothermal fluid in conjunction with a secondary fluid. A. technologies, in New Zealand, B. technologies in New Zealand: C. technologies in New Zealand; D. technologies: in New Zealand,
+Answer: D
+
+71. Which choice completes the text so that it conforms to the conventions of Standard English? When a given term--"self-fulfilling prophecies" and "role models" are two well-known examples--is generally accepted and frequently used, ______ susceptible to obliteration by incorporation (OBI). In cases of OBI, widely used terms are rarely, if at all, attributed to the individuals who coined them. A. this often becomes B. it often becomes C. they often become D. these often become
+Answer: B
+
+72. Which choice completes the text so that it conforms to the conventions of Standard English? In medieval Russia, squirrel pelts were used as a commodity currency. By using specific goods like squirrel pelts as common units of exchange, commodity currency economies streamline trade, which is why they often replaced barter economies. Barter economies eschew ______ that requires what economist W.S. Jevons deems a "double coincidence of wants"--in other words, each trading party must want precisely what the other has. A. currency, in favor of a direct trade system B. currency in favor of a direct trade system C. currency, in favor of a direct trade system, D. currency--in favor of a direct trade system
+Answer: B
+
+73. Which choice completes the text so that it conforms to the conventions of Standard English? In their attempt to create a quantum random number generator, K. Muhammed Shafi et al. used a continuous-wave diode laser to fire photons at a periodically-poled potassium titanyl phosphate (PPKTP) nonlinear crystal. A plano-convex lens ______ the laser on the center of the 10-millimeter-long crystal ensured a spot size (a measure of the beam's diameter) of 85 micrometers. A. focusing B. focus C. focuses D. focused
+Answer: A
+
+74. Which choice completes the text so that it conforms to the conventions of Standard English? For her installation The Last Cruze, photographer LaToya Ruby Frazier traveled to Lordstown, Ohio, where she documented the lives of workers at the local automobile plant. In the installation, text culled from a series of in-depth interviews with employees and their families ______ sixty-seven gelatin silver prints, highlighting the collaborative, documentary nature of Frazier's work. A. punctuating B. punctuates C. punctuate D. are punctuated by
+Answer: B
+
+75. Which choice completes the text so that it conforms to the conventions of Standard English? A single specimen of T. parkerae, collected at a depth of 1,856 fathoms (3,394 meters) in the South Pacific, and a single specimen of G. hirsuta, collected at a depth of 620 fathoms (1,134 meters) in the North Atlantic, have been preserved as exemplars of their respective ______ former in a repository at Washington, DC's Museum of Natural History and the latter in a repository at London's Natural History Museum. A. species; the B. species. The C. species, the D. species, and the
+Answer: C
+
+76. Which choice completes the text with the most logical transition? In a given rock formation, Fortunian rock from 538 million years ago might directly abut Rhaetian rock from 208.5 million years ago, with millions of years of material missing in between. ______ time did not stand still during these intervening years; the unaccounted-for sedimentary material was likely removed from the stratigraphic record via erosion and weathering. A. Of course, B. In particular, C. On the contrary, D. As a result,
+Answer: A
+
+77. Which choice completes the text with the most logical transition? Architect Victor Gruen, the designer of Pennsylvania's South Hills Village shopping mall, conceived of the mall as an indoor version of the European town square, a communal space that encouraged visitors to stroll and linger. ______ he designed South Hills Village with long, pedestrian-friendly promenades and ample seating areas clustered around fountains and greenery. A. Regardless, B. In addition, C. Accordingly, D. By contrast,
+Answer: C
+
+78. Which choice completes the text with the most logical transition? Long thought to be sessile (immobile), adult Chelonibia testudinaria, barnacles that adhere to sea turtle shells, have been observed to shift slightly in position over time--a phenomenon that has been attributed to the barnacles' passive displacement by water currents. ______ a research team found that adult C. testudinaria moved toward the heads of their sea turtle hosts and thus against the prevailing water flow, behavior consistent with self-initiated locomotion. A. Undermining this explanation, B. Contrary to this phenomenon, C. Drawing a similar conclusion, D. Confirming this hypothesis,
+Answer: A
+
+79. Which choice completes the text with the most logical transition? In Annie Dillard's Pilgrim at Tinker Creek--where, early on, the author marvels at a single goldfish's delicate fins but later winces when imagining a horde of goldfish laying and eating their own eggs--Dillard struggles to reconcile the complicated juxtapositions of the natural world. ______ nature's mesmerizing intricacy and pitiless harshness prove inextricably linked for Dillard, like "two branches of the same creek." A. Moreover, B. To that end, C. Ultimately, D. Hence,
+Answer: C
+
+80. Which choice most effectively uses information from the given sentences to emphasize a difference between the two movies?
+Silent films can be valuable historical documents of their time. Ninety percent of silent films made before 1930 are now lost. A film is considered lost when no remaining copies are known to exist. Director Howard Hawks's 1926 silent film The Road to Glory is lost. Director Oscar Micheaux's 1920 silent film Within Our Gates is archived at the UCLA Film & Television Archive in Los Angeles, California.
+A. Howard Hawks's 1926 film The Road to Glory is among the many lost films of the era.
+B. Howard Hawks's The Road to Glory (1926) and Oscar Micheaux's Within Our Gates (1920) are just two examples of silent films from the 1920s.
+C. While Howard Hawks's The Road to Glory is considered lost to history, Oscar Micheaux's film Within Our Gates is archived at the UCLA Film & Television Archive in Los Angeles, California.
+D. Oscar Micheaux's film Within Our Gates can be found at the UCLA Film & Television Archive in Los Angeles, California.
+Answer: C
+
+81. The student wants to contrast the type of neurotechnology Kernel develops with the type of neurotechnology Cortigent develops. Which choice most effectively uses relevant information from the notes to accomplish this goal?
+While researching a topic, a student has taken the following notes:
+Founded in 2016, Kernel is a neurotechnology company that develops brain-computer interfaces (BCIs). BCIs interpret and execute brain signals to allow users to control external software or hardware with their thoughts. Founded in 2022, Cortigent is a neurotechnology company that develops neuroprostheses. Neuroprostheses act as replacement brain functions to restore the user's lost sensory, motor, or neural functions. Founded in 2012, MindMaze is a neurotechnology company that develops neuromodulation technologies. Neuromodulation technologies use neural interfaces to stimulate nervous system structures and influence neural activity.
+A. Founded in 2016, Kernel develops technology for interpreting and executing brain signals, which, unlike Cortigent and MindMaze, is categorized as a neuroprosthestic.
+B. Unlike Cortigent, which develops neurotechnology, Kernel develops BCIs.
+C. BCIs allow users to control external software or hardware with their thoughts, but they don't restore sensory, motor, or neural functions as neuroprostheses do.
+D. BCIs interpret and execute brain signals to allow users to control external software or hardware with their thoughts, whereas neuroprostheses influence neural activity.
+Answer: C
+
+202. As used in the text, what does the word "define" most nearly mean? The following text is adapted from the 1895 poem "Shadow River" by Emily Pauline Johnson (Tekahionwake). The speaker is looking at the reflections of plants in a river.
+The little fern-leaf, bending Upon the brink, its green reflection greets, And kisses soft the shadow that it meets With touch so fine, The border line The keenest vision can't define; So perfect is the blending. A. Perceive B. Abbreviate C. Restate D. Explain
+Answer: A
+
+203. Which choice completes the text with the most logical and precise word or phrase? Text corpora such as the Bank of English are enormous collections of electronically stored texts that can be used for empirical testing of hypotheses regarding the frequency of typical word usage. For example, a linguist who assumes that the word "life" is ______ in written English could find evidence supporting that assumption in a corpus: "life" is the ninth most commonly used noun. A. ubiquitous B. authoritative C. diminishing D. misused
+Answer: A
+
+204. Which choice completes the text with the most logical and precise word or phrase? New and interesting research conducted by Suleiman A. Al-Sweedan and Moath Alhaj is inspired by their observation that though studies of the effect of high altitude on blood chemistry are ______, the effect on blood chemistry of living in locations below sea level, such as the California towns of Niland and Thermal, has received comparatively little notice. A. preliminary B. sporadic C. equivocal D. copious
+Answer: D
+
+205. Which choice completes the text with the most logical and precise word or phrase? One way to evaluate the importance of a scholar's research is to ______ other scholars' references to that research. For example, a count of other scholars' citations shows that Cornell University economist Francine Blau, who studies labor economics, is referenced frequently, indicating that her work has been significant in the field. A. abridge B. transpose C. enumerate D. circumvent
+Answer: C
+
+206. Which choice best describes the overall structure of the text?
+High-speed rail systems, in which trains can move at great speeds, are expanding in many countries because high-speed rail can reduce the number of automobiles on the road and ultimately conserve energy. In Denmark, for instance, 56 kilometers of high-speed rail lines are in operation as of 2023, and 717 kilometers are under construction.
+A. The text rejects a long-held belief and then proposes a different interpretation.
+B. The text questions a course of action and then suggests alternatives to that action.
+C. The text summarizes an argument and then offers a challenge to that argument.
+
+D. The text notes a general trend and then cites an example of that trend. Answer: D
+
+207. Which choice best describes the function of the underlined portion in the text as a whole? In 1965, poet and scholar Dudley Randall founded Broadside Press in Detroit, Michigan. With the goal of making the work of Black poets widely available to the public, Randall published and distributed broadsides: individual poems printed on single sheets of paper. Since these broadsides became associated with the innovative aesthetics of the Black Arts Movement (1965-1975), Randall's publication format may likewise seem to have been pioneering, but, in fact, broadside poetry had also flourished in seventeenth-century London, where single-sheet popular ballads flooded the marketplace. A. It undermines the argument that Randall's method for publishing poetry was a largely novel one. B. It identifies a reason for a possible misconception regarding Randall's publication of broadsides. C. It explains why Randall's broadsides were important to the Black Arts Movement. D. It provides context for Randall's decision to publish work by Black poets as broadsides.
+Answer: B
+
+209. Which choice best states the main idea of the text?
+In their meta-analysis of research on advergames (video games developed to promote products or services), Zeph M.C. van Berlo et al. confirm that such games, though they can elicit player interest, may not facilitate subsequent recall of product and brand information. This phenomenon can be explained by the finite nature of cognitive capacity as it is articulated in Annie Lang's limited capacity model of motivated mediated message processing. In this case, players' cognitive resources are directed foremost toward the advergame's mechanics, leaving little or no capacity for encoding and storing the information the advertiser intends to be salient.
+A. The limited capacity model of motivated mediated message processing developed by Lang provides a means of explaining the finding by van Berlo et al. that players may not readily recollect the brand and product information embedded in advergames.
+B. The meta-analysis by van Berlo et al. reveals that higher engagement in advergame mechanics is linked to lower effectiveness in persuading players to purchase particular brands and products.
+C. Research by van Berlo et al. corroborates Lang's conclusion that because people predominantly focus on game mechanics when playing video games, it is difficult for advergames to communicate brand and product information in ways that are highly memorable.
+D. Although the limited capacity model of motivated mediated message processing developed by Lang suggests otherwise, advergames can succeed as marketing tools, provided that they achieve a balance between game mechanics and the promotion of a brand or product.
+Answer: A
+
+211. Which choice best describes data from the table that weaken the students' claim?
+
+Broken-Wing Display in Various Bird Species
+
+Species name
+
+Common name
+
+Order Performs broken-wing display?
+
+Gallinago paraguaiae South American snipe Charadriiformes No
+
+Grus canadensis
+
+sandhill crane
+
+Gruiformes Yes
+
+Zenaida meloda
+
+West Peruvian dove Columbiformes No
+
+Actitis hypoleucos common sandpiper Charadriiformes Yes
+
+Coccyzus americanus yellow-billed cuckoo Cuculiformes Yes
+
+While observing birds for a biology class, a group of students noticed a Western sandpiper (Calidris mauri), a bird of the order Charadriiformes (shorebirds), slowly move away, make loud noises, and feign an injured wing as the group approached the bird's ground nest. Researching this behavior, the students learned that this phenomenon is commonly referred to as "broken-wing display" and is meant to lure predators away from the nesting site and toward a seemingly vulnerable adult bird. Upon learning of other birds that also exhibit the behavior they had observed, the students hypothesized that the phenomenon is exclusive to shorebirds.
+
+A. Unlike the common sandpiper, the South American snipe is not known to perform broken-wing display, even though both are in the order Charadriiformes.
+
+B. Neither the West Peruvian dove nor the South American snipe is known to perform broken-wing display.
+
+C. The common sandpiper, in the order Charadriiformes, is known to perform broken-wing display, and the West Peruvian dove, in the order Columbiformes, is not.
+
+D. Both the yellow-billed cuckoo and the sandhill crane are known to perform broken-wing display.
+
+Answer: D
+
+212. Which choice uses data from the table to effectively complete the text?
+
+Organic Compounds Detected in Sequential Extracts from A0106
+
+Solvent (sequence #)
+
+Alkanes Dimethyl sulfides Naphthalene
+
+Hexane (1)
+
+present absent
+
+absent
+
+Dichloromethane only (2)
+
+present absent
+
+present
+
+Methanol only (3)
+
+absent present
+
+present
+
+Dichloromethane and methanol (4) present absent
+
+present
+
+After sample A0106 was retrieved from the asteroid Ryugu, a portion of it was subjected to an extraction protocol in which small amounts of pulverized material were rinsed, sequentially, with hexane, dichloromethane, methanol, and finally a mixture of dichloromethane and methanol. Each rinse created a separate extract suitable for spectral analysis. Based on the table, both alkane and dimethyl sulfide compounds must have been present in the pulverized sample before the methanol-only extraction, because ______
+
+A. the third extract in the sequence contains dimethyl sulfides and the fourth contains alkanes.
+
+B. the second extract in the sequence contains alkanes but no dimethyl sulfides.
+
+C. three of the four extracts contain alkanes but only one of the four contains dimethyl sulfides.
+
+D. the fourth extract in the sequence contains alkanes but no dimethyl sulfides.
+
+Answer: A
+
+213. Which statement, if true, would most strongly support Wade's argument?
+In medieval England, singers and minstrels made livings as traveling performers, but the pieces they performed have been a mystery, thought to be lost or never committed to paper at all. Recently, however, James Wade has argued that a manuscript collection compiled in the fifteenth century by Richard Heege contains three pieces likely copied from a repertoire book belonging to a minstrel working in the area around Heege's home. Wade cites features of the texts indicative of live performance, such as directly appealing to the audience, extensive use of repetition (allowing for easy memorization), and requests for tips (payment) from listeners.
+A. Heege's collection contains the earliest examples of the three pieces in question, but each of those pieces occurs in other manuscript collections compiled after Heege's.
+B. Traveling minstrels are thought to have performed mainly for elite audiences, and other parts of Heege's collection reflect his interest in works with popular appeal.
+C. Features like repetition also occur in other texts from the period that were widely read but are not known to have been performed for live audiences.
+D. The three pieces in question contain references that presume that the audience is familiar with Radford and other small villages near where Heege lived.
+Answer: D
+
+214. Based on the text, which finding, if true, would best account for the discrepancy Etta-Nkwelle observed?
+Economists have demonstrated that herding--in which individuals converge on the same action by imitating the economic decisions of one or more peers--occurs among investors. Investigating whether herding also occurs among nations in matters of economic policy, Maru Etta-Nkwelle examined changes in the foreign currency reserves of emerging economies in various world regions in the years following the widespread financial crisis of 1997. Etta-Nkwelle posited that herding would manifest in regional peer countries converging on the same foreign currency accumulation rate regardless of each country's observable circumstances. She found that Asian countries showed evidence of herding but African countries did not.
+A. The majority of the currency held in reserves by the African countries was foreign currency, whereas the majority of the currency held in reserves by the Asian countries was domestic currency.
+B. The African countries tended to accumulate a variety of foreign currencies for their reserves, whereas the Asian countries tended to favor a single foreign currency for their reserves.
+C. Most of the African countries belonged to international economic unions that set individual foreign-currency accumulation policies for each member, whereas the Asian countries were largely free to set their own policies.
+D. The 1997 financial crisis resulted in immediate declines in many of the African countries' foreign currency reserves, whereas the crisis had few short-term effects on the foreign currency reserves of most of the Asian countries.
+Answer: C
+
+215. Which choice most logically completes the text? Introducing a new species into a delicate ecosystem can often be harmful. The hwamei and other fruit-eating birds have established themselves on the Hawaiian island of Oahu after being brought there in the last 150 years. Many plant species on the island rely on the activity of fruit-eating birds to maintain and increase their populations. In recent studies, hwameis have been found to spread seeds of native forest plants that are at risk of extinction, such as the kawau tree and the alahee tree, suggesting that ______ A. non-native birds have had both positive and negative effects on Oahu's native plants. B. although non-native birds initially damaged the plants in Oahu's ecosystem, they are now proving useful to them. C. rather than harming Oahu's ecosystem, some non-native birds provide an important benefit on Oahu. D. non-native birds, such as the hwamei, are unlikely to eat fruits from non-native forest plants on Oahu.
+Answer: C
+
+216. Which choice most logically completes the text?
+Lichens lack root systems, so they must absorb water directly from the air, dew, and even tree bark and retain it in their bodies. A team of scientists recently used computer simulations to evaluate the importance of water stored in tree bark (bark water) for lichens in the Mediterranean region. In the control simulation, lichens had access to all water sources; in the experimental simulation, lichens had access to all sources except bark water. Compared to the control, the experimental simulation predicted a decrease in the lichens' overall biomass production of 21%. The experimental simulation (but not the control simulation) also predicted a decrease in the survival of certain species of lichen during the summer due to evaporative water loss, suggesting that ______
+A. only some specialized lichen species are able to absorb bark water during long periods of high evaporation.
+B. access to bark water may help offset the effects of seasonal water loss for some lichen species.
+C. although lichens can absorb water from multiple sources, most of the water they absorb is bark water.
+D. bark water absorption reduces biomass production in lichens but makes them more resistant to seasonal changes in conditions.
+Answer: B
+
+217. Which choice completes the text so that it conforms to the conventions of Standard English? Key-value pairs are an important aspect of JavaScript Object Notation (JSON), an electronic file format for storing and transmitting data. Keys function as labels, while values contain the actual information. In a JSON file storing data about fire belly ______ instance, you could encounter a key such as "species" with the associated value of "Cynops orientalis." A. newts: for B. newts. For C. newts; for D. newts, for
+Answer: D
+
+218. Which choice completes the text so that it conforms to the conventions of Standard English? Released in 1992, the Hewlett-Packard PA-7100 microchip contained a single CPU, or core, to execute commands. As processing speeds of single-core chips increased over time, so too did the heat the chips generated. ______ a "power wall" in which more heat was produced than could be efficiently dissipated led developers to invent the dual-core chip in the early 2000s. A. They hit B. Hitting C. When they hit D. Upon hitting
+Answer: B
+
+219. Which choice completes the text so that it conforms to the conventions of Standard English? Should the United Kingdom cut taxes? As of 2017, the United Kingdom's top tax rate (59%) was lower than the highest point on the country's Laffer curve. A theoretical relationship between tax rates and revenues, the curve can be used to determine whether tax cuts will ultimately increase a country's tax revenue, according to some ______ 2017 data suggested that the United Kingdom was below the threshold for a tax cut. A. economists the B. economists, the C. economists; as the D. economists. The
+Answer: D
+
+220. Which choice completes the text so that it conforms to the conventions of Standard English? A 2024 study by archaeologist Guadalupe Romero Villanueva and colleagues ______ that comb-shaped motifs painted on the walls of Argentina's Cueva Huenul (a cave in northern Patagonia) are approximately 8,200 years old offers compelling geochronological evidence that humans had been visiting the cave for more than 3,000 years before abandoning it around 5,100 years ago. A. reported B. has reported C. reports D. reporting
+Answer: D
+
+221. Which choice completes the text so that it conforms to the conventions of Standard English? Obsidian hydration dating (OHD), an artifact-dating technique that measures the thickness of the rind that forms on the surface of obsidian (a volcanic glass), can be used to estimate when prehistoric humans used the sharp glass to shape stone tools. The use of OHD requires careful calibration based on a sample's climatic context and ______ temperature fluctuations, variations in water vapor pressure, and differences in glass chemistry are known to affect the rate of rind growth. A. composition, though, B. composition, though: C. composition; though D. composition though
+Answer: D
+
+222. Which choice completes the text so that it conforms to the conventions of Standard English? Stephanie Shonekan of the University of Missouri, along with researchers George Starks of Drexel University and Tyron Cooper of Indiana University, ______ on the advisory team for the Timeline of African American Music, an interactive digital resource that explores African American musical history from the 1600s to the present day. A. are serving B. have served C. serves D. serve
+Answer: C
+
+223. Which choice completes the text with the most logical transition? Since 1941, the South Side Community Art Center in Chicago, Illinois, has cultivated a multigenerational community of Black creatives--from writer Gwendolyn Brooks, to musician Nat King Cole, to visual artists like Espi Eph and Barbara Jones-Hogu. ______ it has garnered a reputation as a hub of Black art and culture in Chicago. A. On the other hand, B. Nevertheless, C. Periodically, D. Accordingly,
+Answer: D
+
+224. Which choice completes the text with the most logical transition? Despite her considerable body of work, the writer Ann Batten Cristall (1769-1848) was largely overlooked by twentieth-century scholars of British Romantic poetry, whose research tended to focus on the Romantic era's most prominent figures (such as William Wordsworth, the author of "Composed upon Westminster Bridge" and other well-known poems). ______ a 2020 analysis of Cristall's poems by scholar Stefanie John helps illuminate Cristall's significant contributions to Romanticism. A. Illustrating this trend, B. In accordance with these scholars, C. In addition to this research, D. Addressing this oversight,
+Answer: D
+
+225. Which choice completes the text with the most logical transition? The names of geological eras uniformly describe phases in Earth's evolutionary history (e.g., Phanerozoic means "abundant life"). Names given to geological periods, ______ are of diverse origins. The Permian period is named after the historical region of Perm in Russia, for example, while the Silurian period takes its name from the Celtic tribe the Silures. A. therefore, B. in turn, C. on the other hand, D. furthermore,
+Answer: C
+
+226. The student wants to contrast the two sculptures. Which choice most effectively uses relevant information from the notes to accomplish this goal? While researching a topic, a student has taken the following notes:
+Artistic works made readily accessible to the general public are categorized as public art. Artist Marco Cianfanelli's metal sculpture Release is on display at a public memorial in Howick, South Africa. This work of public art depicts the first democratically elected president of South Africa, Nelson Mandela. Artist Douglas Coupland's metal sculpture Digital Orca is on display at a public convention center in Vancouver, Canada. This work of public art depicts a whale formed from black and white cubes.
+A. In contrast to Cianfanelli's Release, Coupland's Digital Orca is displayed in a public place. B. Release by Cianfanelli and Digital Orca by Coupland are two examples of public art. C. Cianfanelli's Release, unlike Coupland's Digital Orca, depicts a human subject. D. Coupland's sculpture Digital Orca, which depicts a whale formed from black and white cubes, is on display in Vancouver, Canada.
+Answer: C
+
+227. The student wants to make a generalization about free-elections clauses in state constitutions. Which choice most effectively uses relevant information from the notes to accomplish this goal?
+While researching a topic, a student has taken the following notes:
+US states are the primary regulators of federal and state elections and bear much of the responsibility to establish voting rights. All fifty state constitutions contain clauses that confer the right to vote on eligible citizens. Thirty state constitutions also include some form of a free-elections clause. These clauses more broadly mandate that elections be conducted in a fair manner. Further guidance with regard to voting rights and conducting elections is legislated by state lawmakers.
+A. Although all states' constitutions have clauses conferring the right to vote, free and fair elections aren't mandated with the same consistency.
+B. Every state constitution has some form of a free-elections clause, by which a state confers voting rights on eligible citizens.
+C. States bear most of the responsibility for establishing voting rights and conducting fair elections.
+D. In addition to constitutional provisions such as free-elections clauses, state lawmakers provide election guidance by means of legislation.
+Answer: A
+
+228. The student wants to emphasize a historical similarity between Hadid's and Gehry's respective projects. Which choice most effectively uses relevant information from the notes to accomplish this goal?
+While researching a topic, a student has taken the following notes:
+The 1988 exhibition Deconstructivist Architecture at the Museum of Modern Art (MoMA) in New York City featured projects by seven architects. The exhibition was influential in popularizing deconstructivist design principles in the late twentieth century. It included architectural plans for The Peak, a 1983 project by Iraqi British architect Zaha Hadid featuring jagged geometric forms jutting out from an artificial cliff. It included a model of Gehry House, a 1978-88 project by US architect Frank Gehry featuring jagged geometric forms extending from a Dutch colonial exterior. Curators Philip Johnson and Mark Wigley describe the exhibition's projects as subverting conventional assumptions "about order, harmony, stability, and unity."
+A. The popularization of deconstructivist design in the late twentieth century owes much to the architects featured in MoMA's 1988 exhibition, Hadid and Gehry among them.
+B. Hadid's and Gehry's respective projects date to 1978, a decade before MoMA's influential 1988 exhibition Deconstructivist Architecture.
+C. With their jagged geometric forms, The Peak and Gehry House both subvert conventional assumptions "about order, harmony, stability, and unity" (Johnson and Wigley).
+D. The Peak and Gehry House were featured in an influential 1988 MoMA exhibition that popularized deconstructivist design principles in the late twentieth century.
+Answer: D
+
+Section: Section 2, Module 1: Math, Difficulty: unknown (70 questions)
+
+82. y = 8x - 3
+What is the solution (x, y) to the given system of equations? A. (2, 13) B. (8, 13) C. (13, 2) D. (13, 8)
+
+y = 13
+
+Answer: A
+
+83. Triangle P QR is similar to triangle XY Z such that P , Q, and R correspond to X, Y , and Z, respectively. The length of side P Q is 20, and the length of side QR is 18. The length of each side of triangle XY Z is 2 times the length of its corresponding side in triangle P QR. What is the length of side Y Z? A. 9 B. 10 C. 36 D. 40
+Answer: C
+
+84. A number x is at least twice the value of a number y. If the value of y is 65, which inequality represents the possible values of x? A. x  63 B. x  67 C. x  130 D. x  132
+Answer: C
+
+85. The function h is defined by h(x) = 4(6x - 10). What is the value of h(10)? A. 10 B. 40 C. 60 D. 200
+Answer: D
+86. g(t) = -16t2 + 176t The function g gives the height of a model rocket, in feet, t seconds after it was launched into the air. Which statement is the best interpretation of g(3) = 384? A. The height of the model rocket was 384 feet when it was launched into the air. B. The height of the model rocket was 3 feet when it was launched into the air. C. The height of the model rocket was 3 feet 384 seconds after it was launched into the air. D. The height of the model rocket was 384 feet 3 seconds after it was launched into the air.
+Answer: D
+
+87. Sophia bought confetti and balloons for $69. Each package of confetti cost $2, and each balloon cost $1. If Sophia bought 10 packages of confetti, how many
+balloons did she buy?
+Answer: 49
+88. If 2x+2x = 88, what is the value of 4x?
+5
+A. 88 B. 220 C. 440 D. 880
+Answer: C
+
+89. A marine biologist uses a linear model to estimate the weight of a blue whale after it is born. The model estimates that a certain blue whale weighs 5,310 pounds at birth and gains 10.0 pounds per hour, for 120 hours, after it is born. Based on this model, what is the estimated weight, in pounds, of this blue whale 3 hours after it
+is born?
+Answer: 5340
+
+90. If x = 56 and cx = 56, what is the value of c?
+
+y
+
+8y
+
+Answer: 8
+
+91. Which expression is a factor of 81p21 - 121p19? A. 9p + 11 B. 81p2 + 121 C. 11p - 9 D. -40p44
+Answer: A
+
+92.
+x h(x) 0 28 1 29 2 31
+For the function h, the table gives three values of x and their corresponding values of h(x). Which equation could define h? A. h(x) = 2x B. h(x) = 2x + 2 C. h(x) = 2x + 26 D. h(x) = 2x + 27
+Answer: D
+
+93. For the linear function g, the graph of y = g(x) in the xy-plane has a slope of 5 and passes through the point (1, 19). Which equation defines g? A. g(x) = 5x B. g(x) = 5x + 5 C. g(x) = 5x + 14 D. g(x) = 19x
+Answer: C
+
+94. f(x) = 2(x - 1)(x - 6)(x - 9) If the given function f is graphed in the xy-plane, where y = f(x), what is the x-coordinate of an x-intercept of the graph?
+Answer: 1
+95. y = 10z x+4 The given equation relates the positive numbers x, y, and z. Which equation correctly expresses z in terms of x and y? A. z = xy
+10
+B. z = x+4
+10y
+C. z = 10y
+x+4
+D. z = (x+4)y
+10
+Answer: D
+
+96. Which equation has no solution?
+A. 6x + 2 = 2(3x + 1) B. 6x + 20 = 2(3x + 4) C. 6x + 1 = 3x + 1 D. 6x + 3 = -6x - 3
+Answer: B
+
+97.
+
+Number of cars
+4 6 8
+
+Maximum number of passengers and crew
+145 213 281
+
+The table shows the linear relationship between the number of cars, c, on a commuter train and the maximum number of passengers and crew, p, that the train can carry. Which equation represents the linear relationship between c and p? A. 34c - p = -9 B. 34c - p = 9 C. 34p - c = -9 D. 34p - c = 9
+
+Answer: A
+
+98.
+
+In the triangle shown, what is the value of sin x�?
+Answer: .4827
+99. While the mass of an object is the same everywhere, the weight of an object is not the same on different planets. An object has a weight of 70.00 pounds on Earth and a weight of 74.62 pounds on Saturn. The object's weight on Jupiter is 252.8% of its weight on Earth. If the object's weight on Saturn is x% of its weight on Jupiter, which of the following is closest to the value of x? A. 42.17 B. 69.76 C. 176.96 D. 269.48
+Answer: A
+100. y = 8(x - 2)2 + 3 y = 8x + 3
+A solution to the given system of equations is (x, y). What is one possible value of xy?
+
+Answer: 11
+
+101. The measure of angle S is 9 radians. The measure of angle T is 3 times the measure of angle S. Which expression represents the measure, in degrees, of
+13
+angle T ?
+
+A. 9 (90)(3)
+13
+
+B.
+
+9 13
+
+(180)(3)
+
+C.
+
+9 13
+
+(90)(3)
+
+D. 9 (180)(3)
+13
+
+Answer: B
+
+102. 8|7 - x| + 2 = 82
+What is the sum of the solutions to the given equation?
+A. 14 B. 10 C. -3 D. -14
+Answer: A
+
+103. The scatterplot shows the relationship between x and y for the 10 data points in data set A.
+y
+160
+
+120
+
+80
+
+40
+
+4 3 2 1 O
+
+x 1234
+
+Data set B is created by multiplying the y-value of each data point from data set A by 40. Which of the following equations is the most appropriate model for data set
+B?
+A. y = 7(2.11)x B. y = 276(2.11)x C. y = 7(2.11)x + 40 D. y = 40(2.11)x + 40
+
+Answer: B
+
+229. The number of muskrat in a 133-acre area is estimated to be 2,128. What is the estimated population density, in muskrat per acre, of this area? A. 16 B. 133 C. 149 D. 2,144
+Answer: A
+
+230.
+
+The triangle shown has one side with a length of x inches and two sides each with a length of y inches. The perimeter of the triangle is 63 inches. Which equation
+represents this situation?
+A. x + y = 63 B. x + 2y = 63 C. 2x + y = 63 D. 2x + 2y = 63
+Answer: B
+
+231. A jar has 530 buttons, and 20% of these buttons are red. How many buttons in the jar are red?
+Answer: 106
+
+232. There are a total of 5,600 milligrams of phosphorus in a sample of soil. Each kilogram of this sample contains 800 milligrams of phosphorus. Which equation represents this situation, where x is the mass, in kilograms, of the sample of soil? A. x + 800 = 5,600 B. 5,600x = 800 C. x + 5,600 = 800 D. 800x = 5,600
+Answer: D
+
+233. The function f is defined by f(x) =
+
+1 2
+
+(x
+
++
+
+6).
+
+What
+
+is
+
+the
+
+value
+
+of
+
+f
+
+(8)?
+
+A. 28
+
+B. 14
+
+C. 12
+
+D. 7
+
+Answer: D
+
+234. If 8x + 7 = 32, what is the value of 3(8x + 7)? A. 75 B. 96 C. 117 D. 128
+Answer: B
+
+235. Triangles ABC and DEF are congruent, where A corresponds to D, and B and E are right angles. The measure of angle A is 68�. What is the measure, in degrees, of angle F ?
+Answer: 22
+
+236. A savings account is opened with an initial deposit of $3,000. The amount of money in the account t years after the initial deposit is given by the function f(t) = 3,000(1.02)2t. Which of the following is the best interpretation of the statement "f(8) is approximately equal to 4,118.36" in this context? A. 8 years after the initial deposit, the amount of money, in dollars, in the account is 4,118.36. B. Every 8 years, the amount of money, in dollars, in the account increases by 4,118.36. C. Every 8 years, the amount of money, in dollars, in the account decreases by 4,118.36. D. 8 years after the initial deposit, the amount of money, in dollars, in the account has increased by 4,118.36.
+Answer: A
+
+237. y = (x - 7)(x + 10) Which table gives four values of x and the corresponding values of y for the given quadratic equation?
+A.
+
+x -1 0 y 10 17
+
+1
+
+2
+
+24 31
+
+B.
+
+x -1 0
+
+1
+
+2
+
+y -72 -70 -66 -60
+
+C.
+
+x -1 0
+
+1
+
+2
+
+y -77 -70 -63 -56
+
+D.
+
+x -1 0
+
+1
+
+2
+
+y 18 10 4
+
+0
+
+Answer: B
+
+238. 4x + 3 = rx + 6 In the given equation, r is a constant. The equation has no solution. What is the value of r? A. 4 B. 6 C. 7 D. 18
+Answer: A
+
+239. In the linear function f, f(0) = 9 and f(2) = 9. Which equation defines f? A. f(x) = 0 B. f(x) = 2 C. f(x) = 9 D. f(x) = x + 9
+Answer: C
+
+240. An arborist studying forestland in Illinois estimates that there are at least 40 and no more than 50 hickory trees per acre in a certain forest. Which of the following best represents the arborist's estimate of the number of hickory trees, x, that are in a 3-acre section of this forest? A. 150  x  300 B. 120  x  150 C. 43  x  53 D. 40  x  50
+Answer: B
+
+241. x2 + (k - 2)x + 37 = 0 In the given equation, k is a constant. The equation has exactly one real solution. What is the value of k? A. 150 B. 148 C. 146 D. 39
+Answer: A
+
+242. For the polynomial function p, the graph of y = p(x) in the xy-plane crosses through the points (-10, 0), (0, 12), (7, 0), and (14, 0). What is the value of p(0)
+?
+Answer: 12
+
+243. The graph of -15x + 1.2y = -270 in the xy-plane has intercepts at (a, 0) and (0, b). What is the value of ab?
+Answer: -4050
+
+244. x + 15y = 40 4x + 3y = 27
+The solution to the given system of equations is (x, y). What is the value of y?
+Answer: 2.333
+
+245. As part of a study on sedimentary habitats, the water temperature was recorded at different depths below the surface of the water in the northern Alboran Sea.
+The data shown in the scatterplot give the recorded temperature, in degrees Celsius, for 7 depths, in meters, below the surface of the water.
+
+Which of the following is closest to the slope of a line of best fit for the data shown?
+A. -8.02 B. -6.02 C. -2.17 D. -0.17
+Answer: D
+
+246. a = 3 b + 6
+5
+
+The given equation relates the positive numbers a and b. Which equation correctly expresses b in terms of a?
+
+A. b = 3 a + 6
+5
+
+B. b =
+
+3 a - 10
+5
+
+C. b = 5 a - 6
+3
+
+D. b =
+
+5 a - 10
+3
+
+Answer: D
+
+247. The measure of an angle, in radians, is (99)(2). What is the measure of the angle, in degrees? A. (180)(99)(360) B. (99)(2)(360) C. (99)(360) D. ( 99 )(360)
+2
+Answer: C
+
+248.
+
+In triangles RST and XY Z shown, XY is parallel to T S and tan R = 141701 . What is the value of sin X in triangle XY Z?
+A. 140
+311
+B. 140
+221
+C. 171
+221
+D. 171 140
+Answer: C
+
+249. |x + 2| + 2 = |5x - 19| + 2
+What is the smallest solution to the given equation? Answer: 2.833
+
+250. y = 6x2 - 48x + 98 y+4=0
+How many solutions are there to the given system of equations?
+A. There is exactly 1 solution. B. There are exactly 2 solutions. C. There are exactly 3 solutions.
+D. There are no solutions.
+Answer: D
+
+376. The number of deer in a 134-square mile area is estimated to be 2,278. What is the estimated population density, in deer per square mile, of this area? A. 17 B. 134 C. 151 D. 2,295
+Answer: A
+
+381. If 9x + 4 = 44, what is the value of 2(9x + 4)? A. 80 B. 88 C. 96 D. 132
+Answer: B
+
+383. For the function f, the table shows four values of x and their corresponding values of f(x). x f(x) 1 8,000 2 1,600 3 320 4 64
+Which of the following could describe this function? A. Increasing linear B. Decreasing linear C. Increasing exponential D. Decreasing exponential
+Answer: D
+
+392. For two acute angles X and Y , the measure of angle Y
+
+is 47� and
+
+sin X cos Y
+
+= 1. What is the measure, in degrees, of angle X?
+
+A. 92
+
+B. 47
+
+C. 45
+
+D. 43
+
+Answer: D
+
+396. |x + 3| + 3 = |5x - 16| + 3
+What is the smallest solution to the given equation? Answer: 2.166
+
+523. y = 5x - 6
+What is the solution (x, y) to the given system of equations? A. (4, 14) B. (5, 14) C. (14, 4) D. (14, 5)
+Answer: A
+
+y = 14
+
+530.
+
+Triangles ABC and ABC  are shown. Triangle ABC is dilated by a scale factor of 3 to form triangle ABC . If the length of AB is 21, what is the length of AB ? A. 3 B. 7 C. 24 D. 63
+Answer: D
+729. If 8x + 5 = 44, what is the value of 2(8x + 5)? A. 78 B. 88 C. 98 D. 132
+Answer: B
+733. One of the factors of 6x4 + 29x2 + 28 is ax2 + b, where a and b are positive constants. Which of the following is a possible value of ab? A. 4 B. 8 C. 14 D. 21
+Answer: C
+753. A line in the xy-plane passes through the points (9, 1), (0, 8), and (c, 0). What is the value of c?
+Answer: 10.28
+784. f(x) = 11x10 + 2x8 g(x) = -13x7 + 7x5
+The polynomial p(x) is defined as the product of the given polynomials, f(x) and g(x). What is the coefficient of x15 in p(x)? A. 15 B. 51 C. 77 D. 103
+Answer: B
+788. If 7x + 2 = 32, what is the value of 3(7x + 2)? A. 90 B. 96 C. 102 D. 128
+Answer: B
+801.
+
+The shaded region shown represents the solutions to which inequality?
+A. y > -5x + 9 B. y > 9x - 5 C. y < -5x + 9 D. y < 9x - 5
+Answer: A
+818. |x + 5| + 5 = |2x - 15| + 5
+What is the smallest solution to the given equation? Answer: 3.333
+972. y = 4x2 - 40x + 36
+The given equation represents a parabola in the xy-plane. Which of the following equations that represent the same parabola displays the x-intercepts as constants or coefficients?
+A. y = 4(x - 9)(x - 1) B. y = 4(x - 5)2 - 64 C. y = 4x(x - 10) + 36 D. y = 4(x2 - 10x) + 36
+Answer: A 979.
+In the figure shown, line r is parallel to line s. What is the value of x?
+Answer: 35
+984. 9|6 - x| + 3 = 93
+What is the sum of the solutions to the given equation?
+A. -12 B. -4 C. 10 D. 12
+Answer: D
+
+1111. The number of deer in a 131-square mile area is estimated to be 2,358. What is the estimated population density, in deer per square mile, of this area? A. 18 B. 131 C. 149 D. 2,376
+Answer: A
+
+1114. What is the x-intercept of the graph of y = 33-x in the xy-plane, where a and b are positive constants?
+ax+b
+
+A.
+
+(-
+
+b a
+
+,
+
+0)
+
+B. (0, 33 )
+b
+
+C. (0, -33)
+
+D. (33, 0)
+
+Answer: D
+
+1117. If 7x + 4 = 24, what is the value of 2(7x + 4)? A. 40 B. 48 C. 56 D. 72
+Answer: B
+
+1272.
+
+Number of cars
+4 7 9
+
+Maximum number of passengers and crew
+199 343 439
+
+The table shows the linear relationship between the number of cars, c, on a commuter train and the maximum number of passengers and crew, p, that the train can carry. Which equation represents the linear relationship between c and p? A. 48c - p = -7 B. 48c - p = 7 C. 48p - c = -7 D. 48p - c = 7
+
+Answer: A

@@ -1,0 +1,103 @@
+[
+  {
+    "page": 51,
+    "qnum": 24,
+    "subject": "Reading and Writing",
+    "question": "Elisabetta Sirani employed several artistic techniques in her 1663 work Virgin and Child. ______ the work is notable for the artist's use of chiaroscuro, which involves integrating strong contrasts of light and shadow.\n\nWhich choice completes the text with the most logical transition?",
+    "a": "In particular,",
+    "b": "Instead,",
+    "c": "By contrast,",
+    "d": "Therefore,"
+  },
+  {
+    "page": 52,
+    "qnum": 25,
+    "subject": "Reading and Writing",
+    "question": "Among its thousands of portraits of well-known figures from British history, London's National Portrait Gallery (NPG) includes self-portraits by noteworthy British artists, including one of Rachel Strachey. ______ the subjects of most NPG portraits are different from (and more famous than) the artists who painted them.\n\nWhich choice completes the text with the most logical transition?",
+    "a": "However, Strachey's portrait is not the only self-portrait of an artist in the museum:",
+    "b": "Of course, such portraits are anomalies in the context of the museum's collection:",
+    "c": "Furthermore, Strachey's portrait exemplifies the museum's bias in favor of autoportraiture:",
+    "d": "Consequently, such portraits reinforce the museum's curatorial philosophy:"
+  },
+  {
+    "page": 53,
+    "qnum": 26,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n\n- Ynés Mexía was a Mexican American botanist.\n- Between 1917 and 1938, she collected over 150,000 botanical samples throughout the Americas.\n- She collected a sample of Porophyllum ruderale in Minas Gerais, Brazil, in 1930.\n- She collected a sample of Brickellia diffusa in Jalisco, Mexico, in 1926.\n- Porophyllum ruderale and Brickellia diffusa are part of the Asteraceae family.\n- These specimens can now be viewed online at the C.V. Starr Virtual Herbarium.\n\nWhich choice most effectively uses information from the given sentences to introduce Mexía to a new audience?",
+    "a": "Many of the botanical samples collected by Ynés Mexía, such as Porophyllum ruderale and Brickellia diffusa, can now be viewed on the C.V. Starr Virtual Herbarium.",
+    "b": "Botanist Ynés Mexía is known for collecting over 150,000 botanical samples throughout the Americas between 1917 and 1938.",
+    "c": "Among the many botanical samples Ynés Mexía collected in Brazil in 1930 was Porophyllum ruderale of the Asteraceae family.",
+    "d": "Between 1917 and 1938, Ynés Mexía collected samples of the plants Porophyllum ruderale and Brickellia diffusa, among many others, but her work was largely ignored by the scientific community during her lifetime."
+  },
+  {
+    "page": 54,
+    "qnum": 27,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n\n- Marta Danielsdottir et al.'s 2007 study of planktonic ecosystems used a nutrient–phytoplankton–zooplankton (NPZ) model.\n- Diane Stoecker et al. (2017): NPZ models rely \"on the differentiation of the planktonic communities into phytoplankton or zooplankton functional types,\" excluding mixotrophic plankton.\n- Phytoplankton are exclusively phototrophic, producing nutrients via photosynthesis.\n- Zooplankton are exclusively phagotrophic, obtaining nutrients by consuming other organisms.\n\nThe student wants to challenge the model used in Danielsdottir et al.'s study. Which choice most effectively uses information from the notes to accomplish this goal?",
+    "a": "Since it classifies plankton as exclusively phototrophic producers or phagotrophic consumers, the model used in Danielsdottir et al.'s study may misrepresent planktonic ecosystems, in which—as Stoecker et al. note—many plankton combine these functions.",
+    "b": "Danielsdottir et al.'s model disregards the respective roles of producers and consumers—organisms that, as Stoecker et al. emphasize, are essential to the trophic structure of the plankton food web.",
+    "c": "By restricting plankton functional types to phytoplankton and zooplankton, the model used in Danielsdottir et al.'s study of planktonic ecosystems overlooks the many mixotrophic species that Stoecker et al. identify as being excluded from NPZ models.",
+    "d": "Stoecker et al. argue that the NPZ model used in the 2007 study by Danielsdottir et al. is a common tool for studying the differentiation of phytoplankton and zooplankton functional types in various ecosystems."
+  },
+  {
+    "page": 55,
+    "qnum": 1,
+    "subject": "Math",
+    "question": "The function w models the weight, in ounces, of the remaining solid wax of a burning candle as a function of the time x, in hours, after the candle was lit. The graph of y = w(x) is shown. According to the model, what was the weight, in ounces, of the candle's remaining solid wax 12 hours after the candle was lit?",
+    "a": "4",
+    "b": "8",
+    "c": "10",
+    "d": "13",
+    "figure": true
+  },
+  {
+    "page": 56,
+    "qnum": 2,
+    "subject": "Math",
+    "question": "In triangle EFG, the sum of the measures of angles E and F is 36°. What is the measure of angle G ?",
+    "a": "36°",
+    "b": "54°",
+    "c": "108°",
+    "d": "144°"
+  },
+  {
+    "page": 57,
+    "qnum": 3,
+    "subject": "Math",
+    "question": "A local gym is offering a 25% discount on an annual membership. The regular cost of an annual membership is $ 288. How much less is the discounted cost of the membership than the regular cost of the membership?",
+    "a": "$25",
+    "b": "$72",
+    "c": "$216",
+    "d": "$288"
+  },
+  {
+    "page": 58,
+    "qnum": 4,
+    "subject": "Math",
+    "question": "| x | y |\n| --- | --- |\n| 0 | 22 |\n| 1 | 23 |\n| 2 | 24 |\n\nThe table shows three values of x and their corresponding values of y. There is a linear relationship between x and y. Which of the following equations represents this relationship?",
+    "a": "y=x+22",
+    "b": "y=24x",
+    "c": "y=24x+2",
+    "d": "y=22x"
+  },
+  {
+    "page": 59,
+    "qnum": 5,
+    "subject": "Math",
+    "question": "The function f is defined by the equation f(x) = 380x. What is the value of f(10)?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 60,
+    "qnum": 6,
+    "subject": "Math",
+    "question": "Which of the following equations has solutions 13 and -24?",
+    "a": "(x -24)(x+13)=0",
+    "b": "(x -13)(x+24)=0",
+    "c": "(x +13)(x+24)=0",
+    "d": "(x -24)(x-13) = 0"
+  }
+]

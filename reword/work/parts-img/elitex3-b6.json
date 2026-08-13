@@ -1,0 +1,102 @@
+[
+  {
+    "page": 51,
+    "qnum": 24,
+    "subject": "Reading and Writing",
+    "question": "The Beatrice, an offshore wind farm located off the coast of Scotland, produces about 588 megawatts (MW) of electricity per year. _____ England's Hornsea Project One offshore wind farm, which generates the most power of any single offshore farm, produces 1,218MW of electricity.\n\nWhich choice completes the text with the most logical transition?",
+    "a": "For instance,",
+    "b": "As a result,",
+    "c": "That is,",
+    "d": "By comparison,"
+  },
+  {
+    "page": 52,
+    "qnum": 25,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n- At London and New York Fashion Weeks, fashion designers debut new clothing collections.\n- Color consultants create trend reports on the popular colors at a given Fashion Week.\n- A report on 2018 New York Fashion Week noted the popularity of a delicate petal pink shade that was warm in tone and soft in intensity.\n- A report on 2021 London Fashion Week noted the popularity of a stirring ocean blue shade that was cool in tone and bright in intensity.\n\nWhich choice most effectively uses information from the given sentences to describe a color that was popular at 2021 London Fashion Week?",
+    "a": "Shades of delicate petal pink and stirring ocean blue have both been featured in Fashion Week reports prepared by color consultants.",
+    "b": "Each Fashion Week, color consultants compile reports on the colors that have been popular among designers.",
+    "c": "The shade favored by designers at 2021 London Fashion Week was a departure from the warm, soft shade of delicate petal pink that had proved popular at 2018 New York Fashion Week.",
+    "d": "At 2021 London Fashion Week, many designer collections featured a cool, bright shade of stirring ocean blue."
+  },
+  {
+    "page": 53,
+    "qnum": 26,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n- Reaching the New York Times (NYT) Best Sellers list is a coveted achievement among authors.\n- Kwame Alexander and Terry McMillan are Black authors who have reached the NYT Best Sellers list.\n- The Crossover is a children's book by Kwame Alexander.\n- It reached the NYT Best Sellers list on August 27, 2017.\n- Waiting to Exhale is a novel by Terry McMillan.\n- It reached the NYT Best Sellers list on August 2, 1992.\n\nWhich choice most effectively uses information from the given sentences to introduce The Crossover to a new audience?",
+    "a": "The NYT Best Sellers list once included Kwame Alexander's The Crossover.",
+    "b": "The children's book The Crossover made the NYT Best Sellers list on August 27, 2017; the novel Waiting to Exhale made this list on August 2, 1992.",
+    "c": "Kwame Alexander is the author of the NYT best-selling children's book The Crossover.",
+    "d": "The Crossover is an NYT best-selling children's book by author Kwame Alexander."
+  },
+  {
+    "page": 54,
+    "qnum": 27,
+    "subject": "Reading and Writing",
+    "question": "While researching a topic, a student has taken the following notes:\n- The Sydney Opera House was designed by Jorn Utzon.\n- It was completed in 1973.\n- The Geodesic Dome for Expo '67 was designed by Buckminster Fuller.\n- It was completed in 1967.\n- They are famous examples of modern architecture.\n\nWhich choice most effectively uses information from the given sentences to emphasize the order in which the two works were completed?",
+    "a": "Though completed years apart, both the Sydney Opera House and the Geodesic Dome for Expo '67 are considered examples of modern architecture.",
+    "b": "Designed by Jorn Utzon and completed in 1973, the Sydney Opera House stands as a famous example of modern architecture.",
+    "c": "Finished in 1973, the Sydney Opera House was completed after the Geodesic Dome for Expo '67, which was finished in 1967.",
+    "d": "The Sydney Opera House and the Geodesic Dome for Expo '67 are the respective works of Jorn Utzon and Buckminster Fuller."
+  },
+  {
+    "page": 55,
+    "qnum": 1,
+    "subject": "Math",
+    "question": "Jasmin grows bean pods in her garden. This year, she harvested 480 bean pods and saved 10% of them to plant next year. How many of the harvested bean pods did Jasmin save to plant next year?",
+    "a": "38",
+    "b": "48",
+    "c": "56",
+    "d": "58"
+  },
+  {
+    "page": 56,
+    "qnum": 2,
+    "subject": "Math",
+    "question": "Which expression is equivalent to 13(x^2-7)?",
+    "a": "13x^2-91",
+    "b": "13x^2-20",
+    "c": "13x^2-7",
+    "d": "13x^2+6"
+  },
+  {
+    "page": 57,
+    "qnum": 3,
+    "subject": "Math",
+    "question": "If 8x+7=79, what is the value of 80x+70?",
+    "a": "790",
+    "b": "150",
+    "c": "90",
+    "d": "9"
+  },
+  {
+    "page": 58,
+    "qnum": 4,
+    "subject": "Math",
+    "question": "A car travels at a speed of at least 40 miles per hour but no more than 65 miles per hour for a certain part of a trip. Which inequality represents this situation, where x is the speed of the car, in miles per hour, on this part of the trip?",
+    "a": "x>=40",
+    "b": "x>=65",
+    "c": "40<=x<=65",
+    "d": "x<=105"
+  },
+  {
+    "page": 59,
+    "qnum": 5,
+    "subject": "Math",
+    "question": "The growth of the number of bacteria in a certain population is modeled by a function that increases exponentially over time. Which of the following could describe how the number of bacteria in the population changes each hour?",
+    "a": "Each hour, the number of bacteria in the population is 16% greater than it was the previous hour.",
+    "b": "Each hour, the number of bacteria in the population is 1,600 greater than it was the previous hour.",
+    "c": "Each hour, the number of bacteria in the population is 1,600 less than it was the previous hour.",
+    "d": "Each hour, the number of bacteria in the population is 16% less than it was the previous hour."
+  },
+  {
+    "page": 60,
+    "qnum": 6,
+    "subject": "Math",
+    "question": "In triangle JKL, the measures of both angle J and angle K are equal and the measure of angle L is 124 degrees. What is the measure of angle J?",
+    "a": "28 degrees",
+    "b": "56 degrees",
+    "c": "62 degrees",
+    "d": "90 degrees"
+  }
+]

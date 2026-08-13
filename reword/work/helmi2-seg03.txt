@@ -1,0 +1,665 @@
+Section: Section 2, Module 1: Math, Difficulty: unknown (70 questions)
+1278. 6|7 - x| + 4 = 64
+What is the sum of the solutions to the given equation?
+A. 14 B. 10 C. -3 D. -14
+Answer: A
+
+1410. A length of 310 meters is equal to how many decimeters? (1 meter = 10 decimeters)
+Answer: 3100
+
+1411. If 9x + 2 = 34, what is the value of 2(9x + 2)? A. 64 B. 68 C. 72 D. 102
+Answer: B
+
+1560. y  x + 15 y  -5x - 15
+Which point (x, y) is a solution to the given system of inequalities in the xy-plane? A. (-6, 13) B. (-6, 8) C. (-4, 13) D. (-4, 8)
+Answer: A
+
+1563.
+
+The figure shown is a right rectangular pyramid, where  = 10 units, w = 5 units, and h = 11 units. What is the surface area, in square units, of the pyramid?
+Answer: 223.2
+Section: Section 2, Module 2: Math, Difficulty: easy (72 questions)
+104. What value of p satisfies the equation 6p + 30 = 150? A. 20 B. 30 C. 114 D. 150
+Answer: A
+105. A customer spent $12 to purchase oranges at $3 per pound. How many pounds of oranges did the customer purchase?
+Answer: 4
+106.
+
+The y-intercept of the graph shown is (x, y). What is the value of y?
+Answer: 10
+107. A biodegradable object with a mass of 36 grams started to decompose after being discarded. Each month after the object started to decompose, the remaining mass of the object was approximately 70% of the mass of the preceding month. Which function f gives the approximate remaining mass, in grams, of the object x
+months after the object started to decompose?
+A. f(x) = 36(0.3)x B. f(x) = 36(0.7)x C. f(x) = 36(1.3)x D. f(x) = 36(1.7)x
+Answer: B
+108. Which expression is equivalent to (8yz)(y)(3z)? A. 24y2z2 B. 24y2z C. 24yz D. 16yz
+Answer: A
+109. The price of an item increased by p% from $78 to $81. What is the value of p?
+Answer: 50/13
+110.
+
+Frequency
+
+The graph of a system of a linear equation and a nonlinear equation is shown. What is the solution (x, y) to this system? A. (5, 4) B. (3, 0) C. (0, 5) D. (0, 0)
+Answer: A
+111. The function f is defined by f(x) = x2 + 86. What is the value of f(x) when x = 10? A. -186 B. -14 C. 14 D. 186
+Answer: D
+112.
+175 150 125 100
+75 50 25 0
+ABCDE Category
+In the bar graph, which category has a frequency that is 1 the frequency of category E?
+3
+A. Category A B. Category B C. Category C D. Category D Answer: D
+113. Each side of a triangle has a length of 27. What is the perimeter of this triangle?
+Answer: 81
+114.
+In triangle XY Z shown, segments XY and Y Z each have length 128 millimeters. Which statement is sufficient to prove that all three angles in the triangle have
+equal measure?
+A. Segment XZ has length 64 millimeters. B. Segment XZ has length 128 millimeters. C. Segment XZ has length 256 millimeters. D. Segment XZ has length 384 millimeters.
+Answer: B
+115. f(r) = 15 + 3r The function f represents the total cost, in dollars, of attending a carnival when r rides are ridden. How many rides can be ridden for a total cost of $51?
+Answer: 12
+116.
+
+The graph of the linear function f is shown, where y = f(x). What is the slope of the graph of f? A. -5 B. - 14
+C. 14
+D. 5
+Answer: C
+117. Which measure, in radians, is equivalent to (36  180)�? A. 36 B.  + 36 C. - 
+36
+D.  - 36
+Answer: A
+118. In an experiment, two solutions are combined such that the volume of the mixture increases at a constant rate of 2.6 milliliters per minute. Which of the following
+describes the total volume of the mixture as a function of time? A. Increasing linear B. Decreasing linear C. Increasing exponential D. Decreasing exponential Answer: A
+119.
+In the triangle shown, what is the value of x? A. 21 B. 42 C. 45 D. 69
+Answer: C
+121. A snack company advertises that bags of pretzels produced by the company weigh, on average, 1 pound each. To test this, Sam selected at random 25 bags of
+pretzels produced by the company and weighed each bag. Based on his measurements, Sam estimated that for all bags of pretzels produced by the company, the
+average weight per bag is 1.02 pounds, with a margin of error of 0.03 pounds. For all bags of pretzels produced by the company, which of the following is the most appropriate conclusion about the average weight w, in pounds, per bag? A. w = 1.02 B. 0.99  w  1.02 C. 0.99  w  1.05 D. 1.02  w  1.05
+Answer: C
+122. A rectangle has width w and length . If the perimeter of the rectangle is greater than 45, which of the following inequalities must be true? A. w +  < 45 B. 2w + 2 < 45 C. w +  > 45 D. 2w + 2 > 45
+Answer: D
+123. A rectangle has a length of x units and a width of (x - 12) units. If the rectangle has an area of 133 square units, what is the value of x? A. 7 B. 19 C. 26 D. 133
+Answer: B
+1
+124. Which expression is equivalent to (66y) 2 , where y > 1? A. 66  y B. 66  y C. 66y D. (66y)2
+Answer: C
+125. A piece of string with a length of 76 inches is cut into two parts. One part has a length of x inches, and the other part has a length of y inches. The value of x is 6 more than 4 times the value of y. What is the value of x?
+Answer: 62
+251. What value of p satisfies the equation 10p + 180 = 280? A. 10 B. 46 C. 90 D. 280
+Answer: A
+257. The function f is defined by f(x) = x2 + 51. What is the value of f(x) when x = 10? A. -151 B. -49 C. 49 D. 151
+Answer: D
+259. The length of a rectangle's diagonal is 145, and the length of one of the rectangle's sides is 8. What is the perimeter of the rectangle? A. 145 B. 72 C. 34 D. 17
+Answer: C
+267. In the ancient Roman measurement system, a leuga was a unit of length that was equal to 7,500 pedes. In this measurement system, how many pedes were equivalent to 1.5 leugas?
+Answer: 11250
+398. The graph shows the predicted value y, in dollars, of a certain car x years after it is first purchased.
+
+Which of the following is closest to the predicted value of the car 3 years after it is first purchased? A. $8,898 B. $13,233 C. $19,680 D. $24,000
+Answer: B
+399. How many meters are equivalent to 2,900 centimeters? (100 centimeters = 1 meter) A. 0.034 B. 29 C. 3,000 D. 290,000
+Answer: B
+400. x + 5 = 95 What value of x is the solution to the given equation?
+Answer: 90
+401. Tatiana recorded the number of minutes of screen time on her devices for a one-week period. On Monday, she recorded 70 minutes of screen time. On Tuesday
+through Thursday, the number of minutes she recorded each day was more than the day before. On Friday and Saturday, the number of minutes she recorded each day was fewer than the day before. On Sunday, the number of minutes she recorded was the highest of any day of the week. Which of the following line graphs could represent Tatiana's recorded screen time for this week? A.
+
+Screen time (minutes)
+
+130 120 110 100
+90 80 70 60 50 40 30 20 10 0
+Mond Tu a e y sd edn a e y sd Thu a r y sday W
+
+Fridayaturday day Sun S
+
+Day
+
+B.
+
+Screen time (minutes)
+
+130 120 110 100
+90 80 70 60 50 40 30 20 10 0
+Mond Tu a e y sd edn a e y sd Thu a r y sday W
+
+Fridayaturday day Sun S
+
+Day
+
+C.
+
+Screen time (minutes)
+
+110 100
+90 80 70 60 50 40 30 20 10 0
+Mond Tu a e y sd edn a e y sd Thu a r y sday W
+
+Fridayaturday day Sun S
+
+Day
+
+D.
+
+Screen time (minutes)
+
+100 90 80 70 60 50 40 30 20 10 0
+Mond Tu a e y sd edn a e y sd Thu a r y sday W
+
+Fridayaturday day Sun S
+
+Day
+
+Answer: B
+402. Which expression is equivalent to 10x + 4x + 10y + 7y + 3? A. 34xy B. 31xy + 3 C. 20x + 11y + 3 D. 14x + 17y + 3
+Answer: D
+403. The bar graph shows the distribution of the number of students in each of four sports programs at a high school.
+
+Number of students
+
+70
+
+60
+
+50
+
+40
+
+30
+
+20
+
+10
+
+0
+
+lleyb h a o l c sket so l key ball ccer
+
+vo
+
+ba
+
+Program
+
+How many more students are in the hockey program than the volleyball program?
+A. 10 B. 40 C. 50 D. 90
+Answer: A
+404. If x - 6 = 7, what is the value of (x - 6)? A. 7 B. 43 C. 49 D. 98
+Answer: C
+405. To buy tickets for a concert, a purchaser pays a onetime $4.50 fee for the transaction and $24 per ticket. Which function g represents the total amount, in dollars, a purchaser pays for a transaction with c concert tickets? A. g(c) = c + 24 B. g(c) = c - 4.50 C. g(c) = 4.50c D. g(c) = 24c + 4.50
+Answer: D
+
+406.
+
+In the figure, two lines intersect at a point. Angle 1 and angle 2 are vertical angles. The measure of angle 1 is 108�. What is the measure of angle 2? A. 54� B. 72� C. 108� D. 468�
+Answer: C
+407. A biologist recorded the pinching force of wild coconut crabs. The lowest pinching force recorded was 87.1 newtons and the highest pinching force recorded was 121.3 newtons. Which inequality is true for all values of c, where c represents any pinching force, in newtons, recorded for these wild coconut crabs? A. c  87.1 B. c  121.3 C. 43.5  c  60.6 D. 87.1  c  121.3
+Answer: D
+408. Which expression is equivalent to 2x5 + 14w? A. 2(x5 + 7w) B. 2(x5 + 14w) C. 7(x5 + 2w) D. 14(x5 + w)
+Answer: A
+409.
+
+Which equation shows the relationship between the side lengths of the given triangle?
+A. 11b = 18 B. 11 + b = 18 C. 112 + b2 = 182 D. 112 - b2 = 182
+Answer: C
+410. The function f is defined by f(x) = 5 + x. What is the value of f(100)?
+Answer: 15
+
+412. A square tile has a side length of 54x centimeters (cm). Which equation gives the area A, in cm2, for 6 of these square tiles?
+
+A.
+
+A
+
+=
+
+(6)(
+
+x 54
+
+)(
+
+x 54
+
+)
+
+B. A = (6)(54x)(54x)
+
+C. A = (6)(x - 54)(x - 54)
+
+D. A = (6)(x + 54)(x + 54)
+
+Answer: B
+
+413. Circle T has a radius of 18 millimeters (mm). What is the area of circle T , in mm2? A. 18 B. 36 C. 72 D. 324
+Answer: D
+
+414. At how many points do the graphs of the equations y = x - 24 and y = -9x intersect in the xy-plane?
+Answer: 1
+
+415. A certain book has 200 pages, and 31 of these pages have an illustration. If one of the book's pages is selected at random, what is the probability of selecting a
+page with an illustration? (Express your answer as a decimal or fraction, not as a percent.)
+Answer: 31/200
+
+416. 8x - 7y = 9 4x + y = 6
+The solution to the given system of equations is (x, y). What is the value of x + y?
+Answer: 7/4
+
+417.
+x g(x) 1 24 2 17 3 10 43
+For the linear function g, the table shows four values of x and their corresponding values of g(x). The function can be written as g(x) = mx + b, where m and b are constants. What is the value of b? A. 7 B. 12 C. 24 D. 31
+Answer: D
+
+418. The function f is defined by f(x) = (x - 2)(x - 7)(x + 4). In the xy-plane, the graph of y = h(x) is the result of translating the graph of y = f(x) up 5 units. What is the y-coordinate of the y-intercept of the graph of y = h(x)? A. 0 B. 5 C. 56 D. 61
+Answer: D
+
+419. If k2 + 5k - 19
+
+=
+
+0, which of the following is a possible value of k +
+
+5?
+2
+
+A. 2
+
+B. 19
+
+C. 101
+2
+
+D. 19
+
+Answer: C
+
+552. If 4 - 3x
+
+=
+
+48, what is the value of
+
+1 6
+
+(4
+
+-
+
+3x)?
+
+A. 288
+
+B. 48
+
+C. 8
+
+D. 6
+
+Answer: C
+
+556. If x = 2n 7xn + 30, where n is a positive integer constant, what is the value of xn?
+Answer: None, insufficient information to uniquely determine x^n without knowing n or additional constraints
+
+565. The function f is defined by f(x) = (x - 2)(x - 9)(x + 4). In the xy-plane, the graph of y = h(x) is the result of translating the graph of y = f(x) up 7 units. What is the y-coordinate of the y-intercept of the graph of y = h(x)? A. 0 B. 7 C. 72 D. 79
+Answer: D
+
+766. What value of p satisfies the equation 10p + 40 = 480? A. 44 B. 52 C. 430 D. 480
+Answer: A
+
+791. A number f is 120% greater than a positive number g. A number h is 10% less than the number f. The number h is how many times the number g? A. 0.12 B. 0.22 C. 1.08 D. 1.98
+Answer: D
+
+800. In triangle RST , RS = ST
+
+and the length of RT
+
+is 48 units. If tan R =
+
+7 24
+
+,
+
+what
+
+is
+
+the
+
+area,
+
+in
+
+square
+
+units,
+
+of
+
+triangle
+
+RST
+
+?
+
+A. 84
+
+B. 168
+
+C. 288
+
+D. 336
+
+Answer: B
+
+822. What value of p satisfies the equation 5p + 80 = 315? A. 47 B. 79 C. 230 D. 315
+Answer: A
+
+838. During a physics experiment, the speed of an object was determined to be 179.0 inches per second. What is this speed in feet per second? (12 inches = 1 foot)
+Answer: 14.9167
+
+840. The function f is defined by f(x) = x2 + 68. What is the value of f(x) when x = 10? A. -168 B. -32 C. 32 D. 168
+Answer: D
+
+849. The height of a right circular cylinder is 36 inches, and the circumference of its base is 360 inches. Which expression represents the total surface area, in square
+inches, of the cylinder?
+A. (36)(360) + 2( 180 )2
+
+B. (36)(360) + ( 180 )2
+
+C. ( 180 )2(36)
+
+D. (36)(360)
+Answer: A
+
+986. What value of p satisfies the equation 2p + 270 = 330? A. 30 B. 58 C. 300 D. 330
+Answer: A
+
+992. For the linear function f, f(-2) = -8, and the slope of the graph of y = f(x) in the xy-plane is 6. Which equation defines f? A. f(x) = 6x - 10 B. f(x) = 6x - 8 C. f(x) = 6x - 2 D. f(x) = 6x + 4
+Answer: D
+
+993. The function f is defined by f(x) = x2 + 53. What is the value of f(x) when x = 10? A. -153 B. -47 C. 47 D. 153
+Answer: D
+
+999. 53 x - 14 y = 27
+
+x + 3y = -9
+
+The solution to the given system of equations is (x, y). What is the value of x + y?
+
+A. -9
+
+B. -7
+
+C. 7
+
+D. 9
+
+Answer: C
+
+1133. What value of p satisfies the equation 2p + 145 = 295? A. 75 B. 148 C. 220 D. 295
+Answer: A
+1144. In triangle RST , RS = ST and the length of RT is 52 units. If tan T = 5 , what is the area, in square units, of triangle RST ?
+26
+A. 65 B. 130 C. 260 D. 338
+Answer: B
+
+1280. What value of p satisfies the equation 4p + 70 = 410? A. 85 B. 120 C. 336 D. 410
+Answer: A
+
+1286. The function f is defined by f(x) = x2 + 58. What is the value of f(x) when x = 10? A. -158 B. -42 C. 42 D. 158
+Answer: D
+
+1290. The function g is defined by g(x) = 15x + 37. For what value of x does g(x) = 40?
+Answer: 1/5
+
+1296. 5x + 8y = 30 rx + 24y = 90
+In the given system of equations, r is a constant. The system has infinitely many solutions. What is the value of r? A. 3 B. 5 C. 8 D. 15
+Answer: D
+
+1427. What value of p satisfies the equation 9p + 225 = 360? A. 15 B. 65 C. 126 D. 360
+Answer: A
+
+1429.
+
+In triangle ABC, DE is parallel to AC, BD = AD, BE = 5, and AC = 9. What is the length of BC? A. 45 B. 18 C. 14 D. 10
+Answer: D
+1441.
+
+What is an equation of the graph shown?
+A. y = 3x + 7 B. y = 3-x + 7 C. y = 3x + 8 D. y = 3-x + 8
+Answer: A
+1576. If |16 - 2x| = 58, which of the following is a value of 8 - x? A. 0 B. 8 C. 29 D. 42
+Answer: C
+1584. Which expression is equivalent to 5x3 + 30w? A. 5(x3 + 6w) B. 5(x3 + 30w) C. 6(x3 + 5w) D. 30(x3 + w)
+Answer: A
+1586. The function f is defined by f(x) = 4x - 6. If f(a) + 1 = 3a, what is the value of a? A. 7 B. 5 C. 1 D. -1
+Answer: B
+Section: Section 2, Module 2: Math, Difficulty: hard (53 questions)
+126. Which expression is equivalent to (8x2 + 5x + 9) - (8x2 + 3)? A. 6 B. 12 C. 5x + 6 D. 5x + 12
+Answer: C
+128. W (x) = 4x + 60 The function W gives the total time, in minutes, it takes for a gardener to water x plants and mow the grass. According to the function, how long does it take the
+gardener to mow the grass, in minutes?
+A. 4 B. 15 C. 60
+
+D. 240
+Answer: C
+129. The function f(x) = 55.20 - 0.16x gives the estimated surface water temperature f(x), in degrees Celsius, of Lake Superior on the xth day of the year, where 220  x  360. Based on the model, what is the estimated surface water temperature, in degrees Celsius, of Lake Superior on the 298th day of the year? A. 55.20 B. 7.52 C. -0.16 D. -47.68
+Answer: B
+130. A company has a customer loyalty program. In January 2018, there were 300 customers enrolled in the loyalty program. For the next 24 months after January 2018, the total number of customers enrolled in the loyalty program each month was 2% greater than the total number enrolled the previous month. Which equation gives the total number of customers, c, enrolled in the company's loyalty program m months after January 2018, where m  24? A. c = 300(0.02)m B. c = 300(1.02)m C. c = 300(1.2)m D. c = 300(2)m
+Answer: B
+131. 6x + 4 > y For which of the following tables are all the values of x and their corresponding values of y solutions to the given inequality?
+A.
+xy 05 1 11 2 17
+B.
+xy 04 1 12 2 18
+C.
+xy 04 18 2 14
+D.
+xy 03 19 2 15
+Answer: D
+132. A machine fills bags with approximately 15 ounces of sugar. To test the accuracy of the filling process, 343 bags of sugar were selected at random and weighed. Based on the sample, it is estimated that the average weight of all bags of sugar filled by the machine in an 8-hour period is 14.88 ounces, with an associated margin of error of 0.19 ounce. Which of the following is the best interpretation of this estimate? A. Plausible values for the average weight of all bags of sugar filled by the machine are between 14.69 ounces and 15.07 ounces. B. Plausible values for the average weight of all bags of sugar filled by the machine are less than 14.69 ounces or greater than 15.07 ounces. C. The average weight of all bags of sugar filled by the machine is greater than 14.99 ounces. D. The average weight of all bags of sugar filled by the machine is less than 14.99 ounces.
+Answer: A
+133. A container is in the shape of a right rectangular prism that is 2.0 centimeters (cm) wide, 19.0 cm long, and 25.0 cm tall. Which of the following is closest to the number of fluid ounces that are required to completely fill the container? (Use 1.0 cubic centimeter = 0.034 fluid ounces) A. 32 B. 900 C. 1,000 D. 28,000
+Answer: A
+134. In the xy-plane, line  passes through the point (0, 0) and is parallel to the line represented by the equation y = 6x + 3. If line  also passes through the point (8, d), what is the value of d?
+Answer: 48
+135. x(x + 6) - 112 = 3x(x - 8)
+What is the sum of the solutions to the given equation?
+A. 2 B. 8 C. 14 D. 15
+Answer: D
+137. Data set A consists of 10 positive integers less than 60. The list gives 9 of the integers from data set A. 42, 46, 44, 42, 38, 39, 40, 47, 40
+The mean of these 9 integers is 42. If the mean of data set A is an integer that is greater than 42, what is the value of the largest integer from data set A? A. 43 B. 47 C. 52 D. 59
+Answer: C
+138. x2 - 40x + c = 0 In the given equation, c is a constant. The equation has no real solutions if c > n. What is the least possible value of n? A. -400 B. -40 C. 40 D. 400
+Answer: D
+139.
+In the figure, line m is parallel to line n, and lines AE and CD intersect at point B. Which additional piece of information is sufficient to prove that triangle ABC is congruent to triangle EBD? A. AB = 16 and DB = 16. B. AB = 16 and EB = 16. C. Triangles ABC and EBD are isosceles.
+D. No additional information is necessary to determine that the two triangles are congruent. Answer: B
+x
+140. f(x) = 25(1.20) 4 For the given function f, the value of f(x) increases by p% for every increase of x by 8. What is the value of p? A. 20 B. 31 C. 40 D. 44
+Answer: D
+141.
+
+The graph of the linear function y = f(x) + 17 is shown. If c and d are positive constants, which equation could define f? A. f(x) = -d - cx B. f(x) = d + cx C. f(x) = d - cx D. f(x) = -d + cx
+Answer: A
+
+142. A right square pyramid has a surface area of 100 + 20146 square inches, which includes a base area of 100 square inches. What is the height, in inches, of
+this pyramid?
+Answer: 11
+
+143. A circle in the xy-plane has its center at (-2, 2). Line t is tangent to this circle at the point (7, -5). Which of the following points also lies on line t?
+
+A. (0,
+
+9 7
+
+)
+
+B. (5, 11)
+
+C. (14, 4)
+
+D. (16, 2)
+
+Answer: C
+
+145. Which of the following expressions has a factor of x + 2b, where b is a positive integer constant? A. 2x2 + 9x + 18b B. 2x2 + 19x + 18b C. 2x2 + 20x + 18b D. 2x2 + 29x + 18b
+Answer: D
+
+146. A rectangular region of land is divided into 88 square lots of equal area A, in square units. The length of the region is 5.5 times the width of the region. If the length of the region is xA units, what is the value of x?
+Answer: 22
+
+147.
+xy 25 -11 27 9 29 -11
+The table shows three values of x and their corresponding values of y, where y = f(x) + 4 and f is a quadratic function. What is the y-coordinate of the y-intercept of the graph of y = f(x) in the xy-plane?
+Answer: -3640
+
+273. In triangle EF G, the sum of the measures of angles E and F is 36�. What is the measure of angle G? A. 36� B. 54� C. 108� D. 144�
+Answer: D
+
+274. Which of the following lists represents a data set with the smallest standard deviation?
+A. 43, 44, 46, 48, 49 B. 44, 44, 46, 48, 48 C. 44, 45, 46, 47, 48 D. 45, 46, 46, 46, 47
+Answer: D
+
+275. y = (x - 30)(x - 60) y=0 The graphs of the equations in the given system of equations intersect at the point (x, y) in the xy-plane. What is a possible value of x? A. 0 B. 2 C. 60 D. 90
+Answer: C
+
+276. The cost to rent a kayak consists of a fixed fee for the first hour and an hourly fee for each additional hour. The table shows the rental cost for 2 hours and for 6
+hours.
+
+Rental hours
+2 6
+
+Rental cost (dollars)
+65 185
+
+Which function f gives the rental cost, in dollars, for x hours rental, where x  1? A. f(x) = 35x B. f(x) = 30x + 5 C. f(x) = 30x D. f(x) = 30x + 65
+
+Answer: B
+
+277. g(x) = (20 - 2x)(6 + 2x) The function g is defined by the given equation. For what value of x does g(x) reach its maximum? A. 3.5 B. 6.5 C. 7 D. 13
+Answer: A
+
+278. Rectangle X has a length of 24 millimeters (mm) and a width of 7.5 mm. Right triangle Y has a base of 60 mm. The area of rectangle X is 3 times the area of right triangle Y. What is the height, in mm, of right triangle Y? A. 1 B. 2 C. 3 D. 6
+Answer: B
+
+279.
+
+x
+
+y
+
+0
+
+n
+
+4 n + 23
+
+8 n + 46
+
+There is a linear relationship between x and y. The table shows three values of x and their corresponding values of y in terms of a constant n. What is the slope of
+the line in the xy-plane that represents this relationship? A. 1
+2
+B. 2
+C. 234
+D. 23
+
+Answer: C
+
+280. If a = 4k + 6r and b = 7k - 12r + 3, which expression is equivalent to a - b? A. -3k + 18r + 3 B. -3k + 18r - 3 C. -3k - 6r - 3 D. -3k - 6r + 3
+Answer: B
+
+281. An exponential function f is defined by f(x) = cx, where c is a constant greater than 1. If f(8) = 16  f(6), what is the value of c?
+Answer: 4
+283. The equation h = 9(v-273.15) + 32 gives the corresponding temperature h, in degrees Fahrenheit, of any substance that has a temperature of v kelvins, where
+5
+v > 0. If a substance has a temperature of 395.33 degrees Fahrenheit, what is the corresponding temperature, in kelvins, of this substance?
+Answer: 475
+
+284. 36x2 + 1241x + p = 0 In the given equation, p is a constant. The equation has exactly one real solution. What is the value of p? A. 41 B. 241
+C. 41
+2
+D. 41
+Answer: D
+x
+285. f(x) = 2,860(0.22) 12 The function f gives the value, in dollars, of a certain piece of equipment after x months of use. If the value of the equipment decreases each year by p% of its value the preceding year, what is the value of p? A. 2 B. 12 C. 22 D. 78
+Answer: D
+
+286. An equilateral triangle has a height of 223 units. What is the length, in units, of one side of this triangle? A. 443 B. 44 C. 223 D. 22
+Answer: B
+287. Which expression is NOT a factor of 6,480x4 - 1,280? A. 9x2 + 4 B. 3x2 - 2 C. 3x + 2 D. 80
+Answer: B
+
+288. 2,470x = 4,940x
+How many solutions does the given equation have? A. Zero B. Exactly one C. Exactly two D. Infinitely many
+Answer: B
+
+290. In the xy-plane, line r passes through the points (3, 15) and (7, 16). Line s passes through the point (1, 2) and is perpendicular to line r. An equation of line s is ax + 7y = c, where a and c are constants. What is the value of c?
+Answer: 42
+
+291. For 100 neurons, the table summarizes the distribution of classification and cell body diameter.
+
+Classification
+Sensory neuron Motor neuron Interneuron
+
+Cell body diameter (micrometers)
+
+Less than 20
+
+20 to 30 Greater than 30
+
+13
+
+7
+
+2
+
+0
+
+17
+
+18
+
+10
+
+33
+
+0
+
+One of these neurons will be selected at random. What is the probability of selecting a neuron with a cell body diameter that is less than or equal to 30 micrometers,
+given that it is not classified as a motor neuron? (Express your answer as a decimal or fraction, not as a percent.)
+
+Answer: 63/65
+
+292. The value of an autographed baseball increased by 181% from the end of 2017 to the end of 2018 and then decreased by 14% from the end of 2018 to the end of 2019. What was the net percentage increase in the value of the autographed baseball from the end of 2017 to the end of 2019? A. 141.66% B. 155.66% C. 167.00% D. 220.34%
+Answer: A
+
+293. 5x + 3y = 6
+The given equation is one equation in a system of two linear equations. If the system of equations has at least one solution, which of the following equations could be the other equation in the system?
+I. 7.5x + 4.5y = 9 II. 7.5x - 4.5y = 9
+A. I only B. II only C. I and II D. Neither I nor II
+Answer: C
+
+294.
+
+In the figure shown, points A, B, C, and E lie on the circle, and AB < BC. Segment AC is perpendicular to segment BE at point D, and BD = 358. The
+
+diameter of the circle is 181. If
+
+CD AD
+
+= r, what is the value of r?
+
+Answer: 179/2
+
+420. Which expression is equivalent to (3x2 + 8x + 7) - (3x2 + 3)? A. 4 B. 10 C. 8x + 4 D. 8x + 10
+Answer: C
+
+432. x2 - 28x + c = 0 In the given equation, c is a constant. The equation has no real solutions if c > n. What is the least possible value of n? A. -196 B. -28 C. 28 D. 196
+Answer: D
+567. Which expression is equivalent to (2x2 + 3x + 6) - (2x2 + 2)? A. 4 B. 8 C. 3x + 4 D. 3x + 8
+Answer: C
+
+580. x2 + 34x + c = 0 In the given equation, c is a constant. The equation has no real solutions if c > n. What is the least possible value of n? A. -289 B. -34 C. 34 D. 289
+Answer: D

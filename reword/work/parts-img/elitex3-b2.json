@@ -1,0 +1,104 @@
+[
+  {
+    "page": 11,
+    "qnum": 11,
+    "subject": "Reading and Writing",
+    "question": "Dos Mujeres (Salvadora y Herminia) is a painting by Frida Kahlo, dated 1928. It's part of the full collection of the Museum of Fine Arts, Boston, in Boston, Massachusetts. A digital image of it can also be found in an online collection. In a paper, a student claims that people usually spend more time viewing a work of art in a museum than they do online.\n\nWhich finding, if true, would most directly support the underlined claim?",
+    "a": "Most people spend about three minutes viewing Dos Mujeres (Salvadora y Herminia) at the museum and only about one minute viewing it online.",
+    "b": "Dos Mujeres (Salvadora y Herminia) isn't the only work of art by Frida Kahlo that has been put online.",
+    "c": "Most people who go to museums in Boston are visiting from other places.",
+    "d": "More than one museum has works of art by Frida Kahlo in its full collection."
+  },
+  {
+    "page": 12,
+    "qnum": 12,
+    "subject": "Reading and Writing",
+    "question": "\"A Pair of Silk Stockings\" is an 1897 short story written by Kate Chopin. In the story, Mrs. Sommers attends a play, which she experiences as a temporary escape from the circumstances of her daily life: ______\n\nWhich quotation from \"A Pair of Silk Stockings\" most effectively illustrates the claim?",
+    "a": "\"The play was over, the music ceased, the crowd filed out. It was like a dream ended.\"",
+    "b": "\"But there were vacant seats here and there, and into one of them she was ushered, between brilliantly dressed women who had gone there to kill time and eat candy and display their gaudy attire.\"",
+    "c": "\"It was a little later when she entered the theatre, the play had begun and the house seemed to her to be packed.\"",
+    "d": "\"When she entered [the restaurant] her appearance created no surprise, no consternation, as she had half feared it might.\""
+  },
+  {
+    "page": 13,
+    "qnum": 13,
+    "subject": "Reading and Writing",
+    "question": "Urban agriculture is the practice of growing plant- or animal-based products in urban settings such as community gardens and rooftop farms. Esther Sanye-Mengual, Kathrin Specht, and their team surveyed three groups of people in Bologna, Italy—leaders of urban agriculture projects, stakeholders in urban agriculture (e.g., food researchers and urban farming associations), and the general public—to compare their views about the extent to which urban agriculture contributes to 25 social or ecological services that the team identified. The survey results show that, on average, project leaders rated urban agriculture as contributing less to ______\n\nWhich choice most effectively uses data from the graph to complete the assertion?",
+    "a": "improving the local microclimate than to increasing global biodiversity.",
+    "b": "increasing global biodiversity than to providing tourist attractions.",
+    "c": "improving community members' sense of attachment to the neighborhood than to offering educational opportunities.",
+    "d": "increasing global biodiversity than to improving the local microclimate.",
+    "figure": true
+  },
+  {
+    "page": 14,
+    "qnum": 14,
+    "subject": "Reading and Writing",
+    "question": "Honeybee hives consist mainly of hexagonal (six-sided) units called cells, in which queens lay eggs. Hexagonal cells for eggs that develop into nonreproductive workers are smaller than those for eggs that develop into reproductive drones, though the size difference varies by species. Difference in cell size results in a construction problem—it's hard to neatly connect sections of small cells to sections of large cells—that worsens as the difference increases. To fill in gaps between the sections when building a hive, bees rely on cells that have more or fewer than six sides. A student studying beehive structure consults data on three species, concluding that ______\n\nWhich choice most effectively uses data from the graph to complete the student's conclusion?",
+    "a": "cells for worker eggs are probably closer in size to cells for drone eggs in the hives of the western honeybee than in the hives of the dwarf honeybee and the black dwarf honeybee.",
+    "b": "both the western honeybee and the black dwarf honeybee probably reserve eight-sided cells for drone eggs, while the dwarf honeybee likely deposits drone eggs in seven-sided cells.",
+    "c": "the western honeybee probably relies on many more geometrical shapes when constructing cells than either the dwarf honeybee or the black dwarf honeybee does.",
+    "d": "the percentage of hexagonal cells is probably slightly lower in the hives of the western honeybee than in the hives of the dwarf honeybee and the black dwarf honeybee.",
+    "figure": true
+  },
+  {
+    "page": 15,
+    "qnum": 15,
+    "subject": "Reading and Writing",
+    "question": "In medieval England, singers and minstrels made livings as traveling performers, but the pieces they performed have been a mystery, thought to be lost or never committed to paper at all. Recently, however, James Wade has argued that a manuscript collection compiled in the fifteenth century by Richard Heege contains three pieces likely copied from a repertoire book belonging to a minstrel working in the area around Heege's home. Wade cites features of the texts indicative of live performance, such as chastising the audience, extensive use of simple structures (allowing for easy memorization), and requests for tips (payment) from listeners.\n\nWhich statement, if true, would most strongly support Wade's argument?",
+    "a": "Heege's collection contains the earliest examples of the three pieces in question, but each of those pieces occurs in other manuscript collections compiled after Heege's.",
+    "b": "The three pieces in question contain references that presume that the audience is familiar with Brackonwet and other small villages near where Heege lived.",
+    "c": "Features like simple structures also occur in other texts from the period that were widely read but are not known to have been performed for live audiences.",
+    "d": "Traveling minstrels are thought to have performed mainly for elite audiences, and other parts of Heege's collection reflect his interest in works with popular appeal."
+  },
+  {
+    "page": 16,
+    "qnum": 16,
+    "subject": "Reading and Writing",
+    "question": "Although Eastern North Pacific (ENP) gray whales generally migrate between their wintering waters along the coast of Mexico and their foraging waters in the Arctic, a subset of this population—known as the Pacific Coast Feeding Group (PCFG)—forages along the coastlines of Northern California (USA) and British Columbia (Canada) instead. Interestingly, individuals in this subset reach smaller maximum sizes than other ENP whales do, despite having similar pre-maximum growth rates. Researchers hypothesize that this difference may be an adaptation to distinct resource opportunities in the PCFG foraging range.\n\nWhich finding, if true, would most directly support the researchers' claim regarding the size of PCFG whales?",
+    "a": "When foraging along the coasts of Northern California and British Columbia, PCFG whales are in closer proximity to major ports and urban populations than ENP whales in the main group are when foraging in Arctic waters.",
+    "b": "The average body size of PCFG whales observed along the coasts of Northern California and British Columbia has remained relatively steady in recent decades, while the average body size of ENP whales in the main group has slightly decreased.",
+    "c": "When present along the coasts of Northern California and British Columbia, PCFG whales tend to forage in rocky kelp beds at shallow depths inaccessible to whales as large as those in the ENP main group.",
+    "d": "Certain crustacean prey species available along the coasts of Northern California and British Columbia where PCFG whales tend to forage are not available in the Arctic waters where ENP whales in the main group forage."
+  },
+  {
+    "page": 17,
+    "qnum": 17,
+    "subject": "Reading and Writing",
+    "question": "Alabama resident Benjamin S. Turner, sworn in as a member of the US House of Representatives in 1871, was one of the nearly two thousand African ______ during the decade following the Civil War.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+    "a": "Americans' who won elections'",
+    "b": "Americans who won election's",
+    "c": "American's who won elections",
+    "d": "Americans who won elections"
+  },
+  {
+    "page": 18,
+    "qnum": 18,
+    "subject": "Reading and Writing",
+    "question": "Having devised an optical spectroscopy technique that allowed researchers to study ultrafast chemical reactions occurring within molecules, ______ known as femtochemistry. For this groundbreaking work, he won the Othmer Gold Medal and the Davy Medal from the Royal Society.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+    "a": "chemist Ahmed Zewail introduced a new scientific discipline",
+    "b": "a new scientific discipline was introduced by Ahmed Zewail, a chemist",
+    "c": "the introduction of a new scientific discipline was initiated by chemist Ahmed Zewail",
+    "d": "chemist Ahmed Zewail's introduction of a new scientific discipline would be"
+  },
+  {
+    "page": 19,
+    "qnum": 19,
+    "subject": "Reading and Writing",
+    "question": "The Globe Theatre in London is a reconstruction of the famed venue where many of Shakespeare's plays were first performed. In 1613, a prop cannon ______ during a performance and ignited the Globe's thatched roof. No one was hurt, but in two hours the original Globe was gone.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+    "a": "has malfunctioned",
+    "b": "malfunctioned",
+    "c": "malfunctions",
+    "d": "will malfunction"
+  },
+  {
+    "page": 20,
+    "qnum": 20,
+    "subject": "Reading and Writing",
+    "question": "Paintings by the renowned twentieth-century US ______ were featured in Artist to Artist, an exhibition at the Smithsonian Art Museum that paired the works of artists whose career trajectories intersected in meaningful ways.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+    "a": "artists Thomas Hart Benton, and Jackson Pollack,",
+    "b": "artists: Thomas Hart Benton and Jackson Pollack,",
+    "c": "artists Thomas Hart Benton and Jackson Pollack",
+    "d": "artists, Thomas Hart Benton and Jackson Pollack"
+  }
+]

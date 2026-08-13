@@ -106,7 +106,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
   const [selectedBank, setSelectedBank] = useState(null)
   const [questions, setQuestions] = useState([])
   const [qLoading, setQLoading] = useState(false)
-  const [filters, setFilters] = useState({ subject: isTutor ? 'Math' : '', difficulty: '', type: '', tag: '', isActive: '', mathTopic: '', mathSubtopic: '', readingWritingTopic: '', remark: '' })
+  const [filters, setFilters] = useState({ subject: isTutor ? 'Math' : '', difficulty: '', type: '', tag: '', isActive: '', mathTopic: '', mathSubtopic: '', readingWritingTopic: '', remark: '', region: '' })
   const [questionSearch, setQuestionSearch] = useState('')
   const [preview, setPreview] = useState(null)
   const [editItem, setEditItem] = useState(null)
@@ -210,6 +210,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
       if (currentFilters.difficulty) params.set('difficulty', currentFilters.difficulty)
       if (currentFilters.type) params.set('type', currentFilters.type)
       if (currentFilters.tag) params.set('tag', currentFilters.tag)
+      if (currentFilters.region) params.set('region', currentFilters.region)
       if (currentFilters.isActive !== '') params.set('isActive', String(currentFilters.isActive === 'true'))
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       const res = await fetch(`/api/questions?${params.toString()}`, {
@@ -555,7 +556,8 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
       mathTopic,
       mathSubtopic,
       readingWritingTopic,
-      remark: q.remark || ''
+      remark: q.remark || '',
+      region: q.region || ''
     }
   }
 
@@ -592,7 +594,8 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
       })(),
       tags: allTags,
       points: typeof item.points === 'number' ? item.points : 1,
-      remark: item.remark || ''
+      remark: item.remark || '',
+      region: item.region || ''
     }
     await fetch(`/api/admin/questions/${item.id}`, {
       method: 'PUT',
@@ -819,6 +822,14 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                 </select>
               </div>
               <div>
+                <label htmlFor="filter-region" className="block text-xs font-medium text-slate-600 mb-1">Region</label>
+                <select id="filter-region" value={filters.region} onChange={(e) => handleFilterChange('region', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                  <option value="">All</option>
+                  <option value="US">US</option>
+                  <option value="International">International</option>
+                </select>
+              </div>
+              <div>
                 <label htmlFor="filter-tag" className="block text-xs font-medium text-slate-600 mb-1">Custom Tag</label>
                 <input id="filter-tag" value={filters.tag} onChange={(e) => handleFilterChange('tag', e.target.value)} placeholder="e.g. algebra" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
               </div>
@@ -897,6 +908,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Subject</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Difficulty</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Question Type</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Region</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Topic/Subtopic</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Remark</th>
                     <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
@@ -914,7 +926,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     if (qLoading) {
                       return (
                         <tr>
-                          <td colSpan={9} className="px-6 py-12">
+                          <td colSpan={10} className="px-6 py-12">
                             <div className="flex flex-col items-center justify-center gap-3 text-slate-500">
                               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
                               <span className="text-sm">Loading questions...</span>
@@ -927,7 +939,7 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                     if (paginated.length === 0) {
                       return (
                         <tr>
-                          <td colSpan={9} className="px-6 py-12">
+                          <td colSpan={10} className="px-6 py-12">
                             <div className="flex flex-col items-center justify-center gap-2 text-center">
                               <FiSearch className="h-10 w-10 text-slate-300" />
                               <h3 className="text-sm font-semibold text-slate-700">No questions found</h3>
@@ -968,6 +980,11 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                             </span>
                           </td>
                           <td className="px-4 py-4 text-sm text-slate-700">{parsedOptions.some(o => { const s = String(o ?? '').trim().toLowerCase(); return s && s !== 'n/a' }) ? 'MultipleChoice' : 'Fill in the Blank'}</td>
+                          <td className="px-4 py-4 text-sm">
+                            {q.region
+                              ? <span className={`px-2 py-1 text-xs font-semibold rounded-full ${q.region === 'US' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}`}>{q.region}</span>
+                              : <span className="text-slate-400 italic">-</span>}
+                          </td>
                           <td className="px-4 py-4 text-sm text-slate-700 max-w-[150px] truncate" title={parsedTags.join(', ')}>{parsedTags.join(', ') || '-'}</td>
                           <td className="px-4 py-4 text-sm text-slate-600 max-w-xs truncate" title={q.remark || ''}>
                             {q.remark || <span className="text-slate-400 italic">-</span>}
@@ -1351,6 +1368,14 @@ export default function QuestionBankManagement({ isTutor = false, isAdminTest = 
                       <option value="TrueFalse">TrueFalse</option>
                       <option value="ShortAnswer">ShortAnswer</option>
                       <option value="Essay">Essay</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Region</label>
+                    <select value={editItem.region || ''} onChange={(e) => setEditItem({ ...editItem, region: e.target.value })} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                      <option value="">— Not set —</option>
+                      <option value="US">US</option>
+                      <option value="International">International</option>
                     </select>
                   </div>
                   <div className="md:col-span-2">

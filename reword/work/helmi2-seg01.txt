@@ -1,0 +1,924 @@
+Section: Section 1, Module 1: Reading and Writing, Difficulty: unknown (68 questions)
+
+1. Section 1, Module 1: Reading and Writing / unknown (68) 2. Section 1, Module 2: Reading and Writing / easy (68) 3. Section 1, Module 2: Reading and Writing / hard (50) 4. Section 2, Module 1: Math / unknown (70) 5. Section 2, Module 2: Math / easy (72) 6. Section 2, Module 2: Math / hard (53)
+
+Section: Section 1, Module 1: Reading and Writing, Difficulty: unknown (68 questions)
+1. Which choice completes the text with the most logical and precise word or phrase? The pineapple was domesticated in South America. Its physical structure is no longer identical to the structure of the wild plant it is descended from. Summer squash also ______ its wild ancestor. That ancestor plant had a hard rind and bitter flesh. Indigenous people in eastern North America carefully bred the crop until it had a soft rind and mild-tasting flesh. A. varies from B. helps with C. argues with D. reacts to
+Answer: A
+2. Which choice completes the text with the most logical and precise word or phrase? The adult emperor moth appears brown and orange with multiple eyespots as a result of pigmented scales that cover its wings and body. Although scales are widely known as the source of a moth's color and pattern, the ______ of these scales goes beyond visual display: they also absorb the sun's heat for moths active during the day. A. tendency B. attractiveness C. utility D. frailty
+Answer: C
+3. As used in the text, what does the word "good" most nearly mean? The following text is from Charles Chesnutt's 1905 novel The Colonel's Dream. Mr. French and Mr. Kirby work together.
+Mr. French, the senior partner, who sat opposite Kirby, was an older man--a safe guess would have placed him somewhere in the debatable ground between forty and fifty; of a good height, as could be seen even from the seated figure, the upper part of which was held erect with the unconscious ease which one associates with military training. A. Reliable B. Well-behaved C. Talented D. Considerable
+Answer: D
+4. Which choice completes the text with the most logical and precise word or phrase? Despite a growing view among young people and others in South Africa that celebrated anti-apartheid leader Nelson Mandela should have taken greater strides as president to effect more substantive structural changes in the country's stratified society, years after his death in 2013 Mandela continues to be ______ by many worldwide. A. evaluated B. criticized C. lauded D. reinterpreted
+Answer: C
+5. Which choice best states the main purpose of the text? The following text is adapted from Eugene O'Neill's 1920 play Beyond the Horizon. Andrew and Robert Mayo are brothers who grew up on their family's farm.
+ANDREW: Farming ain't your nature. There's all the difference shown in just the way us two feel about the farm. You--well, you like the home part of it, I expect; but as a place to work and grow things, you hate it. Ain't that right? ROBERT: Yes, I suppose it is. For you it's different. You're a Mayo through and through. You're wedded to the soil. You're as much a product of it as an ear of corn is, or a tree. Father is the same. This farm is his life-work. A. It illustrates that two characters share a goal. B. It shows how two characters solved a mystery. C. It describes a place two characters visited on vacation. D. It emphasizes a difference between two characters.
+Answer: D
+6. Which choice best describes the function of the underlined portion in the text as a whole? In the past, historians who wanted to examine Frederick Douglass's diary and other personal papers had to visit the Library of Congress in Washington, DC, to view them on microfilm (film containing scaled-down reproductions of documents). But traveling to the library often added time and costs to research projects. Now, by going to the library's website, researchers can access digitized versions of Douglass's papers without physically going anywhere. A. It gives information about a famous person. B. It explains the meaning of a word. C. It describes a debate among historians. D. It summarizes an unexpected finding.
+Answer: B
+7. Which choice best states the main purpose of the text? Built in the 1970s, Raccoon Mountain is a pumped-storage hydropower facility (a "water-battery") located in the United States along the Tennessee River. When energy demand is low, excess power from the regional electric utility's nuclear plants is used to pump water (from a lower reservoir filled from the Tennessee River) up a shaft to the summit lake, where the water is stored as gravitational potential energy. When energy demand peaks, the water drains down from the summit lake, spinning turbines and generating upward of 1,700 megawatts of power--enough to power one million homes for twenty hours. A. To point out the differences between two methods of energy generation B. To explain the basics of how a specific energy technology works C. To discuss the benefits of a new energy technology D. To encourage regional electric utilities to build energy storage facilities
+Answer: B
+8. Based on the texts, how would the author of Text 2 most likely respond to the overall characterization in Text 1 of the publicity campaign? Text 1 Middlemarch, Cecilia De Noel, and twenty-three other works of the late 1800s and early 1900s were rereleased in 2020 as publicity for a prestigious prize for women writers of fiction. Recognizing that women long had to use male pseudonyms for their works to be granted serious consideration (by publishers and readers alike), the campaign restored the authors' given female names in place of such pseudonyms and brought visibility to identities that should not have been hidden.
+
+Text 2
+The belief that women historically were barred from publishing under names perceived as female is persistent. That it is also an overgeneralization becomes obvious when considering writers such as Elizabeth Barrett Browning, who published Poems and many other works under her own name in the 1800s, and Sara Payson Willis, who elected to use the female pseudonym Fanny Fern for her novels and newspaper columns in the mid-1800s.
+A. By suggesting that Barrett Browning and Willis are among the historical examples that challenge the assumption about the historical use of pseudonyms by female writers that is presented in Text 1
+B. By agreeing that the authors of Middlemarch, Cecilia De Noel, and the other works referred to in Text 1 were not afforded the same opportunities as Barrett Browning and Willis to shape their own representations when publishing
+C. By asserting that while it is clearly inappropriate to conclude that Barrett Browning was motivated by the same set of factors as the authors of the works discussed in Text 1 to publish under the names they did, it is appropriate to conclude that Willis was
+D. By acknowledging that the circumstances of publication for Barrett Browning and Willis differed from those for the authors whose works are the focus of Text 1, given that Barrett Browning and Willis each published multiple works
+Answer: A
+
+9. Which choice best states the main topic of the text? When people think of dinosaurs with feathers, they typically think of winged dinosaurs, such as the bat-like Yi qi. However, many dinosaurs that didn't have wings also had feathers on their bodies. For instance, research indicates that the wingless, herbivorous Kulindadromeus likely had feathers. A. Dinosaurs with feathers B. Animals without feathers C. The most valuable fossil D. Bird species
+Answer: A
+
+10. Based on the text, why does Don Mariano push aside the furniture on the piazza? The following text is from Mar�a Amparo Ruiz de Burton's 1885 novel The Squatter and the Don.
+Don Mariano Alamar was silently walking up and down the front piazza of his house at the rancho; his hands listlessly clasped behind and his head slightly bent forward in deep thought. He had pushed away to one side the many arm-chairs and wicker rockers with which the piazza was furnished. He wanted a long space to walk. That his meditations were far from agreeable, could easily be seen by the compressed lips, slight frown, and sad gaze of his mild and beautiful blue eyes. A. He feels that walking an uninterrupted path will help him think through a difficult issue. B. He is determining which pieces of furniture to dispose of. C. He wishes to create the impression that he has a large extended family. D. He wants to make space so that he can engage in vigorous exercise.
+Answer: A
+
+11. Which choice most effectively uses data from the table to complete the statement?
+
+Average Hours Worked per Person per Year in 1950 and 2017
+
+Country 1950 2017 Change in hours Percent change in hours
+
+United Kingdom 2,184 1,670
+
+-514
+
+-24%
+
+Australia
+
+2,178 1,731
+
+-447
+
+-21%
+
+Germany
+
+2,427 1,354
+
+-1,074
+
+-44%
+
+Mexico
+
+2,432 2,255
+
+-177
+
+-7%
+
+Calculations may be inexact due to rounding.
+
+A student in an economics course is examining the decline since 1950 in average hours worked per person per year in various nations due to both increased productivity and the adoption of policies that limit working hours. The first task in this investigation is to determine how the decline in the United Kingdom compares to that in other countries. The student finds that ______
+
+A. though the percent decrease in hours worked in the United Kingdom was greater than that in Germany and Mexico, it was less than that in Australia.
+
+B. though the percent decrease in hours worked in the United Kingdom was less than that in Germany, it was greater than that in Australia and Mexico.
+
+C. the decline in number of hours worked was greater in the United Kingdom than it was in Germany, Australia, or Mexico.
+
+D. while the number of hours worked rose in the United Kingdom from 1950 to 2017, it declined in Germany, Australia, and Mexico.
+
+Answer: B
+
+12. Which choice most effectively uses data from the table to complete the comparison?
+
+Impact of Three Key Industries on Oklahoma Economy in 2017
+
+Industry Construction Professional services Tribal economic activity
+
+Approximate total contribution by industry
+$6,797,300,000 $7,694,000,000
+$7,312,400,000
+
+Number of people employed by industry 77,247 69,846
+51,674
+
+Average contribution per employee by industry $87,994 $110,157
+$141,510
+
+The nearly forty tribes located in Oklahoma, including the Chickasaw Nation and the Quapaw Tribe, operate numerous businesses, employ tens of thousands of people, and generate billions of dollars in revenue. A student in an economics class is researching the tribes' collective activity as a single industry. The student wants to compare that industry's role in Oklahoma in 2017 with the roles of other industries in the state. Looking at a table with information about three industries, the student finds that compared with the other two industries, tribal economic activity ______
+
+A. ranked highest in all three economic measures listed in the table.
+
+B. employed the same number of people as construction.
+
+C. made the lowest total contribution by industry.
+
+D. made the highest average economic contribution per employee.
+
+Answer: D
+
+13. Which statement, if true, would best illustrate the challenge described in the text?
+A creole language is an amalgam of a lexifier, or primary contributor of grammar and vocabulary, with one or more substrates, or secondary contributors. Englishlexifying creoles in the Caribbean, such as Jamaican Patois, rely on West African substrates, while Hawaiian Pidgin relies on `lelo Hawai`i, the Polynesian language of the Native Hawaiian people, with further contributions from Cantonese and other East Asian languages, Portuguese, and Spanish. This is a heterogeneous history, even for a creole language. Moreover, numerous similarities are found among the East Asian substrates, as well as between Portuguese and Spanish. Thus, it can be challenging to credit certain words or features of grammar or pronunciation to any one substrate.
+A. Stative structures in which verbs modify subjects and serve a descriptive function comparable to that of adjectives are hallmarks of Hawaiian Pidgin as well as of East Asian languages such as Cantonese, yet the syntax of Hawaiian Pidgin's stative structures confirms their origin in `lelo Hawai`i.
+B. Hawaiian Pidgin's substitution of "d" for the voiced "th" consonant (as used in "that") and of "t" for the unvoiced "th" consonant (as used in "thick") can be credited to the absence of "th" consonants in `lelo Hawai`i, though most other Polynesian languages lack "th" consonants too.
+C. As is also the case with some first-language speakers of Jamaican Patois, many first-language speakers of Hawaiian Pidgin align their pronunciation, word choice, and syntax more closely with English in certain conversational contexts than in others.
+D. The usage of the Hawaiian Pidgin verb "ste" to convey a temporary state, as in the statement "da watah ste cold" (the water is cold), most nearly resembles that of the `lelo Hawai`i verb noho, though the Portuguese verb ficar and the Spanish verb estar have similar usages and may also exert an influence on "ste."
+Answer: D
+
+14. Which choice most logically completes the text?
+The great blue heron and the small dark heron are long-legged birds that live in wetlands, like the Everglades in Florida. Laura D'Acunto and colleagues wanted to know how these birds choose an area in which to live. They looked at features of the birds' habitats, such as the geographic location of the area and how deep the water is during the birds' breeding season. They found that great blue herons prefer areas with deep water during breeding season, but that was not true for small dark herons. The researchers concluded that water management strategies that increase the depth of water in potential wetland bird habitats during breeding season are therefore more likely to ______
+A. attract great blue herons to the area than they are to attract small dark herons to the area.
+B. decrease the area's appeal to both great blue herons and small dark herons than they are to increase the appeal to either.
+C. extend the average lifespan of great blue herons already in the area than they are to attract a greater number of those birds to the area.
+D. attract birds that don't typically live in wetlands to the area than they are to attract great blue herons or small dark herons to the area.
+Answer: A
+
+15. Which choice most logically completes the text?
+Filtration is a widely used method for removing microplastics--plastics with a width less than 5 millimeters (mm)--from waterways. However, filtration systems are typically unable to capture very small microplastics. Menake Piyasena and Nelum Perera designed a device that applies sound waves to water as it flows through a metal tube. The sound waves cause microplastics in the water to gather in the middle and along the sides of the tube. The microplastics can then be separated out by channeling polluted and clean water though different outlets. Testing indicated that the system removes even tiny microplastics, including ones as small as 10 microns, or 0.01 mm, wide. This result suggests that ______
+A. unlike sound waves, filters have the ability to remove large microplastics from polluted waterways.
+B. the sound wave treatment system may help solve a problem associated with filtration of microplastics.
+C. directing water through filtration tubes with multiple outlets reduces microplastic pollution.
+D. combining filtration with sound waves is likely the most efficient method for removing microplastics from water.
+Answer: B
+
+16. Which choice completes the text so that it conforms to the conventions of Standard English? A professor at the University of Oklahoma, Amy McGovern works on developing artificial intelligence technology, with a specific focus on supervised machine ______ machine learning involves teaching computer algorithms to organize large amounts of data. A. learning supervised B. learning, supervised C. learning. Supervised D. learning, which supervised
+Answer: C
+
+17. Which choice completes the text so that it conforms to the conventions of Standard English? The Tuskegee University Archives' collection includes an original 1957 photograph of Martin Luther King Jr. addressing a group of Tuskegee civil rights activists. Taken by P.H. Polk, the photo ______ King in profile, the glow of a stage light casting his silhouette onto the curtains behind him. A. to show B. having shown C. shows D. showing
+Answer: C
+
+18. Which choice completes the text so that it conforms to the conventions of Standard English? Sociologist Alton Okinaka sits on the review board tasked with adding new sites to the Hawai`i Register of Historic Places, which includes the Gulick-Rowell House and the Kukui Heiau. However, Okinaka doesn't make such decisions ______ all historical designations must be approved by a group of nine other experts from the fields of architecture, archaeology, history, and Hawaiian culture. A. single-handedly and B. single-handedly, C. single-handedly D. single-handedly;
+Answer: D
+
+19. Which choice completes the text so that it conforms to the conventions of Standard English? Most of the ice found on Earth is ice Ih, distinguished by a crystalline structure in which molecules form a hexagonal pattern. Amorphous ice, on the other hand, constitutes most of the ice in the ultrafrigid environment of outer space. Defined by a disorganized molecular structure, ______ A. ice Ih differs from amorphous ice in that it possesses the thermal energy to form crystals. B. ice Ih contains crystals, whereas amorphous ice, which lacks the thermal energy to form them, does not. C. the lack of thermal energy in amorphous ice explains its inability to form the crystals found in ice Ih. D. amorphous ice lacks the thermal energy to form the crystals found in ice Ih.
+Answer: D
+
+20. Which choice completes the text so that it conforms to the conventions of Standard English? When, in 2018, scientists in Germany discovered a fossilized brittle star with three thick, spine-studded arms positioned opposite three thin, undeveloped ones, they found something never before seen in the fossil ______ clonal fragmentation, a type of asexual reproduction, an animal splits itself in two, each half then regrowing its missing limbs--just what the brittle star was doing. A. record. Evidence of cloning in B. record--evidence of cloning in C. record, evidence of cloning, in D. record: evidence of cloning. In
+Answer: D
+
+21. Which choice completes the text with the most logical transition? Typically, upon detecting the scent of another animal, a lion will open its mouth. ______ the lion allows the scent to reach sensory receptors on the roof of its mouth. These sensors help the lion interpret the source of the scent. A. Nowadays, B. However, C. On the other hand, D. By doing so,
+Answer: D
+
+22. Which choice completes the text with the most logical transition? A team led by Portuguese researcher Isabel C.F.R. Ferreira found that many species of mushrooms contain chemicals called phenolic compounds, such as 5-Ocaffeoylquinic acid and kaempferol. ______ Ferreira detected 5-O-caffeoylquinic acid in Pleurotus ostreatus mushrooms and kaempferol in Sparassis crispa mushrooms. A. However, B. For this reason, C. For example, D. Nevertheless,
+Answer: C
+
+23. The student wants to emphasize a difference between the two seaweeds. Which choice most effectively uses relevant information from the notes to accomplish this goal?
+While researching a topic, a student has taken the following notes:
+The human tongue contains taste receptors for a rich, savory flavor called umami. Umami is triggered by the compounds in a variety of foods, including pork and soy sauce. Participants in a study tasted a sample of winged kelp, a type of brown seaweed. They rated its umami intensity as moderate. The participants tasted a sample of arame, another type of brown seaweed. They rated its umami intensity as high.
+A. Both winged kelp and arame are types of brown seaweed.
+B. Winged kelp and arame both contain umami flavor, which can also be triggered by compounds in pork and soy sauce.
+C. Participants in a research study found winged kelp, a type of brown seaweed, to have moderate umami intensity, while arame's umami was more intense.
+D. Some types of brown seaweed, like winged kelp and arame, trigger umami flavor in human taste buds.
+Answer: C
+
+24. The student wants to identify the title of J.D. Salinger's first published short story. Which choice most effectively uses relevant information from the notes to accomplish this goal? While researching a topic, a student has taken the following notes:
+J.D. Salinger was an acclaimed writer. His first published work of fiction was a short story. It was called "The Young Folks." It first appeared in Story in 1940. A. In 1940, a short story by J.D. Salinger appeared in Story. B. Acclaimed writer J.D. Salinger's first published work of fiction was a short story. C. J.D. Salinger's first published work of fiction appeared in 1940. D. J.D. Salinger's first published short story was called "The Young Folks."
+Answer: D
+
+25. The student wants to emphasize a difference between the two scrolls. Which choice most effectively uses relevant information from the notes to accomplish this goal?
+While researching a topic, a student has taken the following notes:
+Ike Taiga (1723-1776) was a Japanese painter. Li Bai (701-762) was a Chinese poet. Taiga created the artwork titled Landscape and Couplet of Chinese Verse. The artwork is made up of two scrolls. Scroll 1 features a painting of a lone figure walking among tall, narrow mountains. Scroll 2 features a poem from Li Bai that is about being in nature.
+A. In Landscape and Couplet of Chinese Verse, one scroll features a painting, while the other scroll features a poem.
+B. Ike Taiga created Landscape and Couplet of Chinese Verse, which is made up of two scrolls that each depict nature.
+C. Made up of two scrolls that each depict nature, Landscape and Couplet of Chinese Verse was created by Li Bai.
+D. One of the two scrolls that make up Landscape and Couplet of Chinese Verse features mountains, and one features a portrait of poet Li Bai.
+Answer: A
+
+26. The student wants to provide evidence that Randmaa's journey was a true circumnavigation. Which choice most effectively uses relevant information from the notes to accomplish this goal?
+While researching a topic, a student has taken the following notes:
+Uku Randmaa is an Estonian sailor who completed a true circumnavigation of the globe in 2019. One of the requirements of a true circumnavigation is that the journey must begin and end in the same port. Randmaa's circumnavigation began and ended in the port of Les Sables d'Olonne, France. On his journey, Randmaa passed the three great capes of the Southern Ocean. His journey took 254 days.
+A. To be considered a true circumnavigation, a journey must begin and end in the same port, and Randmaa's lasted 254 days.
+B. Randmaa began and ended his trip in the same port (Les Sables d'Olonne, France), one of the requirements for a true circumnavigation.
+C. Randmaa is an Estonian sailor who completed a true circumnavigation that ended in Les Sables d'Olonne, France.
+D. A true circumnavigation, Randmaa's journey also passed the three great capes of the Southern Ocean.
+Answer: B
+
+27. The student wants to emphasize a similarity between Macready and Keene. Which choice most effectively uses relevant information from the notes to accomplish this goal?
+While researching a topic, a student has taken the following notes:
+In the 1800s, some actors also managed theaters. They were known as actor-managers. William Charles Macready managed the Covent Garden Theatre (London) from 1837 to 1839. He starred in a production of Henry V there in 1838. Laura Keene managed Laura Keene's Theatre (New York) from 1856 to 1863. She starred in a production of The Seven Sisters there in 1860.
+A. In the 1800s, some actors (such as Keene) also managed theaters; they were thus considered actor-managers.
+B. As actor-managers, both Macready and Keene managed theaters where they also performed.
+C. Both Macready and Keene were managers of the Covent Garden Theatre in London, where they also starred in various plays.
+D. Macready managed a London theater, whereas Keene managed one in New York.
+Answer: B
+
+148. Which choice completes the text with the most logical and precise word or phrase? The recovery program led by Marisel L�pez-Flores has dramatically increased the population size of the endangered Amazona vittata, the endemic parrot of Puerto Rico. Given that A. vittata corresponds in physiology, behavior, and ecology to endangered Amazona species elsewhere in the Caribbean, the conservation approach developed by L�pez-Flores may be ______ across the genus. A. replicable B. comprehensible C. observable D. redeemable
+Answer: A
+
+149. Which choice completes the text with the most logical and precise word or phrase? Although oil shocks--such as the 45% rise in oil prices from November 1980 to February 1981--can strongly affect individual consumers, Gbadebo Oladosu and colleagues have shown that at the level of national economies, their effects are often quite ______. The effect of recent oil shocks on the gross domestic product of the United States, for example, was only slightly greater than zero. A. persistent B. subdued C. beneficial D. variable
+Answer: B
+
+150. Which choice completes the text with the most logical and precise word or phrase? Steiger Butte Drum, a family ensemble from the Klamath Tribes of the Pacific Northwest, collaborated with composer Michael Gordon to create Natural History, a work featuring traditional drumming and vocals alongside an orchestra and chorus. Steiger Butte Drum's participation is ______ to the piece: members not only contributed to its composition but also must be included in all performances. A. analogous B. tangential C. integral D. subsequent
+Answer: C
+
+151. Which choice best states the function of the underlined portion in the text as a whole? The following text is adapted from Susan Glaspell's 1917 play The People. Oscar, a writer at a newspaper called The People, is writing at a table when a woman enters the office to speak to the editor.
+THE WOMAN: This is the office of The People? OSCAR: Um-hum. THE WOMAN: (Excitedly.) I came to see the author of those wonderful words. OSCAR: (Rising.) Which wonderful words? THE WOMAN: About moving toward the beautiful distances. OSCAR: (Loses interest and returns to his writing.): Oh. Those are Mr. Wills' wonderful words. THE WOMAN: Could I see him? OSCAR: He isn't here yet. He's just back from California. Won't be at the office till a little later. A. To indicate that Oscar had been expecting the woman to come to the office B. To suggest that Oscar is annoyed that the woman's visit has interrupted his work C. To depict Oscar as a polite and professional representative of the newspaper D. To show Oscar's brief hope that the woman is fond of his writing
+Answer: D
+
+152. Which choice best states the function of the underlined sentence in the text as a whole? Vertical gene transfer involves the transmission of genetic material from a parent to offspring; horizontal gene transfer, on the other hand, involves the exchange of genetic material between organisms not in a parent-offspring relationship. While horizontal gene transfer is common among prokaryotes--single-celled organisms, such as the bacteria Comamonas aquatica and Moraxella caviae--it has rarely been observed among eukaryotes (multicellular organisms). However, new studies suggest that horizontal gene transfer is more common in eukaryotes than originally thought. A. It explains a biological process by contrasting it with a somewhat similar process. B. It explains why a common perception of a biological process is flawed. C. It proposes a direction for future research into a biological phenomenon. D. It argues that two biological phenomena are more similar than they may initially appear to be.
+Answer: A
+
+153. Which choice best describes the overall structure of the text?
+
+Some researchers posit that the species inhabiting the South Pacific island of Grande Terre belong to clades that predate the island's split from remnants of the former supercontinent Gondwana around 80 million years ago. A study conducted by Yohan Pillon et al. found, however, that the crown age (the age of the most recent common ancestor of all living and extinct species in the clade) of the clade of Geissois trees on Grande Terre is 7.3 million years; Pillon et al. further found that the crown age of the clade of Geissois trees in the South Pacific generally is also approximately 7.3 million years. A. It identifies a discrepancy between a hypothesis some researchers have proposed and related research findings, then explains that discrepancy. B. It presents a possibility that some researchers have raised, then describes a study that clarifies their reasons for doing so. C. It explains a view some researchers have advanced, then discusses study results that led them to reconsider that view. D. It describes an idea that some researchers have put forward, then presents study results that are incompatible with that idea.
+Answer: D
+154. Based on the texts, how would Ert and Erev (Text 2) most likely respond to Kahneman and Tversky's finding (Text 1)? Text 1 In a seminal 1979 study, Daniel Kahneman and Amos Tversky presented students and college faculty from Israel, Sweden, and the United States with hypothetical questions involving financial decisions. Finding that participants' responses indicated that losses have a greater psychological impact than equivalent gains do, the researchers formulated the concept of loss aversion, which has since informed research in fields ranging from cognitive psychology to transportation studies.
+Text 2 Eyal Ert and Ido Erev conducted an experiment in which two groups of Israeli students were exposed to financial choices that involved potential losses of either relatively minor sums of money, such as 10 Israeli shekels (low-stakes contexts), or more substantial sums, such as 100 Israeli shekels (high-stakes contexts). The researchers concluded that only the latter contexts were associated with loss aversion. A. By observing that researchers' ability to assess feelings about financial decisions is contingent on gathering adequate data about gains and losses B. By agreeing that experimental results support the idea that some people tend to be more cognizant of financial losses than of gains C. By disputing Kahneman and Tversky's claim that a tendency to place excessive emphasis on financial losses accounts for the loss aversion observed in fields such as cognitive psychology and transportation studies D. By contending that the attitude toward financial losses that Kahneman and Tversky observed is contingent on the magnitude of outcomes
+Answer: D
+155. According to the text, what is one way that The Antelope Woman differs from most of Erdrich's work? Tracks is a 1988 novel by Ojibwe writer Louise Erdrich. It explores how historical events affect families on a reservation in rural North Dakota. Tracks is typical of Erdrich's work. Her writing usually focuses on portrayals of everyday life in Ojibwe communities. Yet some of her novels have fantastical plots and take place outside Ojibwe communities. For example, her 2016 novel The Antelope Woman is essentially fantasy fiction, and the otherworldly events in its plot are set in an urban Indigenous community in Minneapolis. A. Its main characters are Ojibwe. B. It isn't set in a rural Ojibwe community. C. It has been adapted into a movie. D. It contains very little dialogue.
+Answer: B
+156. The text most strongly suggests that particular aspects of Hamilton's political beliefs may have been omitted from the musical in part to achieve which effect? Lin-Manuel Miranda's 2015 hip-hop musical Hamilton depicts historical political figure Alexander Hamilton as a self-made man who, through sheer determination, transcends his humble origins to become a key participant in the founding of the United States. This depiction of Hamilton establishes him as a compelling and welldefined protagonist but obscures other facets of the historical person's views, namely his elitism and mistrust of the democratic politics of some of his contemporaries. In effect, the musical's portrayal of Hamilton fails to convey the ideological complexity that a more nuanced portrayal might have suggested. A. To suggest why certain contributions by Hamilton to US history have been overlooked B. To encourage modern audiences to emulate Hamilton's politics C. To create an unambiguous thematic presentation of Hamilton's life D. To challenge the prevailing historical consensus about Hamilton
+Answer: C
+157. Which choice most effectively uses data from the graph to complete the statement?
+Prices of Nuts Sold by Growers in the United States,
+2016/17 to 2019/20 Seasons 2
+
+Price per pound (dollars)
+
+1
+
+0 016/17 2
+
+017/18 2
+
+018/19 2
+
+Season
+
+macadamias walnuts hazelnuts
+
+019/20 2
+
+The US Department of Agriculture's Fruit and Tree Nuts Outlook is a document that covers a variety of subjects, from the causes of reductions in grapefruit supply to the forecast for yields of apple crops. A student studying agricultural economics is consulting a graph in the document that shows the prices for which several types of nuts have been sold by growers in the United States over four growing seasons from 2016 to 2020. The student wishes to determine in which season walnuts reached their lowest price. Consulting the graph, the student finds that this season was the ______ A. 2017/18 season. B. 2016/17 season. C. 2018/19 season. D. 2019/20 season.
+Answer: C
+
+158. Which choice most effectively uses data from the graph to complete the example?
+
+Number of individual fish observed
+
+Fish Population in a Taiwanese Tide Pool, January 2001 to October 2001
+
+65
+
+60
+
+55
+
+50
+
+45
+
+40
+
+35
+
+30
+
+25
+
+20
+
+15
+
+10
+
+5
+
+0
+
+001 001 001 001 y 2 ril 2 ly 2 er 2
+
+Januar Ap
+
+O Ju ctob
+
+Month
+
+combtooth blenny yellowtail sergeant rippled rockskipper
+
+Lin-Tai Ho and colleagues counted fish in a tide pool in Taiwan at several times during the year and found that some species had a significantly higher maximum population count than others. For example, the highest count for the combtooth blenny was 62 individuals in January of 2001, whereas the highest count for the yellowtail sergeant was ______ A. 72 individuals in January of 2001. B. 15 individuals in April of 2001. C. 13 individuals in January of 2001. D. 3 individuals in January of 2001.
+Answer: D
+
+159. Which choice most effectively uses data from the table to complete the example?
+
+Population and Population Density of African Countries in 2015
+
+Country
+
+Density (inhabitants/km�) Area (km�) Estimated population
+
+S�o Tom� and Pr�ncipe
+
+189.8
+
+1,001
+
+190,000
+
+Ethiopia
+
+88.2
+
+1,127,127
+
+99,391,000
+
+Mauritania
+
+3.9
+
+1,030,700
+
+4,068,000
+
+Angola
+
+20.1
+
+1,246,700
+
+25,022,000
+
+As the second-most populous continent in the world, Africa was home to an estimated 1.186 billion people in 2015. In a paper for a social studies class, a student nonetheless notes that countries with very large populations may be less densely populated than are countries with much smaller populations, as can be seen by comparing ______
+
+A. the geographic size of Angola (1,246,700 square kilometers) with its relatively high population of 25,022,000 inhabitants.
+
+B. Angola, which has a high population of 25,022,000 inhabitants and a relatively low density of 20.1 inhabitants/square kilometer, with S�o Tom� and Pr�ncipe, which has a much lower population and a higher density.
+
+C. Mauritania, which has a low density, with Ethiopia, which has a similar density despite both countries having different geographic sizes.
+
+D. the populations of both S�o Tom� and Pr�ncipe and Ethiopia in 2015 with their populations in 2010.
+
+Answer: B
+
+160. Which finding, if true, would most directly support Aburto-Oropeza and colleagues' explanation?
+Declining fishing technology costs and overexploitation of near-shore fishing grounds have made isolated oceanic reefs, which often lack regulatory protections, increasingly attractive to commercial and sport fishers. A team led by Octavio Aburto-Oropeza surveyed the biomass density and species composition of two isolated reefs: Alacranes, a protected (fishing prohibited) reef 135 kilometers from the Yucatan Peninsula, and Bajos del Norte, an unprotected reef 25 kilometers further out to sea. Species at the highest level of the trophic pyramid constituted 34% of the biomass at Alacranes and 10% of the biomass at Bajos del Norte. Aburto-Oropeza and colleagues attribute this difference to the two reefs' difference in regulatory status.
+A. Total biomass at Alacranes is much greater than total biomass at Bajos del Norte, though the reefs' biomass densities are similar.
+B. It is somewhat more expensive for commercial and sport fishers to reach Bajos del Norte than it is to reach Alacranes.
+C. Some of the species that compose the highest trophic level at Bajos del Norte are not found at Alacranes.
+D. Commercial and sport fishers tend to disproportionately remove species at the highest trophic level.
+Answer: D
+
+161. Which choice most logically completes the text? Researchers Eugeni Vidal-Tortosa and Robin Lovelace looked at the relationship between street lighting in a city and people's willingness to ride a bicycle. Their results suggest that poor street lighting can deter new or inexperienced cyclists from riding in a city but has little effect on experienced cyclists. Therefore, increasing the number of streetlights in a city could potentially ______ A. decrease the number of experienced cyclists riding in the city. B. increase the number of new or inexperienced cyclists riding in the city. C. increase the number of experienced cyclists riding in the city. D. decrease the number of new or inexperienced cyclists riding in the city.
+Answer: B
+
+162. Which choice most logically completes the text?
+Research into whether floating mats of macroalgae affect the prevalence of microphytobenthos (MPB)--benthic, or bottom-dwelling, microalgae--has produced varying results: Amber Hardison and colleagues determined that macroalgae do not impact MPB, whereas Emilio Garc�a-Robledo and Alfonso Corzo observed that benthic chlorophyll concentrations (a common measure of MPB biomass) decreased in the presence of macroalgae. Hypothesizing that macroalgal mats have a negative effect on MPB biomass, Alice F. Besterman and Michael L. Pace surveyed mudflats in Curlew Bay and other coastal sites in Virginia. Because Besterman and Pace did not find a significant correlation between benthic chlorophyll concentrations and the abundance of macroalgal mats, it can be concluded that ______
+A. their hypothesis about the relationship between macroalgae and MPB was not supported and their finding was instead consistent with that of Hardison and colleagues.
+B. although this finding was consistent with that of Garc�a-Robledo and Corzo, trends in MPB biomass are likely not a result of stresses caused by macroalgae.
+C. differences between their study design and that of Garc�a-Robledo and Corzo likely explain the discrepancy in the two studies' findings about the responses of MPB to macroalgal mats.
+D. rather than inhibiting chlorophyll production in MPB, as they had hypothesized, macroalgal mats may positively affect chlorophyll production.
+Answer: A
+
+163. Which choice completes the text so that it conforms to the conventions of Standard English? Many ranching terms come from Spanish. For example, the word "stockade" (a fence) ______ from the Spanish word estacada, and "cinch" (a belt) derives from cincho. This is because the first Anglo, African, and Native American cattle ranchers in the southwestern US learned the trade from Spanish-speaking Mexican vaqueros, or cowboys. A. have derived B. were deriving C. derive D. derives
+Answer: D
+
+164. Which choice completes the text so that it conforms to the conventions of Standard English? A voluntary workforce established to make improvements to public lands, parks, and forests across the US, the Civilian Conservation Corps (CCC)--though widely popular--was not without its critics. For Aldo Leopold, the CCC was implicated in what ______ "Idle CCC camps," he wrote, "presented a widespread temptation to build new and often needless roads." A. he viewed as unnecessary development. B. he viewed as unnecessary development? C. did he view as unnecessary development? D. did he view as unnecessary development.
+Answer: A
+
+165. Which choice completes the text so that it conforms to the conventions of Standard English? Though it was designated as mission ______ mission was actually the forty-sixth flight under NASA's Space Shuttle Program. A. STS-45, the B. STS-45, and the C. STS-45. The D. STS-45 the
+Answer: A
+
+166. Which choice completes the text so that it conforms to the conventions of Standard English? The epic poem Theogony dates back to the 8th century BCE. Originally ______ in ancient Greek, it has since been translated into other languages. A. is written B. had been written C. written D. was written
+Answer: C
+
+167. Which choice completes the text so that it conforms to the conventions of Standard English? Trade with neighboring civilizations contributed to the success of the Roman Empire, which reigned in the Mediterranean from around 27 BCE to 476 CE. By supplying oil, grapes, and grain to societies that lacked these valuable ______ Roman Empire grew not only in wealth but also in power and influence. A. items; the B. items, the C. items the D. items. The
+Answer: B
+
+168. Which choice completes the text with the most logical transition? In his 2023 collection The Diaspora Sonnets, Filipino American poet Oliver de la Paz leverages the sonnet form's "diamond-like quality of precision," as he describes it. The poems often adhere scrupulously to the form's centuries-old conventions, such as its characteristic fourteen-line length. In the twelve-line poem "Diaspora Sonnet at the Feeders Before the Freeze," ______ de la Paz playfully subverts sonnet conventions, the poem's truncated length conveying a sense of abruptness. A. for example, B. similarly, C. by contrast, D. fittingly,
+Answer: C
+
+169. Which choice completes the text with the most logical transition? Cornelia Konrads is a German sculptor who creates art that seems to be part of its surroundings. Her sculpture entitled the match is built between statues at a park in France. ______ appearing as large vases being tossed between statues at the park, it is cleverly placed into its environment, serving as an example of Konrads's approach. A. There, B. Later, C. However, D. For instance,
+Answer: A
+
+170. Which choice most effectively uses information from the given sentences to explain the advantages of onshore wind farms over offshore ones? A wind farm uses turbines to convert wind into electrical power. Offshore wind farms tend to produce more electricity than farms on land (onshore). Offshore wind farms tend to be more expensive to build and maintain than onshore ones. Muppandal Wind Farm is an onshore wind farm in Tamil Nadu, India.
+A. Though they don't produce as much electricity as offshore wind farms, onshore farms are usually cheaper to build and maintain. B. Tamil Nadu, India, is home to Muppandal Wind Farm. C. Like other wind farms, Muppandal Wind Farm in Tamil Nadu, India, uses turbines to turn wind power into electricity. D. Whether onshore or offshore, wind farms harness the power of wind to generate electricity.
+Answer: A
+
+171. The student wants to emphasize how popular The Woman in White became when it was first published. Which choice most effectively uses relevant information from the notes to accomplish this goal?
+While researching a topic, a student has taken the following notes:
+Wilkie Collins's mystery novel The Woman in White first appeared in a London literary magazine. The novel was published in forty weekly installments between November 1859 and August 1860. Every installment ended with a moment of unresolved suspense. The Woman in White became extremely popular as readers eagerly anticipated the next week's entry. The magazine's sales increased to a record-breaking 100,000 copies per issue.
+A. The Woman in White became so popular that sales of the magazine it appeared in increased to a record-breaking 100,000 copies per issue.
+B. Every installment of The Woman in White ended with a moment of unresolved suspense, which led readers to eagerly anticipate the next week's entry.
+C. Collins's novel The Woman in White was published in forty weekly installments between November 1859 and August 1860.
+D. The Woman in White, a mystery novel, first appeared in a London literary magazine.
+Answer: A
+
+172. The student wants to emphasize fluorite's Mohs scale number. Which choice most effectively uses relevant information from the notes to accomplish this goal?
+While researching a topic, a student has taken the following notes:
+The Mohs scale of mineral hardness is a ten-point scale that orders minerals by hardness based on their ability to scratch other minerals. Minerals with larger numbers are harder than minerals with smaller numbers and can leave visible scratches on them. Minerals with smaller numbers are softer than minerals with larger numbers and cannot leave visible scratches on them. The mineral gypsum has a Mohs scale number of 2. The mineral fluorite has a Mohs scale number of 4. The mineral quartz has a Mohs scale number of 7.
+A. Quartz, which has a Mohs scale number of 7, can scratch both gypsum and fluorite.
+B. In the Mohs scale of mineral hardness, quartz (7) is ranked higher than gypsum (2).
+C. Fluorite has a Mohs scale number of 4, which means that it is harder than gypsum (2) but softer than quartz (7).
+D. Fluorite, gypsum, and quartz can be ordered by their ability to leave visible scratches on other minerals.
+Answer: C
+
+173. The student wants to emphasize the aesthetic qualities of SMA by quoting Knight. Which choice most effectively uses relevant information from the notes to accomplish this goal?
+While researching a topic, a student has taken the following notes:
+Stop motion animation (SMA) is a filmmaking technique that involves manipulating characters (puppets, clay figures, etc.) by hand in minute increments. Each change in position is meticulously captured in a series of images that, when played back, give the illusion of motion. Producer Travis Knight: "It's a process that dates back to the dawn of cinema, with a charm and a warmth and a beauty that other forms of animation...do not have. And because you effectively get one opportunity to get it right, every shot is a high-wire act." Knight: SMA is "raw and it's imperfect. It's also undeniably human."
+A. The handmade, "imperfect" look of stop motion animation, says Knight, lends this "undeniably human" technique a "charm and a warmth and a beauty."
+B. As Knight says, "you effectively get one opportunity to get it right" when meticulously capturing the series of images that, when played back, give it the illusion of motion.
+C. With its puppets and clay figures, stop motion animation, Knight says, "dates back to the dawn of cinema."
+D. Stop motion animation is imperfect, making every shot "a high-wire act," Knight says.
+Answer: A
+
+174. The student wants to provide a specific example of an isthmus. Which choice most effectively uses relevant information from the notes to accomplish this goal? While researching a topic, a student has taken the following notes:
+An isthmus is a strip of land that connects two larger pieces of land across an expanse of water. It is also known as a land bridge. The Isthmus of Potidea is located in Greece. It connects the Kassandra Peninsula to mainland Greece. A. There is a land bridge in Greece. B. In Greece, the Kassandra Peninsula is connected to mainland Greece. C. One example of an isthmus is the Isthmus of Potidea in Greece. D. An isthmus, also known as a land bridge, is a strip of land that connects two larger pieces of land across an expanse of water.
+Answer: C
+
+306. Which quotation from Cane most effectively illustrates the claim? Cane is a 1923 novel by Jean Toomer. In the novel, Toomer mentions a road in rural Georgia called Dixie Pike and describes it as having a deep connection to a faraway place, writing, ______ A. "[The wagon] bumps, and groans, and shakes as it crosses the railroad track." B. "And when the wind is from the South, soil of my homeland falls like a fertile shower upon the lean streets of [Washington, DC]." C. "The Dixie Pike has grown from a goat path in Africa." D. "One evening I walked up the [Dixie] Pike on purpose, and stopped to say hello [to Fern]."
+Answer: C
+
+316. Which choice most effectively uses information from the given sentences to emphasize the discovery of (20161) 1996 TR66 to an audience already familiar with Jane Luu?
+Minor planets are astronomical objects that orbit the Sun but are neither planets nor comets. Astronomer Jane Luu has discovered many minor planets in her career. Alongside colleagues David C. Jewitt, Jun Chen, and Chadwick Trujillo, she discovered the minor planet (20161) 1996 TR66 on October 8, 1996. Alongside colleagues David C. Jewitt and Chadwick Trujillo, she discovered the minor planet (385201) 1999 RN215 on September 7, 1999.
+A. Astronomer Jane Luu helped discover not only the minor planet (20161) 1996 TR66 on October 8, 1996, but also (385201) 1999 RN215 on September 7, 1999.
+B. First there was the discovery of (20161) 1996 TR66 on October 8, 1996, and then on September 7, 1999, Jane Luu discovered yet another minor planet with the help of her colleagues David C. Jewitt and Chadwick Trujillo.
+C. Jane Luu is an astronomer famous for her discovery of many minor planets in our solar system, including (20161) 1996 TR66.
+D. On October 8, 1996, Jane Luu and her colleagues David C. Jewitt, Jun Chen, and Chadwick Trujillo made the exciting discovery of the minor planet (20161) 1996 TR66.
+Answer: D
+
+453. Which choice most effectively uses data from the table to complete the example?
+
+Highly Traveled Commercial Airline Routes in 2017-18
+
+Location 1 Location 2 Distance of route (kilometers) 2018 passengers 2017 passengers Domestic or international
+
+Sapporo
+
+Tokyo-Haneda
+
+835
+
+9,698,639
+
+8,726,502 domestic
+
+Hong Kong Seoul-Incheon
+
+2,080
+
+3,081,942
+
+3,198,132 international
+
+Kuala Lumpur Singapore
+
+296
+
+4,490,463
+
+4,108,824 international
+
+Da Nang
+
+Ho Chi Minh City
+
+617
+
+3,256,718
+
+3,210,368 domestic
+
+A study of commercial airline routes that carried the greatest number of passengers in 2017 and 2018 shows that, in general, domestic routes (routes within a single country) carried many more passengers than international routes. However, a few international routes were so popular that they carried more travelers than some of the most highly traveled domestic routes, as can be seen when comparing the ______
+
+A. number of passengers who traveled between Sapporo and Tokyo-Haneda in 2017 with the number who traveled between Hong Kong and Seoul-Incheon during that same year.
+
+B. distance between Da Nang and Ho Chi Minh City with the distance between Kuala Lumpur and Singapore.
+
+C. number of passengers who traveled between Kuala Lumpur and Singapore in 2017 with the number who traveled that same route in 2018.
+
+D. number of passengers who traveled between Kuala Lumpur and Singapore in 2018 with the number who traveled between Da Nang and Ho Chi Minh City during that same year.
+
+Answer: D
+
+463. Which choice completes the text with the most logical transition? In a 1993 study by Vales and Peek, the researchers used microhistological fecal analysis to determine the ratio of three plant subtypes (graminoids, forbs, and browse) within the diets of North American ungulates. The researchers did not perform this analysis on all such ungulates, ______ they focused exclusively on elk in Wyoming. A. for instance; B. in other words; C. however; D. regardless;
+Answer: C
+
+636. Which choice best states the main idea of the text? The following text is adapted from Daniel Defoe's 1704 nonfiction book The Storm.
+If I judge right, 'tis the duty of an historian to set everything in its own light, and to convey matter of fact upon its legitimate authority, and no other: I mean thus, (for I would be as explicit as I can) that where a story is vouched to him with sufficient authority, he ought to give the world the special testimonial of its proper voucher, or else he is not just to the story: and where it comes without such sufficient authority, he ought to say so; otherwise he is not just to himself. A. Because no memories can be trusted, all historians are forced to admit that some records of events may be, in part, false. B. The only figures that a historian should quote are those who are widely viewed as credible. C. It is difficult for historians to be completely accurate, and eventually they will feel remorse for some of their work. D. Historians should clearly indicate the extent to which each of their sources is trustworthy.
+Answer: D
+
+652. Which choice completes the text so that it conforms to the conventions of Standard English? Topographical prominence is a measure of a mountain's independence from other mountains. Having 11,486 feet of prominence, ______ A. geographers have ranked Mount Hayes, a peak in the United States, as the world's 51st most prominent mountain. B. Mount Hayes, a peak located in the United States, is ranked by geographers as the world's 51st most prominent mountain. C. the list of mountains geographers rank as the world's most prominent includes Mount Hayes, a peak located in the United States, at number 51. D. the ranking given by geographers to Mount Hayes, a peak located in the United States, is 51st most prominent mountain in the world.
+Answer: B
+
+Number of species
+
+893. Which choice best describes data from the graph that support P�tzelsberger and colleagues' conclusion?
+Number of the 23 Non-native Tree Species Grown in Three Countries
+16 14 12 10 8 6 4 2 0
+Country
+
+Italy Denmark Lithuania
+Elisabeth P�tzelsberger and colleagues gathered data on 23 non-native tree species grown in Europe. They analyzed reports from Italy, Denmark, and Lithuania about the number of these species grown by the timber industries in those countries. The researchers concluded that none of these countries' timber industries grow all 23 species. A. There are species other than those reported by Lithuania that are important to its timber industry, but they're native to the country. B. Some of the species that Denmark reported are not among the 23 tree species that P�tzelsberger and colleagues were evaluating. C. Italy, Denmark, and Lithuania each reported at least 8 of the 23 species. D. Italy, which reported more of the 23 species than either Denmark or Lithuania did, reported fewer than 15 of the species.
+Answer: D
+900. Which choice completes the text so that it conforms to the conventions of Standard English? In their 2019 study of butterfly diversity at Rupa Lake in Nepal, researcher Alyssa B. Stewart and her colleagues counted fifteen glassy tiger ______ to the Nymphalidae family, the glassy tiger (Parantica aglea) is known to be rare. A. butterflies, belonging B. butterflies. Belonging C. butterflies and belonging D. butterflies belonging
+Answer: B
+1039. Which finding about the Across County Lines exhibition, if true, would most directly support the underlined claim? The Reckoning and Resilience (2022) exhibition at Duke University's Nasher Museum of Art was the first to focus entirely on North Carolina artists since the exhibition Across County Lines four years earlier. The curators of the 2022 exhibition included painters like Juan Logan, photographers like Cornell Watson, and printmakers like Ayla Gizlice. But whereas the work by Watson would have fit the theme for Across County Lines, works by Logan and Gizlice would not have. A. It included a greater number of artists than Reckoning and Resilience. B. It consisted entirely of works by photographers.
+
+C. It consisted mostly of works by printmakers. D. It was curated specifically to emphasize works that are not owned by the Nasher Museum.
+Answer: B
+1050. Which choice completes the text with the most logical transition? In the Southeast Asian country of Indonesia, the percentage of the population living in cities rose from 53.3% to 56.6% between 2015 and 2020. ______ urbanization rates climbed across Southeast Asia as a whole, rising 2.8 percentage points in that five-year period. A. Concurrently, B. In other words, C. Eventually, D. For example,
+Answer: A
+1198. Which choice most effectively uses information from the given sentences to introduce Rudolf Baumgartner to a new audience? Antonio Stradivari (1644-1737) was an Italian instrument maker. He made about 1,000 violins in his lifetime. Musicians prize his Stradivarius violins for their famed sound quality. The ex-Baumgartner Stradivarius is named for former owner Rudolf Baumgartner, a Swiss violinist.
+A. Of the 1,000 or so violins Antonio Stradivari made, only about 500 exist today. B. Rudolf Baumgartner was a Swiss violinist who once owned a Stradivarius violin. C. Born in 1644, Antonio Stradivari was an Italian instrument maker whose violins are famous for their quality. D. The ex-Baumgartner Stradivarius is named after Rudolf Baumgartner.
+Answer: B
+1478. Which choice best states the main idea of the text? The following text is from Nathaniel Hawthorne's 1830 short story "Sir William Phips."
+The knowledge, communicated by the historian and biographer, is analogous to that which we acquire of a country by the map,--minute, perhaps, and accurate, and available for all necessary purposes, but cold and naked, and wholly destitute of the mimic charm produced by landscape painting. These defects are partly remediable, and even without an absolute violation of literal truth, although by methods rightfully interdicted to professors of biographical exactness. A. Historians do not agree among themselves about the best methods of recording history. B. Biographers are more-skilled writers than other kinds of historians. C. Maps are more practical to own than paintings. D. Historians' fidelity to the truth often results in work that is less engaging than it could be.
+Answer: D
+1486. Which choice completes the text so that it conforms to the conventions of Standard English? A senior research scientist at CodaMetrix, Cansu Sen works on developing artificial intelligence technology, with a specific focus on natural language ______ language processing involves teaching computers to understand the way humans write and speak. A. processing natural B. processing. Natural C. processing, which natural D. processing, natural
+Answer: B
+1492. Which choice completes the text with the most logical transition? The Sheringham Shoal, an offshore wind farm located off the coast of England, produces about 315 megawatts (MW) of electricity per year. ______ England's Hornsea Project One offshore wind farm, which generates the most power of any single offshore farm, produces 1,218 MW of electricity. A. That is, B. As a result, C. For instance, D. By comparison,
+Answer: D
+
+Section: Section 1, Module 2: Reading and Writing, Difficulty: easy (68 questions)
+28. As used in the text, what does the word "testing" most nearly mean? The following text is from Rudolfo Anaya's 1972 novel Bless Me, Ultima. The young narrator and his friend Cico are staring into the water of a stream in rural New Mexico.
+The golden fish swam by gracefully, cautiously, as if testing the water after a long sleep in his subterranean waters. His powerful tail moved in slow strokes as he slid through the water towards us.
+�1972 by Rudolfo Anaya A. Wearing out B. Defeating C. Congratulating D. Trying out
+Answer: D
+
+29. Which choice completes the text with the most logical and precise word or phrase? A number of recording artists ______ Indigenous music with other musical styles. For example, Wolastoq musician Jeremy Dutcher incorporated traditional Wolastoq songs into experimental pop on his album Wolastoqiyik Lintuwakonawa, and Tuscarora/Ta�no singer-songwriter Pura F� combined Indigenous rhythms and vocals with R&B on her album Sacred Seed. A. fuse B. analyze C. acquire D. exaggerate
+Answer: A
+
+30. Which choice completes the text with the most logical and precise word or phrase? While modern composers may often get inspiration from past greats like Ludwig van Beethoven, the extent of their influences is broad. The music of Ernesto Lecuona, for example, can be said to ______ elements of both the classical European tradition and the social, political, and cultural landscape of his native Cuba. A. defy B. neglect C. foretell D. exhibit
+Answer: D
+
+31. Which choice completes the text with the most logical and precise word or phrase? Though most hoaxes perpetrated as jokes by mischievous users of Wikipedia, an online encyclopedia that almost anyone can freely edit, have quickly been detected and removed, a few invented entries, such as those for the town of Stone Ridge, Maryland, and the Civil War general George K. Broomhall, persisted on the site for many years before they were finally recognized as ______ and deleted. A. fictitious B. conscientious C. straightforward D. profound
+Answer: A
+
+32. Which choice completes the text with the most logical and precise word or phrase? In a garden, ______ the spread of unwelcome weeds such as chickweed can be difficult because weeds usually spread easily and quickly become unmanageable, making it hard to remove them completely. A. saving B. pretending C. halting D. retrieving
+Answer: C
+
+33. Which choice best describes the overall structure of the text? In 1827, Rev. John Wilk and other free Black men in New York City founded Freedom's Journal, America's first Black-owned-and-operated newspaper. Wilk's accomplishment is just one example of the rich history of Black journalism in the United States. That history is preserved by the National Association of Black Journalists, which was founded in Washington, DC, in 1975 to support Black media professionals and honor people like Wilk. A. It summarizes a theory about journalism, then explains how a journalistic practice has changed over time. B. It mentions a specific achievement in Black journalistic history, then describes an organization dedicated to upholding that history. C. It describes the career of a well-known figure in Black journalism, then compares that career to one of a figure who is lesser known. D. It introduces the history of an organization honoring Black journalists, then suggests how that organization might recruit more members.
+Answer: B
+
+34. Which choice best describes the function of the underlined sentence in the text as a whole? In 2018 Rong Jiahuan and colleagues published a study concluding that ocean acidification has a strong effect on the behavior of Acanthopagrus schlegelii, a species of fish. However, Jiahuan and colleagues' study relied on a mean sample size of only 15 fish. In a 2022 review of various scientists' conclusions about the impacts of ocean acidification on fish behavior, Josefin Sundin and colleagues caution that relying on such a relatively small sample size can increase the potential for biased analysis. Such analysis, in turn, can contribute to reports of exaggerated effects. A. It introduces a detail about Jiahuan and colleagues' study that is addressed in the sentences that follow. B. It emphasizes the threat of ocean acidification to Acanthopagrus schlegelii that is mentioned in the previous sentence. C. It offers an alternative explanation for the behavior of Acanthopagrus schlegelii that is described in the previous sentence. D. It states the conclusion reached by Jiahuan and colleagues that is elaborated on in the sentences that follow.
+Answer: A
+
+35. According to the narrator, what does her brother complain about? The following text is from Angeline Boulley's 2021 novel Firekeeper's Daughter. The narrator is an Ojibwe teenager who runs in the morning before going to school. Levi is her younger brother.
+My brother complains about my lengthy warm-up routine whenever he runs with me. I keep telling Levi that my longer, bigger, and therefore vastly superior muscles require more intensive preparation for peak performance. The real reason, which he would think is dorky, is that I recite the correct anatomical name for each muscle as I stretch.
+�2021 by Angeline Boulley A. A song she sings while she runs in the morning B. The late hour when she prefers to run C. The lengthy warm-up routine she does before running D. Fellow students she has befriended
+Answer: C
+
+36. According to the text, what do octopuses use to protect themselves? Animals use many objects as tools to achieve goals more easily. Such goals include grooming, finding food, and protecting themselves. For a long time, people thought tool use was unique to primates. Octopuses and other animals, though, have busted the myth that tool use requires hands. Inventively, octopuses use two halves of a seashell to provide protection or a place to hide. Palm cockatoos also get creative. They use leaves to pad their beaks when opening nuts. A. Sand B. Leaves C. Two halves of a seashell D. Feathers from palm cockatoos
+Answer: C
+
+37. Based on the text, what do many legal experts believe about the trademark "Frisbee"? Many people use the trademark "Frisbee" to refer generally to flying disc toys rather than specifically to products made by Wham-O, the company that owns the trademark. As many legal experts note, this may pose a problem for Wham-O. In the US, courts can cancel a trademark if they decide that its meaning is no longer specific to the trademark owner's products. If "Frisbee" were judged to be a generic term, as "escalator" was, other companies would be free to use it to promote similar products, making it harder for Wham-O to stand out from competitors. A. It may be at risk of being canceled. B. It is not especially memorable. C. It has multiple unrelated meanings. D. It is unlikely to be judged a generic term.
+Answer: A
+
+38. According to the table, in what year did India make the change mentioned in the text?
+
+Year That Foreign Investors Were First Allowed to Purchase Shares
+
+Country Year
+
+India
+
+1986
+
+Argentina 1989
+
+Nigeria 1995
+
+In the 1980s and 1990s, many countries began allowing foreign investors to purchase shares of companies based in those countries.
+
+A. 1983
+
+B. 1981
+
+C. 1998
+
+D. 1986
+
+Answer: D
+
+39. Which quotation from a historian would most directly support the student's argument? Commedia dell'arte was a type of theater that emerged in Italy in the 1500s. It became popular throughout Western Europe. In commedia dell'arte, actors didn't have a script. Instead, they created their dialogue and actions onstage in the moment. Actors in these plays also usually wore stylized masks. In a research paper, a student argues that doing so affected how the actors portrayed their characters. A. "Since their faces were hidden by masks, actors in commedia dell'arte used hand gestures and other movements of their bodies to display emotions." B. "The use of masks in commedia dell'arte can be traced directly to the theater of ancient Rome." C. "After almost vanishing in the 1800s, commedia dell'arte once again became popular in Italy and Great Britain for a brief period in the 1960s and 1970s." D. "Masks are also worn in the traditional theater of China, India, and Maya communities in Mexico and Central America."
+Answer: A
+
+40. Which quotation from The Age of Innocence best illustrates the claim?
+The Age of Innocence is a 1920 novel by Edith Wharton set in New York City in the 1870s. In the novel, Newland Archer attends an opera. Newland compares his intellect favorably to that of other men of New York City society who are in the audience: ______
+A. "Thinking over a pleasure to come often gave [Newland] a subtler satisfaction than its realisation. This was especially the case when the pleasure was a delicate one, as his pleasures mostly were."
+B. "Newland Archer felt himself distinctly the superior of these chosen specimens of old New York gentility; he had probably read more, thought more, and even seen a good deal more of the world, than any other man of the number."
+C. "Singly [the men around Newland] betrayed their inferiority; but grouped together they represented `New York,' and the habit of masculine solidarity made him accept their doctrine on all the issues called moral."
+D. "To come to the Opera in a [carriage for hire] was almost as honourable a way of arriving as in one's own carriage."
+Answer: B
+
+41. Which quotation from a publication by a researcher would most effectively support the student's claim? A student is writing an essay on the subject of cultured meat, which is grown in a laboratory and is intended to help reduce the number of livestock harvested for food. The student wants to make the case that cultured meat production may be useful in responding to an expected widespread change in the public's behavior. A. "A growing population that is including significantly more meat in its diet will contribute to an increasing demand for meat products in the 21st century." B. "Researchers who advocate for the development of lab-grown meat claim that it's safer than conventional meat because it doesn't come from animals raised in spaces that make them more vulnerable to illness." C. "Consumers tend to believe that using less packaging when selling meat products in stores would have a significant effect on the environment." D. "A difficulty in developing lab-grown meat that successfully imitates meat from livestock is in mimicking the way oxygen spreads through tissue in living animals."
+Answer: A
+
+42. Which choice most logically completes the text?
+Many Indigenous songs serve as repositories of ecological knowledge--e.g., Karen (hta) Hin Lad Nai songs about bees and Kaluli songs about rainforest sounds. In a study by ethnobiologist Dana Lepofsky et al., a song keeper for the Kwakwaka'wakw people provided access to ancient songs referring to the people's creation of terraced intertidal gardens to foster clams for consumption. Cross-references of that information with both archaeological and paleoecological records have revealed significant increases in clam size and productivity concurrent with the most prevalent use of these clam gardens. This finding suggests that researchers should consider ______
+A. the reliability of archaeological and paleoecological evidence that often underpins conclusions drawn from Indigenous songs.
+B. whether the Kwakwaka'wakw people originated the method of cultivation detailed in the songs or adapted methods observed among other groups of Indigenous peoples.
+C. the possibility that other songs of other Indigenous peoples transmit ecological information that has useful practical applications.
+D. the strong implication that the beneficial effects are primarily attributable to ecological factors unrelated to the activities of the Kwakwaka'wakw people.
+Answer: C
+
+43. Which choice completes the text so that it conforms to the conventions of Standard English? Sunita Williams, a US astronaut, has gone on seven spacewalks. During ______ spacewalks, Williams performed important tasks outside the spacecraft, such as installing new equipment. A. that B. these C. this D. one
+Answer: B
+
+44. Which choice completes the text so that it conforms to the conventions of Standard English? NASA's Opportunity rover first touched down on Mars on January 25, 2004. The rover spent over fourteen years gathering information about Mars's rocky surface. Scientists playfully ______ one of the rocks it found Edmund. A. named B. is naming C. has named D. names
+Answer: A
+
+45. Which choice completes the text so that it conforms to the conventions of Standard English? Most people are familiar with the song "Happy Birthday" because ______ Few, however, may know the song's origin. The tune began as "Good Morning to All," a song written by sisters Mildred and Patty Hill in the early 1890s. A. it is the most frequently sung song in the English language? B. it is the most frequently sung song in the English language. C. is it the most frequently sung song in the English language. D. is it the most frequently sung song in the English language?
+Answer: B
+
+46. Which choice completes the text so that it conforms to the conventions of Standard English? Following her debut album release in 2002, Mexican singer-songwriter Natalia Lafourcade quickly shot to fame. By 2023, she ______ one of the most celebrated musicians in Latin America, having released twelve albums and won seventeen Latin Grammy awards--more than any other female artist in history. A. will become B. had become C. will have become D. becomes
+Answer: B
+
+47. Which choice completes the text so that it conforms to the conventions of Standard English? In the Suzuki method, classical pieces like Franz Schubert's "Wiegenlied" are taught to beginning music students as young as three, while students of traditional methods often only ______ such songs at the age of five. A. to begin learning B. having begun to learn C. beginning to learn D. begin learning
+Answer: D
+
+48. Which choice completes the text so that it conforms to the conventions of Standard English? In this chapter, we will focus on Gwendolyn Brooks's poem "An Aspect of Love, Alive in the Ice and Fire," paying special attention to its first line: "In a package of minutes there is this We." We ______ our attention next to the works of Ntozake Shange and James Baldwin, two other poets associated with the Black Arts movement. A. will have turned B. turned C. had turned D. will turn
+Answer: D
+
+49. Which choice completes the text with the most logical transition? When the first railroads were built in Australia in the 1800s, a variety of track sizes (gauges) were used across the continent, resulting in what historians call the "railway gauge muddle." The Mackay Railway line in Queensland used narrow tracks. ______ the Yarra Valley Railway line in Victoria used broad gauge tracks. A. For instance, B. By contrast, C. In sum, D. Similarly,
+Answer: B
+
+50. Which choice completes the text with the most logical transition? According to Portuguese researcher Isabel C.F.R. Ferreira, the syringic acid found in almond mushrooms can protect human cells from damage. ______ the acid combats free radicals, a type of unstable molecule that can harm healthy cells in the human body. A. By contrast, B. Thus, C. To be exact, D. Still,
+Answer: C
+
+51. Which choice completes the text with the most logical transition? On June 10, 1963, Sarvepalli Radhakrishnan received a ticker-tape parade in New York City in recognition of his status as president of India. Of the 206 ticker-tape parades held between 1886 and 2022, a number were for international leaders. ______ Radhakrishnan's parade was one of 73 honoring foreign heads of state. A. Specifically, B. Nevertheless, C. Therefore, D. In addition,
+Answer: A
+
+52. The student wants to identify what causes meanders. Which choice most effectively uses relevant information from the notes to accomplish this goal? While researching a topic, a student has taken the following notes:
+A U-shaped curve in a river channel is called a meander. A meander forms when water erodes sediment from one side of the riverbank and redeposits that sediment on the opposite side. Meanders will gradually change shape and migrate downstream over time. A river with high sinuosity has many meanders, and a river with low sinuosity has few. The Burhi Gandak River in India has high sinuosity. A. High sinuosity is caused by the formation of many meanders, or curves, in a riverbank over time. B. The erosion and redepositing of sediment from one side of a riverbank to the other forms meanders, or curves, over time. C. The meanders in the Burhi Gandak River will change shape and shift downstream over time. D. Over time, many meanders have formed in the Burhi Gandak River, a river in India with high sinuosity.
+Answer: B
+
+53. The student wants to explain an advantage of the transit method. Which choice most effectively uses relevant information from the notes to accomplish this goal?
+While researching a topic, a student has taken the following notes:
+The exoplanet GJ 357 b (31 light-years from Earth) doesn't emit enough light to be observed by Earth- or space-based telescopes. Astronomers were able to detect the exoplanet indirectly by the transit method of planetary detection. In this method, astronomers analyzed the periodic dimming of the light emitted by a distant star. They determined that this dimming was caused by the orbit of an unseen exoplanet (GJ 357 b) passing between the star and the observation point. As of February 2024, the transit method had been used to detect 4,153 exoplanets.
+A. The transit method of planetary detection was used to detect GJ 357 b, an exoplanet located 31 light-years from Earth.
+B. In the transit method, astronomers observe the light emitted by a distant star for signs of dimming, which is caused by the orbit of an unseen exoplanet passing between the star and the observation point.
+C. Used to detect exoplanets by the periodic dimming they cause in the light of the stars they orbit, the transit method allows for the discovery of distant exoplanets not bright enough to be observed directly.
+D. As of February 2024, the transit method of planetary detection had been used to discover 4,153 exoplanets, including GJ 357 b.
+Answer: C
+
+54. The student wants to emphasize a difference between "Waterfalls" and "Imagine." Which choice most effectively uses relevant information from the notes to accomplish this goal?
+While researching a topic, a student has taken the following notes:
+In music theory, the term "key" refers to the set of musical notes that forms the foundation of a piece of music. In On the Sensations of Tone (1863), German physicist Hermann von Helmholtz describes the moods of various musical keys. He describes the key of D flat major as expressing "fullness of tone." He describes the key of C major as "expressive of innocence." "Waterfalls" (1995) by TLC is a song written in D flat major. "Imagine" (1971) by John Lennon is a song written in C major.
+A. "Waterfalls" is written in the key of D flat major, while "Imagine" is written in C major.
+B. Helmholtz describes the mood of D flat major as expressing "fullness of tone" and the mood of C major as "expressive of innocence."
+C. D flat major is the key in which "Waterfalls" by TLC was written, and its mood has been described as expressing "fullness of tone."
+D. In On the Sensations of Tone, Helmholtz describes the mood of various keys, including D flat major, which he describes as expressing "fullness of tone."
+Answer: A
+
+181. Based on the texts, how would Rose and colleagues (Text 2) most likely respond to the assertion by Slater and Mann (Text 1) about the different prevalence of female birdsong in temperate and tropical areas?
+Text 1
+For decades, ornithologists assumed that if they saw a singing house wren--a bird species found in temperate North America--they must be observing a male trying to attract a mate or claim territory. As Peter J.B. Slater and Nigel I. Mann have emphasized, however, a similar assumption can't be made about birds in the tropics, where females sing as often as males do. Slater and Mann call for more research on this discrepancy between tropical and temperate female birdsong.
+
+Text 2 Recent evidence shows that a female house wren is as capable of song as a male is. In fact, female birdsong is more common among temperate species than currently assumed, claim Evangeline Rose and colleagues. These female songbirds sing less frequently than males do, and in duller tones, making it "easy for researchers to miss the quiet and hidden females and focus on the loud and colorful males," says Rose. A. They would raise the possibility that the difference in prevalence may be due to differences in the timing of the mating season among temperate and tropical bird species. B. They would caution that the seeming difference in prevalence may be an artifact of researchers' tendency to study birdsong among temperate species more frequently than among tropical species. C. They would concede that the geographic difference in prevalence is real but argue that the frequency with which male tropical birds sing has been overstated by previous researchers. D. They would argue that the apparent difference in prevalence may partly reflect a difference in the ease with which female birdsong and male birdsong can be detected.
+Answer: D
+182. According to the text, which factors seemed to be linked to the behavior of butterflies in Abbigail Merrill and colleagues' study? Biologist Abbigail Merrill and colleagues conducted a study of how butterfly color and weather conditions relate to butterfly behavior, which wouldn't have been possible without data gathered by students and other amateur science enthusiasts in the community. Considering over three years' worth of data, the researchers found that orange butterflies were observed in the evening more often than any other butterflies, and that butterflies tended to prefer orange and red flowers on cloudy days and multicolor flowers on partly cloudy days. A. Weather conditions but not butterfly color B. Both butterfly color and weather conditions C. Neither butterfly color nor weather conditions D. Butterfly color but not weather conditions
+Answer: B
+322. As used in the text, what does the word "constantly" most nearly mean? The following text is adapted from Willa Cather's 1912 novel Alexander's Bridge.
+For the next few days Alexander was very busy. He took a desk in the office of a [Scottish] engineering firm on Henrietta Street, and was at work almost constantly. He avoided the clubs and usually dined alone at his hotel. A. Fearfully B. Continuously C. Briskly D. Imperceptibly
+Answer: B
+323. Which choice completes the text with the most logical and precise word or phrase?
+
+The House on Mango Street is an English-language novella by Sandra Cisneros. It occasionally includes Spanish words and phrases. The English text surrounding these words and phrases ______ their meaning, so readers who aren't familiar with Spanish can easily read the novella. Rudolfo Anaya takes the same approach in his novel Bless Me, Ultima. A. loses B. suggests C. suspects D. purchases
+Answer: B
+
+324. Which choice completes the text with the most logical and precise word or phrase? The sloping tile roofs and picturesque fa�ade of Mission Santa In�s in Solvang, California, are enduring symbols of the Spanish contribution to Californian architecture. Elements of this style have been reproduced throughout the state--the design of the San Gabriel Mission Playhouse in San Gabriel, for example, is considered to ______ the style of the Spanish missions. A. reject B. imitate C. neglect D. renovate
+Answer: B
+
+325. Which choice completes the text with the most logical and precise word or phrase? Certain features are almost always included in the designs of mosques, like the minaret (or tower), which is considered to be a ______ of mosque architecture. Even mosques that exhibit elements of multiple architectural styles, such as the KH Hasyim Asy'ari Grand Mosque, which incorporates elements from the Betawi and Indonesian Islamic styles, will also include several of these standard features. A. hallmark B. motivation C. rejection D. duplicate
+Answer: A
+
+326. Which choice best describes the function of the underlined portion in the text as a whole? In their study of fossils of the extinct arthropod Mollisonia symmetrica, Javier Ortega-Hern�ndez, Sarah Losso, and team reported some obvious indications of M. symmetrica's nervous system--for example, the animal's primary nerve cord. They also saw signs of what might be a synganglion, a brain-like mass of nerve tissue, in the animal's head. This evidence is exciting because it could help us better understand how M. symmetrica is related to other arthropods, such as termites and Norway lobsters. A. It gives the definition of the term "synganglion" used earlier in the text. B. It explains why the team's finding of a possible synganglion is exciting. C. It indicates that the team's claims about the M. symmetrica fossils are incorrect. D. It states that Norway lobsters are arthropods but termites are not.
+Answer: B
+
+327. Which choice best describes the function of the underlined sentence? A microgenre is a specialized genre consisting of a comparatively small number of stylistically similar artists. The microgenre of electronic music known as hyperpop emerged in the 2010s, with the American duo 100 gecs as an early exponent. Their combination of dense synthesizer arrangements and metallic percussion with vocals electronically shifted in pitch above the natural range of lead vocalist Laura Les exemplifies the hyperpop sound. More recently, British recording artist Charli XCX has contributed to that sound by incorporating pop melodies into it. A. It identifies an artist who has contributed a new stylistic element to the hyperpop sound. B. It asserts that the hyperpop sound hasn't changed, even though new artists have adopted it. C. It praises a particular hyperpop artist for consistently evolving through the years. D. It criticizes a later hyperpop artist for being too similar to an earlier hyperpop artist.
+Answer: A
+
+328. Based on the text, which choice best describes the narrator's house? The following text is from Rebecca Balc�rcel's 2019 novel The Other Half of Happy.
+I live in a tilted house. A bowling ball on our living room floor would roll past the couch, past the dining table, all the way to the kitchen sink. And if the sink wasn't there and the wall wasn't there and the bathroom behind that wasn't there, the ball would roll all the way to my room at the end of the house. That's what it's like being twelve. Everything rolling toward you.
+�2019 by Rebecca Balc�rcel A. It is slanted. B. It was built forty years ago. C. It is colorful. D. It has only one room.
+Answer: A
+
+330. Which choice most effectively uses data from the table to complete the statement?
+
+Members of the Girl Scouts of America, by Age Category, 1992-1995 (in thousands)
+
+Category
+
+1992 1993 1994 1995
+
+Ambassadors (older than 17) 863 826 802 784
+
+Seniors (14-17 years)
+
+50 43 45 52
+
+Brownies (6-8 years)
+
+1,319 1,225 1,181 1,142
+
+Cadettes (11-14 years)
+
+188 168 174 172
+
+The Girl Scouts of America is a youth organization that had just over 1 million members in 2021. A student is writing an essay on the history of the organization and wishes to determine which of four categories of Girl Scouts had the most members in 1993. (Girl Scout categories correspond roughly with ages.) According to the table, the category with the most members in 1993 was the ______
+
+A. Brownies.
+
+B. Ambassadors.
+
+C. Cadettes.
+
+D. Seniors.
+
+Answer: A
+
+331. Which quotation from The Man in the Brown Suit most effectively illustrates the claim? The Man in the Brown Suit is a 1924 novel by Agatha Christie. In the novel, the protagonist, Anne Beddingfeld, expresses a deep desire for excitement and a frustration with the dullness of her life, saying, ______ A. "Things that one would shrink from attempting normally are easily tackled in a flush of anger." B. "Now I am a tidy person, I like my things always arranged in a certain way and I keep them so." C. "I yearned for adventure, for love, for romance, and I seemed condemned to an existence of drab utility." D. "It occurred to me that there was an easy way of verifying whether some of my conclusions were correct."
+Answer: C
+
+332. Which quotation from an interview with a costume designer would most effectively support the student's claim?
+The 1980 production of Charlie and Algernon was the first Broadway show for which Jess Goldstein was credited as a costume designer. Goldstein was among the Broadway costume designers interviewed by Sara Jablon-Roberts and Eulanda A. Sanders for their study of historical accuracy in costume design for shows with a historical setting. They found that even designers who value historical accuracy will often include contemporary design elements that don't fit with the historical period. In a research paper about theatrical costume design, a student argues that costume designers for modern productions of the musical Our Town (set in the early 1900s) sometimes include such elements unintentionally.
+A. "Costumes must always reflect the correct historical period. Too often, I've seen costumes that borrow from a wide span of periods, resulting in a production with a confusing visual style."
+B. "When I was designing costumes for a 2003 production of Our Town, I tried to make them as historically authentic as I could, but when I look at them now, they clearly show the influence of early 2000s fashion."
+C. "One of the challenges in trying to make historically accurate costumes is that for some periods, we only know about elite fashion and not what ordinary people wore in their day-to-day lives."
+D. "In my view, historical accuracy means using period-appropriate fabrics and sewing patterns whenever possible. But in many cases I simply can't, such as when a heavy, stiff fabric would be most accurate for a character in Our Town but would greatly limit the actor's ability to move."
+Answer: B
+
+333. Which finding, if true, would most directly support the researchers' conclusion? Nautilids are marine mollusks that begin growing their shells before emerging from their eggs and continue to add shell segments throughout their lifetimes. The walls between their shells' chambers are called septa, and the concentration of the isotope oxygen-18 they contain exactly reflects the isotope's concentration in the water at the depth at which the septa formed. Paleontologist Amane Tajika and colleagues examined each of the septa in two nautilid shells; finding that sample F24 had a higher concentration of the isotope than sample M02 did, the researchers concluded that F24 must have formed at a significantly lower temperature than M02 did. A. As water depth increases, the concentration of oxygen-18 increases and water temperature decreases. B. As water temperature increases, nautilids are able to concentrate more oxygen-18 into their shells. C. As water depth increases, both the concentration of oxygen-18 and the water temperature decrease. D. As the concentration of oxygen-18 in water decreases, water temperature decreases and nautilid shell growth slows.
+Answer: A
+
+334. Which choice most logically completes the text? In recent years, architects have heightened their focus on developing eco-conscious and sustainable buildings, as exemplified by Second Home Hollywood Office, a structure conceived by Selgascano. One way to accomplish this goal is through biophilic design, which seeks to augment occupants' emotional and physical wellbeing by establishing a coherent relationship among the building, nature, and human biology. Effective biophilic design is smoothly integrated into its surroundings in order to harmonize with nature; architects dedicated to this approach therefore typically avoid ______ A. researching only one location at a time so that each building design incorporates inspiration from as many different natural environments as possible. B. prioritizing the sustainability of the building materials used in their projects over their personal aesthetic principles. C. emphasizing the emotional effects a building's design would have on its occupants. D. designing a new structure without first developing an understanding of its ecological context.
+Answer: D
+
+335. Which choice most logically completes the text?
+Many studies have found a positive association between levels of dissolved organic carbon and mercury in bodies of fresh water undisturbed by human activity. But Chris S. Eckley and colleagues did not find this correlation in an examination of freshwater bodies disturbed by mining, leading some scientists to hypothesize that the association could be particular to undisturbed waters. However, Heleen A. de Wit and colleagues carried out a study on freshwater bodies disturbed by logging activity that showed similar results to the studies on undisturbed waters, suggesting that ______
+A. disturbances linked to mining affect significantly more bodies of fresh water than disturbances linked to logging activity do.
+B. Eckley and colleagues' study used different methods to measure the concentration of mercury in fresh water than de Wit and colleagues' study did.
+C. the effects of mining on the association between levels of dissolved organic carbon and mercury should not be taken as indicative of the effects of every type of human disturbance.
+D. levels of dissolved organic carbon and mercury are both much higher in bodies of fresh water disturbed by mining than they are in bodies of fresh water disturbed by logging activity.
+Answer: C
+
+336. Which choice most logically completes the text? To determine if people's preferences for certain smells are affected by culture (as has long been posited by researchers), personal taste, or aspects of human anatomy, neuroscientist Artin Arshamian and colleagues investigated how people from ten diverse cultures--including urban dwellers from a large city in Thailand and urban dwellers from a large city in Mexico--perceived certain odors. Arshamian and colleagues observed that the few study participants who rated mushroom alcohol as more pleasant than vanillin shared no meaningful nonanatomical characteristics, suggesting that ______ A. the conventional view of the relationship between culture and odor preferences may be incorrect. B. additional cultures will need to be studied before Arshamian and colleagues can draw any conclusions about what influences people's perception of odors. C. people generally perceive mushroom alcohol as more pleasant than vanillin regardless of the culture in which they live. D. the influence of personal taste on perceptions of odors has long been overestimated.
+Answer: A
+
+337. Which choice completes the text so that it conforms to the conventions of Standard English? When residents of Medina, Ohio, founded their city in 1818, they chose ______ it after the Saudi Arabian city of Medina. A. to name B. named C. had named D. were naming
+Answer: A
+
+338. Which choice completes the text so that it conforms to the conventions of Standard English? Kwesi Joseph is an urban garden specialist in New York City. Working with local communities and schools, Joseph uses his expertise to help people ______ healthier gardens. A. grow; B. grow: C. grow D. grow,
+Answer: C
+
+339. Which choice completes the text so that it conforms to the conventions of Standard English? Carousel and Bounce are the informal names ______ to two small yet notable rocks found on Mars by NASA's Opportunity rover. A. gives B. given C. gave D. had given
+Answer: B
+
+340. Which choice completes the text so that it conforms to the conventions of Standard English? On March 27, 2004, after nine years as a professional boxer, Isra Girgrah retired. The Yemeni American athlete ______ her career with a record of twenty-eight wins, three losses, and two ties. A. has been finishing B. finished C. finish D. will be finishing
+Answer: B
+
+341. Which choice completes the text so that it conforms to the conventions of Standard English? In Venice, Italy, both locals and visiting travelers shop at the Rialto Market, a popular public market that ______ variety of goods, from fresh produce to specialty meats and cheeses. A. offers a B. offers--a C. offers. A D. offers, a
+Answer: A
+
+342. Which choice completes the text so that it conforms to the conventions of Standard English? The parks of Phoenix, Arizona, seem to be making people happier. In a 2022 study, researchers studying connections between the physical location in which a social media post was created and ______ contents analyzed geotagged social media posts from Phoenix. They found that posts from the city's parks contained more words associated with happiness than other posts did. A. it's B. their C. they're D. its
+Answer: D
+
+343. Which choice completes the text with the most logical transition? While dredging sediment on the seafloor of the South Atlantic for specimens of planktonic foraminifera, a team of marine biologists discovered a species that was unknown to the scientific community. ______ the team published the first formal scientific description of the new species, designating it Beella digitata. A. Instead, B. Subsequently, C. By doing so, D. To this end,
+Answer: B
+
+344. Which choice completes the text with the most logical transition? It's tempting to think that the comic strips Curtis and The Boondocks have the same main purpose--to amuse--because both feature humorous situations. ______ The Boondocks focuses just as much on challenging readers with sociopolitical commentary as it does on making them laugh. A. In reality, B. In other words, C. Likewise, D. Next,
+Answer: A
+
+345. Which choice completes the text with the most logical transition? Pink Cone Geyser, found in Yellowstone National Park, is a cone geyser, a type of geyser that forms a mound of silica around the narrow geyser vent as volcanic rock dissolved in the water is deposited during eruptions. ______ Yellowstone's fountain geysers, such as Rusty Geyser, erupt from larger openings where water collects in a pool. A. Regardless, B. In turn, C. In comparison, D. Thus,
+Answer: C
+
+346. The student wants to emphasize a similarity between the two rivers. Which choice most effectively uses relevant information from the notes to accomplish this goal?
+While researching a topic, a student has taken the following notes:
+The Zambezi River is in Africa. It ranks No. 32 among the longest rivers in the world. It is 2,740 kilometers long. The Vistula River is in Europe. It ranks No. 133 among the longest rivers in the world. It is 1,213 kilometers long.
+A. The Zambezi River, ranked No. 32 among the longest rivers in the world, is 2,740 kilometers long.
+B. The Vistula River is located in Europe, and it is 1,213 kilometers long.
+C. The Zambezi and Vistula rivers are both ranked among the longest in the world.
+D. At 1,213 kilometers long, the Vistula River ranks No. 133 among the longest rivers in the world.
+Answer: C
+
+347. The student wants to emphasize a difference between the two sculptures. Which choice most effectively uses relevant information from the notes to accomplish this goal? While researching a topic, a student has taken the following notes:
+Time Matters... is a 2021 sculpture by German artist Jan Kuck. It is crafted from yellow neon lighting that spells out the title phrase ("time matters"). Verdurous No. 2 is a 2020 sculpture by United States artist Annesta Le. It is crafted from green neon lighting that forms an abstract squiggle shape. A. Jan Kuck and Annesta Le are artists who have used neon in their sculptures. B. Unlike Kuck's sculpture, which spells out a phrase, Le's is an abstract squiggle shape. C. Time Matters..., like Verdurous No. 2, is a sculpture. D. Both Kuck's and Le's sculptures are crafted from neon lighting.
+Answer: B
+
+348. The student wants to explain whom the award is named for and identify one recipient of it. Which choice most effectively uses relevant information from the notes to accomplish this goal? While researching a topic, a student has taken the following notes:
+The A.M. Turing Award is a prestigious award given by the Association for Computing Machinery (ACM). The ACM gives the award for "major contributions of lasting importance to computing." It is named after groundbreaking British mathematician Alan Turing. Amir Pnueli won the award in 1996.
+A. In 1996, Amir Pnueli won the A.M. Turing Award, which is given for "major contributions of lasting importance to computing." B. It was in 1996 that Amir Pnueli won the A.M. Turing Award. C. The A.M. Turing Award, which is named for British mathematician Alan Turing, was given to Amir Pnueli in 1996. D. The A.M. Turing Award is given for "major contributions of lasting importance to computing."
+Answer: C
+
+475. Based on the texts, the author of Text 1 and the author of Text 2 would most likely agree on which point?
+
+Text 1
+For thousands of years, O'odham farmers in the Sonoran desert of the southwestern US and northern Mexico have cultivated organ pipe fruit and beans, sometimes planting these species together so that the organ pipe cacti provide shade for tepary beans. Doing so helps protect tepary beans from the harshest heat and light and thereby helps prevent soil moisture from evaporating.
+
+Text 2 Tepary beans are well adapted to growing in the desert but grow best when shaded. Inspired by O'odham farmers, who often strategically plant tepary beans in the shade of sun-hardy species like organ pipe cacti for protection from the sun and heat, Gary Nabhan and colleagues planted tepary beans in the shade of solar panels in the Sonoran desert and found that the plants grew well, suggesting to Nabhan and colleagues that the panels provide a benefit similar to that provided by organ pipe cacti. A. Organ pipe cacti can provide shade that protects tepary beans from high-intensity heat and light. B. Compared with Nabhan's approach, the O'odham approach has the advantage of producing beans. C. Organ pipe cacti grow best when planted in shaded areas, while tepary beans do not require shade to thrive. D. Nabhan's team's method could be refined to more actively prevent soil moisture from evaporating.
+Answer: A
+
+478. Which choice most effectively uses data from the table to complete the statement?
+
+Home Video Game Systems of the 1970s and 1980s
+
+System Manufacturer System type Approximate number of units sold worldwide
+
+Amiga
+
+Commodore computer
+
+1,600,000
+
+Apple II
+
+Apple Inc. computer
+
+4,487,000
+
+TurboGrafx-16 NEC
+
+console
+
+2,650,000
+
+Atari 2600 Atari
+
+console
+
+18,450,000
+
+A student is writing a research paper on the global rise of the home video game industry during the 1970s and 1980s. The student is surprised by differences in the number of units sold by some systems compared to those sold by others. Most remarkably, the ______
+
+A. Apple II sold approximately 18,450,000 units, whereas the TurboGrafx-16 sold only approximately 1,600,000 units.
+
+B. Atari 2600 sold approximately 4,487,000 units, whereas the Amiga sold only approximately 2,650,000 units.
+
+C. Apple II sold approximately 4,487,000 units, whereas the TurboGrafx-16 sold only approximately 2,650,000 units.
+
+D. Atari 2600 sold approximately 18,450,000 units, whereas the Amiga sold only approximately 1,600,000 units.
+
+Answer: D
+
+629. According to the text, what do sea otters use to open mollusk shells? Animals use many objects as tools to achieve goals more easily. Such goals include grooming, finding food, and protecting themselves. For a long time, people thought tool use was unique to primates. Sea otters and other animals, though, have busted the myth that tool use is limited to certain primates. Inventively, sea otters use stationary anvil stones to break open mollusk shells. Greater vasa parrots also get creative. They use date pits to grind seashells into calcium powder. A. Feathers from greater vasa parrots B. Date pits C. Stationary anvil stones D. Sand
+Answer: C
+
+657. Which choice completes the text with the most logical transition? Nineteenth-century Modernista architects championed nature in their designs. Granted, the wavy staircase and ornate floral tilework of Hospital de Sant Pau, a Modernista hospital designed by Llu�s Dom�nech i Montaner, couldn't exactly grow in a forest. ______ one sees natural influences in Dom�nech i Montaner's penchant for curves (rather than right angles) and plant- and animal-inspired flourishes. A. Similarly, B. Still, C. Furthermore, D. In other words,
+Answer: B
+
+692. Which choice most effectively uses data from the table to complete the example?
+
+Highest Major Summits in India
+
+Summit
+
+Elevation (meters) Mountain range Prominence (meters)
+
+Saser Kangri I / K22
+
+7,672
+
+Saser Karakoram
+
+2,304
+
+Padmanabh
+
+7,030
+
+Rimo Karakoram
+
+870
+
+Ghent Kangri
+
+7,401
+
+Saltoro Karakoram
+
+1,493
+
+Satopanth
+
+7,075
+
+Garhwal Himalaya
+
+1,250
+
+Kanchenjunga
+
+8,586
+
+Himalayas
+
+3,922
+
+Mountain summits are often described in terms of their elevation, or height above sea level. But a summit's elevation may not be as good an indication of how high the mountain appears to observers as is the summit's prominence, or its height above its surroundings, and these values can differ significantly. For example, the Indian mountain of ______
+
+A. Saser Kangri I / K22 has an elevation of 7,672 meters and is considered the highest mountain from the Saser Karakoram range.
+
+B. Kanchenjunga has a high prominence but is from a different mountain range than Satopanth, which has a lower prominence.
+
+C. Kanchenjunga has an elevation of 8,586 meters but a considerably lower prominence of 3,922 meters.
+
+D. Kanchenjunga has a much higher prominence than does Padmanabh.
+
+Answer: C
+
+922. Which choice most logically completes the text?
+Whereas Rebecca M. Harrison and Pia Nystrom's 2001 study of captive bonobos reported more right-handedness than left-handedness, Jane Goodall's 1963 study of wild chimpanzees did not. According to a meta-analysis of studies of nonhuman primates, captive populations are more likely to be described as right-handed than wild populations are. Statistical analysis indicates a handedness study would need a minimum of 176 individuals to show a representative result; however, the study by Harrison and Nystrom included a total population of 19, and the study by Goodall included a total population of 8. This suggests that ______
+A. neither the study by Harrison and Nystrom nor the study by Goodall provides sufficient evidence to make a meaningful comparison about handedness in primates.
+B. the study by Harrison and Nystrom reliably represents handedness in captive primates, but the study by Goodall likely does not reliably represent handedness in wild primates.
+C. the study by Harrison and Nystrom reliably represents handedness in captive primates but not in wild primates.
+D. Goodall likely underestimated the prevalence of right-handedness among the wild chimpanzees in the study.
+Answer: A

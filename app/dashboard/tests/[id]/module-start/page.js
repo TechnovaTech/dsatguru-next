@@ -127,10 +127,13 @@ export default function ModuleTestPage() {
   // Reset showAnswer on question change
   useEffect(() => { setShowAnswer(false) }, [currentQIdx, currentModuleIdx])
 
-  // Timer countdown per module
+  // Timer countdown per module. Must be PAUSED on every non-test overlay (start screen,
+  // module intro, break, summary) — otherwise the next module's clock, which is set the
+  // moment the previous module ends, ticks down all through the 10-min break + intro and
+  // the student starts e.g. the Math module already showing ~24:24 instead of 35:00.
   useEffect(() => {
     const mod = modules[currentModuleIdx]
-    if (!mod || !mod.isTimed || !mod.duration || loading || showModuleSummary || testCompleted) return
+    if (!mod || !mod.isTimed || !mod.duration || loading || showModuleSummary || testCompleted || showBreakScreen || showModuleIntro || showStartScreen) return
     if (timeRemaining <= 0) return
     const timer = setInterval(() => {
       setTimeRemaining(prev => {
@@ -139,7 +142,7 @@ export default function ModuleTestPage() {
       })
     }, 1000)
     return () => clearInterval(timer)
-  }, [timeRemaining, currentModuleIdx, loading, showModuleSummary, testCompleted])
+  }, [timeRemaining, currentModuleIdx, loading, showModuleSummary, testCompleted, showBreakScreen, showModuleIntro, showStartScreen])
 
   // Break countdown timer
   useEffect(() => {

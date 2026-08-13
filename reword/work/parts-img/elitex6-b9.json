@@ -1,0 +1,104 @@
+[
+  {
+    "page": 81,
+    "qnum": 5,
+    "subject": "Math",
+    "question": "The equation E(t) = 5(1.8)^t gives the estimated number of employees at a restaurant, where t is the number of years since the restaurant opened. Which of the following is the best interpretation of the number 5 in this context?",
+    "a": "The estimated number of employees when the restaurant opened",
+    "b": "The increase in the estimated number of employees each year",
+    "c": "The number of years the restaurant has been open",
+    "d": "The percent increase in the estimated number of employees each year"
+  },
+  {
+    "page": 82,
+    "qnum": 6,
+    "subject": "Math",
+    "question": "An artist made 14 pieces of pottery using 48 pounds of clay. The pottery included only bowls and vases. Each bowl used 3 pounds of clay and each vase used 5 pounds of clay. How many vases did the artist make?",
+    "a": "3",
+    "b": "6",
+    "c": "8",
+    "d": "11"
+  },
+  {
+    "page": 83,
+    "qnum": 7,
+    "subject": "Math",
+    "question": "Which expression is equivalent to 1/(9y^8), where y>1?",
+    "a": "9y^(-8)",
+    "b": "(9y)^(-8)",
+    "c": "9/(y^(-8))",
+    "d": "(y^(-8))/9"
+  },
+  {
+    "page": 84,
+    "qnum": 8,
+    "subject": "Math",
+    "question": "Line p in the xy-plane contains the points (23, 0) and (23, 23). Which equation defines line p?",
+    "a": "x = 23",
+    "b": "x = 0",
+    "c": "y = 23",
+    "d": "y = 0"
+  },
+  {
+    "page": 85,
+    "qnum": 9,
+    "subject": "Math",
+    "question": "What is the x-intercept of the graph of y = (33 - x)/(ax + b) in the xy-plane, where a and b are positive constants?",
+    "a": "(-b/a, 0)",
+    "b": "(0, 33/b)",
+    "c": "(0, -33)",
+    "d": "(33, 0)"
+  },
+  {
+    "page": 86,
+    "qnum": 10,
+    "subject": "Math",
+    "question": "| x | y |\n| --- | --- |\n| -5/9 | 0 |\n| 0 | -120 |\n| 6 | 0 |\n\nThe table shows three values of x and their corresponding values of y. There is a quadratic relationship between x and y. An equation that represents this relationship can be written as y = 36x^2 - bx - 120, where b is a constant. What is the value of b?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 87,
+    "qnum": 11,
+    "subject": "Math",
+    "question": "The line shown can be represented by the equation ax + by = 32, where a and b are constants. Which of the following is true about a and b?",
+    "a": "a < 0 and b < 0",
+    "b": "a < 0 and b > 0",
+    "c": "a > 0 and b < 0",
+    "d": "a > 0 and b > 0",
+    "figure": true
+  },
+  {
+    "page": 88,
+    "qnum": 12,
+    "subject": "Math",
+    "question": "One gallon of paint will cover 310 square feet of a surface. A room has a total wall area of w square feet. Which equation represents the total amount of paint P, in gallons, needed to paint the walls of the room twice?",
+    "a": "P = w/155",
+    "b": "P = 620w",
+    "c": "P = w/310",
+    "d": "P = 310w"
+  },
+  {
+    "page": 89,
+    "qnum": 13,
+    "subject": "Math",
+    "question": "f(x) = (2x - 15)(2x + 7)\nWhat is the minimum value of the given function?",
+    "a": "-121",
+    "b": "-7/2",
+    "c": "2",
+    "d": "8"
+  },
+  {
+    "page": 90,
+    "qnum": 14,
+    "subject": "Math",
+    "question": "The function f models the resistivity of copper, in nanoohm-meters, as a function of the temperature x, in kelvins, of the copper. The graph of y = f(x) is shown. According to the model, which of the following statements about the estimated resistivity of copper is true?",
+    "a": "It increases at a rate of 3/5 nanoohm-meters per 100 kelvins.",
+    "b": "It increases at a rate of 6 nanoohm-meters per 100 kelvins.",
+    "c": "At 100 kelvins, it is 10 nanoohm-meters.",
+    "d": "From 200 kelvins to 400 kelvins, it decreases 12 nanoohm-meters.",
+    "figure": true
+  }
+]

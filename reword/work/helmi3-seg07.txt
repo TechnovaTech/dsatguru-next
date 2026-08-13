@@ -1,0 +1,737 @@
+Section: Section 2, Module 1: Math, Difficulty: unknown (316 questions)
+250. The quadratic equation (7x - 64)2 = a, where a is a constant, has exactly one real solution. What is the value of a?
+Answer: 0
+376. A dog walker charges $19 per walk. Which equation gives the total amount t, in dollars, that the dog walker charges for w walks? A. t = w + 19 B. 19 = t + w C. t = 19w D. 19 = tw
+Answer: C
+377. s = 20 + 3t The equation gives the speed s, in miles per hour, of a certain car t seconds after it began to accelerate. What is the speed, in miles per hour, of the car 5 seconds
+after it began to accelerate?
+A. 20 B. 23 C. 25 D. 35
+Answer: D
+378. The function f is defined by f(x) = 2 + x. What is the value of f(144)? A. 0 B. 14 C. 38 D. 74
+Answer: B
+381. During a trip, Bill drove his car for 18.0 miles and then began driving at a constant speed of 60.0 miles per hour. After 2 hours of driving at this speed, what is
+the total distance, in miles, Bill has traveled during this trip? Answer: 138
+382. A survey was conducted in Madison to estimate the percent of adult residents who support the addition of a gas station at a popular intersection in their town.
+Based on the survey, it is estimated that 27% of all adult residents of Madison support the addition of a gas station at a popular intersection in their town, with an associated margin of error of 6%. Which of the following is the most appropriate conclusion about all adult residents of Madison? A. Plausible values for the percent of all adult residents of Madison who support the addition of a gas station at a popular intersection in their town are between 21% and 33%.
+B. Plausible values for the percent of all adult residents of Madison who support the addition of a gas station at a popular intersection in their town are either less than
+21% or more than 33%. C. The addition of a gas station at a popular intersection in the town is supported by exactly 21% of all adult residents of Madison. D. The addition of a gas station at a popular intersection in the town is supported by more than 33% of all adult residents of Madison.
+Answer: A
+384. For the function f, the table shows four values of x and their corresponding values of f(x). x f(x) 1 7,000 2 2,800 3 1,120 4 448
+Which of the following could describe this function? A. Increasing linear B. Decreasing linear C. Increasing exponential D. Decreasing exponential Answer: D
+385.
+
+In the figure shown, lines  and k are parallel and line t intersects both lines. If x > 145, which of the following must be true? A. y < 35 B. y > 35 C. x + y < 180 D. x + y > 180
+Answer: A
+386. James purchased a certain baseball card on January 1. The function f(x) = 85(1.03)x, where 0  x  10, gives the predicted value, in dollars, of the baseball card x years after James purchased it. What is the best interpretation of the statement "f(8) is approximately equal to 108" in this context? A. When the baseball card's predicted value is approximately 108 dollars, it is 8% greater than the predicted value, in dollars, on January 1 of the previous year. B. When the baseball card's predicted value is approximately 108 dollars, it is 8 times the predicted value, in dollars, on January 1 of the previous year. C. From the day James purchased the baseball card to 8 years after James purchased the card, its predicted value increased by a total of approximately 108 dollars. D. 8 years after James purchased the baseball card, its predicted value is approximately 108 dollars.
+Answer: D
+
+387. A group of 10 gardeners recorded data on the germination rates of their tomato crop for one growing season. The scatterplot shows the relationship between the number of tomato seeds planted, x, and the number of tomato seeds that germinated, y, for each of the gardeners. A line of best fit is also shown.
+y 500
+
+400
+
+300
+
+200
+
+100
+
+x
+
+O
+
+100 200 300 400 500
+
+Which of the following is the best interpretation of the slope of the line of best fit in this context?
+
+A. The number of tomato seeds planted is predicted to increase by 70 seeds every 100 days.
+
+B. The number of tomato seeds planted is predicted to increase by 350 seeds every 100 days.
+
+C. The number of tomato seeds that germinate is predicted to increase by 70 seeds for every additional 100 tomato seeds that are planted.
+
+D. The number of tomato seeds that germinate is predicted to increase by 350 seeds for every additional 100 tomato seeds that are planted.
+
+Answer: C
+
+388. Line t in the xy-plane has a slope of
+
+1 4
+
+and passes through the point (12, -8). Which equation defines line t?
+
+A. y
+
+=
+
+-11x +
+
+1 4
+
+B. y =
+
+x 4
+
+- 11
+
+C. y =
+
+x 4
+
+-8
+
+D. y = 12x - 8
+
+Answer: B
+
+390. A line in the xy-plane passes through the points (7, 1), (0, 4), and (c, 0). What is the value of c?
+Answer: 28/3
+
+391. How many solutions does the equation 3(x + 11) + 8x = 11(x + 3) have?
+A. Exactly one B. Exactly two C. Infinitely many D. Zero
+Answer: C
+393. |6x-72|+6 = 8
+9
+What is the sum of the solutions to the given equation?
+A. 1 B. 23 C. 24
+
+D. 72
+Answer: C
+523. If 6x + 2 = 44, what is the value of 60x + 20? A. 7 B. 70 C. 80 D. 440
+Answer: D
+524. The function g is defined by g(x) = 6x + 10. What is the value of g(x) when x = 10? A. 0 B. 6 C. 10 D. 70
+Answer: D
+525. An event planner is planning an ice-skating event. It costs the event planner a onetime fee of $50 to rent the skating rink and $15.50 per attendee. The event planner has a budget of $225. What is the greatest number of attendees possible without exceeding the budget?
+Answer: 11
+526. What is the y-intercept of the graph of y = 4x2 + 3x + 8 in the xy-plane? A. (0, 3) B. (0, 4) C. (0, 8) D. (0, 15)
+Answer: C
+527.
+
+In the figure, lines r and s are parallel. If x = 7k + 19 and y = 9k - 17, what is the value of k? A. 18 B. 35 C. 145 D. 162
+Answer: A
+530. 5x + 3 = rx + 7 In the given equation, r is a constant. The equation has no solution. What is the value of r? A. 21 B. 8 C. 7 D. 5
+Answer: D
+534.
+A marine biologist is studying a habitat that contains shoal bass, a species of freshwater fish. The box plot shown summarizes the lengths, in centimeters (cm), of a
+sample of 75 shoal bass from this habitat. What is the range, in cm, of the lengths of the shoal bass in the sample? A. 14 B. 19 C. 30 D. 45
+Answer: B
+537. f(x) = 5x + 6 g(x) = 7x - 5 h(x) = 2x + 3
+The functions f, g, and h are defined as shown. If f(x)  g(x) - h(x) = ax2 + bx + c, where a, b, and c are constants, what is the value of b? A. -2 B. 15 C. 19 D. 65
+Answer: B
+539. f(x) = 10(x2 + 33)
+What is the minimum value of the given function?
+A. 0.1 B. 3.3 C. 10 D. 330
+Answer: D
+540. Which measure, in radians, is equivalent to (47  180)�? A. 47 B.  + 47 C. - 47 D.  - 47
+Answer: A
+541. |4x-56|+4 = 7
+8
+What is the sum of the solutions to the given equation?
+A. 1 B. 27 C. 28 D. 56
+Answer: C
+544. A beekeeper's initial observation of the population of a certain bee colony was 1,800 bees. The beekeeper set a goal to increase the population to 3,300 bees. The beekeeper uses a model that predicts the population of this bee colony begins at 1,800 and increases by 120 bees per week in the first two weeks after the initial observation, and then increases by 180 bees per week until the beekeeper's goal is reached. According to this model, at the end of week w after the initial observation, where w > 2, which of the following functions gives the predicted number of bees still needed to reach the beekeeper's goal? A. p(w) = 3,300 - 180w B. p(w) = 3,180 + 180w C. p(w) = 1,620 - 180w D. p(w) = -120 + 180w
+Answer: C
+670. The equation d = 25w + 100 gives the total amount of money d, in dollars, that Jerome plans to save w weeks after he starts to save. What is the total amount of money, in dollars, he plans to save in 10 weeks? A. 300 B. 350 C. 400 D. 450
+Answer: B
+671. If 4x + 5 = 37, what is the value of 40x + 50? A. 370 B. 90 C. 80 D. 8
+Answer: A
+672. In the ancient Roman measurement system, a leuga was a unit of length that was equal to 7,500 pedes. In this measurement system, how many pedes were equivalent to 2.5 leugas?
+Answer: 18750
+673. For a project, Kayla recorded the heights of 25 people in her neighborhood. The histogram summarizes the heights, in inches (in), of these 25 people in Kayla's neighborhood. The first bar represents people with a height of at least 50 in but less than 53 in. The second bar represents people with a height of at least 53 in but less than 56 in, and so on.
+
+How many of these 25 people in Kayla's neighborhood had a height of at least 50 in but less than 56 in?
+Answer: 10
+
+674. r > 0.54t The given inequality describes the total rainfall r, in inches, in a certain area over a period of t hours, where t  4. Which of the following describes this rainfall? A. An average rainfall of exactly 0.54 inches per hour B. An average rainfall of more than 0.54 inches per hour C. A total rainfall of more than 4 inches D. A total rainfall of exactly 4 inches
+Answer: B
+
+675. The measures of the interior angles of triangle ABC are 22�, 44�, and x�. What is the value of x? A. 22 B. 66 C. 114 D. 180
+Answer: C
+
+677. The length of a side of square X is 7 centimeters. The area of rectangle Y is 32 square centimeters. What is the total area, in square centimeters, of square X and
+rectangle Y?
+A. 113 B. 81 C. 78 D. 49
+Answer: B
+678. P (t) = 22.5(1.036)t The function P gives the predicted population, in millions, of a certain country for the period from 1984 to 2018, where t is the number of years after 1984. According to this function, what is the best interpretation of the statement "P (8) is approximately equal to 29.86"? A. In 1984, the predicted population of this country was approximately 8 million. B. In 1984, the predicted population of this country was approximately 29.86 million. C. 29.86 years after 1984, the predicted population of this country was approximately 8 million. D. 8 years after 1984, the predicted population of this country was approximately 29.86 million.
+Answer: D
+679. The graph of y = ( 1 )x + 1 in the xy-plane is shifted up 4 units. What is an equation of the resulting graph?
+6
+A. y = ( 61 )(x+4) + 1 B. y = ( 61 )(x-4) + 1 C. y = 4( 1 )x + 1
+6
+D. y = ( 1 )x + 5
+6
+Answer: D
+
+680. In the xy-plane, the graph of y = 7x intersects the graph of y = x2 - 18 at two points. What is the sum of the x-coordinates of the two points of intersection? A. -18 B. -2 C. 7 D. 9
+Answer: C
+
+681. The function f is defined by f(x)
+
+=
+
+7( 1
+4
+
+- x)2 +
+
+15 4
+
+.
+
+What
+
+is
+
+the
+
+value
+
+of
+
+f
+
+(
+
+1 4
+
+)?
+
+Answer: 15/4
+
+683. 2x + 3y = 32 If the graph of the given equation is shifted up 10 units in the xy-plane, what is the y-intercept of the resulting graph? A. (0, 62 )
+3
+B. (0, 32 )
+3
+C. (0, 42) D. (0, 28 )
+3
+Answer: A
+
+684. x2 - 2x = 29
+What is one of the solutions to the given equation?
+A. 29 B. 1 + 30 C. 30 D. 29 + 2
+Answer: B
+
+685. 32 x - 17 y = 29
+
+x + 2y = -10
+
+The solution to the given system of equations is (x, y). What is the value of x + y?
+
+A. -10
+
+B. -4
+
+C. 4
+
+D. 10
+
+Answer: C
+
+686. There is a proportional relationship between p and t. If p = 2,520 when t = 3,360, then what is the value of t when p = 2,016? A. 2,856 B. 2,688 C. 1,512 D. 1,176
+Answer: B
+
+687.
+
+Line k is shown in the xy-plane. Line j (not shown) is perpendicular to line k and passes through the point (-20, -25). Which equation defines line j?
+
+A. y =
+
+3 4
+
+x
+
+-
+
+10
+
+B. y =
+
+3 4
+
+x
+
+-
+
+40
+
+C. y =
+
+4 x - 10
+3
+
+D. y =
+
+4 x - 40
+3
+
+Answer: A
+
+688. |3x-63|+3 = 7
+9
+What is the sum of the solutions to the given equation?
+A. 1 B. 41 C. 42 D. 63
+Answer: C
+
+690. A circle has center P , and points A and B lie on the circle. The measure of arc AB is 15� and the length of arc AB is 6 units. What is the length, in units, of
+the radius of the circle?
+Answer: 72
+
+691. r(x) = 8(x - 3) s(x) = x3 + nx2 + 3nx + 27
+For the given functions r and s, n is a constant. If r(x)  s(x) = 8(x4 - 81), what is the value of n?
+Answer: 3
+
+817. The scatterplot shows the relationship between two variables, x and y. A line of best fit is also shown.
+
+Which of the following equations best represents the line of best fit shown?
+A. y = -x - 5.4 B. y = -x + 5.4 C. y = x - 5.4 D. y = x + 5.4
+Answer: D
+818. Q = M
+33
+The given equation relates the quantities M and Q. Which equation correctly expresses M in terms of Q? A. M = Q
+33
+B. M = 33Q C. M = Q + 33 D. M = Q - 33
+Answer: B
+820. The measures of the interior angles of triangle ABC are 31�, 62�, and x�. What is the value of x? A. 31 B. 87 C. 93 D. 180
+Answer: B
+822. A line in the xy-plane has a slope of 0 and passes through the point (9, 8). Which equation represents this line? A. y = 8 B. y = 9 C. y = 8x D. y = 9x
+Answer: A
+823. y = 3,400(a)x The given equation, where a is a positive constant, gives the predicted number of bacteria, y, in a growth medium x hours after the number of bacteria was initially
+measured. According to the equation, what was the predicted number of bacteria initially measured in the growth medium? Answer: 3400
+824. If 8x - 10 = 6, what is the value of 8x + 10? A. -4 B. 2 C. 12 D. 26
+Answer: D 825.
+The figure shown is a right rectangular pyramid, where  = 16 units, w = 8 units, and h = 18 units. What is the surface area, in square units, of the pyramid?
+Answer: 128+32*sqrt(85)+16*sqrt(97)
+829. (7x + 4)(8x - 7) = 0
+Which of the following is a solution to the given equation?
+A. - 74 B. - 87 C. - 7
+8
+D. - 47
+Answer: D 830.
+Triangle XY Z shown is a right triangle. Which of the following has the same value as sin X? A. tan X B. tan Y C. cos X D. cos Y
+Answer: D 831.
+The graph of the function f, where y = f(x), gives the total cost y, in dollars, for a certain video game system and x games. What is the best interpretation of the
+slope of the graph in this context?
+A. Each game costs $17. B. The video game system costs $17. C. Each game costs $150. D. The video game system costs $150.
+Answer: A 832.
+xy -2 -21 0 -13
+
+2 -5 The table gives three values of x and their corresponding values of y. There is a linear relationship between x and y that can be represented by the equation y = mx + b, where m and b are constants. What is the value of m + b?
+Answer: -9
+
+833. The table shows the distribution of people in a certain city by age group.
+
+Age group
+Less than 18 years old 18-40 years old 41-65 years old Greater than 65 years old
+
+Proportion
+27% 21% 29% 23%
+
+If a person in this city is selected at random, which of the following is closest to the probability of selecting a person who is greater than 65 years old, given that the person is at least 18 years old?
+
+A. 0.23
+
+B. 0.32
+
+C. 0.50
+
+D. 0.85
+
+Answer: B
+
+834. What is the y-intercept of y = -(6)x - 37 in the xy-plane? A. (0, -38) B. (0, -43) C. (0, -37) D. (0, -36)
+Answer: A
+
+837. Which of the following expressions is(are) a factor of 3x2 + 16x - 35? I. x - 7 II. 3x - 5
+A. I only B. II only C. I and II D. Neither I nor II
+Answer: B
+
+838. A machine makes 7-inch, 9-inch, and 4-inch parts. During a certain day, the number of 7-inch parts that the machine makes is 5 times the number n of 9-inch parts, and the number of 4-inch parts is 4. During this day, the machine makes 100 parts total. Which equation represents this situation? A. 7(5n) + 9n + 4(4) = 100 B. 7n + 9n + 4n = 100 C. 5n + 4 = 100 D. 6n + 4 = 100
+Answer: D
+
+964. The equation d = 23w + 100 gives the total amount of money d, in dollars, that Jerome plans to save w weeks after he starts to save. What is the total amount of money, in dollars, he plans to save in 10 weeks? A. 280 B. 330 C. 380 D. 430
+Answer: B
+
+966. A jar has 610 marbles, and 20% of these marbles are orange. How many marbles in the jar are orange? A. 122 B. 244 C. 305 D. 590
+Answer: A
+
+968.
+
+The scatterplot shows the relationship between the square footage of 12 clothing stores and their annual sales, in millions of dollars. According to the trend shown by the data, which of the following is the best prediction for the annual sales, in millions of dollars, of a clothing store that is 4 thousand square feet? A. 10.1 B. 7.4 C. 5.4 D. 4.1
+Answer: B
+
+969. The function f is defined by f(x) =
+
+1 4x
+
+.
+
+What
+
+is
+
+the
+
+value
+
+of
+
+f(x)
+
+when
+
+x
+
+=
+
+9?
+
+Answer: 1/36
+
+971. If 8x - 9 = 7, what is the value of 8x + 9? A. -2 B. 2 C. 11 D. 25
+Answer: D
+
+973.
+
+Triangles ABC and ABC  are shown. Triangle ABC is dilated by a scale factor of 6 to form triangle ABC . If the length of AB is 18, what is the length of AB ? A. 3 B. 6 C. 24 D. 108
+Answer: D
+
+975. Line q is defined by y = - 1 x - 1 . Line r is perpendicular to line q in the xy-plane. What is the slope of line r?
+
+5
+
+2
+
+A. 7
+
+B. 5
+
+C. 3
+
+D. 2
+
+Answer: B
+
+977. One of the factors of 8x4 + 46x2 + 63 is ax2 + b, where a and b are positive constants. Which of the following is a possible value of ab? A. 7 B. 18 C. 28 D. 36
+Answer: D
+
+979. In the xy-plane, which of the following does NOT contain any points that are part of the solution set to 4x - 9y > 36? A. The region where x < 0 and y > 0 B. The region where x < 0 and y < 0 C. The region where x > 0 and y > 0
+D. The x-axis
+Answer: A
+
+980. Square A has side lengths that are 72 times the side lengths of square B. The area of square A is k times the area of square B. What is the value of k? A. 36 B. 72 C. 144 D. 5,184
+Answer: D
+
+981. The area of a triangle is 33 square inches. The length of the base of the triangle, in inches, is the sum of 14 and a positive number d, and the height, in inches, is 5 less than d. What is the value of d?
+Answer: 8
+
+1111. If 8x + 6 = 78, what is the value of 80x + 60? A. 9 B. 90 C. 140 D. 780
+Answer: D
+
+1113. r + g < 40 For which of the following tables are all the values of r and their corresponding values of g solutions to the given inequality?
+A.
+rg 0 39 2 37 4 35
+B.
+rg 0 37 2 39 4 35
+C.
+rg 0 35 2 39 4 37
+D.
+rg 0 35 2 37 4 39
+Answer: A
+
+1114. Which equation has no solution?
+A. 14x + 7 = 7(2x + 1) B. 14x + 11 = -14x - 11 C. 14x + 1 = 2x + 1 D. 14x + 70 = 7(2x + 4)
+Answer: D
+1115. What is the y-intercept of the graph of y = 8x2 + 7x + 9 in the xy-plane? A. (0, 7) B. (0, 8) C. (0, 9) D. (0, 24)
+Answer: C
+1122. One of the factors of 6x4 + 29x2 + 28 is ax2 + b, where a and b are positive constants. Which of the following is a possible value of ab? A. 4 B. 8 C. 14 D. 21
+Answer: C
+
+1127.
+xy 0r 4 r - 24 8 r - 48
+For a linear relationship between x and y, the table gives three values of x and their corresponding values of y in terms of a constant r. What is the slope of the line in
+the xy-plane that represents this relationship?
+A. -24 B. -6 C. 6 D. 24
+Answer: B
+
+1129. |2x - 3| = -8
+How many solutions does the given equation have? A. Zero B. One C. Two D. Infinitely many
+Answer: A
+
+1131. A certain town has an area of 3.85 square miles. What is the area, in square yards, of this town? (1 mile = 1,760 yards) A. 457 B. 6,776 C. 804,571 D. 11,925,760
+Answer: D
+
+1258. The equation d = 39w + 100 gives the total amount of money d, in dollars, that Janna plans to save w weeks after she starts to save. What is the total amount of money, in dollars, she plans to save in 10 weeks? A. 440 B. 490 C. 540 D. 590
+Answer: B
+
+1259. In triangle XY Z, two of the angles have the same measure. If the measure of angle X is 92� and the measure of angle Y is 44�, what is the measure of angle Z? A. 180� B. 92� C. 88� D. 44�
+Answer: D
+
+1261. The perimeter of a triangle is 25 inches. The length of one side of the triangle is 9 inches. The other two sides have equal lengths. What is the length, in inches,
+of one of the two sides with equal lengths?
+Answer: 8
+
+1262. A furniture company is selling all tables with a 20% discount off their original price for the month of October. What is the discount, in dollars, on a table with an original price of $170? A. 150 B. 130 C. 68 D. 34
+Answer: D
+
+1263. When the polynomial function g is graphed in the xy-plane such that y = g(x), it passes through the points (6, 0), (7, 0), and (0, 13). Which of the following
+must be true?
+I. When g(x) is divided by (x - 6), the remainder is 0. II. The point (7, 0) is an x-intercept of the graph of y = g(x). III. When g(x) is divided by (x - 13), the remainder is 0.
+A. II only B. I and II only C. I and III only D. I, II, and III
+Answer: B
+
+1264. 5x + 12 = 2(8 + 6x)
+Which of the following is equivalent to the given equation?
+A. x = -2 B. x = 4 C. 7x = -4 D. 7x = 4
+Answer: C
+
+1265. A campaign organizer is setting up tables for an event. The tables come in two sizes: small and large. Each of the small tables can seat 6 people and each of the large tables can seat 8 people. The event needs to seat at least 95 people. Which inequality represents this situation, where x is the number of small tables and y
+is the number of large tables the organizer is setting up for the event?
+A. 6x + 8y  95 B. 6x + 8y  95 C. 8x + 6y  95 D. 8x + 6y  95
+Answer: A
+
+1269. A triangle has a base length of 27 units and a corresponding height of 15 units. If the area of the triangle is
+
+1 k square units, what is the value of k?
+2
+
+Answer: 405
+
+1270. For the linear function f, the graph of y = f(x) in the xy-plane has a slope of 0 and passes through the point (0, 36). Which equation defines f? A. f(x) = x + 36 B. f(x) = 36x C. f(x) = 0 D. f(x) = 36
+Answer: D
+
+1271. The list gives the number of individuals in each of 6 groups of ring-tailed lemurs. 14, 5, 17, 14, 15, 7
+What is the range of the numbers of individuals for the 6 groups of ring-tailed lemurs?
+Answer: 12
+
+1272. If 2(x - 3) = (2)(90), what is the value of x - 3? A. 30 B. 60 C. 90 D. 180
+Answer: C
+
+1273. A region has a total area of 270 square feet. Within the region, there are n objects. Which expression represents the average number of objects per square foot
+within this region? A. n 270
+B. ( n )2
+270
+C. 270n D. (270n)2
+Answer: A
+
+-1
+1274. Which expression is equivalent to (4 p17) , where p > 1?
+
+17
+A. -p 4
+
+B.
+
+1
+17
+
+p4
+
+C. p- 174
+
+4
+D. p 17
+
+Answer: B
+
+1277. 19x - 21y = 31 7x + 14y = 59
+The solution to the given system of equations is (x, y) = ( p , w ), where p and w are integers. What is the value of p?
+59 826
+Answer: 239
+
+1279. x2 + xt + y2 - y - 73 = 0 The given equation, where t is a constant, defines a circle in the xy-plane. The radius of this circle is 91. What is the value of t? A. 35 B. 37 C. 71 D. 73
+Answer: C
+1407. The function f is defined by f(x) = 2 + x. What is the value of f(100)? A. 0 B. 12 C. 27 D. 52
+Answer: B
+
+1409. A furniture company is selling all tables with a 20% discount off their original price for the month of February. What is the discount, in dollars, on a table with an original price of $230? A. 46 B. 92 C. 190 D. 210
+Answer: A
+
+1411. A campaign organizer is setting up tables for an event. The tables come in two sizes: small and large. Each of the small tables can seat 4 people and each of the large tables can seat 8 people. The event needs to seat at least 85 people. Which inequality represents this situation, where x is the number of small tables and y is
+the number of large tables the organizer is setting up for the event?
+A. 4x + 8y  85 B. 4x + 8y  85 C. 8x + 4y  85 D. 8x + 4y  85
+Answer: A
+
+1413. 10x + 35y = 11
+The given equation is one equation in a system of two linear equations. The system has more than one solution. Which of the following equations could be the other equation in the system?
+I. 12x + 42y = 11 II. 35x + 10y = 11
+A. I only B. II only C. I and II D. Neither I nor II
+Answer: D
+
+1422.
+
+In the figure, lines m and n are parallel and line t intersects both lines. If a = 5x + 62 and b =
+
+1 2
+
+x
+
++
+
+45.4,
+
+what
+
+is
+
+the
+
+value
+
+of
+
+x?
+
+Answer: 13.2
+
+1423. |3x-24|+3 = 4
+6
+What is the sum of the solutions to the given equation?
+A. 1 B. 15 C. 16
+
+D. 24
+Answer: C
+1426. x2 + xt + y2 - y - 45 = 0 The given equation, where t is a constant, defines a circle in the xy-plane. The radius of this circle is 62. What is the value of t? A. 33 B. 35 C. 67 D. 69
+Answer: C
+1552. A carnival receives $10 for each adult admission ticket sold and $5 for each child admission ticket sold. On a particular day, the carnival received a total of $3,950 from selling adult and child admission tickets. If 230 adult admission tickets were sold on that day, how many child admission tickets were sold?
+Answer: 330
+1553. The function f(x) = 43.50 - 0.28x gives a person's estimated grip strength, in kilograms, x years after the person's grip strength was first measured. Based on the function, what is this person's estimated grip strength, in kilograms, 32.50 years after the person's grip strength was first measured? A. 10.72 B. 34.40 C. 43.50 D. 52.60
+Answer: B
+1554. 10x = 110 9x - 94 = y
+The solution to the given system of equations is (x, y). What is the value of y? A. 94 B. 11 C. 10 D. 5
+Answer: D
+1555. The function g is defined by g(x) = x + 600. What is the value of g(x) when x = 64? A. 8 B. 600 C. 608 D. 664
+Answer: C
+1556. Which of the following is a factor of -24x2 - 6x? A. -24x B. -10x C. -6x D. -4x
+Answer: C
+1557. If 15x = 13x + 10, what is the value of 7x?
+Answer: 35
+1558.
+x f(x) -1 -24 0 -23 1 -22 2 -15 The table shows several values of x and their corresponding values of f(x) for the polynomial function f. Which of the following could define f? A. f(x) = x3 B. f(x) = x3 - 23 C. f(x) = x3 + 23 D. f(x) = (x - 23)3
+Answer: B
+1559.
+
+In the circle, O is the center and AOB is a right angle. If the area of the shaded region is 37 square units, what is the length, in units, of OA? A. 74 B. 148 C. 148 D. 592
+Answer: C
+
+1560. In DEF , the measure of D is 143�. Which of the following could be the measure, in degrees, of E? A. 36 B. 38 C. 90 D. 144
+Answer: A
+
+1561. Rebecca is collecting 40-milliliter samples of river water and 15-milliliter samples of lake water. She needs to collect a total of at least 770 milliliters of river water and lake water, where the number of samples of lake water is twice the number of samples of river water. Which inequality represents this situation, where x is
+the number of samples of river water that Rebecca needs to collect?
+A. 40(2x) + 15x  770 B. 40(2x) + 15x  770 C. 40x + 15(2x)  770 D. 40x + 15(2x)  770
+Answer: D
+
+1562. w(w + 89) The given expression represents the area, in square centimeters, of a rectangle, where w represents the width, in centimeters (cm), of the rectangle. What is the best interpretation of w + 89 in this context? A. The length of the rectangle is 89 cm. B. The width of the rectangle is 89 cm. C. The length of the rectangle is 89 cm greater than the width of the rectangle. D. The width of the rectangle is 89 cm greater than the length of the rectangle.
+Answer: C
+1563. y = 7,200(0.85)x The given equation estimates the value, in dollars, of a certain car x years after it was purchased. According to the given equation, what was the estimated value, in
+dollars, of the car at the time it was purchased?
+A. 720 B. 6,120 C. 7,200 D. 8,500
+Answer: C
+
+1564. y
+12
+
+10
+
+8
+
+6
+
+4
+
+2
+
+x
+
+O
+
+2
+
+4
+
+6
+
+8
+
+10
+
+Which of the following equations is the most appropriate linear model for the data shown in the scatterplot?
+
+A. y = 1.74 - 11.98x
+
+B. y = 11.98 + 4.74x
+
+C. y = 11.98 - 1.74x
+
+D. y = -11.98 - 1.74x
+
+Answer: C
+
+1565. Data set J: 18, 18, 19, 19, 20, 21, 21, 22, 22 Data set K: 18, 20, 20, 20, 20, 20, 20, 20, 22
+The lists give the values in data sets J and K. Which of the following statistics is greater for data set J than it is for data set K? A. Mean B. Median C. Range D. Standard deviation
+Answer: D
+
+1567. (x - 18)(x - 14)(x + 7)(x + 11) = 0
+What is a positive solution to the given equation? Answer: 14
+
+1568.
+xy -12 76 -6 52
+64 12 -20 The table shows four values of x and their corresponding values of y. There is a linear relationship between x and y. Which of the following equations represents this
+relationship?
+A. 24x + 6y = 28 B. 24x + 6y = 168 C. 6x + 24y = 28 D. 6x + 24y = 168
+Answer: B
+1569. If xy = 5 and 2txy = 70, what is the value of t?
+A. 17 B. 2
+5
+C. 5
+2
+D. 7
+Answer: A
+
+1571. A real estate company offers a series of three webinars. 3,750 people attended the first webinar. 72% of the people who attended the first webinar attended the second webinar, and 40% of the people who attended both the first and second webinar attended the third webinar. Of those who attended the first but did not attend the second webinar, 32% attended the third webinar. How many people attended both the first and third webinars but did not attend the second webinar?
+Answer: 336
+
+1572. t(v - 95) + t = w
+
+The given equation relates the positive numbers w, t, and v. Which equation correctly expresses v in terms of t and w?
+
+A. v =
+
+w t
+
++ 94
+
+B. v =
+
+w t
+
+- 95
+
+C. v = w-t + 94
+t
+
+D. v = w-t - 95
+t
+
+Answer: A
+
+1699. An object's average acceleration, in meters per second squared, is the change in the object's speed, in meters per second, divided by the time during which
+the change occurred, in seconds. A certain object's speed changes by 12 meters per second in 5 seconds. What is this object's average acceleration, in meters per
+second squared, during this time period?
+A. 0.42 B. 2.4 C. 7 D. 17
+Answer: B
+
+1700. Which expression is equivalent to 2x2 + 9x? A. x(2x + 9) B. 2x(x + 9) C. 9x(2x + 1) D. x2(2x + 9)
+Answer: A
+
+1701. 29x + 10x = 1 What value of x is the solution to the given equation? A. 1
+B. 1
+10
+C. 1
+29
+D. 1
+39
+Answer: D
+
+1704. f(x) = 25x + 600 The function f gives the monthly fee f(x), in dollars, a storage company charges to keep x boxes in its warehouse. What is the monthly fee, in dollars, the company charges to keep 40 boxes in its warehouse?
+Answer: 1600

@@ -1,0 +1,102 @@
+[
+  {
+    "page": 71,
+    "qnum": 17,
+    "subject": "Math",
+    "question": "6(x-4)=(x-4)+6\n\nIf x is the solution to the given equation, what is the value of x-4?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 72,
+    "qnum": 18,
+    "subject": "Math",
+    "question": "45x+33y-200=-359\n2wx+11y=-53\n\nIn the given system of equations, w is a constant. The system has infinitely many solutions. What is the value of w?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 73,
+    "qnum": 19,
+    "subject": "Math",
+    "question": "g(x)=x^2+(27/2)x\n\nWhich expression represents the minimum value of the given function?",
+    "a": "-(27/2)^2",
+    "b": "-(27/4)^2",
+    "c": "(27/4)^2",
+    "d": "(27/2)^2"
+  },
+  {
+    "page": 74,
+    "qnum": 20,
+    "subject": "Math",
+    "question": "A real estate company offers a series of three webinars. 2,000 people attended the first webinar. 65% of the people who attended the first webinar attended the second webinar, and 44% of the people who attended both the first and second webinar attended the third webinar. Of those who attended the first but did not attend the second webinar, 31% attended the third webinar. How many people attended both the first and third webinars but did not attend the second webinar?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 75,
+    "qnum": 21,
+    "subject": "Math",
+    "question": "In right triangle ABC, side BC has a length of sqrt(799). The hypotenuse, side AB, has a length of 32. What is the value of sin B?",
+    "a": "",
+    "b": "",
+    "c": "",
+    "d": ""
+  },
+  {
+    "page": 76,
+    "qnum": 22,
+    "subject": "Math",
+    "question": "y=2x^2-12x+22\ny+3=0\n\nHow many solutions are there to the given system of equations?",
+    "a": "There is exactly 1 solution.",
+    "b": "There are exactly 2 solutions.",
+    "c": "There are exactly 3 solutions.",
+    "d": "There are no solutions."
+  },
+  {
+    "page": 77,
+    "qnum": 1,
+    "subject": "Math",
+    "question": "f(x)=(x+9)/3\n\nFor the function f defined by the equation shown, what is the value of f(-6)?",
+    "a": "-3",
+    "b": "-1",
+    "c": "1",
+    "d": "3"
+  },
+  {
+    "page": 78,
+    "qnum": 2,
+    "subject": "Math",
+    "question": "The population of a certain city doubled every 25 years from 1660 to 1760. The population of this city was 208,000 in 1760. What was the population of this city in 1660?",
+    "a": "13,000",
+    "b": "26,000",
+    "c": "104,000",
+    "d": "416,000"
+  },
+  {
+    "page": 79,
+    "qnum": 3,
+    "subject": "Math",
+    "question": "The function f(x)=-40x+280 gives the predicted height above the ground f(x), in feet, of a model airplane x minutes after it begins to descend. What is the predicted height above the ground, in feet, of the model airplane 4 minutes after it begins to descend?",
+    "a": "120",
+    "b": "160",
+    "c": "240",
+    "d": "440"
+  },
+  {
+    "page": 80,
+    "qnum": 4,
+    "subject": "Math",
+    "question": "How many solutions does the equation 5x+3=5x have?",
+    "a": "Zero",
+    "b": "Exactly one",
+    "c": "Exactly two",
+    "d": "Infinitely many"
+  }
+]
