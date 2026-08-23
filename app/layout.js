@@ -4,6 +4,7 @@ import { AuthProvider } from './components/AuthContext'
 import { CourseProvider } from './components/CourseContext'
 import { UIProvider } from './components/ui/UIProvider'
 import AppShell from './components/AppShell'
+import SecurityGuard from './components/SecurityGuard'
 
 const BASE_URL = 'https://www.dsatguru.com'
 
@@ -72,6 +73,7 @@ export default function RootLayout({ children }) {
             alt=""
           />
         </noscript>
+        <SecurityGuard />
         <AuthProvider>
           <CourseProvider>
             <UIProvider>

@@ -4,15 +4,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '../components/AuthContext'
 import {
-  FiGrid, FiAward, FiDatabase, FiLayers, FiClipboard, FiMic, FiSend, FiActivity,
+  FiGrid, FiDatabase, FiLayers, FiClipboard, FiMic, FiSend, FiActivity,
   FiUsers, FiTrendingUp, FiBarChart2, FiFileText, FiPieChart, FiLogOut,
   FiMenu, FiX, FiChevronDown,
 } from 'react-icons/fi'
 
-// Top-nav structure: two primary links + three grouped dropdowns. Rendered in DsatGuru's UI.
+// Top-nav structure: primary link(s) + three grouped dropdowns. Rendered in DsatGuru's UI.
 const LINKS = [
   { label: 'Dashboard', path: '/igcsc', icon: FiGrid, exact: true },
-  { label: 'Leaderboard', path: '/igcsc/leaderboard', icon: FiAward },
 ]
 const GROUPS = [
   {
