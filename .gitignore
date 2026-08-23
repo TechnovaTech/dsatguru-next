@@ -48,3 +48,13 @@ build/
 
 # Uploaded files
 public/uploads/
+
+# Offline content pipelines — working data & generated outputs, not app runtime.
+# (Keeps ~970 reword/* data files out of git; the live app never imports these.)
+reword/
+pdf2json/
+pdf-input/
+bank-input/
+sheet-input/
+sheet-input-2/
+json-output/

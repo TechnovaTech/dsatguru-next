@@ -36,7 +36,13 @@ export default function Login() {
       const token = localStorage.getItem('token')
       const raw = localStorage.getItem('user')
       if (token && raw && !isTokenExpired(token)) {
-        router.replace(roleHome(JSON.parse(raw).role))
+        const u = JSON.parse(raw)
+        // IGCSC-branded staff land in the dedicated IGCSC portal.
+        if ((u.email || '').toLowerCase().endsWith('@igcsc.com') && ['Admin', 'TutorAdmin'].includes(u.role)) {
+          router.replace('/igcsc')
+        } else {
+          router.replace(roleHome(u.role))
+        }
       }
     } catch {}
   }, [router])
@@ -75,8 +81,11 @@ export default function Login() {
       const cleanData = { email: formData.email.trim(), password: formData.password.trim() }
       const response = await axios.post('/api/auth/login', cleanData)
       login(response.data.token, response.data.user)
-      const role = response.data.user.role
-      if (role === 'Admin') router.push('/admin')
+      const u = response.data.user
+      const role = u.role
+      // IGCSC-branded staff accounts open the dedicated IGCSC portal.
+      if ((u.email || '').toLowerCase().endsWith('@igcsc.com') && ['Admin', 'TutorAdmin'].includes(role)) router.push('/igcsc')
+      else if (role === 'Admin') router.push('/admin')
       else if (role === 'TutorAdmin') router.push('/admin/tutor/question-bank')
       else if (role === 'Tutor') router.push('/tutor/dashboard')
       else router.push(returnTo || '/dashboard')
