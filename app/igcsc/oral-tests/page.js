@@ -11,14 +11,9 @@ export default function OralTestsPage() {
 
   useEffect(() => {
     (async () => {
-      const [a, c] = await Promise.all([
-        apiGetSafe('/api/admin/test-sessions/active', []),
-        apiGetSafe('/api/admin/test-sessions/completed', []),
-      ])
-      const all = [...(Array.isArray(a) ? a : []), ...(Array.isArray(c) ? c : [])]
-      const oral = all.filter((s) => /oral|viva|speaking/i.test(`${s.testTitle} ${s.testType || ''}`))
-      setSessions(oral)
-      setLoading(false)
+      const all = await apiGetSafe('/api/igcsc/sessions?state=all', [])
+      const oral = (Array.isArray(all) ? all : []).filter((s) => /oral|viva|speaking/i.test(`${s.testTitle} ${s.testType || ''} ${s.subject || ''}`))
+      setSessions(oral); setLoading(false)
     })()
   }, [])
 
@@ -26,12 +21,11 @@ export default function OralTestsPage() {
 
   return (
     <div>
-      <PageHeader title="Oral Tests" subtitle="Conduct live, one-to-one oral assessments over video with automatic transcripts." />
-
+      <PageHeader title="Oral Tests" subtitle="Conduct live, one-to-one oral & speaking assessments over video with transcripts." />
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
-          { icon: FiVideo, title: 'Live Video Room', text: 'Face-to-face oral assessment powered by the built-in LiveKit meeting room.' },
-          { icon: FiFileText, title: 'Auto Transcripts', text: 'Every oral session is transcribed and saved to the student record for review.' },
+          { icon: FiVideo, title: 'Live Video Room', text: 'Face-to-face oral/viva assessment powered by the built-in meeting room.' },
+          { icon: FiFileText, title: 'Auto Transcripts', text: 'Every oral session is transcribed and saved to the student record.' },
           { icon: FiUsers, title: 'Examiner Notes', text: 'Score and annotate performance live while the student responds.' },
         ].map((f) => (
           <div key={f.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -41,20 +35,15 @@ export default function OralTestsPage() {
           </div>
         ))}
       </div>
-
-      <Card
-        title="Oral Sessions"
-        action={<Link href="/igcsc/users" className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"><FiMic size={13} /> New Oral Test</Link>}
-      >
-        <Table
-          columns={[{ label: 'Student' }, { label: 'Assessment' }, { label: 'Status', align: 'right' }]}
-          empty={sessions.length === 0 && <EmptyState icon={FiMic} title="No oral tests scheduled" hint="Start an oral assessment from a student's profile to see it here." />}
-        >
+      <Card title="Oral Sessions" action={<Link href="/igcsc/users" className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"><FiMic size={13} /> New Oral Test</Link>}>
+        <Table columns={[{ label: 'Student' }, { label: 'Assessment' }, { label: 'Subject' }, { label: 'Status', align: 'right' }]}
+          empty={sessions.length === 0 && <EmptyState icon={FiMic} title="No oral tests scheduled" hint="Start an oral assessment from a student's profile to see it here." />}>
           {sessions.map((s) => (
             <tr key={s._id} className="hover:bg-slate-50/60">
               <td className="px-4 py-3"><div className="font-semibold text-slate-800">{s.studentName}</div><div className="text-xs text-slate-400">{s.studentEmail}</div></td>
               <td className="px-4 py-3 text-slate-600">{s.testTitle}</td>
-              <td className="px-4 py-3 text-right">{s.status === 'active' ? <Badge tone="red">Live</Badge> : <Badge tone="green">Done</Badge>}</td>
+              <td className="px-4 py-3"><Badge tone="slate">{s.subject}</Badge></td>
+              <td className="px-4 py-3 text-right">{s.state === 'IN_PROGRESS' ? <Badge tone="red">Live</Badge> : <Badge tone="green">Done</Badge>}</td>
             </tr>
           ))}
         </Table>
