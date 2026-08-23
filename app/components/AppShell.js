@@ -28,6 +28,8 @@ export default function AppShell({ children }) {
   const isDashboard = pathname.startsWith('/dashboard')
   const isAdmin = pathname.startsWith('/admin')
   const isTutor = pathname.startsWith('/tutor')
+  // IGCSC portal is a self-contained app with its own top nav — no marketing header/footer.
+  const isIgcsc = pathname.startsWith('/igcsc')
   // Demo test take/rules pages are fullscreen — no header/footer
   const isDemoTestFullscreen = pathname.startsWith('/demo-test/take') ||
     pathname.startsWith('/demo-test/rules')
@@ -45,7 +47,7 @@ export default function AppShell({ children }) {
     return <MaintenancePage siteName={maint.siteName} endsAt={maint.maintenanceEndsAt} />
   }
 
-  const inner = (isAdmin || isDashboard || isTutor || isDemoTestFullscreen || isThankYou)
+  const inner = (isAdmin || isDashboard || isTutor || isIgcsc || isDemoTestFullscreen || isThankYou)
     ? children
     : <PublicLayout>{children}</PublicLayout>
 
