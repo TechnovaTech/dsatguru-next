@@ -9,6 +9,8 @@ import { FiClock, FiCheckCircle, FiArrowRight, FiAlertTriangle, FiMoreVertical, 
 // (bare letter, "B) 240"-style key, or option text — casing never matters);
 // fill-in-the-blank falls back to case-insensitive text / numeric matching.
 import { answersMatch, resolveAnswerLetter } from '../../../../../lib/scoring/satScale'
+import { moduleSize, tierForWrong, estimatedTotalBand } from '../../../../../lib/adaptiveRouting'
+import { composeDsatModule } from '../../../../../lib/dsatDomains'
 function isAnswerCorrect(q, userAnswer) {
   return answersMatch(q?.correctAnswer, userAnswer, q)
 }
@@ -74,8 +76,12 @@ export default function TakeTestPage() {
   // and gives proctored tests one warning before terminating.
   const submittingRef = useRef(false)
   const violationRef = useRef(0)
-  // Per-section server-computed Module-2 difficulty distribution (real adaptive routing).
+  // Per-section server-computed Module-2 routing (tier + distribution) for real adaptive routing,
+  // and the estimated-band inputs { rw: {tier, m1wrong}, math: {...} }.
   const adaptiveRef = useRef({})
+  // Question ids already served in an earlier module of THIS attempt, so a later adaptive
+  // module never repeats a question the student has already seen.
+  const usedIdsRef = useRef(new Set())
 
   // Time Tracking
   const [questionTimes, setQuestionTimes] = useState({})
@@ -489,7 +495,10 @@ export default function TakeTestPage() {
           } else if (isAdminTest) {
             questionsUrl = `/api/questions?isAdminTest=true`
           } else {
-            questionsUrl = `/api/questions?isTutor=false`
+            // STANDARD ADAPTIVE tests draw from the TUTOR bank (the big, rich, domain-tagged
+            // pool — 10k+ questions across all DSAT domains/types). The old isTutor=false
+            // legacy pool was small and skewed, which made modules repeat one question type.
+            questionsUrl = `/api/questions?isTutor=true`
           }
           
           console.log(`Fetching questions with isTutor=${isTutor} for test mode: ${testData.practiceMode}, configType: ${testData.configType}`)
@@ -741,40 +750,38 @@ export default function TakeTestPage() {
         return
       }
     } else {
-      // STANDARD/CUSTOM adaptive drawn from the bank: 2-module structure with a difficulty
-      // distribution and real Module-2 routing (the bank has enough questions per difficulty).
+      // STANDARD/CUSTOM adaptive drawn from the TUTOR bank — real Digital-SAT structure:
+      //   Composition per module mirrors the real exam blueprint (verified against real
+      //   2024 papers): R&W 27 = Craft/Info/Conventions/Expression mix in the real order;
+      //   Math 22 = Algebra/Advanced/PSDA/Geometry mix, ~25% grid-in, ascending difficulty.
+      //   Module 1 = MEDIUM-anchored base; Module 2 = tier from Module-1 WRONG-count
+      //   (0-2 → Hard, 3-5 → Medium, 6+ → Easy), graded on the SERVER via /module-routing.
+      // composeDsatModule excludes already-served ids and tops up per-domain/difficulty so
+      // the module is always full while questions remain.
       if (moduleNum === 1) {
-        // Module 1 - Show instructions for all modes
         if (section === 'rw') {
           setShowRWInstructions(true)
         } else if (section === 'math') {
           setShowMathInstructions(true)
         }
-
-        // Use standard distribution for Module 1
-        const distribution = section === 'rw'
-          ? { easy: 7, medium: 12, hard: 8 }  // R&W Module 1: 27 questions
-          : { easy: 6, medium: 11, hard: 5 }  // Math Module 1: 22 questions
-
-        selectedQuestions = selectQuestionsByDistribution(filteredQuestions, distribution)
+        selectedQuestions = composeDsatModule(filteredQuestions, section, 'Medium', usedIdsRef.current)
       } else {
-        // Module 2 — adaptive. Prefer the SERVER-computed distribution (real Module-1 score
-        // graded server-side + the test's custom routing config); fall back to the client
-        // heuristic only if the server routing wasn't available.
-        const module1Key = `${section}_module1`
-        let distribution = adaptiveRef.current[section]?.distribution
-        if (!distribution) {
-          const module1Score = moduleScores[module1Key] || 0
-          const routingPath = determineRoutingPath(module1Score, section, questionCount)
-          distribution = getAdaptiveDistribution(section, routingPath)
+        // Prefer the SERVER-routed tier; fall back to the client wrong-count.
+        let tier = adaptiveRef.current[section]?.tier
+        if (!tier) {
+          const correct = moduleScores[`${section}_module1`] || 0
+          tier = tierForWrong(Math.max(0, questionCount - correct))
         }
-        selectedQuestions = selectQuestionsByDistribution(filteredQuestions, distribution)
+        selectedQuestions = composeDsatModule(filteredQuestions, section, tier, usedIdsRef.current)
       }
+      // Record served ids so a later module can never repeat a question.
+      selectedQuestions.forEach(q => usedIdsRef.current.add(String(q._id)))
 
-      // Check if we have enough questions
-      if (selectedQuestions.length < questionCount) {
-        console.warn(`Not enough questions: need ${questionCount}, have ${selectedQuestions.length}`)
-        toast.error(`Not enough questions available for ${subject}. Need ${questionCount} questions but only ${selectedQuestions.length} available with current filters.`)
+      // Never eject the student for a slightly short pool — the composer already tops up.
+      // Only bail when genuinely nothing could be loaded.
+      if (selectedQuestions.length === 0) {
+        console.error(`No questions found for ${subject} module ${moduleNum}`)
+        toast.error(`No questions available for ${subject}.`)
         router.push(returnUrl)
         return
       }
@@ -788,52 +795,8 @@ export default function TakeTestPage() {
     setTimeRemaining(duration * 60)
   }
 
-  const selectQuestionsByDistribution = (questions, distribution) => {
-    const easy = questions.filter(q => q.difficulty === 'Easy')
-    const medium = questions.filter(q => q.difficulty === 'Medium')
-    const hard = questions.filter(q => q.difficulty === 'Hard')
-    
-    const selected = [
-      ...shuffleArray(easy).slice(0, distribution.easy),
-      ...shuffleArray(medium).slice(0, distribution.medium),
-      ...shuffleArray(hard).slice(0, distribution.hard)
-    ]
-    
-    return shuffleArray(selected)
-  }
-
   const shuffleArray = (array) => {
     return [...array].sort(() => Math.random() - 0.5)
-  }
-
-  const getAdaptiveDistribution = (section, path) => {
-    if (section === 'rw') {
-      // R&W Module 2 distributions (27 questions)
-      if (path === 'low') return { easy: 13, medium: 10, hard: 4 }
-      if (path === 'medium') return { easy: 7, medium: 12, hard: 8 }
-      return { easy: 3, medium: 10, hard: 14 } // high
-    } else {
-      // Math Module 2 distributions (22 questions)
-      if (path === 'low') return { easy: 11, medium: 8, hard: 3 }
-      if (path === 'medium') return { easy: 6, medium: 10, hard: 6 }
-      return { easy: 2, medium: 8, hard: 12 } // high
-    }
-  }
-
-  const determineRoutingPath = (score, section, totalQuestions) => {
-    const percentage = (score / totalQuestions) * 100
-    
-    if (section === 'rw') {
-      // R&W routing: ≤40% = low, 45-74% = medium, ≥75% = high
-      if (percentage <= 40) return 'low'
-      if (percentage <= 74) return 'medium'
-      return 'high'
-    } else {
-      // Math routing: ≤40% = low, 45-74% = medium, ≥75% = high
-      if (percentage <= 40) return 'low'
-      if (percentage <= 74) return 'medium'
-      return 'high'
-    }
   }
 
   // Helper Functions for New Features
@@ -1014,7 +977,9 @@ export default function TakeTestPage() {
         if (res.ok) {
           const data = await res.json()
           if (typeof data.correct === 'number') correctCount = data.correct
-          if (data.distribution) adaptiveRef.current[currentSection] = { distribution: data.distribution }
+          // Record the routed Module-2 tier + Module-1 wrong-count for this section so the
+          // module summary can show the tier and the final band can be estimated.
+          if (data.distribution) adaptiveRef.current[currentSection] = { distribution: data.distribution, tier: data.tier, m1wrong: data.wrong }
         }
       } catch { /* aborted or failed — keep the client fallback */ }
     }
@@ -1258,13 +1223,30 @@ export default function TakeTestPage() {
         // screen matches the canonical score shown on the analysis page.
         const serverSession = responseData.session || {}
         const serverTotal = serverSession.totalScore
+        // Estimated score BAND from the diagram: for each section, use Module-2's tier +
+        // its server-graded wrong-count (falls back to the routed tier if per-module scores
+        // weren't returned). Shown alongside the precise scaled score.
+        const bandRows = []
+        for (const sec of ['rw', 'math']) {
+          if (!test?.sections?.[sec]) continue
+          const m2 = serverSession.moduleScores && serverSession.moduleScores[`${sec}_module2`]
+          if (m2 && m2.total) {
+            bandRows.push({ tier: m2.difficulty || adaptiveRef.current[sec]?.tier || 'Medium', wrong: Math.max(0, (m2.total || 0) - (m2.correct || 0)) })
+          } else if (adaptiveRef.current[sec]?.tier) {
+            bandRows.push({ tier: adaptiveRef.current[sec].tier, wrong: 0 })
+          }
+        }
+        const band = estimatedTotalBand(bandRows)
         if (serverTotal !== undefined && serverTotal !== null) {
           setFinalScore(prev => ({
             ...(prev || {}),
             total: serverTotal,
             ...(serverSession.rwScore !== undefined && serverSession.rwScore !== null ? { rwScore: serverSession.rwScore } : {}),
-            ...(serverSession.mathScore !== undefined && serverSession.mathScore !== null ? { mathScore: serverSession.mathScore } : {})
+            ...(serverSession.mathScore !== undefined && serverSession.mathScore !== null ? { mathScore: serverSession.mathScore } : {}),
+            ...(band ? { band } : {})
           }))
+        } else if (band) {
+          setFinalScore(prev => ({ ...(prev || {}), band }))
         }
         // router.push(`/dashboard/tests/${testId}/results?returnUrl=${encodeURIComponent(returnUrl)}`)
       } else {
@@ -1441,12 +1423,23 @@ export default function TakeTestPage() {
                 </div>
               </div>
             </div>
-            
+
+            {/* Adaptive routing hint: after Module 1 of an adaptive test, show which tier
+                Module 2 routed into based on this module's performance. */}
+            {currentModule === 1 && adaptiveRef.current[currentSection]?.tier && (
+              <div className="bg-purple-50 border border-purple-100 rounded-lg p-4 mb-6 text-sm text-purple-800">
+                Based on your performance, your <span className="font-semibold">Module 2</span> will be{' '}
+                <span className="font-bold">{adaptiveRef.current[currentSection].tier}</span> difficulty.
+              </div>
+            )}
+
             <button
               onClick={handleNextModule}
               className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 flex items-center justify-center gap-2"
             >
-              Continue to Next Module <FiArrowRight />
+              {currentModule === 1
+                ? 'Continue to Module 2'
+                : (currentSection === 'rw' && test?.sections?.math ? 'Continue to Math' : 'Finish & See Score')} <FiArrowRight />
             </button>
           </div>
         </div>
@@ -1469,8 +1462,14 @@ export default function TakeTestPage() {
             </div>
             ) : (
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-8 mb-6">
-              <p className="text-6xl font-bold text-blue-600 mb-4">{finalScore.total}</p>
-              <p className="text-gray-700 text-lg mb-6">Total SAT Score</p>
+              <p className="text-6xl font-bold text-blue-600 mb-1">{finalScore.total}</p>
+              <p className="text-gray-700 text-lg mb-3">Total SAT Score <span className="text-gray-400">/ 1600</span></p>
+              {finalScore.band && (
+                <p className="text-sm text-gray-500 mb-5">
+                  Estimated adaptive range:{' '}
+                  <span className="font-semibold text-purple-600">{finalScore.band.low}–{finalScore.band.high}</span>
+                </p>
+              )}
 
               <div className="grid grid-cols-2 gap-6">
                 {test?.sections?.rw && (

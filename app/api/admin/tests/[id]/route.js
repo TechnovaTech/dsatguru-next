@@ -8,6 +8,7 @@ import Question from '../../../../../lib/models/Question'
 import { requireAuth, requireRole } from '../../../../../lib/auth'
 import { ADMIN_ROLES, STAFF_ROLES } from '../../../../../lib/constants/roles'
 import { canRevealAnswers, stripAnswerFields } from '../../../../../lib/serializers/question'
+import { adaptiveTestShape } from '../../../../../lib/adaptiveRouting'
 
 // A student may only load a test they own (self-practice), that is assigned to them,
 // or that they already have a session for (assigned/reassigned). Staff always may.
@@ -185,6 +186,14 @@ export async function PUT(request, { params }) {
       if (Object.prototype.hasOwnProperty.call(body, field)) {
         update[field] = body[field]
       }
+    }
+
+    // Keep totalQuestions + duration in sync with the section structure (2 modules per
+    // enabled section) so an edited adaptive test never reverts to the 50 Q / 180 min default.
+    if (update.sections && (update.sections.rw || update.sections.math)) {
+      const shape = adaptiveTestShape(update.sections)
+      update.totalQuestions = shape.questions
+      update.duration = shape.minutes
     }
 
     const updated = await Test.findByIdAndUpdate(params.id, update, {

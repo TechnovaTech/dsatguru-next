@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../lib/db'
 import Question from '../../../lib/models/Question'
 import Course from '../../../lib/models/Course'
+// Registering the User model here is required: `.populate('createdBy')` below throws
+// MissingSchemaError on a cold start if nothing else imported it first.
+import User from '../../../lib/models/User'
 import { verifyToken, getTokenFromRequest, requireRole } from '../../../lib/auth'
 import { generateQuestionId } from '../../../lib/idGenerator'
 import { ROLES, ADMIN_ROLES } from '../../../lib/constants/roles'
@@ -320,6 +323,7 @@ export async function GET(request) {
 
     return NextResponse.json(questionsData)
   } catch (error) {
+    console.error('GET /api/questions failed:', error?.message, error?.stack)
     return NextResponse.json({ error: 'Failed to fetch questions' }, { status: 500 })
   }
 }

@@ -3,6 +3,7 @@ import { connectDB } from '../../../../lib/db'
 import Test from '../../../../lib/models/Test'
 import { requireRole } from '../../../../lib/auth'
 import { STAFF_ROLES } from '../../../../lib/constants/roles'
+import { adaptiveTestShape } from '../../../../lib/adaptiveRouting'
 
 export async function GET(request) {
   try {
@@ -34,6 +35,14 @@ export async function POST(request) {
     const { decoded } = auth
     await connectDB()
     const body = await request.json()
+    // An adaptive test is structurally 2 modules per enabled section (27 R&W / 22 Math);
+    // derive totalQuestions + duration from sections so the catalog never stores the schema
+    // default (50 Q / 180 min).
+    if (body.sections && (body.sections.rw || body.sections.math)) {
+      const shape = adaptiveTestShape(body.sections)
+      body.totalQuestions = shape.questions
+      body.duration = shape.minutes
+    }
     const test = await Test.create(body)
     return NextResponse.json(test, { status: 201 })
   } catch (error) {

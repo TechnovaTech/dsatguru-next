@@ -1343,7 +1343,7 @@ export default function TutorTestSheets() {
                                   </select>
                                 ) : (
                                   <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                                    <span className="text-sm font-medium text-green-800">Correct Answer: {q.correctAnswer}</span>
+                                    <span className="text-sm font-medium text-green-800">Correct Answer: {renderWithImages(String(q.correctAnswer ?? ''))}</span>
                                   </div>
                                 )}
                               </div>
@@ -1368,7 +1368,7 @@ export default function TutorTestSheets() {
                                   />
                                 ) : (
                                   <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                                    <span className="text-sm font-medium text-green-800">Correct Answer: {q.correctAnswer}</span>
+                                    <span className="text-sm font-medium text-green-800">Correct Answer: {renderWithImages(String(q.correctAnswer ?? ''))}</span>
                                   </div>
                                 )}
                               </div>

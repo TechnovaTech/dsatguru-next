@@ -8,6 +8,7 @@ import { verifyToken, getTokenFromRequest } from '../../../lib/auth'
 import { STAFF_ROLES } from '../../../lib/constants/roles'
 import { gradeAndScore } from '../../../lib/scoring/satScale'
 import { getCustomMap, effectiveCorrectAnswer, effectiveOptions } from '../../../lib/tutorCustomQuestions'
+import { gradeModules } from '../../../lib/adaptiveRouting'
 import { logger } from '../../../lib/logger'
 import { syncWrongAnswers } from '../../../lib/learningLoop'
 
@@ -153,8 +154,17 @@ export async function POST(request) {
       // Server-authoritative scoring: re-grade from the question bank and apply the
       // canonical scaled score. Client-computed scores/isCorrect are never trusted.
       if (Array.isArray(sessionData.responses) && sessionData.responses.length) {
-        const qIds = sessionData.responses.map(r => r.questionId)
-        const qs = await Question.find({ _id: { $in: qIds } }).select('subject correctAnswer options')
+        const moduleAnswers = sessionData.moduleAnswers
+        // Grade every response AND every question referenced by moduleAnswers (per-module
+        // adaptive breakdown), including difficulty for the Module-2 tier.
+        const idSet = new Set(sessionData.responses.map(r => String(r.questionId)))
+        if (moduleAnswers && typeof moduleAnswers === 'object') {
+          for (const mod of Object.values(moduleAnswers)) {
+            const qids = (mod && mod.questionIds && mod.questionIds.length) ? mod.questionIds : Object.keys((mod && mod.answers) || {})
+            qids.forEach(id => idSet.add(String(id)))
+          }
+        }
+        const qs = await Question.find({ _id: { $in: [...idSet] } }).select('subject correctAnswer options difficulty')
         // Honor tutor customQuestions (edited answers/options) when grading.
         const gradeTest = sessionData.testId ? await Test.findById(sessionData.testId).select('isTutorTest customQuestions').lean() : null
         const gradeCustomMap = getCustomMap(gradeTest)
@@ -162,6 +172,7 @@ export async function POST(request) {
           subject: q.subject,
           correctAnswer: effectiveCorrectAnswer(gradeCustomMap, q._id, q.correctAnswer),
           options: effectiveOptions(gradeCustomMap, q._id, q.options),
+          difficulty: q.difficulty,
         }]))
         const scored = gradeAndScore(sessionData.responses, qMap)
         sessionData.responses = sessionData.responses.map((r, i) => ({ ...r, isCorrect: scored.flags[i] }))
@@ -170,6 +181,12 @@ export async function POST(request) {
         sessionData.mathScore = scored.mathScore
         sessionData.totalScore = scored.totalScore
         sessionData.result = { math: scored.mathScore, readingWriting: scored.rwScore, total: scored.totalScore }
+        // Adaptive tests (moduleAnswers present, responses NOT moduleIndex-tagged) get a
+        // per-module {correct,total,difficulty} breakdown. Module tests keep their own shape.
+        const isModuleIndexed = sessionData.responses.some(r => r && r.moduleIndex != null)
+        if (!isModuleIndexed && moduleAnswers && Object.keys(moduleAnswers).length) {
+          sessionData.moduleScores = gradeModules(moduleAnswers, qMap)
+        }
       }
 
       // If the student already has an OPEN (Assigned/InProgress) session for this test,

@@ -518,7 +518,7 @@ export default function ModuleTestSheets() {
                               <label className="mb-2 block text-sm font-medium text-slate-700">Correct Answer</label>
                               {isEditing
                                 ? <select value={q.correctAnswer} onChange={e => handleQuestionFieldChange(qId, 'correctAnswer', e.target.value)} className="w-full rounded-lg border border-slate-300 p-2 outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500">{['A','B','C','D'].map(l => <option key={l}>{l}</option>)}</select>
-                                : <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-800">Correct Answer: {q.correctAnswer}</div>}
+                                : <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-800">Correct Answer: {renderWithImages(String(q.correctAnswer ?? ''))}</div>}
                             </div>
                           </>
                         ) : (
@@ -526,7 +526,7 @@ export default function ModuleTestSheets() {
                             <label className="mb-2 block text-sm font-medium text-slate-700">Correct Answer <span className="ml-1 rounded bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">Fill-in-the-Blank</span></label>
                             {isEditing
                               ? <input type="text" value={q.correctAnswer || ''} onChange={e => handleQuestionFieldChange(qId, 'correctAnswer', e.target.value)} className="w-full rounded-lg border border-slate-300 p-3 outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" placeholder="Enter correct answer..." />
-                              : <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-800">Correct Answer: {q.correctAnswer}</div>}
+                              : <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-800">Correct Answer: {renderWithImages(String(q.correctAnswer ?? ''))}</div>}
                           </div>
                         )}
 

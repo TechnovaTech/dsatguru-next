@@ -559,7 +559,7 @@ export default function AdminTestSheets() {
                               <span className="text-xs font-semibold uppercase text-emerald-700">Correct Answer (Fill-in-the-Blank)</span>
                               {isEditing
                                 ? <input type="text" aria-label="Correct answer" value={q.correctAnswer || ''} onChange={e => handleQuestionFieldChange(q.id || q._id, 'correctAnswer', e.target.value)} className="mt-2 w-full rounded-lg border border-slate-300 p-2 outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500" placeholder="Enter correct answer..." />
-                                : <p className="mt-1 text-lg font-bold text-emerald-900">{q.correctAnswer}</p>
+                                : <p className="mt-1 text-lg font-bold text-emerald-900">{renderWithImages(String(q.correctAnswer ?? ''))}</p>
                               }
                             </div>
                           )

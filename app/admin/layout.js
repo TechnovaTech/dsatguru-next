@@ -35,9 +35,9 @@ const ADMIN_SECTIONS = [
     ],
   },
   {
-    id: 'tests', label: 'Tests', icon: FiClipboard, items: [
-      { label: 'Test Management', path: '/admin/test-management' },
-      { label: 'Adaptive Results', path: '/admin/adaptive-tests/results' },
+    id: 'tests', label: 'Adaptive Tests', icon: FiClipboard, items: [
+      { label: 'Adaptive Test Management', path: '/admin/test-management' },
+      { label: 'Adaptive Test Results', path: '/admin/adaptive-tests/results' },
       { label: 'Demo Test', path: '/admin/demo-test' },
       { label: 'Test Session Monitoring', path: '/admin/test-sessions' },
     ],

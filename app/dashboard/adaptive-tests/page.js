@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fi'
 import { useToast } from '@/app/components/ui/UIProvider'
 import { canReattempt, reattemptSession } from '@/lib/reattempt'
+import { adaptiveTestShape } from '@/lib/adaptiveRouting'
 
 export default function AdaptiveTestsPage() {
   const router = useRouter()
@@ -99,8 +100,12 @@ export default function AdaptiveTestsPage() {
     if (test?.sections?.rw) sections.push('R&W')
     if (test?.sections?.math) sections.push('Math')
     const sectionLabel = sections.join(' + ') || '—'
-    const duration = test?.duration || 180
-    const questionCount = test?.totalQuestions || test?.questions?.length || 0
+    // Question count + duration are structurally fixed by the section layout (2 modules per
+    // section: 27 R&W / 32 min, 22 Math / 35 min) — derive them so the card never shows the
+    // schema default (50 Q / 180 min). Fall back to stored values only if sections are unset.
+    const shape = adaptiveTestShape(test?.sections)
+    const duration = shape.minutes || test?.duration || 180
+    const questionCount = shape.questions || test?.totalQuestions || test?.questions?.length || 0
     const difficulty = test?.difficulty
     const createdAt = session.createdAt ? new Date(session.createdAt) : null
     const completedAt = session.completedAt ? new Date(session.completedAt) : null

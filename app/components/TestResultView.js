@@ -175,8 +175,12 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
         } else if (sessionData.moduleAnswers) {
             // Fallback for older sessions
             Object.keys(sessionData.moduleAnswers).forEach(moduleKey => {
-                const moduleData = sessionData.moduleAnswers[moduleKey]
-                let answers = moduleData.answers || moduleData
+                const moduleData = sessionData.moduleAnswers[moduleKey] || {}
+                // New shape {answers,questionIds} vs legacy bare {qid:sel}. Never iterate the
+                // wrapper's own keys ("answers"/"questionIds") as question ids.
+                const answers = (moduleData.answers && typeof moduleData.answers === 'object')
+                    ? moduleData.answers
+                    : ((!('answers' in moduleData) && !('questionIds' in moduleData)) ? moduleData : {})
                 Object.keys(answers).forEach(qId => {
                     responsesMap[qId] = {
                         questionId: qId,

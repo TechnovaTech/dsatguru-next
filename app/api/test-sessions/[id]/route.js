@@ -8,6 +8,7 @@ import Test from '../../../../lib/models/Test'
 import { gradeAndScore } from '../../../../lib/scoring/satScale'
 import { canRevealAnswers, stripAnswerFields } from '../../../../lib/serializers/question'
 import { getCustomMap, effectiveCorrectAnswer, effectiveOptions } from '../../../../lib/tutorCustomQuestions'
+import { gradeModules } from '../../../../lib/adaptiveRouting'
 import { STAFF_ROLES, ADMIN_ROLES, ROLES } from '../../../../lib/constants/roles'
 import { syncWrongAnswers } from '../../../../lib/learningLoop'
 
@@ -75,18 +76,27 @@ export async function GET(request, { params }) {
       })
     }
     
-    // 3. From moduleAnswers (legacy or structured)
+    // 3. From moduleAnswers. New shape: { moduleKey: { answers:{qid:sel}, questionIds:[...] } };
+    //    legacy shape: { moduleKey: { qid: sel } }. A module the student left entirely blank
+    //    stores only questionIds (Mongoose drops the empty `answers:{}`), so NEVER treat the
+    //    wrapper's own keys ("answers"/"questionIds") as question ids — that used to add the
+    //    literal string "questionIds" and CastError-500 the whole result page.
     if (session.moduleAnswers) {
       Object.values(session.moduleAnswers).forEach(mod => {
-        const answers = mod.answers || mod
-        if (answers && typeof answers === 'object') {
-          Object.keys(answers).forEach(id => allQuestionIds.add(String(id)))
+        if (!mod || typeof mod !== 'object') return
+        if (Array.isArray(mod.questionIds)) {
+          mod.questionIds.forEach(id => allQuestionIds.add(String(id)))
         }
+        const answers = (mod.answers && typeof mod.answers === 'object')
+          ? mod.answers
+          : ((!('answers' in mod) && !('questionIds' in mod)) ? mod : null) // legacy bare {qid:sel} map
+        if (answers) Object.keys(answers).forEach(id => allQuestionIds.add(String(id)))
       })
     }
 
-    // Fetch details for all these questions
-    const questionIds = Array.from(allQuestionIds)
+    // Fetch details for all these questions. Guard the $in with a valid-ObjectId filter so a
+    // stray non-id string can never CastError-500 the result page again.
+    const questionIds = Array.from(allQuestionIds).filter(id => /^[a-f\d]{24}$/i.test(id))
     let sessionQuestions = []
     
     if (questionIds.length > 0) {
@@ -197,6 +207,7 @@ export async function GET(request, { params }) {
       unlockRequest: session.unlockRequest || null
     })
   } catch (error) {
+    console.error('GET /api/test-sessions/[id] failed:', error?.message, error?.stack)
     return NextResponse.json({ error: 'Failed to fetch session' }, { status: 500 })
   }
 }
@@ -270,9 +281,18 @@ export async function PUT(request, { params }) {
       const toGrade = (Array.isArray(sessionData.responses) && sessionData.responses.length)
         ? sessionData.responses
         : (session.responses || [])
+      const moduleAnswers = sessionData.moduleAnswers || session.moduleAnswers
       if (toGrade.length) {
-        const qIds = toGrade.map(r => r.questionId)
-        const qs = await Question.find({ _id: { $in: qIds } }).select('subject correctAnswer options')
+        // Grade every response AND every question referenced by moduleAnswers (needed for the
+        // per-module adaptive breakdown), including difficulty for the Module-2 tier.
+        const idSet = new Set(toGrade.map(r => String(r.questionId)))
+        if (moduleAnswers && typeof moduleAnswers === 'object') {
+          for (const mod of Object.values(moduleAnswers)) {
+            const qids = (mod && mod.questionIds && mod.questionIds.length) ? mod.questionIds : Object.keys((mod && mod.answers) || {})
+            qids.forEach(id => idSet.add(String(id)))
+          }
+        }
+        const qs = await Question.find({ _id: { $in: [...idSet] } }).select('subject correctAnswer options difficulty')
         // Honor tutor customQuestions when grading (edited correct answers).
         const gradeTest = session.testId ? await Test.findById(session.testId).select('isTutorTest customQuestions').lean() : null
         const gradeCustomMap = getCustomMap(gradeTest)
@@ -280,6 +300,7 @@ export async function PUT(request, { params }) {
           subject: q.subject,
           correctAnswer: effectiveCorrectAnswer(gradeCustomMap, q._id, q.correctAnswer),
           options: effectiveOptions(gradeCustomMap, q._id, q.options),
+          difficulty: q.difficulty,
         }]))
         const scored = gradeAndScore(toGrade, qMap)
         session.responses = toGrade.map((r, i) => ({ ...(typeof r.toObject === 'function' ? r.toObject() : r), isCorrect: scored.flags[i] }))
@@ -288,7 +309,13 @@ export async function PUT(request, { params }) {
         session.mathScore = scored.mathScore
         session.totalScore = scored.totalScore
         session.result = { math: scored.mathScore, readingWriting: scored.rwScore, total: scored.totalScore }
-        session.moduleScores = recomputeModuleScores(toGrade, scored.flags) || session.moduleScores
+        // Per-module server-graded breakdown. FPT module tests tag responses with moduleIndex
+        // → recomputeModuleScores ({subject,correct,total,score}); adaptive tests carry
+        // moduleAnswers ({moduleKey:{answers,questionIds}}) → gradeModules ({correct,total,difficulty}).
+        // Prefer the moduleIndex path so a module test's shape is never overwritten.
+        const fromIndex = recomputeModuleScores(toGrade, scored.flags)
+        if (fromIndex) session.moduleScores = fromIndex
+        else if (moduleAnswers && Object.keys(moduleAnswers).length) session.moduleScores = gradeModules(moduleAnswers, qMap)
       }
     }
 
