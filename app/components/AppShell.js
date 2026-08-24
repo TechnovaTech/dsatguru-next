@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import PublicLayout from './PublicLayout'
 import MaintenancePage from './MaintenancePage'
+import Watermark from './Watermark'
 import { useAuth } from './AuthContext'
 import { STAFF_ROLES } from '../../lib/constants/roles'
 
@@ -51,6 +52,12 @@ export default function AppShell({ children }) {
     ? children
     : <PublicLayout>{children}</PublicLayout>
 
+  // Traceability watermark on the authenticated app areas (where sensitive
+  // questions/data live) — tiles the logged-in user's email so leaked screenshots
+  // are attributable. Skipped on the public marketing site.
+  const inApp = isAdmin || isDashboard || isTutor || isIgcsc
+  const watermark = inApp && user?.email ? <Watermark label={user.email} /> : null
+
   // Staff see a banner so they know maintenance is live (visitors are being blocked).
   if (maintenanceActive && isStaff) {
     return (
@@ -59,9 +66,10 @@ export default function AppShell({ children }) {
           🔧 Maintenance mode is ON — only staff can access the site; visitors see the maintenance page. Turn it off in Settings.
         </div>
         {inner}
+        {watermark}
       </>
     )
   }
 
-  return inner
+  return <>{inner}{watermark}</>
 }
