@@ -3,12 +3,14 @@
 // Idempotent: clears the igcsc collections, then inserts a fresh demo dataset.
 try { require('@next/env').loadEnvConfig(process.cwd()) } catch { try { require('dotenv').config() } catch {} }
 const mongoose = require('mongoose')
+const bcrypt = require('bcryptjs')
 
 const base = process.env.MONGO_URI || 'mongodb://localhost:27017/dsatmain'
 const uri = process.env.IGCSC_MONGO_URI || base.replace(/\/([^/?]+)(\?|$)/, '/igcsc$2')
 
 const gradeFromPct = (p) => p >= 90 ? 'A*' : p >= 80 ? 'A' : p >= 70 ? 'B' : p >= 60 ? 'C' : p >= 50 ? 'D' : p >= 40 ? 'E' : 'U'
 
+const userSchema = new mongoose.Schema({ name: String, email: { type: String, lowercase: true }, password: String, role: { type: String, default: 'student' }, yearGroup: String, subjects: [String], isActive: { type: Boolean, default: true } }, { timestamps: true })
 const studentSchema = new mongoose.Schema({ name: String, email: { type: String, lowercase: true }, yearGroup: String, targetGrade: String, targetDate: Date, subjects: [String], guardianEmail: String, isActive: { type: Boolean, default: true }, assignedTests: [mongoose.Schema.Types.ObjectId] }, { timestamps: true })
 const bankSchema = new mongoose.Schema({ title: String, subject: String, description: String, totalQuestions: Number, status: { type: String, default: 'Active' } }, { timestamps: true })
 const testSchema = new mongoose.Schema({ title: String, subject: String, testType: String, totalQuestions: Number, durationMin: Number, maxMarks: Number, isActive: { type: Boolean, default: true } }, { timestamps: true })
@@ -21,12 +23,13 @@ const LAST = ['Sharma', 'Patel', 'Khan', 'Reddy', 'Nair', 'Gupta', 'Shah', 'Meht
 async function run() {
   await mongoose.connect(uri)
   console.log('Connected to IGCSC DB:', mongoose.connection.name)
+  const IgcscUser = mongoose.model('IgcscUser', userSchema)
   const Student = mongoose.model('Student', studentSchema)
   const QuestionBank = mongoose.model('QuestionBank', bankSchema)
   const Test = mongoose.model('Test', testSchema)
   const Session = mongoose.model('Session', sessionSchema)
 
-  await Promise.all([Student.deleteMany({}), QuestionBank.deleteMany({}), Test.deleteMany({}), Session.deleteMany({})])
+  await Promise.all([IgcscUser.deleteMany({}), Student.deleteMany({}), QuestionBank.deleteMany({}), Test.deleteMany({}), Session.deleteMany({})])
   console.log('Cleared existing igcsc collections')
 
   // Students
@@ -47,6 +50,16 @@ async function run() {
   }
   const studentDocs = await Student.insertMany(students)
   console.log(`Inserted ${studentDocs.length} students`)
+
+  // IGCSC login accounts (own auth, own DB): 1 admin + a login per demo student.
+  const adminPw = await bcrypt.hash(process.env.IGCSC_ADMIN_PASSWORD || 'admin@igcsc', 12)
+  const studentPw = await bcrypt.hash('igcsc123', 12)
+  const userDocs = [{ name: 'IGCSC Administrator', email: 'admin@igcsc.com', password: adminPw, role: 'admin', isActive: true }]
+  for (const s of studentDocs) {
+    userDocs.push({ name: s.name, email: s.email, password: studentPw, role: 'student', yearGroup: s.yearGroup, subjects: s.subjects, isActive: s.isActive })
+  }
+  await IgcscUser.insertMany(userDocs)
+  console.log(`Inserted ${userDocs.length} IGCSC login accounts (admin@igcsc.com / admin@igcsc; students / igcsc123)`)
 
   // Question banks (one per subject)
   const banks = SUBJECTS.map((s, i) => ({

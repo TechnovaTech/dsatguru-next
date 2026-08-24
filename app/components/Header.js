@@ -246,6 +246,15 @@ export default function Header() {
 
               {/* Right CTAs */}
               <div className="hidden flex-shrink-0 items-center gap-2 lg:flex">
+                {/* Separate IGCSC (IGCSE) platform entry */}
+                <a
+                  href="/igcsc/login"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2 text-[13px] font-bold text-indigo-700 transition-colors hover:bg-indigo-100"
+                  title="IGCSC — IGCSE Assessment Platform"
+                >
+                  <span className="flex h-4 w-4 items-center justify-center rounded bg-gradient-to-br from-indigo-600 to-blue-600 text-[8px] font-black text-white">iG</span>
+                  IGCSC
+                </a>
                 {user ? (
                   <a
                     href={user?.role === 'Admin' ? '/admin' : '/dashboard'}

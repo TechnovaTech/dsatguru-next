@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server'
 import { igcscModels } from '../../../../lib/igcscDb'
-import { requireRole } from '../../../../lib/auth'
-import { STAFF_ROLES } from '../../../../lib/constants/roles'
+import { requireIgcscAuth, IGCSC_STAFF } from '../../../../lib/igcscAuth'
 
 export async function GET(request) {
   try {
-    const auth = requireRole(request, STAFF_ROLES)
+    const auth = requireIgcscAuth(request, IGCSC_STAFF)
     if (auth.error) return auth.error
     const { Session } = await igcscModels()
     const state = new URL(request.url).searchParams.get('state') || 'completed'

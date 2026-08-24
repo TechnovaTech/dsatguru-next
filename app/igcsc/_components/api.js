@@ -4,7 +4,7 @@
 
 export function authToken() {
   if (typeof window === 'undefined') return null
-  return localStorage.getItem('token')
+  return localStorage.getItem('igcsc_token')
 }
 
 export async function apiGet(path) {

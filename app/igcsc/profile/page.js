@@ -1,16 +1,20 @@
 'use client'
-import { useAuth } from '../../components/AuthContext'
+import { useEffect, useState } from 'react'
 import { FiMail, FiShield, FiUser } from 'react-icons/fi'
+import { igcscUser } from '../_components/auth'
 import { PageHeader, Card } from '../_components/ui'
 
 export default function ProfilePage() {
-  const { user } = useAuth()
+  const [user, setUser] = useState(null)
+  useEffect(() => { setUser(igcscUser()) }, [])
   if (!user) return null
+
   const initials = (user.name || user.email || 'A').trim().slice(0, 2).toUpperCase()
+  const roleLabel = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : ''
 
   return (
     <div>
-      <PageHeader title="Profile" subtitle="Your IGCSC administrator account." />
+      <PageHeader title="Profile" subtitle="Your IGCSC account." />
       <div className="max-w-2xl">
         <Card>
           <div className="flex items-center gap-4 border-b border-slate-100 p-6">
@@ -24,7 +28,7 @@ export default function ProfilePage() {
             {[
               { icon: FiUser, label: 'Name', value: user.name || '—' },
               { icon: FiMail, label: 'Email', value: user.email },
-              { icon: FiShield, label: 'Role', value: user.role },
+              { icon: FiShield, label: 'Role', value: roleLabel },
             ].map((row) => (
               <div key={row.label} className="flex items-center gap-3 px-6 py-4">
                 <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"><row.icon size={16} /></span>

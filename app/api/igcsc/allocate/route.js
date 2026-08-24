@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server'
 import { igcscModels } from '../../../../lib/igcscDb'
-import { requireRole } from '../../../../lib/auth'
-import { STAFF_ROLES } from '../../../../lib/constants/roles'
+import { requireIgcscAuth, IGCSC_STAFF } from '../../../../lib/igcscAuth'
 
 // Assign / unassign an IGCSE test to a student. Creates (or removes) an ASSIGNED session.
 export async function PUT(request) {
   try {
-    const auth = requireRole(request, STAFF_ROLES)
+    const auth = requireIgcscAuth(request, IGCSC_STAFF)
     if (auth.error) return auth.error
     const { studentId, testId, action } = await request.json()
     if (!studentId || !testId || !action) {

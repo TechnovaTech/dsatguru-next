@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server'
 import { igcscModels } from '../../../../lib/igcscDb'
-import { requireRole } from '../../../../lib/auth'
-import { STAFF_ROLES, ADMIN_ROLES } from '../../../../lib/constants/roles'
+import { requireIgcscAuth, IGCSC_STAFF, IGCSC_ADMIN } from '../../../../lib/igcscAuth'
 
 export async function GET(request) {
   try {
-    const auth = requireRole(request, STAFF_ROLES)
+    const auth = requireIgcscAuth(request, IGCSC_STAFF)
     if (auth.error) return auth.error
     const { Student } = await igcscModels()
     const students = await Student.find({}).sort({ createdAt: -1 }).limit(1000).lean()
@@ -17,7 +16,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const auth = requireRole(request, ADMIN_ROLES)
+    const auth = requireIgcscAuth(request, IGCSC_ADMIN)
     if (auth.error) return auth.error
     const body = await request.json()
     if (!body?.name || !body?.email) {
