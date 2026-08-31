@@ -8,6 +8,8 @@ import {
 } from 'react-icons/fi'
 // Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
 import { resolveAnswerLetter } from '../../../../../../lib/scoring/satScale'
+// LaTeX + markdown images (incl. data-URI figures) + tables + <u> — same renderer as the exam views.
+import { renderContent, renderLatex } from '../../../../../components/admin/LatexRenderer'
 
 export default function AdminStudentPerformancePage() {
   const { user } = useAuth()
@@ -218,7 +220,7 @@ export default function AdminStudentPerformancePage() {
                           <span className="text-slate-400">{m.testTitle || 'Untitled Test'} — {formatDate(m.completedAt)}</span>
                         </div>
                         <div className="mb-1 text-xs font-semibold text-indigo-600">Q{mi + 1}</div>
-                        <p className="mb-3 text-sm font-medium leading-relaxed text-slate-900">{m.question}</p>
+                        <div className="mb-3 text-sm font-medium leading-relaxed text-slate-900">{renderContent(m.question)}</div>
                         {Array.isArray(m.options) && m.options.length > 0 ? (
                           <div className="mb-3 grid grid-cols-1 gap-2">
                             {m.options.map((opt, oi) => {
@@ -228,7 +230,7 @@ export default function AdminStudentPerformancePage() {
                               return (
                                 <div key={oi} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${isCorrect ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : isSelected ? 'border-rose-300 bg-rose-50 text-rose-800' : 'border-slate-200 bg-slate-50 text-slate-700'}`}>
                                   <span className="w-5 flex-shrink-0 font-semibold">{label}.</span>
-                                  <span className="flex-1">{opt}</span>
+                                  <div className="flex-1">{renderContent(opt)}</div>
                                   {isCorrect && <span className="font-bold text-emerald-600">✓</span>}
                                   {isSelected && !isCorrect && <span className="font-bold text-rose-600">✗</span>}
                                 </div>
@@ -237,11 +239,11 @@ export default function AdminStudentPerformancePage() {
                           </div>
                         ) : (
                           <div className="mb-3 flex gap-3 text-sm">
-                            <div className="flex-1 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2"><span className="mb-0.5 block text-xs text-slate-500">Student answered</span><span className="font-semibold text-rose-700">{m.selectedAnswer || 'No answer'}</span></div>
-                            <div className="flex-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2"><span className="mb-0.5 block text-xs text-slate-500">Correct answer</span><span className="font-semibold text-emerald-700">{m.correctAnswer}</span></div>
+                            <div className="flex-1 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2"><span className="mb-0.5 block text-xs text-slate-500">Student answered</span><span className="font-semibold text-rose-700">{m.selectedAnswer ? renderLatex(String(m.selectedAnswer)) : 'No answer'}</span></div>
+                            <div className="flex-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2"><span className="mb-0.5 block text-xs text-slate-500">Correct answer</span><span className="font-semibold text-emerald-700">{renderLatex(String(m.correctAnswer ?? ''))}</span></div>
                           </div>
                         )}
-                        {m.explanation && <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-xs text-indigo-800"><span className="font-semibold">Explanation: </span>{m.explanation}</div>}
+                        {m.explanation && <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-xs text-indigo-800"><span className="font-semibold">Explanation: </span>{renderContent(m.explanation)}</div>}
                       </div>
                     ))}
                   </div>
@@ -304,7 +306,7 @@ export default function AdminStudentPerformancePage() {
                           <span className="text-slate-400">{formatDate(q.completedAt)}</span>
                         </div>
                         <div className="mb-1 text-xs font-semibold text-slate-400">Question</div>
-                        <p className="mb-4 text-sm font-medium leading-relaxed text-slate-900">{q.question}</p>
+                        <div className="mb-4 text-sm font-medium leading-relaxed text-slate-900">{renderContent(q.question)}</div>
                         {q.isMCQ ? (
                           <>
                             <div className="mb-2 text-xs font-semibold text-slate-400">Options</div>
@@ -316,7 +318,7 @@ export default function AdminStudentPerformancePage() {
                                 return (
                                   <div key={oi} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${isCorrect ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : isSelected ? 'border-rose-300 bg-rose-50 text-rose-800' : 'border-slate-200 bg-slate-50 text-slate-700'}`}>
                                     <span className="w-5 flex-shrink-0 font-semibold">{label}.</span>
-                                    <span className="flex-1">{opt}</span>
+                                    <div className="flex-1">{renderContent(opt)}</div>
                                     {isCorrect && <span className="font-bold text-emerald-600">✓</span>}
                                     {isSelected && !isCorrect && <span className="font-bold text-rose-600">✗</span>}
                                   </div>
@@ -326,11 +328,11 @@ export default function AdminStudentPerformancePage() {
                           </>
                         ) : (
                           <div className="flex gap-3 text-sm">
-                            <div className="flex-1 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2"><span className="mb-0.5 block text-xs text-slate-400">Student answered</span><span className="font-semibold text-rose-700">{q.selectedAnswer || 'No answer'}</span></div>
-                            <div className="flex-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2"><span className="mb-0.5 block text-xs text-slate-400">Correct answer</span><span className="font-semibold text-emerald-700">{q.correctAnswer}</span></div>
+                            <div className="flex-1 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2"><span className="mb-0.5 block text-xs text-slate-400">Student answered</span><span className="font-semibold text-rose-700">{q.selectedAnswer ? renderLatex(String(q.selectedAnswer)) : 'No answer'}</span></div>
+                            <div className="flex-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2"><span className="mb-0.5 block text-xs text-slate-400">Correct answer</span><span className="font-semibold text-emerald-700">{renderLatex(String(q.correctAnswer ?? ''))}</span></div>
                           </div>
                         )}
-                        {q.explanation && <div className="mt-3 rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-xs text-indigo-800"><span className="font-semibold">Explanation: </span>{q.explanation}</div>}
+                        {q.explanation && <div className="mt-3 rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-xs text-indigo-800"><span className="font-semibold">Explanation: </span>{renderContent(q.explanation)}</div>}
                       </div>
                     )
                   })}
