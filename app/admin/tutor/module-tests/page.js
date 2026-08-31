@@ -417,7 +417,7 @@ export default function ModuleTestSheets() {
                 </div>
                 <div className="flex items-center gap-3">
                   {isEditMode && <button onClick={handleSaveTestEdits} disabled={savingTest} className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700 disabled:bg-slate-400"><FiSave /> {savingTest ? 'Saving...' : 'Save All'}</button>}
-                  {isEditMode && <EditTestJsonModal test={viewingTest} updateUrl="/api/admin/tutor/module-tests/update" onSaved={() => { fetchTests(); setShowViewModal(false) }} orderedQuestionIds={currentModules[currentModuleTab]?.questions || []} existingCustomQuestions={editedQuestionsData} scopeLabel={`Module ${currentModuleTab + 1}`} label={`Edit JSON (Module ${currentModuleTab + 1})`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-indigo-600 hover:bg-slate-50" />}
+                  {isEditMode && <EditTestJsonModal key={currentModuleTab} test={viewingTest} updateUrl="/api/admin/tutor/module-tests/update" onSaved={() => { fetchTests(); setShowViewModal(false) }} orderedQuestionIds={currentModules[currentModuleTab]?.questions || []} existingCustomQuestions={editedQuestionsData} scopeLabel={`Module ${currentModuleTab + 1}`} label={`Edit JSON (Module ${currentModuleTab + 1})`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-indigo-600 hover:bg-slate-50" />}
                   <button onClick={() => setShowViewModal(false)} aria-label="Close" className="text-slate-400 hover:text-slate-600"><FiX className="w-5 h-5" /></button>
                 </div>
               </div>
