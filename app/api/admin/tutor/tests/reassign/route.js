@@ -5,6 +5,7 @@ import TestSession from '../../../../../../lib/models/TestSession'
 import User from '../../../../../../lib/models/User'
 import { requireRole } from '../../../../../../lib/auth'
 import { ROLES, STAFF_ROLES } from '../../../../../../lib/constants/roles'
+import { findDuplicateQuestionRefs } from '../../../../../../lib/moduleTestValidation'
 
 export async function POST(request) {
   try {
@@ -34,6 +35,16 @@ export async function POST(request) {
     }
 
     const isModuleReassign = originalTest.isModuleTest && Array.isArray(modulesData) && modulesData.length > 0
+
+    // Same-question-in-two-modules corrupts the new test (edits bleed across
+    // modules, student sees the question twice) — refuse instead of copying it.
+    if (isModuleReassign) {
+      const dupRefs = findDuplicateQuestionRefs(modulesData)
+      if (dupRefs.length > 0) {
+        return NextResponse.json({ error: `The same question appears in more than one module (${dupRefs.length} duplicate${dupRefs.length > 1 ? 's' : ''}). Each question can be used only once per test.` }, { status: 400 })
+      }
+    }
+
     const flatQuestions = isModuleReassign ? modulesData.flatMap(m => m.questions) : questionIds
 
     // Create a new test with the selected questions

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../../lib/db'
 import Test from '../../../../../../lib/models/Test'
 import { getTokenFromRequest, verifyToken } from '../../../../../../lib/auth'
+import { findDuplicateQuestionRefs } from '../../../../../../lib/moduleTestValidation'
 
 export async function POST(request) {
   try {
@@ -24,6 +25,14 @@ export async function POST(request) {
       if (!m.questions || m.questions.length === 0) {
         return NextResponse.json({ error: `Module ${i + 1} has no questions selected` }, { status: 400 })
       }
+    }
+
+    // A question may appear in only ONE module, once. Duplicate refs make edits
+    // bleed across modules (customQuestions is keyed by question id) and show
+    // students the same question twice.
+    const dupRefs = findDuplicateQuestionRefs(modules)
+    if (dupRefs.length > 0) {
+      return NextResponse.json({ error: `The same question is selected in more than one module (${dupRefs.length} duplicate${dupRefs.length > 1 ? 's' : ''}). Each question can be used only once per test.` }, { status: 400 })
     }
 
     const existing = await Test.findOne({ title: title.trim(), isModuleTest: true, isActive: { $ne: false } })
