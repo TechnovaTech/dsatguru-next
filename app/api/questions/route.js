@@ -26,6 +26,10 @@ export async function GET(request) {
     const bankId = searchParams.get('bankId')
     const tag = searchParams.get('tag')
     const region = searchParams.get('region')
+    // Official College Board content taxonomy stored per question:
+    //   domain = content domain (topic), skill = skill/knowledge testing point (subtopic).
+    const domain = searchParams.get('domain')
+    const skill = searchParams.get('skill')
     const isTutor = searchParams.get('isTutor')
     const isAdminTest = searchParams.get('isAdminTest')
     const ids = searchParams.get('ids')
@@ -234,6 +238,9 @@ export async function GET(request) {
     }
     if (tag) filter.tags = { $regex: tag, $options: 'i' }
     if (region) filter.region = region
+    // Exact matches — these are canonical taxonomy strings, not free text.
+    if (domain) filter.domain = domain
+    if (skill) filter.skill = skill
 
     // Filter by isTutor / isAdminTest
     if (isTutor === 'true') {

@@ -751,11 +751,13 @@ export default function TakeTestPage() {
       }
     } else {
       // STANDARD/CUSTOM adaptive drawn from the TUTOR bank — real Digital-SAT structure:
-      //   Composition per module mirrors the real exam blueprint (verified against real
-      //   2024 papers): R&W 27 = Craft/Info/Conventions/Expression mix in the real order;
-      //   Math 22 = Algebra/Advanced/PSDA/Geometry mix, ~25% grid-in, ascending difficulty.
-      //   Module 1 = MEDIUM-anchored base; Module 2 = tier from Module-1 WRONG-count
-      //   (0-2 → Hard, 3-5 → Medium, 6+ → Easy), graded on the SERVER via /module-routing.
+      //   Composition per module mirrors the blueprint derived from the December 2025
+      //   pattern analysis (see lib/dsatDomains.js): R&W 27 = Craft/Info/Conventions/
+      //   Expression mix in the real order; Math 22 = Algebra/Advanced/PSDA/Geometry mix,
+      //   ~28% grid-in, ascending difficulty. Each module also targets its own DIFFICULTY
+      //   mix — Module 1 ≈30% Hard (R&W) / ≈40% Hard (Math); Module 2 is routed by the
+      //   Module-1 WRONG-count (0-2 → Hard form ≈40%/≈60% Hard, 3-5 → Medium, 6+ → Easy),
+      //   graded on the SERVER via /module-routing.
       // composeDsatModule excludes already-served ids and tops up per-domain/difficulty so
       // the module is always full while questions remain.
       if (moduleNum === 1) {
@@ -764,7 +766,7 @@ export default function TakeTestPage() {
         } else if (section === 'math') {
           setShowMathInstructions(true)
         }
-        selectedQuestions = composeDsatModule(filteredQuestions, section, 'Medium', usedIdsRef.current)
+        selectedQuestions = composeDsatModule(filteredQuestions, section, 'Medium', usedIdsRef.current, 1)
       } else {
         // Prefer the SERVER-routed tier; fall back to the client wrong-count.
         let tier = adaptiveRef.current[section]?.tier
@@ -772,7 +774,7 @@ export default function TakeTestPage() {
           const correct = moduleScores[`${section}_module1`] || 0
           tier = tierForWrong(Math.max(0, questionCount - correct))
         }
-        selectedQuestions = composeDsatModule(filteredQuestions, section, tier, usedIdsRef.current)
+        selectedQuestions = composeDsatModule(filteredQuestions, section, tier, usedIdsRef.current, 2)
       }
       // Record served ids so a later module can never repeat a question.
       selectedQuestions.forEach(q => usedIdsRef.current.add(String(q._id)))
