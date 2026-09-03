@@ -239,7 +239,14 @@ export async function GET(request, { params }) {
       topicStats: topicChartData,
       difficultyStats,
       performanceHistory,
-      scaledScores
+      scaledScores,
+      // One row per answered question for the shared Content Domain / Skill breakdown.
+      taxonomyRows: analysis.map(r => ({
+        subject: r.questionSubject,
+        domain: r.questionDomain || '',
+        skill: r.questionTopic || '',
+        isCorrect: !!r.isCorrect,
+      }))
     })
 
   } catch (error) {

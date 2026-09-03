@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevronDown, FiChevronUp, FiActivity, FiMonitor, FiMaximize, FiCheckSquare, FiUsers, FiRefreshCw, FiDownload, FiShare2, FiX } from 'react-icons/fi'
 import ReassignTestModal from './admin/ReassignTestModal'
 import { renderContent } from './admin/LatexRenderer'
+// Shared College-Board-aligned topic/subtopic breakdown, identical on every analysis screen.
+import SatScoreAnalysis from './SatScoreAnalysis'
 import { useConfirm, useToast } from './ui/UIProvider'
 // answersMatch decides MCQ correctness by option LETTER (bare letter, "B) 240"-style key,
 // or option-text match — never by casing); resolveAnswerLetter maps an answer to its letter
@@ -1286,6 +1288,26 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                         {formattedTime} Minutes Taken
                     </div>
                 </div>
+            </div>
+
+            {/* College-Board-aligned breakdown by Content Domain & Skill. Same component
+                (and therefore the same numbers and wording) as every other analysis screen. */}
+            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <SatScoreAnalysis
+                    // Only questions the student actually ANSWERED. Questions never reached
+                    // (adaptive leaves some unserved) or left blank would otherwise be scored
+                    // as wrong here and understate every skill — and the other analysis
+                    // screens build their rows from session.responses, i.e. answers only.
+                    rows={questions.filter(q => q.userAnswer != null && String(q.userAnswer).trim() !== '')}
+                    // Same gate the rest of this page uses: a 400–1600 scaled score is only
+                    // meaningful for a full module test, so never resurrect it elsewhere.
+                    scores={showScaledScore ? {
+                        total: session.totalScore,
+                        rw: session.rwScore ?? null,
+                        math: session.mathScore ?? null,
+                    } : null}
+                    subtitle="Detailed performance by Subject, Content Domain & Skill (College Board aligned)"
+                />
             </div>
 
             {/* Overall Test Analytics - Show for everyone if data available */}

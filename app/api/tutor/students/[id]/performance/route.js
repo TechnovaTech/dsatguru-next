@@ -63,7 +63,9 @@ export async function GET(request, { params }) {
         if (q.tags) {
           try { parsedTags = typeof q.tags === 'string' ? JSON.parse(q.tags) : q.tags } catch { parsedTags = [] }
         }
-        // Use first tag as topic, fallback to skill/domain
+        // Unchanged on purpose: the existing Mistake/Parallel Analysis UI groups and
+        // filters on this exact value. The canonical taxonomy travels separately as
+        // `domain`/`skill` below, for the SAT Score Analysis breakdown.
         const topic = (Array.isArray(parsedTags) && parsedTags.length > 0)
           ? parsedTags[0]
           : (q.skill || q.topic || q.domain || 'General')
@@ -155,9 +157,8 @@ export async function GET(request, { params }) {
         if (q.tags) {
           try { parsedTags = typeof q.tags === 'string' ? JSON.parse(q.tags) : q.tags } catch { parsedTags = [] }
         }
-        const topic = (Array.isArray(parsedTags) && parsedTags.length > 0)
-          ? parsedTags[0]
-          : (q.skill || q.topic || q.domain || 'General')
+        const topic = q.skill || q.domain || q.topic
+          || ((Array.isArray(parsedTags) && parsedTags.length > 0) ? parsedTags[0] : 'General')
 
         let options = q.options
         if (typeof options === 'string') {
@@ -172,6 +173,9 @@ export async function GET(request, { params }) {
           sessionType,
           subject,
           topic,
+          // Canonical taxonomy, for the SAT Score Analysis breakdown.
+          domain: q.domain || '',
+          skill: q.skill || '',
           difficulty: q.difficulty || 'Medium',
           completedAt: session.completedAt,
           question: q.content,

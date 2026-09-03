@@ -127,6 +127,9 @@ export async function GET(request) {
       }
     })
 
+    // One entry per answered question, feeding the shared Content Domain / Skill breakdown.
+    const taxonomyRows = []
+
     // Initialize Stats
     let totalQuestions = 0
     let correctAnswers = 0
@@ -234,6 +237,14 @@ export async function GET(request) {
           const qId = response.questionId ? response.questionId.toString() : null
           if (qId && questionMap[qId]) {
             const qData = questionMap[qId]
+            // Raw row for the shared SAT Score Analysis breakdown (lib/satAnalysis.js
+            // derives the domain from the canonical skill, so pass both through as-is).
+            taxonomyRows.push({
+              subject: qData.subject,
+              domain: qData.domain || '',
+              skill: qData.skill || '',
+              isCorrect: !!response.isCorrect,
+            })
             const subject = qData.subject === 'rw' || qData.subject === 'Reading and Writing' ? 'Reading and Writing' : 'Math'
             const mapping = DOMAIN_MAPPING[subject]
 
@@ -324,7 +335,8 @@ export async function GET(request) {
       latestScores: {
         math: latestMathScore,
         rw: latestRWScore
-      }
+      },
+      taxonomyRows
     })
 
   } catch (error) {

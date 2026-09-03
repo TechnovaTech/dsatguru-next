@@ -8,6 +8,8 @@ import {
   BarChart, Bar, PieChart, Pie, Cell
 } from 'recharts'
 import { useToast } from '../../../components/ui/UIProvider'
+// Shared College-Board-aligned topic/subtopic breakdown, identical on every analysis screen.
+import SatScoreAnalysis from '../../../components/SatScoreAnalysis'
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -110,7 +112,8 @@ export default function StudentAnalysisDetail() {
     topicStats = [],
     difficultyStats = {},
     performanceHistory = [],
-    scaledScores = {}
+    scaledScores = {},
+    taxonomyRows = []
   } = data
 
   const mathStats = subjectStats.Math || { score: 0, total: 0, correct: 0 }
@@ -804,6 +807,15 @@ export default function StudentAnalysisDetail() {
                     )
                 })}
             </div>
+        </div>
+
+        {/* Full Content Domain / Skill breakdown across every question this student answered. */}
+        <div className="mt-6">
+          <SatScoreAnalysis
+            rows={taxonomyRows}
+            scores={hasScaled ? { total: scaledScores.total, rw: scaledScores.rw ?? null, math: scaledScores.math ?? null } : null}
+            subtitle={`Every question ${user?.name || 'this student'} has answered, by Subject, Content Domain & Skill (College Board aligned)`}
+          />
         </div>
 
       </div>

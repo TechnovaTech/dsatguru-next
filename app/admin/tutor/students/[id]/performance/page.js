@@ -4,12 +4,14 @@ import { useAuth } from '../../../../../components/AuthContext'
 import { useRouter, useParams } from 'next/navigation'
 import {
   FiArrowLeft, FiUser, FiAlertCircle, FiBarChart2,
-  FiXCircle, FiClock, FiChevronDown, FiFilter
+  FiXCircle, FiClock, FiChevronDown, FiFilter, FiTarget
 } from 'react-icons/fi'
 // Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
 import { resolveAnswerLetter } from '../../../../../../lib/scoring/satScale'
 // LaTeX + markdown images (incl. data-URI figures) + tables + <u> — same renderer as the exam views.
 import { renderContent, renderLatex } from '../../../../../components/admin/LatexRenderer'
+// Shared College-Board-aligned topic/subtopic breakdown, identical on every analysis screen.
+import SatScoreAnalysis from '../../../../../components/SatScoreAnalysis'
 
 export default function AdminStudentPerformancePage() {
   const { user } = useAuth()
@@ -17,7 +19,7 @@ export default function AdminStudentPerformancePage() {
   const params = useParams()
   const studentId = params.id
 
-  const [activeTab, setActiveTab] = useState('mistakes')
+  const [activeTab, setActiveTab] = useState('topics')
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -132,13 +134,20 @@ export default function AdminStudentPerformancePage() {
         </div>
 
         <div className="mb-6 flex gap-2">
-          {[{ key: 'mistakes', label: 'Mistake Analysis', icon: <FiXCircle /> }, { key: 'parallel', label: 'Parallel Analysis', icon: <FiBarChart2 /> }].map(tab => (
+          {[{ key: 'topics', label: 'SAT Score Analysis', icon: <FiTarget /> }, { key: 'mistakes', label: 'Mistake Analysis', icon: <FiXCircle /> }, { key: 'parallel', label: 'Parallel Analysis', icon: <FiBarChart2 /> }].map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-colors ${activeTab === tab.key ? 'bg-indigo-600 text-white' : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>
               {tab.icon} {tab.label}
             </button>
           ))}
         </div>
+
+        {activeTab === 'topics' && (
+          <SatScoreAnalysis
+            rows={allQuestions}
+            subtitle={`Every question ${student?.name || 'this student'} has answered, by Subject, Content Domain & Skill (College Board aligned)`}
+          />
+        )}
 
         {activeTab === 'mistakes' && (
           <div>

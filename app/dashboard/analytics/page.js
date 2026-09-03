@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { FiTrendingUp, FiTarget, FiBook, FiClock, FiBarChart2, FiAward, FiAlertCircle } from 'react-icons/fi'
+// Shared College-Board-aligned topic/subtopic breakdown, identical on every analysis screen.
+import SatScoreAnalysis from '../../components/SatScoreAnalysis'
 
 export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true)
@@ -281,6 +283,15 @@ export default function AnalyticsPage() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Full Content Domain / Skill breakdown across every question attempted. */}
+        <div className="mt-6">
+          <SatScoreAnalysis
+            rows={stats.taxonomyRows || []}
+            scores={{ rw: stats.latestScores?.rw || null, math: stats.latestScores?.math || null }}
+            subtitle="Every question you have attempted, by Subject, Content Domain & Skill (College Board aligned)"
+          />
         </div>
       </div>
     </div>
