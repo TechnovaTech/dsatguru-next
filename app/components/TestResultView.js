@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiArrowLeft, FiChevronDown, FiChevronUp, FiActivity, FiMonitor, FiMaximize, FiCheckSquare, FiUsers, FiRefreshCw, FiDownload, FiShare2, FiX } from 'react-icons/fi'
 import ReassignTestModal from './admin/ReassignTestModal'
@@ -554,6 +554,76 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
     }
   }
 
+  // ---- inputs for the score-report header -------------------------------------
+  // Cohort average seconds per question, keyed by id, for the Exceed Time chart.
+  const questionAvgSeconds = useMemo(() => {
+    const out = {}
+    for (const q of testAnalytics?.questions || []) {
+      if (q && q.questionId != null && q.avgSeconds != null) out[String(q.questionId)] = q.avgSeconds
+    }
+    return Object.keys(out).length ? out : null
+  }, [testAnalytics])
+
+  const reportChips = useMemo(() => {
+    const out = []
+    if (test?.isModuleTest) out.push({ label: 'Full-Length', tone: 'indigo' })
+    if (test?.sections?.rw || test?.sections?.math) out.push({ label: 'Adaptive', tone: 'violet' })
+    if (test?.testType) out.push({ label: test.testType, tone: 'slate' })
+    if (test?.practiceMode === 'tutor' || test?.isTutorTest) out.push({ label: 'Tutor', tone: 'amber' })
+    if (session?.autoSubmitted || session?.autoSubmitReason) out.push({ label: 'Auto-submitted', tone: 'amber' })
+    else if (session?.status === 'Completed' || session?.state === 'COMPLETED') out.push({ label: 'Completed', tone: 'emerald' })
+    return out
+  }, [test, session])
+
+  const reportMeta = useMemo(() => {
+    const bits = []
+    const when = session?.completedAt || session?.endTime || session?.createdAt
+    if (when) bits.push(`Taken on ${new Date(when).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}`)
+    if (session?.timeSpent) {
+      const mins = Math.round(session.timeSpent / 60)
+      bits.push(mins >= 60 ? `${Math.floor(mins / 60)} hr ${mins % 60} min` : `${mins} minutes`)
+    }
+    return bits.join('  |  ')
+  }, [session])
+
+  // Module tests run a fixed Module 1 then a routed Module 2 — the report calls
+  // those "Static" and "Hard". Derive the per-subject split from moduleScores.
+  const subjectSplits = useMemo(() => {
+    const ms = session?.moduleScores
+    if (!Array.isArray(ms) || !ms.length) return null
+    const out = {}
+    const seen = {}
+    for (const m of ms) {
+      const key = String(m?.subject || '').toLowerCase().includes('math') ? 'math' : 'rw'
+      seen[key] = (seen[key] || 0) + 1
+      const label = seen[key] === 1 ? 'Static' : 'Hard'
+      const part = `${label} (${m.correct ?? 0}/${m.total ?? 0})`
+      out[key] = out[key] ? `${out[key]} | ${part}` : part
+    }
+    return Object.keys(out).length ? out : null
+  }, [session])
+
+  // Minutes actually spent per subject against the minutes the modules allow.
+  const subjectMinutes = useMemo(() => {
+    if (!questions.length) return null
+    const used = { rw: 0, math: 0 }
+    for (const q of questions) {
+      const key = String(q.subject || '').toLowerCase().includes('math') ? 'math' : 'rw'
+      used[key] += Number(q.timeSpent) || 0
+    }
+    const allowed = { rw: 0, math: 0 }
+    for (const mod of (test?.modules || [])) {
+      const key = String(mod?.subject || '').toLowerCase().includes('math') ? 'math' : 'rw'
+      allowed[key] += Number(mod?.duration) || 0
+    }
+    const out = {}
+    for (const key of ['rw', 'math']) {
+      if (!used[key] && !allowed[key]) continue
+      out[key] = { used: Math.round(used[key] / 60), total: allowed[key], label: allowed[key] ? '' : '(no limit)' }
+    }
+    return Object.keys(out).length ? out : null
+  }, [questions, test])
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -850,6 +920,7 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
   // question-wise review. Admin/tutor viewers always see it (they need it to grade/reassign).
   const isAutoSubmitted = !!(session?.autoSubmitted || session?.autoSubmitReason)
   const hideDetailedReview = viewMode !== 'admin' && isAutoSubmitted
+
   const unlockReq = session?.unlockRequest
   const totalQuestions = questions.length
   const correctCount = questions.filter(q => q.isCorrect).length
@@ -1333,6 +1404,11 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                         percentile: testAnalytics?.percentile ?? null,
                     } : null)}
                     cohort={testAnalytics?.unitCohort || null}
+                    questionAvgSeconds={questionAvgSeconds}
+                    chips={reportChips}
+                    meta={reportMeta}
+                    subjectSplits={subjectSplits}
+                    subjectMinutes={subjectMinutes}
                     subtitle="Detailed performance by Subject, Content Domain & Skill (College Board aligned)"
                 />
             </div>

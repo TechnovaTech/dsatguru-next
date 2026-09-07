@@ -66,7 +66,12 @@ export async function GET(request, { params }) {
         omittedCount: 0,
         correctPercentage: 0,
         incorrectPercentage: 0,
-        omittedPercentage: 0
+        omittedPercentage: 0,
+        // Cohort average seconds on this question — the baseline the "Exceed Time"
+        // chart compares each student's own time against.
+        avgSeconds: null,
+        _secondsTotal: 0,
+        _secondsCount: 0
       }
     })
 
@@ -77,6 +82,11 @@ export async function GET(request, { params }) {
           const qId = String(response.questionId)
           
           if (questionStats[qId]) {
+            const secs = Number(response.timeSpent) || 0
+            if (secs > 0) {
+              questionStats[qId]._secondsTotal += secs
+              questionStats[qId]._secondsCount++
+            }
             if (response.selectedAnswer) {
               questionStats[qId].totalAttempts++
               // Re-grade against the effective (tutor-edited) correct answer.
@@ -102,9 +112,14 @@ export async function GET(request, { params }) {
       stats.incorrectPercentage = totalStudents > 0 
         ? Math.round((stats.incorrectCount / totalStudents) * 100) 
         : 0
-      stats.omittedPercentage = totalStudents > 0 
-        ? Math.round((stats.omittedCount / totalStudents) * 100) 
+      stats.omittedPercentage = totalStudents > 0
+        ? Math.round((stats.omittedCount / totalStudents) * 100)
         : 0
+      stats.avgSeconds = stats._secondsCount > 0
+        ? Math.round(stats._secondsTotal / stats._secondsCount)
+        : null
+      delete stats._secondsTotal
+      delete stats._secondsCount
     })
 
     // Per-content-domain cohort stats + this student's percentile, for the

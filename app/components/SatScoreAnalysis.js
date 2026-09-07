@@ -12,17 +12,18 @@
 //
 // Everything else (weights, question counts, bands, takeaway) is derived in
 // lib/satAnalysis.js so the logic is testable on its own.
-import { useMemo, useState } from 'react'
+import { useMemo, useState, Fragment } from 'react'
 import { FiBookOpen, FiTarget, FiAward, FiInfo, FiClock, FiXCircle, FiCheckCircle, FiSlash, FiZap, FiBarChart2, FiList } from 'react-icons/fi'
 import { TbMathSymbols } from 'react-icons/tb'
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend as RLegend, Cell,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend as RLegend, Cell, ReferenceLine,
   ScatterChart, Scatter, ZAxis,
 } from 'recharts'
 import {
   buildSatBreakdown, radarData, takeaway, highlights, BANDS, SUBJECT_MATH,
   unitRows, proficiencyPoints, comparisonRows, formatDuration, STATUS, normalizeRow,
+  distribution, difficultySpark, streaks, paceData, exceedTimeData,
 } from '../../lib/satAnalysis'
 
 /* ------------------------------------------------------------------ pieces */
@@ -149,6 +150,98 @@ function BreakdownTable({ subject }) {
           </tbody>
         </table>
       </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------- headline elements */
+
+// Circular progress ring, used for the two headline figures.
+function Ring({ value, max, label, caption, colour = '#2563eb', size = 108 }) {
+  const pct = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0
+  const stroke = 9
+  const r = (size - stroke) / 2
+  const c = 2 * Math.PI * r
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg width={size} height={size} className="-rotate-90">
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e8eefb" strokeWidth={stroke} />
+          <circle
+            cx={size / 2} cy={size / 2} r={r} fill="none" stroke={colour} strokeWidth={stroke}
+            strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct)}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-lg font-extrabold leading-none text-slate-800">{label}</span>
+        </div>
+      </div>
+      <div className="mt-1 text-xs text-slate-500">{caption}</div>
+    </div>
+  )
+}
+
+function Chip({ children, tone = 'slate' }) {
+  const tones = {
+    slate: 'bg-slate-100 text-slate-600 border-slate-200',
+    indigo: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    violet: 'bg-violet-50 text-violet-700 border-violet-200',
+    emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    amber: 'bg-amber-50 text-amber-700 border-amber-200',
+  }
+  return <span className={`inline-block rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${tones[tone] || tones.slate}`}>{children}</span>
+}
+
+// A labelled progress row: label on the left, bar beneath, value on the right.
+function MetricBar({ label, sub, value, display, colour = '#22c55e' }) {
+  const pct = Math.max(0, Math.min(100, Number(value) || 0))
+  return (
+    <div className="mt-3">
+      <div className="flex items-baseline justify-between gap-3 text-[11px]">
+        <span className="text-slate-500">{label}{sub && <span className="text-slate-400"> {sub}</span>}</span>
+        <span className="font-semibold text-slate-700">{display}</span>
+      </div>
+      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: colour }} />
+      </div>
+    </div>
+  )
+}
+
+// One subject's headline card: score, then scaled performance / raw accuracy / time.
+function SubjectCard({ subject, score, moduleSplit, minutes }) {
+  const isMath = subject.isMath
+  const acc = subject.pct ?? 0
+  // "Scaled performance" is where the section score sits inside the 200–800 band.
+  const scaled = score != null ? Math.round(((score - 200) / 600) * 100) : acc
+  const timePct = minutes && minutes.total > 0 ? (minutes.used / minutes.total) * 100 : null
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-2">
+          <span className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg ${isMath ? 'bg-blue-50 text-blue-600' : 'bg-violet-50 text-violet-600'}`}>
+            {isMath ? <TbMathSymbols className="h-4 w-4" /> : <FiBookOpen className="h-4 w-4" />}
+          </span>
+          <div>
+            <div className="text-sm font-bold text-slate-800">{isMath ? 'Math' : 'Reading and Writing'}</div>
+            <div className="text-[11px] text-slate-400">{score != null ? 'Range: 200–800' : `${subject.total} questions`}</div>
+          </div>
+        </div>
+        <div className={`text-2xl font-extrabold ${isMath ? 'text-blue-600' : 'text-violet-600'}`}>
+          {score != null ? score : `${acc}%`}
+        </div>
+      </div>
+
+      {score != null && <MetricBar label="Scaled Performance" value={scaled} display={`${scaled}%`} colour={isMath ? '#3b82f6' : '#8b5cf6'} />}
+      <MetricBar
+        label="Raw Accuracy"
+        sub={moduleSplit ? `· ${moduleSplit}` : `(${subject.correct}/${subject.total})`}
+        value={acc}
+        display={`${acc}%`}
+      />
+      {minutes && minutes.total > 0 && (
+        <MetricBar label="Time" sub={minutes.label} value={timePct} display={`${minutes.used} / ${minutes.total} Mins`} colour="#22c55e" />
+      )}
     </div>
   )
 }
@@ -470,6 +563,215 @@ function ResponsesTable({ rows }) {
   )
 }
 
+/* ------------------------------------ Unit / Topic Performance Analysis view */
+
+const DIST_COLOURS = { correct: '#22c55e', incorrect: '#ef4444', missed: '#3b82f6' }
+
+// Stacked Correct / Incorrect / Missed bar with the question count on its left.
+function DistributionBar({ bucket }) {
+  const d = distribution(bucket)
+  if (!d.total) return <span className="text-xs text-slate-300">—</span>
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-12 flex-shrink-0 text-right text-[11px] text-slate-500">{d.total} Qs</span>
+      <div className="flex h-3 flex-1 overflow-hidden rounded-full bg-slate-100" title={`${bucket.correct} correct · ${bucket.incorrect} incorrect · ${(bucket.omitted || 0) + (bucket.unseen || 0)} missed`}>
+        {d.correct > 0 && <div style={{ width: `${d.correct}%`, backgroundColor: DIST_COLOURS.correct }} />}
+        {d.incorrect > 0 && <div style={{ width: `${d.incorrect}%`, backgroundColor: DIST_COLOURS.incorrect }} />}
+        {d.missed > 0 && <div style={{ width: `${d.missed}%`, backgroundColor: DIST_COLOURS.missed }} />}
+      </div>
+    </div>
+  )
+}
+
+// Three-bar sparkline showing how many Easy / Medium / Hard questions a row held.
+function DifficultySpark({ rows }) {
+  const { counts, max } = difficultySpark(rows)
+  const bars = [['Easy', '#22c55e'], ['Medium', '#f59e0b'], ['Hard', '#ef4444']]
+  if (!counts.Easy && !counts.Medium && !counts.Hard) return <span className="text-slate-300">—</span>
+  return (
+    <span className="inline-flex h-5 items-end gap-[3px]" title={`Easy ${counts.Easy} · Medium ${counts.Medium} · Hard ${counts.Hard}`}>
+      {bars.map(([k, c]) => (
+        <span key={k} className="w-[5px] rounded-sm" style={{ height: `${Math.max(3, (counts[k] / max) * 20)}px`, backgroundColor: counts[k] ? c : '#e2e8f0' }} />
+      ))}
+    </span>
+  )
+}
+
+function MasteryValue({ pct }) {
+  if (pct == null) return <span className="text-xs text-slate-300">—</span>
+  const band = BANDS.find((b) => pct >= b.min) || BANDS[BANDS.length - 1]
+  return <span className="text-[13px] font-bold" style={{ color: band.dot }}>{pct}%</span>
+}
+
+// The whole "Unit / Topic Performance Analysis" block: subject toggle, a summary
+// bar, then domain rows each followed by their indented skill rows.
+function UnitTopicAnalysis({ breakdown, rowsBySkill }) {
+  const subjects = breakdown.subjects
+  const [tab, setTab] = useState(subjects[0]?.subject || '')
+  const active = subjects.find((s) => s.subject === tab) || subjects[0]
+  if (!active) return null
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="text-sm font-bold text-slate-800">Unit / Topic Performance Analysis</div>
+          <p className="text-xs text-slate-500">Drill down to identify specific gaps in knowledge.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
+          {[['Correct', DIST_COLOURS.correct], ['Incorrect', DIST_COLOURS.incorrect], ['Missed / Omitted', DIST_COLOURS.missed]].map(([l, c]) => (
+            <span key={l} className="inline-flex items-center gap-1.5 text-slate-600">
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: c }} />{l}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {subjects.length > 1 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {subjects.map((s) => (
+            <button
+              key={s.subject}
+              type="button"
+              onClick={() => setTab(s.subject)}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${s.subject === tab ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+            >
+              {s.isMath ? 'Math' : 'Reading and Writing'}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* whole-subject summary */}
+      <div className="mt-3 flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2">
+        <div className="min-w-0 flex-1"><DistributionBar bucket={active} /></div>
+        <MasteryValue pct={active.pct} />
+      </div>
+
+      <div className="mt-2 overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-[10px] uppercase tracking-wider text-slate-400">
+              <th className="py-2 pr-3 text-left font-semibold">Unit / Topic</th>
+              <th className="px-3 py-2 text-right font-semibold">Time per Qst.</th>
+              <th className="px-3 py-2 text-center font-semibold">Difficulty</th>
+              <th className="px-3 py-2 text-left font-semibold">Performance Distribution</th>
+              <th className="py-2 pl-3 text-right font-semibold">Mastery</th>
+            </tr>
+          </thead>
+          <tbody>
+            {active.domains.map((d) => (
+              <Fragment key={d.domain}>
+                <tr className="border-b border-slate-100 bg-slate-50/60">
+                  <td className="py-2 pr-3 text-[13px] font-bold text-slate-800">{d.domain}</td>
+                  <td className="px-3 py-2 text-right text-[11px] text-slate-500">{d.avgSeconds != null ? `${d.avgSeconds} sec` : '—'}</td>
+                  <td className="px-3 py-2 text-center"><DifficultySpark rows={rowsBySkill.byDomain[d.domain] || []} /></td>
+                  <td className="px-3 py-2"><DistributionBar bucket={d} /></td>
+                  <td className="py-2 pl-3 text-right"><MasteryValue pct={d.pct} /></td>
+                </tr>
+                {d.skills.map((sk, i) => (
+                  <tr key={`${d.domain}|${sk.skill || 'other'}|${i}`} className="border-b border-slate-50 hover:bg-slate-50/70">
+                    <td className="py-1.5 pl-4 pr-3 text-[12px] text-slate-600">
+                      <span className="mr-1.5 text-slate-300">•</span>
+                      {sk.skill || <span className="italic text-slate-400">Other (skill not tagged)</span>}
+                    </td>
+                    <td className="px-3 py-1.5 text-right text-[11px] text-slate-500">{sk.avgSeconds != null ? `${sk.avgSeconds} sec` : '—'}</td>
+                    <td className="px-3 py-1.5 text-center"><DifficultySpark rows={rowsBySkill.bySkill[`${d.domain}|${sk.skill || ''}`] || []} /></td>
+                    <td className="px-3 py-1.5"><DistributionBar bucket={sk} /></td>
+                    <td className="py-1.5 pl-3 text-right"><MasteryValue pct={sk.pct} /></td>
+                  </tr>
+                ))}
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+/* -------------------------------------------- Performance Analysis (modes) */
+
+function ExceedTime({ data }) {
+  if (data.length < 2) return null
+  const withAvg = data.filter((d) => d.average != null)
+  const line = withAvg.length ? Math.round(withAvg.reduce((a, d) => a + d.average, 0) / withAvg.length) : null
+  return (
+    <>
+      <p className="mb-2 text-xs text-slate-500">
+        Time spent on each question against the average for that question. Red bars took longer than expected — those are where time is being lost.
+      </p>
+      <div className="h-72">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 5, right: 8, left: -16, bottom: 18 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+            <XAxis dataKey="number" tick={AXIS_TICK} interval="preserveStartEnd" label={{ value: 'Question Number', position: 'insideBottom', offset: -8, fontSize: 10, fill: '#64748b' }} />
+            <YAxis tick={AXIS_TICK} unit="s" />
+            <Tooltip
+              contentStyle={CHART_TIP}
+              formatter={(v, n) => [n === 'seconds' ? `${v} sec` : `${v} sec`, n === 'seconds' ? 'Your time' : 'Average']}
+              labelFormatter={(l) => `Question ${l}`}
+            />
+            <Bar dataKey="seconds" name="seconds" radius={[3, 3, 0, 0]}>
+              {data.map((d, i) => <Cell key={i} fill={d.exceeded ? '#ef4444' : '#22c55e'} />)}
+            </Bar>
+            {line != null && <ReferenceLine y={line} stroke="#6366f1" strokeDasharray="4 4" label={{ value: `avg ${line}s`, position: 'right', fontSize: 10, fill: '#6366f1' }} />}
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </>
+  )
+}
+
+function Pace({ data }) {
+  if (data.length < 2) return null
+  return (
+    <>
+      <p className="mb-2 text-xs text-slate-500">
+        Minutes elapsed as the test progressed. A steep stretch is where the clock was being eaten.
+      </p>
+      <div className="h-72">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 5, right: 8, left: -16, bottom: 18 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+            <XAxis dataKey="number" tick={AXIS_TICK} interval="preserveStartEnd" label={{ value: 'Question Number', position: 'insideBottom', offset: -8, fontSize: 10, fill: '#64748b' }} />
+            <YAxis tick={AXIS_TICK} unit="m" />
+            <Tooltip contentStyle={CHART_TIP} formatter={(v) => [`${v} min elapsed`, 'Cumulative']} labelFormatter={(l) => `Question ${l}`} />
+            <Bar dataKey="cumulativeMinutes" fill="#6366f1" radius={[3, 3, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </>
+  )
+}
+
+function Streaks({ data }) {
+  if (!data.runs.length) return null
+  return (
+    <>
+      <p className="mb-2 text-xs text-slate-500">
+        Runs of consecutive answers in test order. Longest correct run <strong>{data.longestCorrect}</strong>, longest incorrect run <strong>{data.longestIncorrect}</strong>.
+      </p>
+      <div className="flex flex-wrap gap-1">
+        {data.runs.map((r, i) => (
+          <span
+            key={i}
+            title={`${r.length} ${r.kind} in a row (questions ${r.start}–${r.end})`}
+            className={`inline-flex h-7 min-w-[28px] items-center justify-center rounded px-2 text-xs font-bold text-white ${r.kind === 'correct' ? 'bg-emerald-500' : 'bg-rose-500'}`}
+            style={{ flexGrow: r.length }}
+          >
+            {r.length}
+          </span>
+        ))}
+      </div>
+      <div className="mt-2 flex gap-4 text-[11px] text-slate-500">
+        <span className="inline-flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500" />Correct run</span>
+        <span className="inline-flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-rose-500" />Incorrect run</span>
+      </div>
+    </>
+  )
+}
+
 function Legend() {
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-xs shadow-sm">
@@ -503,6 +805,15 @@ export default function SatScoreAnalysis({
   // The response table reveals the answer key — a caller that must withhold it
   // (an auto-submitted attempt, say) sets this false.
   showResponses = true,
+  // { [questionId]: avgSeconds } — the cohort baseline for the Exceed Time view.
+  questionAvgSeconds = null,
+  // Small labels above the title (Full-Length, Adaptive, ...).
+  chips = null,
+  // "Taken on ... | 1 hour 42 minutes" style line under the title.
+  meta = null,
+  // Per-subject { used, total, label } minutes, and "Static 19/27 | Hard 21/27" style splits.
+  subjectMinutes = null,
+  subjectSplits = null,
 }) {
   const breakdown = useMemo(() => buildSatBreakdown(rows || []), [rows])
   const radar = useMemo(() => radarData(breakdown), [breakdown])
@@ -535,6 +846,36 @@ export default function SatScoreAnalysis({
   }, [responses, rows])
   const hasAnswerKeys = responseRows.some((r) => r.correctAnswer !== '' || r.response !== '')
 
+  // Raw rows grouped by domain and by domain|skill, so each table row can show the
+  // difficulty spread of exactly the questions behind it.
+  const rowsBySkill = useMemo(() => {
+    const byDomain = {}
+    const bySkill = {}
+    for (const raw of rows || []) {
+      const n = normalizeRow(raw)
+      if (!n) continue
+      ;(byDomain[n.domain] = byDomain[n.domain] || []).push(n)
+      const k = `${n.domain}|${n.skill || ''}`
+      ;(bySkill[k] = bySkill[k] || []).push(n)
+    }
+    return { byDomain, bySkill }
+  }, [rows])
+
+  const pace = useMemo(() => paceData(rows || []), [rows])
+  const streak = useMemo(() => streaks(rows || []), [rows])
+  const exceed = useMemo(() => exceedTimeData(rows || [], questionAvgSeconds), [rows, questionAvgSeconds])
+
+  // Which Performance Analysis views actually have something to show.
+  const modes = [
+    exceed.length >= 2 && { key: 'time', label: 'Exceed Time', node: <ExceedTime data={exceed} /> },
+    prof.length >= 2 && { key: 'prof', label: 'Proficiency', node: <Proficiency points={prof} /> },
+    breakdown.difficulty.length > 0 && { key: 'diff', label: 'Difficulty', node: <DifficultyAnalysis rows={breakdown.difficulty} /> },
+    streak.runs.length > 1 && { key: 'streak', label: 'Streak', node: <Streaks data={streak} /> },
+    pace.length >= 2 && pace[pace.length - 1].cumulativeMinutes > 0 && { key: 'pace', label: 'Pace', node: <Pace data={pace} /> },
+  ].filter(Boolean)
+  const [mode, setMode] = useState(null)
+  const activeMode = modes.find((m) => m.key === mode) || modes[0]
+
   if (!breakdown.hasData) {
     return (
       <div className={`rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm ${className}`}>
@@ -556,87 +897,100 @@ export default function SatScoreAnalysis({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* header + score cards */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-extrabold text-slate-900">{title}</h2>
-          <p className="mt-0.5 text-sm text-slate-500">{subtitle}</p>
-          {breakdown.unclassified > 0 && (
-            <p className="mt-1 text-xs text-amber-700">
-              {breakdown.unclassified} answered question{breakdown.unclassified > 1 ? 's are' : ' is'} not tagged to a content domain yet and {breakdown.unclassified > 1 ? 'are' : 'is'} excluded below.
-            </p>
-          )}
+      {/* headline: chips, title, meta, and the two rings */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-6">
+          <div className="min-w-0">
+            {chips && chips.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                {chips.map((c, i) => <Chip key={i} tone={c.tone}>{c.label}</Chip>)}
+              </div>
+            )}
+            <h2 className="text-xl font-extrabold text-slate-900">{title}</h2>
+            {meta && <p className="mt-0.5 text-xs text-slate-500">{meta}</p>}
+            <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+            {breakdown.unclassified > 0 && (
+              <p className="mt-1 text-xs text-amber-700">
+                {breakdown.unclassified} answered question{breakdown.unclassified > 1 ? 's are' : ' is'} not tagged to a content domain yet and {breakdown.unclassified > 1 ? 'are' : 'is'} excluded below.
+              </p>
+            )}
+          </div>
+          <div className="flex flex-shrink-0 gap-5">
+            <Ring
+              value={breakdown.overall.correct}
+              max={breakdown.overall.total}
+              label={`${breakdown.overall.correct}/${breakdown.overall.total}`}
+              caption="Overall"
+              colour="#6366f1"
+            />
+            {scores?.total != null && (
+              <Ring value={scores.total - 400} max={1200} label={String(scores.total)} caption="Score" colour="#2563eb" />
+            )}
+            {scores?.total == null && breakdown.overall.pct != null && (
+              <Ring value={breakdown.overall.pct} max={100} label={`${breakdown.overall.pct}%`} caption="Accuracy" colour="#2563eb" />
+            )}
+          </div>
         </div>
-        {hasScores && (
-          <div className="flex flex-wrap gap-3">
-            {scores.total != null && <StatCard label="Total Score" value={scores.total} sub="400–1600" />}
-            {scores.rw != null && <StatCard label="Reading & Writing" value={scores.rw} sub="200–800" accent="text-violet-600" />}
-            {scores.math != null && <StatCard label="Math" value={scores.math} sub="200–800" accent="text-blue-600" />}
-            {scores.rangeLow != null && scores.rangeHigh != null && (
-              <StatCard label="Score Range" value={`${scores.rangeLow}–${scores.rangeHigh}`} sub={scores.percentile != null ? `${scores.percentile} percentile` : 'estimated band'} />
-            )}
-            {scores.rangeLow == null && scores.percentile != null && (
-              <StatCard label="Percentile" value={scores.percentile} sub="vs everyone who took it" />
-            )}
+
+        {/* secondary figures */}
+        {(scores?.percentile != null || breakdown.overall.totalSeconds > 0) && (
+          <div className="mt-4 flex flex-wrap gap-3 border-t border-slate-100 pt-4">
             {breakdown.overall.totalSeconds > 0 && (
-              <StatCard label="Total Time" value={formatDuration(scores.totalSeconds ?? breakdown.overall.totalSeconds)} sub={breakdown.overall.avgSeconds != null ? `${breakdown.overall.avgSeconds} sec / question` : null} />
+              <StatCard label="Total Time" value={formatDuration(scores?.totalSeconds ?? breakdown.overall.totalSeconds)} sub={breakdown.overall.avgSeconds != null ? `${breakdown.overall.avgSeconds} sec / question` : null} />
+            )}
+            {scores?.percentile != null && <StatCard label="Percentile" value={scores.percentile} sub="vs everyone who took it" />}
+            {scores?.rangeLow != null && scores?.rangeHigh != null && (
+              <StatCard label="Score Range" value={`${scores.rangeLow}–${scores.rangeHigh}`} sub="estimated band" />
             )}
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[280px_minmax(0,1fr)]">
-        {/* left: overall */}
-        <div className="space-y-4">
-          <div className="rounded-2xl bg-slate-900 p-5 shadow-sm">
-            <div className="mb-1 text-center text-xs font-semibold uppercase tracking-wider text-slate-300">Overall Performance</div>
-            {scores?.total != null
-              ? <Gauge value={scores.total} min={400} max={1600} label="Total Score" />
-              : (
-                <div className="py-4 text-center">
-                  <div className="text-4xl font-extrabold text-white">{breakdown.overall.pct}%</div>
-                  <div className="mt-1 text-xs text-slate-400">{breakdown.overall.correct} of {breakdown.overall.total} correct</div>
-                </div>
-              )}
-          </div>
-
-          {breakdown.subjects.map((s) => (
-            <div key={s.subject} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-2">
-                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${s.isMath ? 'bg-blue-50 text-blue-600' : 'bg-violet-50 text-violet-600'}`}>
-                  {s.isMath ? <TbMathSymbols className="h-4 w-4" /> : <FiBookOpen className="h-4 w-4" />}
-                </span>
-                <span className="text-sm font-bold text-slate-800">{s.isMath ? 'Math' : 'Evidence-Based Reading & Writing'}</span>
-              </div>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className={`text-2xl font-extrabold ${s.isMath ? 'text-blue-600' : 'text-violet-600'}`}>
-                  {scores && (s.isMath ? scores.math : scores.rw) != null ? (s.isMath ? scores.math : scores.rw) : `${s.pct}%`}
-                </span>
-                <span className="text-xs text-slate-400">
-                  {scores && (s.isMath ? scores.math : scores.rw) != null ? '/ 800' : `${s.correct}/${s.total} correct`}
-                </span>
-              </div>
-              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                <div className={`h-full rounded-full ${s.isMath ? 'bg-blue-500' : 'bg-violet-500'}`} style={{ width: `${s.pct ?? 0}%` }} />
-              </div>
-              {(() => {
-                // Needs a couple of questions before calling something a strength —
-                // otherwise one lucky answer wins the label.
-                const best = [...s.domains].filter((d) => d.pct != null && d.total >= 2).sort((a, b) => b.pct - a.pct)[0]
-                return best ? <div className="mt-2 text-[11px] text-slate-500">Strongest: {best.short} ({best.pct}%)</div> : null
-              })()}
-            </div>
-          ))}
-        </div>
-
-        {/* right: the two breakdown tables */}
-        <div className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
-          {rw && <BreakdownTable subject={rw} />}
-          {math && <BreakdownTable subject={math} />}
-        </div>
+      {/* per-subject headline cards */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {breakdown.subjects.map((s) => (
+          <SubjectCard
+            key={s.subject}
+            subject={s}
+            score={scores ? (s.isMath ? scores.math : scores.rw) ?? null : null}
+            moduleSplit={subjectSplits ? subjectSplits[s.isMath ? 'math' : 'rw'] : null}
+            minutes={subjectMinutes ? subjectMinutes[s.isMath ? 'math' : 'rw'] : null}
+          />
+        ))}
       </div>
 
-      {/* Unit Level Analysis */}
+      {/* Unit / Topic Performance Analysis */}
+      <UnitTopicAnalysis breakdown={breakdown} rowsBySkill={rowsBySkill} />
+
+      {/* Performance Analysis — one chart, switchable */}
+      {activeMode && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm font-bold text-slate-800">Performance Analysis</div>
+            <div className="flex flex-wrap gap-2">
+              {modes.map((m) => (
+                <button
+                  key={m.key}
+                  type="button"
+                  onClick={() => setMode(m.key)}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${m.key === activeMode.key ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {activeMode.node}
+        </div>
+      )}
+
+      {/* the College-Board blueprint view: weight + expected question count per domain */}
+      <div className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
+        {rw && <BreakdownTable subject={rw} />}
+        {math && <BreakdownTable subject={math} />}
+      </div>
+
+      {/* Unit Level Analysis cards */}
       {units.length > 0 && (
         <div>
           <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-500">Unit Level Analysis</h3>
@@ -644,12 +998,10 @@ export default function SatScoreAnalysis({
         </div>
       )}
 
-      {/* accuracy / latency / proficiency / difficulty */}
+      {/* accuracy / latency by unit */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <AccuracyByUnit units={units} />
         <SpeedByUnit units={units} />
-        <Proficiency points={prof} />
-        <DifficultyAnalysis rows={breakdown.difficulty} />
       </div>
 
       {/* You vs Best vs Average. The heading is gated on the SAME condition the
