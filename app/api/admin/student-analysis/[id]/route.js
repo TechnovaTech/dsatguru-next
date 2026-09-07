@@ -82,6 +82,8 @@ export async function GET(request, { params }) {
           questionTags: '$question.tags',
           questionDifficulty: '$question.difficulty',
           isCorrect: '$responses.isCorrect',
+          selectedAnswer: '$responses.selectedAnswer',
+          timeSpent: '$responses.timeSpent',
           createdAt: 1
         }
       }
@@ -246,6 +248,10 @@ export async function GET(request, { params }) {
         domain: r.questionDomain || '',
         skill: r.questionTopic || '',
         isCorrect: !!r.isCorrect,
+        // Distinguishes a wrong answer from a skipped one, and drives the latency charts.
+        answered: r.selectedAnswer != null && String(r.selectedAnswer).trim() !== '',
+        timeSpent: r.timeSpent || 0,
+        difficulty: r.questionDifficulty || '',
       }))
     })
 

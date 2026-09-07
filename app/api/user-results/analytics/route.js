@@ -123,7 +123,8 @@ export async function GET(request) {
         subject: q.subject,
         tags: tags,
         skill: q.skill,
-        domain: q.domain
+        domain: q.domain,
+        difficulty: q.difficulty
       }
     })
 
@@ -244,6 +245,10 @@ export async function GET(request) {
               domain: qData.domain || '',
               skill: qData.skill || '',
               isCorrect: !!response.isCorrect,
+              // Needed to tell a wrong answer from a skipped one, and to chart latency.
+              answered: response.selectedAnswer != null && String(response.selectedAnswer).trim() !== '',
+              timeSpent: response.timeSpent || 0,
+              difficulty: qData.difficulty || '',
             })
             const subject = qData.subject === 'rw' || qData.subject === 'Reading and Writing' ? 'Reading and Writing' : 'Math'
             const mapping = DOMAIN_MAPPING[subject]

@@ -8,6 +8,7 @@ import Question from '../../../../../lib/models/Question'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 import { answersMatch } from '../../../../../lib/scoring/satScale'
 import { getCustomMap, effectiveCorrectAnswer, effectiveOptions } from '../../../../../lib/tutorCustomQuestions'
+import { computeUnitCohort, computePercentile } from '../../../../../lib/testCohort'
 
 export async function GET(request, { params }) {
   try {
@@ -20,6 +21,7 @@ export async function GET(request, { params }) {
     }
 
     const testId = params.id
+    const { searchParams } = new URL(request.url)
 
     // Get the test details
     const test = await Test.findById(testId).populate('questions')
@@ -105,11 +107,32 @@ export async function GET(request, { params }) {
         : 0
     })
 
+    // Per-content-domain cohort stats + this student's percentile, for the
+    // Comparative Analysis charts. Shared with the admin analytics endpoint so
+    // both surfaces quote identical Best/Average figures.
+    const questionMeta = {}
+    test.questions.forEach(q => {
+      const qId = String(q._id)
+      questionMeta[qId] = {
+        domain: String(q.domain || '').trim(),
+        // The canonical skill resolves the domain the same way the student's own
+        // breakdown does, so both sides of the comparison bucket identically.
+        skill: String(q.skill || '').trim(),
+        correctAnswer: questionStats[qId]?.correctAnswer,
+        options: optionsByQ[qId],
+      }
+    })
+    const unitCohort = computeUnitCohort(sessions, questionMeta)
+    // Rank the attempt actually being viewed, when the caller names it.
+    const percentile = computePercentile(sessions, decoded.userId, searchParams.get('sessionId'))
+
     return NextResponse.json({
       testId,
       testTitle: test.title,
       totalStudents,
-      questions: Object.values(questionStats)
+      questions: Object.values(questionStats),
+      unitCohort,
+      percentile
     })
 
   } catch (error) {

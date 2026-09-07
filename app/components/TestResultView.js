@@ -1294,18 +1294,45 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                 (and therefore the same numbers and wording) as every other analysis screen. */}
             <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                 <SatScoreAnalysis
-                    // Only questions the student actually ANSWERED. Questions never reached
-                    // (adaptive leaves some unserved) or left blank would otherwise be scored
-                    // as wrong here and understate every skill — and the other analysis
-                    // screens build their rows from session.responses, i.e. answers only.
-                    rows={questions.filter(q => q.userAnswer != null && String(q.userAnswer).trim() !== '')}
+                    // The full question set — every row carries its own status, so the
+                    // library separates wrong answers from skips from never-served items,
+                    // and accuracy is computed over what the student actually SAW.
+                    rows={questions}
+                    // The response table shows the ANSWER KEY, so it obeys the same
+                    // gate as the detailed review below: an auto-submitted attempt must
+                    // not hand the key back — the page even offers a reattempt, so a
+                    // leak here would let a student trip the proctor on purpose, read
+                    // the answers and retake the same test.
+                    // NOTE: an empty ARRAY, not null — null falls back to `rows`.
+                    // Answers are normalised to option LETTERS first: the stored key is
+                    // sometimes the full option text, and showing "B" next to "240" for a
+                    // question the student got right reads as a mismatch. Fill-in answers
+                    // have no letter, so they pass through as their own text.
+                    responses={hideDetailedReview ? [] : questions.map(q => {
+                        const key = answerLetter(q.correctAnswer, q.options)
+                        const mine = answerLetter(q.userAnswer, q.options)
+                        return {
+                            ...q,
+                            correctAnswer: key || q.correctAnswer,
+                            userAnswer: q.userAnswer == null || String(q.userAnswer).trim() === ''
+                                ? q.userAnswer
+                                : (mine || q.userAnswer),
+                        }
+                    })}
+                    showResponses={!hideDetailedReview}
                     // Same gate the rest of this page uses: a 400–1600 scaled score is only
                     // meaningful for a full module test, so never resurrect it elsewhere.
                     scores={showScaledScore ? {
                         total: session.totalScore,
                         rw: session.rwScore ?? null,
                         math: session.mathScore ?? null,
-                    } : null}
+                        totalSeconds: session.timeSpent || null,
+                        percentile: testAnalytics?.percentile ?? null,
+                    } : (session.timeSpent || testAnalytics?.percentile != null ? {
+                        totalSeconds: session.timeSpent || null,
+                        percentile: testAnalytics?.percentile ?? null,
+                    } : null)}
+                    cohort={testAnalytics?.unitCohort || null}
                     subtitle="Detailed performance by Subject, Content Domain & Skill (College Board aligned)"
                 />
             </div>

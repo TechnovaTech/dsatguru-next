@@ -10,6 +10,7 @@ import { requireRole } from '../../../../../../../lib/auth'
 import { ROLES, STAFF_ROLES } from '../../../../../../../lib/constants/roles'
 import { answersMatch } from '../../../../../../../lib/scoring/satScale'
 import { getCustomMap, effectiveCorrectAnswer, effectiveOptions } from '../../../../../../../lib/tutorCustomQuestions'
+import { computeUnitCohort } from '../../../../../../../lib/testCohort'
 
 export async function GET(request, { params }) {
   try {
@@ -54,11 +55,14 @@ export async function GET(request, { params }) {
     // Options per question, kept out of the response payload — used only so re-grading
     // can decide MCQ correctness by option letter.
     const optionsByQ = {}
+    // Content domain per question, for the per-unit cohort rollup.
+    const questionDomains = {}
 
     // Initialize stats — support both flat questions and module-based structure
     const initQuestion = (q) => {
       const qId = String(q._id)
       optionsByQ[qId] = effectiveOptions(customMap, q._id, q.options)
+      questionDomains[qId] = { domain: q.domain || '', skill: q.skill || '' }
       if (!questionStats[qId]) {
         questionStats[qId] = {
           questionId: qId,
@@ -74,7 +78,7 @@ export async function GET(request, { params }) {
       const rawM = test.modules
       const mods = Array.isArray(rawM) ? rawM : Object.values(rawM)
       const allIds = mods.flatMap(m => { const q = m.questions; return Array.isArray(q) ? q : Object.values(q || {}) })
-      const populated = await Question.find({ _id: { $in: allIds } }).select('_id content correctAnswer options')
+      const populated = await Question.find({ _id: { $in: allIds } }).select('_id content correctAnswer options domain skill')
       populated.forEach(initQuestion)
     } else {
       test.questions.forEach(initQuestion)
@@ -117,11 +121,27 @@ export async function GET(request, { params }) {
         : 0
     })
 
+    // Per-content-domain cohort stats for the Comparative Analysis charts. Uses the
+    // shared helper so staff and students see identical Best/Average figures.
+    // No percentile here: staff view a student's result, they are not IN the cohort.
+    const questionMeta = {}
+    Object.keys(questionStats).forEach(qId => {
+      questionMeta[qId] = {
+        domain: String(questionDomains[qId]?.domain || '').trim(),
+        // Canonical skill resolves the domain the same way the student view does.
+        skill: String(questionDomains[qId]?.skill || '').trim(),
+        correctAnswer: questionStats[qId].correctAnswer,
+        options: optionsByQ[qId],
+      }
+    })
+    const unitCohort = computeUnitCohort(sessions, questionMeta)
+
     return NextResponse.json({
       testId,
       testTitle: test.title,
       totalStudents,
-      questions: Object.values(questionStats)
+      questions: Object.values(questionStats),
+      unitCohort
     })
 
   } catch (error) {
