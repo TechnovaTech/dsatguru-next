@@ -95,6 +95,18 @@ export default function ModuleTestPage() {
     }
   }, [desmosLoaded, showCalculator])
 
+  // Give every module a clean calculator. The panel is only mounted while
+  // showCalculator is true, and the module-transition screens (intro / break /
+  // summary) unmount it. If the calculator was left OPEN across a transition, the
+  // Desmos instance stayed bound to the now-destroyed DOM node while showCalculator
+  // never changed, so the next module (e.g. the second Math module) re-mounted an
+  // EMPTY calculator that the init effect never re-ran for — it appeared blank / did
+  // not open. Closing it on every module change forces a fresh instance on reopen.
+  useEffect(() => {
+    setShowCalculator(false)
+    setShowReference(false)
+  }, [currentModuleIdx])
+
   // Drag handlers
   useEffect(() => {
     const onMove = (e) => {

@@ -156,6 +156,21 @@ export default function TakeTestPage() {
     // Cleanup is handled manually or when component unmounts if we want to reset
   }, [desmosLoaded, showCalculator, calculatorRef])
 
+  // Reset the calculator on every module/section change. The init effect only
+  // creates an instance while `!calculatorInstance`, so once created it never
+  // rebuilds — and if a module transition remounts the panel, the old instance is
+  // orphaned to a destroyed DOM node, leaving the calculator blank on the next
+  // module (e.g. Math Module 2). Closing it and clearing the instance here means
+  // reopening it builds a fresh one into the current DOM node.
+  useEffect(() => {
+    setShowCalculator(false)
+    if (calculatorInstance) {
+      try { calculatorInstance.destroy() } catch {}
+      setCalculatorInstance(null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSection, currentModule])
+
   const [showReference, setShowReference] = useState(false)
   const [refPosition, setRefPosition] = useState({ x: 100, y: 100 })
   const [isDraggingRef, setIsDraggingRef] = useState(false)
