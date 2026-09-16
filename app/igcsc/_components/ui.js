@@ -67,6 +67,8 @@ const BADGE_TONES = {
   indigo: 'bg-indigo-100 text-indigo-700',
   slate: 'bg-slate-100 text-slate-600',
   violet: 'bg-violet-100 text-violet-700',
+  cyan: 'bg-cyan-100 text-cyan-700',
+  rose: 'bg-rose-100 text-rose-700',
 }
 
 export function Badge({ children, tone = 'slate' }) {
