@@ -19,6 +19,7 @@ const GROUPS = [
       { label: 'Question Bank', path: '/igcsc/question-bank', icon: FiDatabase },
       { label: 'APT · SMS · CSQ', path: '/igcsc/assessments', icon: FiLayers },
       { label: 'Tests', path: '/igcsc/tests', icon: FiClipboard },
+      { label: 'Exam Paper', path: '/igcsc/exam-paper', icon: FiFileText },
       { label: 'Oral Tests', path: '/igcsc/oral-tests', icon: FiMic },
       { label: 'Test Allocation', path: '/igcsc/test-allocation', icon: FiSend },
       { label: 'Assessment Tracker', path: '/igcsc/assessment-tracker', icon: FiActivity },
