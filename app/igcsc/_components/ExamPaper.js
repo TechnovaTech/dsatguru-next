@@ -3,7 +3,7 @@
 // question-paper format (candidate header, instructions, numbered questions,
 // marks, answer lines). Content-neutral: it renders whatever `paper` you pass.
 export default function ExamPaper({ paper, showAnswers = false }) {
-  const { brand = 'IGCSC', subject, paperCode, duration, totalMarks, instructions = [], questions = [] } = paper || {}
+  const { brand = 'IGCSC', subject, unit, paperCode, duration, totalMarks, materials, instructions = [], questions = [] } = paper || {}
   const ui = { fontFamily: 'system-ui, sans-serif' }
 
   return (
@@ -26,9 +26,22 @@ export default function ExamPaper({ paper, showAnswers = false }) {
         </div>
       </div>
 
-      {/* ===== Candidate details ===== */}
-      <div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-3">
-        {['First Name', 'Last Name', 'Candidate Number', 'Centre Number'].map((l) => (
+      {/* ===== Title band ===== */}
+      <div className="mt-5 text-center">
+        {subject && <div className="text-xl font-extrabold tracking-tight text-slate-900">{subject}</div>}
+        {unit && <div className="mt-0.5 text-sm font-semibold text-slate-600">{unit}</div>}
+      </div>
+
+      {/* ===== Materials / equipment ===== */}
+      {materials && (
+        <div className="mt-4 rounded border border-slate-300 px-4 py-2 text-sm text-slate-700">
+          <span className="font-bold" style={ui}>You must have: </span>{materials}
+        </div>
+      )}
+
+      {/* ===== Candidate name ===== */}
+      <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-3">
+        {['First Name', 'Last Name'].map((l) => (
           <div key={l}>
             <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500" style={ui}>{l}</div>
             <div className="h-9 rounded border border-slate-300 bg-slate-50/60" />
