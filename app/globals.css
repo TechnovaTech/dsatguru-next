@@ -407,6 +407,8 @@ html.sec-lock video { -webkit-user-drag: none; user-drag: none; }
   html.print-mode nav,
   html.print-mode .igcsc-wm { display: none !important; }   /* hide the fixed watermark (caused a blank first page) */
   html.print-mode main { padding: 0 !important; margin: 0 !important; max-width: none !important; }
+  /* Keep each question whole — never split a question across pages. */
+  html.print-mode .exam-q { break-inside: avoid; page-break-inside: avoid; }
   html.print-mode .exam-print-root { margin: 0 !important; }
   html.print-mode .exam-print-root :is(.shadow-lg, .ring-1, .rounded-lg) {
     box-shadow: none !important;

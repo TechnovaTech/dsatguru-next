@@ -62,7 +62,7 @@ export default function ExamPaper({ paper, showAnswers = false }) {
       {/* ===== Questions ===== */}
       <div className="mt-7 space-y-8">
         {questions.map((q) => (
-          <div key={q.n} className="text-[15px] leading-relaxed text-slate-900">
+          <div key={q.n} className="exam-q text-[15px] leading-relaxed text-slate-900">
             <div className="flex items-start justify-between gap-3">
               <div className="flex gap-2.5"><span className="font-bold">{q.n}</span><span>{q.text}</span></div>
               {q.marks ? <span className="whitespace-nowrap text-sm text-slate-500" style={ui}>[{q.marks}]</span> : null}
