@@ -414,4 +414,11 @@ html.sec-lock video { -webkit-user-drag: none; user-drag: none; }
     box-shadow: none !important;
     --tw-ring-shadow: 0 0 #0000 !important;
   }
+  /* Browsers strip backgrounds when printing by default, which would leave the
+     white "iG" brand mark invisible — force backgrounds to print. */
+  html.print-mode .exam-print-root,
+  html.print-mode .exam-print-root * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }

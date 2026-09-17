@@ -78,6 +78,7 @@ export async function POST(request) {
         update: {
           $set: {
             sourceId: String(q.sourceId),
+            curriculum: q.curriculum || '', course: q.course || '',
             subject: q.subject || '', stream: q.stream || '',
             topic: q.topic || '', subtopic: q.subtopic || '', topicPath: q.topicPath || [],
             sourceFolder: q.sourceFolder || '', order: Number(q.order) || 0,

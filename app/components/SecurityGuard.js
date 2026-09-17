@@ -20,10 +20,13 @@ export default function SecurityGuard() {
     // Block DevTools / view-source / save / print shortcuts.
     const onKeyDown = (e) => {
       const k = (e.key || '').toLowerCase()
+      // Pages that opt into printing (html.print-mode, e.g. the exam-paper
+      // page) keep the Ctrl/Cmd+P shortcut working.
+      const printable = document.documentElement.classList.contains('print-mode')
       if (
         e.key === 'F12' ||
         ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i', 'j', 'c'].includes(k)) ||
-        ((e.ctrlKey || e.metaKey) && ['u', 's', 'p'].includes(k))
+        ((e.ctrlKey || e.metaKey) && (printable ? ['u', 's'] : ['u', 's', 'p']).includes(k))
       ) { e.preventDefault(); return false }
     }
     document.addEventListener('keydown', onKeyDown)

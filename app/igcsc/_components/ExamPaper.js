@@ -3,7 +3,7 @@
 // question-paper format (candidate header, instructions, numbered questions,
 // marks, answer lines). Content-neutral: it renders whatever `paper` you pass.
 export default function ExamPaper({ paper, showAnswers = false }) {
-  const { brand = 'IGCSC', subject, unit, paperCode, duration, totalMarks, materials, instructions = [], questions = [] } = paper || {}
+  const { brand = 'IGCSC', subject, unit, paperCode, duration, totalMarks, materials, instructions = [], questions = [], footerBrand = '' } = paper || {}
   const ui = { fontFamily: 'system-ui, sans-serif' }
 
   return (
@@ -68,14 +68,27 @@ export default function ExamPaper({ paper, showAnswers = false }) {
               {q.marks ? <span className="whitespace-nowrap text-sm text-slate-500" style={ui}>[{q.marks}]</span> : null}
             </div>
 
+            {q.image && (
+              <div className="mt-2.5 pl-6">
+                <img src={q.image} alt="" className="max-h-[420px] max-w-full rounded border border-slate-200" />
+              </div>
+            )}
+
             {q.type === 'mcq' && q.options && (
               <div className="mt-2.5 space-y-2 pl-6">
-                {q.options.map((o, i) => (
-                  <div key={i} className="flex items-center gap-2.5">
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-slate-400 text-xs" style={ui}>{'ABCDEF'[i]}</span>
-                    <span>{o}</span>
-                  </div>
-                ))}
+                {q.options.map((o, i) => {
+                  // Options can be plain strings or { letter, node } pairs; the
+                  // pair form keeps each option's REAL letter (A stays A even if
+                  // B is missing) so the mark scheme's letter always matches.
+                  const letter = (o && typeof o === 'object' && !o.$$typeof && o.letter) || 'ABCDEF'[i]
+                  const body = (o && typeof o === 'object' && !o.$$typeof && 'node' in o) ? o.node : o
+                  return (
+                    <div key={i} className="flex items-center gap-2.5">
+                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-slate-400 text-xs" style={ui}>{letter}</span>
+                      <span>{body}</span>
+                    </div>
+                  )
+                })}
               </div>
             )}
 
@@ -111,7 +124,8 @@ export default function ExamPaper({ paper, showAnswers = false }) {
       </div>
 
       <div className="mt-10 border-t border-slate-200 pt-4 text-center text-[11px] text-slate-400" style={ui}>
-        END OF PAPER · {brand} Assessment Suite
+        <div>END OF PAPER · {brand} Assessment Suite</div>
+        {footerBrand && <div className="mt-1">{footerBrand}</div>}
       </div>
     </div>
   )
