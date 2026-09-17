@@ -1,10 +1,11 @@
 'use client'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  FiEye, FiEyeOff, FiPrinter, FiChevronLeft, FiBookOpen, FiFileText, FiLayers, FiSearch,
+  FiEye, FiEyeOff, FiPrinter, FiChevronLeft, FiFileText, FiSearch, FiBookOpen,
 } from 'react-icons/fi'
+import { FaFolder } from 'react-icons/fa'
 import { apiGet } from '../_components/api'
-import { PageHeader, Card, Loading, EmptyState, ErrorState, Badge } from '../_components/ui'
+import { PageHeader, Loading, EmptyState, ErrorState } from '../_components/ui'
 import ExamPaper from '../_components/ExamPaper'
 // Same KaTeX renderer the bank browser uses, so $..$ math renders in the paper.
 import { renderContent as renderMath } from '../../components/admin/LatexRenderer'
@@ -13,17 +14,13 @@ import { renderContent as renderMath } from '../../components/admin/LatexRendere
 // so the browser's PDF header/filename carries the site branding + IGCSE.
 const PDF_BRAND = 'Best SAT Preparation Online | Digital SAT Exam Prep | IGCSE'
 
-const CURRICULUM_TONE = {
-  IGCSE: 'indigo', IBDP: 'violet', 'A-Level': 'blue', 'US Curriculum': 'green', Competition: 'amber', Other: 'slate',
+function pretty(seg) {
+  return String(seg || '').replace(/^\d+[_.)\s-]*/, '').trim() || String(seg || '')
 }
 
-// A sourceFolder is the raw export path of one worksheet ("01_IGCSE Physics/
-// Cambridge/Motion, Forces & Energy/(MCQ) Easy"). Prettify it for display.
+// A sourceFolder is the raw export path of one worksheet. Prettify for display.
 function folderLabel(folder, topic, subtopic) {
-  const segs = String(folder || '')
-    .split('/')
-    .map((s) => s.replace(/^\d+[_.)\s-]*/, '').trim())
-    .filter(Boolean)
+  const segs = String(folder || '').split('/').map(pretty).filter(Boolean)
   if (segs.length) return segs.slice(-2).join(' — ')
   return [topic, subtopic].filter(Boolean).join(' — ') || 'General'
 }
@@ -38,24 +35,23 @@ function paperDifficulty(p) {
   return m ? m[1].replace(/\b\w/g, (c) => c.toUpperCase()) : ''
 }
 
-const EMPTY_PF = { q: '', course: '', difficulty: '' }
-
 export default function ExamPaperPage() {
-  const [view, setView] = useState('subjects')          // subjects | papers | paper
+  const [view, setView] = useState('browse')            // browse (columns) | paper
   const [subjects, setSubjects] = useState([])
   const [sel, setSel] = useState(null)                  // { curriculum, subject }
-  const [papers, setPapers] = useState([])
-  const [paperMeta, setPaperMeta] = useState(null)      // the clicked paper row
+  const [papers, setPapers] = useState([])              // flat papers of the subject
+  const [path, setPath] = useState([])                  // selected folder segments
+  const [colQ, setColQ] = useState({})                  // per-column search text
+  const [diff, setDiff] = useState('')                  // global difficulty chip
+  const [paperMeta, setPaperMeta] = useState(null)
   const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loadingSubjects, setLoadingSubjects] = useState(true)
+  const [loadingPapers, setLoadingPapers] = useState(false)
+  const [loading, setLoading] = useState(false)         // paper questions fetch
   const [error, setError] = useState('')
   const [showAnswers, setShowAnswers] = useState(false)
-  const [pf, setPf] = useState(EMPTY_PF)               // papers-list filters
-  // Guards against a slow earlier fetch overwriting a newer view's data
-  // (e.g. open paper A, go back, open paper B, then A's response lands last).
+  // Guards against a slow earlier fetch overwriting a newer view's data.
   const reqSeq = useRef(0)
-  // Latest sel/paperMeta for the popstate handler (registered once).
-  const navRef = useRef({ sel: null, paperMeta: null })
 
   // Allow this one page to print (site-wide print is otherwise blocked).
   useEffect(() => {
@@ -71,55 +67,47 @@ export default function ExamPaperPage() {
     return () => { document.title = prev }
   }, [view])
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true); setError('')
-      try {
-        const res = await apiGet('/api/igcsc/exam-papers?mode=subjects')
-        setSubjects(res.subjects || [])
-      } catch (e) { setError(e.message) } finally { setLoading(false) }
-    })()
-  }, [])
-
-  // Browser Back walks the in-page views (paper → papers → subjects) instead
-  // of leaving straight for the previous page.
+  // Browser Back closes an open paper back to the column browser instead of
+  // leaving the page. Any popped/stale {ep:'paper'} entry (Forward, or a
+  // reload while a paper was open) is neutralized so it can never desync the
+  // view from history.
   useEffect(() => {
     const onPop = (e) => {
-      const v = e.state?.ep
       ++reqSeq.current
       setError(''); setLoading(false)
-      if (v === 'paper' && navRef.current.paperMeta) {
-        setView('paper')
-      } else if ((v === 'papers' || v === 'paper') && navRef.current.sel) {
-        navRef.current.paperMeta = null
-        setView('papers'); setItems([]); setPaperMeta(null)
-      } else {
-        navRef.current = { sel: null, paperMeta: null }
-        setView('subjects'); setPapers([]); setSel(null); setItems([]); setPaperMeta(null)
-      }
+      if (e.state?.ep === 'paper') window.history.replaceState(null, '')
+      setView('browse'); setItems([]); setPaperMeta(null)
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
+  useEffect(() => {
+    (async () => {
+      setLoadingSubjects(true); setError('')
+      try {
+        const res = await apiGet('/api/igcsc/exam-papers?mode=subjects')
+        setSubjects(res.subjects || [])
+      } catch (e) { setError(e.message) } finally { setLoadingSubjects(false) }
+    })()
+  }, [])
+
   const openSubject = async (s) => {
     const seq = ++reqSeq.current
-    window.history.pushState({ ep: 'papers' }, '')
-    navRef.current = { sel: s, paperMeta: null }
-    setSel(s); setView('papers'); setLoading(true); setError(''); setPapers([]); setPf(EMPTY_PF)
+    // Keep the subject-search text; clear only the folder-column searches.
+    setSel(s); setPath([]); setColQ((q) => ({ s: q.s || '' })); setDiff(''); setPapers([]); setLoadingPapers(true); setError('')
     try {
       const p = new URLSearchParams({ mode: 'papers', curriculum: s.curriculum, subject: s.subject })
       const res = await apiGet(`/api/igcsc/exam-papers?${p.toString()}`)
       if (seq !== reqSeq.current) return
       setPapers(res.papers || [])
     } catch (e) { if (seq === reqSeq.current) setError(e.message) }
-    finally { if (seq === reqSeq.current) setLoading(false) }
+    finally { if (seq === reqSeq.current) setLoadingPapers(false) }
   }
 
   const openPaper = async (p) => {
     const seq = ++reqSeq.current
     window.history.pushState({ ep: 'paper' }, '')
-    navRef.current.paperMeta = p
     setPaperMeta(p); setView('paper'); setLoading(true); setError(''); setItems([]); setShowAnswers(false)
     try {
       const q = new URLSearchParams({ mode: 'paper', curriculum: sel.curriculum, subject: sel.subject, folder: p.folder })
@@ -130,10 +118,53 @@ export default function ExamPaperPage() {
     finally { if (seq === reqSeq.current) setLoading(false) }
   }
 
+  const back = () => window.history.back()
+
+  /* ---- Folder tree of the selected subject, built from the flat papers ---- */
+  const tree = useMemo(() => {
+    // Null-prototype maps: a folder segment named "constructor"/"__proto__"
+    // must be a plain key, never an inherited Object member.
+    const mkNode = () => ({ children: Object.create(null), papers: [] })
+    const root = mkNode()
+    for (const p of papers) {
+      const segs = String(p.folder || '').split('/').filter(Boolean)
+      let node = root
+      for (const s of segs) {
+        node = node.children[s] || (node.children[s] = mkNode())
+      }
+      node.papers.push(p)
+    }
+    return root
+  }, [papers])
+
+  const matchDiff = (p) => !diff || paperDifficulty(p) === diff
+  // Question-paper count per node under the active difficulty chip, so empty
+  // branches disappear while a filter is on.
+  const nodeCounts = useMemo(() => {
+    const map = new Map()
+    const walk = (node) => {
+      let c = node.papers.filter(matchDiff).length
+      for (const k of Object.keys(node.children)) c += walk(node.children[k])
+      map.set(node, c)
+      return c
+    }
+    walk(tree)
+    return map
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tree, diff])
+
+  const diffs = useMemo(() => {
+    const order = ['Easy', 'Medium', 'Hard', 'Very Hard']
+    return [...new Set(papers.map(paperDifficulty).filter(Boolean))]
+      .sort((a, b) => order.indexOf(a) - order.indexOf(b))
+  }, [papers])
+
+  const totalMarksOf = (list) => list.reduce((a, q) => a + (Number(q.marks) || (q.isMCQ ? 1 : 0)), 0)
+
   // Build the printable paper object from the raw bank questions.
   const paper = useMemo(() => {
     if (view !== 'paper' || !sel || !paperMeta) return null
-    const totalMarks = items.reduce((a, q) => a + (Number(q.marks) || (q.isMCQ ? 1 : 0)), 0)
+    const totalMarks = totalMarksOf(items)
     const mins = clamp(Math.round((totalMarks * 2.5) / 5) * 5 || 45, 30, 180)
     const needsCalc = /math|physic|chem/i.test(sel.subject)
     return {
@@ -170,168 +201,200 @@ export default function ExamPaperPage() {
     }
   }, [view, sel, paperMeta, items])
 
-  // The on-page Back buttons go through browser history so both paths (button
-  // and browser Back) walk the same view stack.
-  const back = () => window.history.back()
-
-  /* ============================ Subjects view ============================ */
-  if (view === 'subjects') {
+  /* ============================== Paper view ============================== */
+  if (view === 'paper') {
     return (
       <div>
-        <PageHeader title="Exam Paper" subtitle="Pick a subject, then a paper — every paper prints as a clean IGCSC exam PDF." />
-        {error && <div className="mb-4"><ErrorState message={error} /></div>}
-        {loading ? <Loading label="Loading subjects…" /> : subjects.length === 0 ? (
-          <EmptyState icon={FiBookOpen} title="No questions in the bank yet" hint="Import questions to generate exam papers." />
-        ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {subjects.map((s) => (
-              <button key={`${s.curriculum}|${s.subject}`} onClick={() => openSubject(s)}
-                className="rounded-xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md">
-                <div className="flex items-center justify-between">
-                  <Badge tone={CURRICULUM_TONE[s.curriculum] || 'slate'}>{s.curriculum}</Badge>
-                  <FiFileText className="text-slate-300" size={18} />
+        <div className="no-print">
+          <PageHeader
+            title={paper ? paper.subject : 'Exam Paper'}
+            subtitle="Printable IGCSC exam paper — candidate header, instructions and answer spaces."
+            actions={
+              <div className="flex items-center gap-2">
+                <button onClick={back} className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+                  <FiChevronLeft size={15} /> Back
+                </button>
+                <button onClick={() => setShowAnswers((s) => !s)}
+                  className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+                  {showAnswers ? <><FiEyeOff size={15} /> Hide mark scheme</> : <><FiEye size={15} /> Show mark scheme</>}
+                </button>
+                <button onClick={() => window.print()}
+                  className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                  <FiPrinter size={15} /> Print
+                </button>
+              </div>
+            }
+          />
+        </div>
+        {error && <div className="mb-4 no-print"><ErrorState message={error} /></div>}
+        {loading ? <Loading label="Building paper…" /> : (!error && paper && paper.questions.length > 0) ? (
+          <div className="exam-print-root">
+            <ExamPaper paper={paper} showAnswers={showAnswers} />
+          </div>
+        ) : !error ? (
+          <EmptyState icon={FiFileText} title="This paper has no questions" hint="Go back and pick another paper." />
+        ) : null}
+      </div>
+    )
+  }
+
+  /* =========================== Column browser =========================== */
+  // Column 0 = subjects. Columns 1..path.length+1 = the folder tree.
+  const setSearch = (key, v) => setColQ((s) => ({ ...s, [key]: v }))
+  const term = (key) => (colQ[key] || '').trim().toLowerCase()
+
+  const subjRows = subjects.filter((s) =>
+    !term('s') || `${s.curriculum} ${s.subject}`.toLowerCase().includes(term('s')))
+
+  // Entries of the folder node at a given path depth.
+  const nodeAt = (depth) => {
+    let node = tree
+    for (let i = 0; i < depth; i++) {
+      node = node?.children[path[i]]
+      if (!node) return null
+    }
+    return node
+  }
+  const columns = []
+  if (sel && !loadingPapers && papers.length > 0) {
+    for (let depth = 0; depth <= path.length; depth++) {
+      const node = nodeAt(depth)
+      if (!node) break
+      // Search text is keyed by the folder PATH, not the column position, so a
+      // term typed inside folder A never filters sibling folder B's column.
+      const key = 'c:' + path.slice(0, depth).join('/')
+      const rows = []
+      // Papers sitting directly at this node (e.g. legacy '' folders).
+      for (const p of node.papers) {
+        if (matchDiff(p)) rows.push({ type: 'paper', p, name: 'General' })
+      }
+      for (const name of Object.keys(node.children).sort((a, b) => pretty(a).localeCompare(pretty(b)))) {
+        const child = node.children[name]
+        const total = nodeCounts.get(child) || 0
+        if (total === 0) continue
+        const hasKids = Object.keys(child.children).length > 0
+        const own = child.papers.filter(matchDiff)
+        if (hasKids) {
+          rows.push({ type: 'dir', name, count: total })
+          // Rare: a folder that has subfolders AND its own questions. When it
+          // is the selected segment its own papers already show as "General"
+          // in the next column — don't list them twice.
+          if (path[depth] !== name) {
+            for (const p of own) rows.push({ type: 'paper', p, name: `${pretty(name)} (this folder)` })
+          }
+        } else {
+          for (const p of own) rows.push({ type: 'paper', p, name: pretty(name) })
+        }
+      }
+      const title = depth === 0 ? `${sel.curriculum} ${sel.subject}` : pretty(path[depth - 1])
+      const visible = rows.filter((r) =>
+        !term(key) || (r.type === 'dir' ? pretty(r.name) : r.name).toLowerCase().includes(term(key)))
+      columns.push({ depth, key, title, rows: visible, total: rows.length })
+      // Stop before rendering an orphaned column for a selected folder that a
+      // filter has emptied (or that no longer exists after a data change).
+      if (depth < path.length) {
+        const selChild = node.children[path[depth]]
+        if (!selChild || (nodeCounts.get(selChild) || 0) === 0) break
+      }
+    }
+  }
+
+  return (
+    <div>
+      <PageHeader
+        title="Exam Paper"
+        subtitle="Browse the bank like folders — pick a subject, drill into its papers, and print any of them."
+      />
+      {error && <div className="mb-4"><ErrorState message={error} /></div>}
+
+      {/* ---- Global difficulty chips ---- */}
+      {sel && diffs.length > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-1.5">
+          {['', ...diffs].map((d) => (
+            <button key={d || 'all'} onClick={() => setDiff(d)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                diff === d ? 'bg-indigo-600 text-white' : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+              }`}>
+              {d || 'All difficulties'}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {/* ---- Column 0: subjects ---- */}
+        <div className="w-80 flex-shrink-0 border-r border-slate-200/80 pr-4">
+          <div className="relative mb-3">
+            <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input value={colQ.s || ''} onChange={(e) => setSearch('s', e.target.value)}
+              placeholder="Search subjects…"
+              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-8 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none" />
+          </div>
+          <div className="max-h-[70vh] space-y-2 overflow-y-auto pr-1">
+            {loadingSubjects ? <Loading label="Loading…" /> : subjRows.map((s) => {
+              const active = sel && sel.curriculum === s.curriculum && sel.subject === s.subject
+              return (
+                <button key={`${s.curriculum}|${s.subject}`} onClick={() => openSubject(s)}
+                  className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition ${
+                    active ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white hover:bg-slate-50'
+                  }`}>
+                  <FaFolder size={16} className="flex-shrink-0 text-amber-400" />
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">{s.curriculum} {s.subject}</span>
+                  <span className="flex-shrink-0 text-[11px] text-slate-400">{s.papers.toLocaleString()}</span>
+                </button>
+              )
+            })}
+            {!loadingSubjects && subjRows.length === 0 && (
+              <EmptyState icon={FiBookOpen} title="No subjects" />
+            )}
+          </div>
+        </div>
+
+        {/* ---- Folder columns ---- */}
+        {sel && loadingPapers && (
+          <div className="w-80 flex-shrink-0"><Loading label="Loading papers…" /></div>
+        )}
+        {columns.map((col) => (
+          <div key={col.key} className="w-80 flex-shrink-0 border-r border-slate-200/80 pr-4 last:border-r-0 last:pr-0">
+            <div className="relative mb-3">
+              <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input value={colQ[col.key] || ''} onChange={(e) => setSearch(col.key, e.target.value)}
+                placeholder={`Search in "${col.title}"…`}
+                className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-8 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none" />
+            </div>
+            <div className="max-h-[70vh] space-y-2 overflow-y-auto pr-1">
+              {col.rows.map((r) => r.type === 'dir' ? (
+                <button key={`d${r.name}`} onClick={() => setPath([...path.slice(0, col.depth), r.name])}
+                  className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition ${
+                    path[col.depth] === r.name ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white hover:bg-slate-50'
+                  }`}>
+                  <FaFolder size={16} className="flex-shrink-0 text-amber-400" />
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">{pretty(r.name)}</span>
+                  <span className="flex-shrink-0 text-[11px] text-slate-400">{r.count}</span>
+                </button>
+              ) : (
+                <button key={`p${r.p.n}`} onClick={() => openPaper(r.p)}
+                  className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left transition hover:bg-emerald-50/60">
+                  <FaFolder size={16} className="flex-shrink-0 text-amber-400" />
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">{r.name}</span>
+                  <span className="flex-shrink-0 text-[11px] text-slate-400">{r.p.count} Qs</span>
+                </button>
+              ))}
+              {col.rows.length === 0 && (
+                <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-400">
+                  {col.total === 0 ? 'Nothing here for this filter' : 'No match for this search'}
                 </div>
-                <div className="mt-3 text-lg font-extrabold text-slate-900">{s.subject}</div>
-                <div className="mt-1 text-sm text-slate-500">
-                  {s.papers.toLocaleString()} papers · {s.questions.toLocaleString()} questions
-                </div>
-              </button>
-            ))}
+              )}
+            </div>
+          </div>
+        ))}
+
+        {!sel && !loadingSubjects && (
+          <div className="flex w-80 flex-shrink-0 items-center justify-center rounded-xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-400">
+            Pick a subject to browse its papers →
           </div>
         )}
       </div>
-    )
-  }
-
-  /* ============================= Papers view ============================= */
-  if (view === 'papers') {
-    const courses = [...new Set(papers.map((p) => p.course).filter(Boolean))].sort()
-    const diffOrder = ['Easy', 'Medium', 'Hard', 'Very Hard']
-    const diffs = [...new Set(papers.map(paperDifficulty).filter(Boolean))]
-      .sort((a, b) => diffOrder.indexOf(a) - diffOrder.indexOf(b))
-    const q = pf.q.trim().toLowerCase()
-    const filtered = papers.filter((p) => {
-      if (pf.course && p.course !== pf.course) return false
-      if (pf.difficulty && paperDifficulty(p) !== pf.difficulty) return false
-      if (q && !(`${folderLabel(p.folder, p.topic, p.subtopic)} ${p.course}`.toLowerCase().includes(q))) return false
-      return true
-    })
-    return (
-      <div>
-        <PageHeader
-          title={`${sel.curriculum} ${sel.subject}`}
-          subtitle="Every paper below prints as its own exam PDF, in original paper order."
-          actions={
-            <button onClick={back} className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
-              <FiChevronLeft size={15} /> All subjects
-            </button>
-          }
-        />
-        {error && <div className="mb-4"><ErrorState message={error} /></div>}
-        {loading ? <Loading label="Loading papers…" /> : papers.length === 0 ? (
-          <EmptyState icon={FiLayers} title="No papers found" />
-        ) : (
-          <>
-            {/* ---- Filters ---- */}
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-              <div className="relative">
-                <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  value={pf.q}
-                  onChange={(e) => setPf({ ...pf, q: e.target.value })}
-                  placeholder="Search papers…"
-                  className="w-56 rounded-lg border border-slate-200 bg-white py-2 pl-8 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none"
-                />
-              </div>
-              {courses.length > 1 && (
-                <select
-                  value={pf.course}
-                  onChange={(e) => setPf({ ...pf, course: e.target.value })}
-                  className="max-w-[260px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-indigo-400 focus:outline-none">
-                  <option value="">All courses</option>
-                  {courses.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              )}
-              {diffs.length > 0 && (
-                <div className="flex items-center gap-1.5">
-                  {['', ...diffs].map((d) => (
-                    <button key={d || 'all'} onClick={() => setPf({ ...pf, difficulty: d })}
-                      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                        pf.difficulty === d
-                          ? 'bg-indigo-600 text-white'
-                          : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                      }`}>
-                      {d || 'All'}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <span className="ml-auto text-xs font-semibold text-slate-500">
-                {filtered.length} of {papers.length} papers
-              </span>
-            </div>
-            {filtered.length === 0 ? (
-              <EmptyState icon={FiLayers} title="No papers match these filters" hint="Clear a filter to see more papers." />
-            ) : (
-              <Card>
-                <div className="divide-y divide-slate-100">
-                  {filtered.map((p) => (
-                    <button key={p.n} onClick={() => openPaper(p)}
-                      className="flex w-full items-center gap-4 px-2 py-3 text-left transition hover:bg-slate-50">
-                      <span className="flex h-9 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-sm font-extrabold text-indigo-700">P{p.n}</span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold text-slate-800">{folderLabel(p.folder, p.topic, p.subtopic)}</span>
-                        <span className="block truncate text-xs text-slate-500">{p.course}</span>
-                      </span>
-                      {paperDifficulty(p) && (
-                        <Badge tone={{ Easy: 'green', Medium: 'amber', Hard: 'red', 'Very Hard': 'red' }[paperDifficulty(p)] || 'slate'}>
-                          {paperDifficulty(p)}
-                        </Badge>
-                      )}
-                      <span className="flex-shrink-0 text-xs font-semibold text-slate-500">{p.count} Qs</span>
-                    </button>
-                  ))}
-                </div>
-              </Card>
-            )}
-          </>
-        )}
-      </div>
-    )
-  }
-
-  /* ============================= Paper view ============================= */
-  return (
-    <div>
-      <div className="no-print">
-        <PageHeader
-          title={paper ? paper.subject : 'Exam Paper'}
-          subtitle="Printable IGCSC exam paper — candidate header, instructions and answer spaces."
-          actions={
-            <div className="flex items-center gap-2">
-              <button onClick={back} className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
-                <FiChevronLeft size={15} /> Papers
-              </button>
-              <button onClick={() => setShowAnswers((s) => !s)}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
-                {showAnswers ? <><FiEyeOff size={15} /> Hide mark scheme</> : <><FiEye size={15} /> Show mark scheme</>}
-              </button>
-              <button onClick={() => window.print()}
-                className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
-                <FiPrinter size={15} /> Print
-              </button>
-            </div>
-          }
-        />
-      </div>
-      {error && <div className="mb-4 no-print"><ErrorState message={error} /></div>}
-      {loading ? <Loading label="Building paper…" /> : (!error && paper && paper.questions.length > 0) ? (
-        <div className="exam-print-root">
-          <ExamPaper paper={paper} showAnswers={showAnswers} />
-        </div>
-      ) : !error ? (
-        <EmptyState icon={FiFileText} title="This paper has no questions" hint="Go back and pick another paper." />
-      ) : null}
     </div>
   )
 }
