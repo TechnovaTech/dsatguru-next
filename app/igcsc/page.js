@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { FiUsers, FiDatabase, FiBookOpen, FiClipboard, FiTarget, FiActivity, FiArrowRight } from 'react-icons/fi'
+import { FiUsers, FiDatabase, FiBookOpen, FiClipboard, FiTarget, FiActivity, FiArrowRight, FiFileText } from 'react-icons/fi'
 import { apiGetSafe } from './_components/api'
 import { PageHeader, StatCard, Card, Loading, Table, EmptyState, Badge } from './_components/ui'
 
@@ -65,6 +65,7 @@ export default function IgcscDashboard() {
             {[
               { label: 'Manage Students', href: '/igcsc/users', icon: FiUsers },
               { label: 'Question Banks', href: '/igcsc/question-bank', icon: FiDatabase },
+              { label: 'Exam Papers', href: '/igcsc/exam-paper', icon: FiFileText },
               { label: 'Tests Catalog', href: '/igcsc/tests', icon: FiClipboard },
               { label: 'Allocate a Test', href: '/igcsc/test-allocation', icon: FiTarget },
               { label: 'Performance Reports', href: '/igcsc/analytics', icon: FiActivity },

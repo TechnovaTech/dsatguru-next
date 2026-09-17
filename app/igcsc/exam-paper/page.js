@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  FiEye, FiEyeOff, FiPrinter, FiChevronLeft, FiBookOpen, FiFileText, FiLayers,
+  FiEye, FiEyeOff, FiPrinter, FiChevronLeft, FiBookOpen, FiFileText, FiLayers, FiSearch,
 } from 'react-icons/fi'
 import { apiGet } from '../_components/api'
 import { PageHeader, Card, Loading, EmptyState, ErrorState, Badge } from '../_components/ui'
@@ -30,6 +30,16 @@ function folderLabel(folder, topic, subtopic) {
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)) }
 
+// A paper's difficulty: the stored field when set, else the "— Easy/Medium/…"
+// suffix many source folders carry.
+function paperDifficulty(p) {
+  if (p.difficulty) return p.difficulty
+  const m = String(p.folder || '').match(/\b(Very Hard|Easy|Medium|Hard)\s*$/i)
+  return m ? m[1].replace(/\b\w/g, (c) => c.toUpperCase()) : ''
+}
+
+const EMPTY_PF = { q: '', course: '', difficulty: '' }
+
 export default function ExamPaperPage() {
   const [view, setView] = useState('subjects')          // subjects | papers | paper
   const [subjects, setSubjects] = useState([])
@@ -40,9 +50,12 @@ export default function ExamPaperPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showAnswers, setShowAnswers] = useState(false)
+  const [pf, setPf] = useState(EMPTY_PF)               // papers-list filters
   // Guards against a slow earlier fetch overwriting a newer view's data
   // (e.g. open paper A, go back, open paper B, then A's response lands last).
   const reqSeq = useRef(0)
+  // Latest sel/paperMeta for the popstate handler (registered once).
+  const navRef = useRef({ sel: null, paperMeta: null })
 
   // Allow this one page to print (site-wide print is otherwise blocked).
   useEffect(() => {
@@ -68,9 +81,32 @@ export default function ExamPaperPage() {
     })()
   }, [])
 
+  // Browser Back walks the in-page views (paper → papers → subjects) instead
+  // of leaving straight for the previous page.
+  useEffect(() => {
+    const onPop = (e) => {
+      const v = e.state?.ep
+      ++reqSeq.current
+      setError(''); setLoading(false)
+      if (v === 'paper' && navRef.current.paperMeta) {
+        setView('paper')
+      } else if ((v === 'papers' || v === 'paper') && navRef.current.sel) {
+        navRef.current.paperMeta = null
+        setView('papers'); setItems([]); setPaperMeta(null)
+      } else {
+        navRef.current = { sel: null, paperMeta: null }
+        setView('subjects'); setPapers([]); setSel(null); setItems([]); setPaperMeta(null)
+      }
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
   const openSubject = async (s) => {
     const seq = ++reqSeq.current
-    setSel(s); setView('papers'); setLoading(true); setError(''); setPapers([])
+    window.history.pushState({ ep: 'papers' }, '')
+    navRef.current = { sel: s, paperMeta: null }
+    setSel(s); setView('papers'); setLoading(true); setError(''); setPapers([]); setPf(EMPTY_PF)
     try {
       const p = new URLSearchParams({ mode: 'papers', curriculum: s.curriculum, subject: s.subject })
       const res = await apiGet(`/api/igcsc/exam-papers?${p.toString()}`)
@@ -82,6 +118,8 @@ export default function ExamPaperPage() {
 
   const openPaper = async (p) => {
     const seq = ++reqSeq.current
+    window.history.pushState({ ep: 'paper' }, '')
+    navRef.current.paperMeta = p
     setPaperMeta(p); setView('paper'); setLoading(true); setError(''); setItems([]); setShowAnswers(false)
     try {
       const q = new URLSearchParams({ mode: 'paper', curriculum: sel.curriculum, subject: sel.subject, folder: p.folder })
@@ -132,12 +170,9 @@ export default function ExamPaperPage() {
     }
   }, [view, sel, paperMeta, items])
 
-  const back = () => {
-    ++reqSeq.current                       // drop any in-flight response
-    setError(''); setLoading(false)
-    if (view === 'paper') { setView('papers'); setItems([]); setPaperMeta(null) }
-    else if (view === 'papers') { setView('subjects'); setPapers([]); setSel(null) }
-  }
+  // The on-page Back buttons go through browser history so both paths (button
+  // and browser Back) walk the same view stack.
+  const back = () => window.history.back()
 
   /* ============================ Subjects view ============================ */
   if (view === 'subjects') {
@@ -170,6 +205,17 @@ export default function ExamPaperPage() {
 
   /* ============================= Papers view ============================= */
   if (view === 'papers') {
+    const courses = [...new Set(papers.map((p) => p.course).filter(Boolean))].sort()
+    const diffOrder = ['Easy', 'Medium', 'Hard', 'Very Hard']
+    const diffs = [...new Set(papers.map(paperDifficulty).filter(Boolean))]
+      .sort((a, b) => diffOrder.indexOf(a) - diffOrder.indexOf(b))
+    const q = pf.q.trim().toLowerCase()
+    const filtered = papers.filter((p) => {
+      if (pf.course && p.course !== pf.course) return false
+      if (pf.difficulty && paperDifficulty(p) !== pf.difficulty) return false
+      if (q && !(`${folderLabel(p.folder, p.topic, p.subtopic)} ${p.course}`.toLowerCase().includes(q))) return false
+      return true
+    })
     return (
       <div>
         <PageHeader
@@ -185,21 +231,70 @@ export default function ExamPaperPage() {
         {loading ? <Loading label="Loading papers…" /> : papers.length === 0 ? (
           <EmptyState icon={FiLayers} title="No papers found" />
         ) : (
-          <Card>
-            <div className="divide-y divide-slate-100">
-              {papers.map((p) => (
-                <button key={p.n} onClick={() => openPaper(p)}
-                  className="flex w-full items-center gap-4 px-2 py-3 text-left transition hover:bg-slate-50">
-                  <span className="flex h-9 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-sm font-extrabold text-indigo-700">P{p.n}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-slate-800">{folderLabel(p.folder, p.topic, p.subtopic)}</span>
-                    <span className="block truncate text-xs text-slate-500">{p.course}</span>
-                  </span>
-                  <span className="flex-shrink-0 text-xs font-semibold text-slate-500">{p.count} Qs</span>
-                </button>
-              ))}
+          <>
+            {/* ---- Filters ---- */}
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <div className="relative">
+                <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  value={pf.q}
+                  onChange={(e) => setPf({ ...pf, q: e.target.value })}
+                  placeholder="Search papers…"
+                  className="w-56 rounded-lg border border-slate-200 bg-white py-2 pl-8 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none"
+                />
+              </div>
+              {courses.length > 1 && (
+                <select
+                  value={pf.course}
+                  onChange={(e) => setPf({ ...pf, course: e.target.value })}
+                  className="max-w-[260px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-indigo-400 focus:outline-none">
+                  <option value="">All courses</option>
+                  {courses.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              )}
+              {diffs.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  {['', ...diffs].map((d) => (
+                    <button key={d || 'all'} onClick={() => setPf({ ...pf, difficulty: d })}
+                      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                        pf.difficulty === d
+                          ? 'bg-indigo-600 text-white'
+                          : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      }`}>
+                      {d || 'All'}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <span className="ml-auto text-xs font-semibold text-slate-500">
+                {filtered.length} of {papers.length} papers
+              </span>
             </div>
-          </Card>
+            {filtered.length === 0 ? (
+              <EmptyState icon={FiLayers} title="No papers match these filters" hint="Clear a filter to see more papers." />
+            ) : (
+              <Card>
+                <div className="divide-y divide-slate-100">
+                  {filtered.map((p) => (
+                    <button key={p.n} onClick={() => openPaper(p)}
+                      className="flex w-full items-center gap-4 px-2 py-3 text-left transition hover:bg-slate-50">
+                      <span className="flex h-9 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-sm font-extrabold text-indigo-700">P{p.n}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-slate-800">{folderLabel(p.folder, p.topic, p.subtopic)}</span>
+                        <span className="block truncate text-xs text-slate-500">{p.course}</span>
+                      </span>
+                      {paperDifficulty(p) && (
+                        <Badge tone={{ Easy: 'green', Medium: 'amber', Hard: 'red', 'Very Hard': 'red' }[paperDifficulty(p)] || 'slate'}>
+                          {paperDifficulty(p)}
+                        </Badge>
+                      )}
+                      <span className="flex-shrink-0 text-xs font-semibold text-slate-500">{p.count} Qs</span>
+                    </button>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </>
         )}
       </div>
     )
