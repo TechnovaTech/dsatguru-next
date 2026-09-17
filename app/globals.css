@@ -400,10 +400,16 @@ html.sec-lock video { -webkit-user-drag: none; user-drag: none; }
 
 /* Allow ONLY the IGCSC exam-paper page to print (site-wide print stays blocked). */
 @media print {
+  @page { margin: 14mm; }
   html.print-mode.sec-lock body { display: block !important; }
   html.print-mode .no-print,
   html.print-mode header,
-  html.print-mode nav { display: none !important; }
+  html.print-mode nav,
+  html.print-mode .igcsc-wm { display: none !important; }   /* hide the fixed watermark (caused a blank first page) */
   html.print-mode main { padding: 0 !important; margin: 0 !important; max-width: none !important; }
-  html.print-mode .exam-print-root :is(.shadow-lg, .ring-1) { box-shadow: none !important; }
+  html.print-mode .exam-print-root { margin: 0 !important; }
+  html.print-mode .exam-print-root :is(.shadow-lg, .ring-1, .rounded-lg) {
+    box-shadow: none !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+  }
 }

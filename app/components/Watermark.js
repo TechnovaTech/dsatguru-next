@@ -13,6 +13,7 @@ export default function Watermark({ label }) {
   return (
     <div
       aria-hidden="true"
+      className="igcsc-wm"
       style={{
         position: 'fixed',
         inset: 0,
