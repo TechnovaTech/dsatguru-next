@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { FiVideo, FiDownload, FiCalendar, FiFileText, FiSave, FiArrowLeft, FiUsers, FiEdit, FiToggleLeft, FiToggleRight, FiTrash2, FiFolder, FiUpload, FiFile, FiBell, FiEye, FiSearch, FiX, FiImage } from 'react-icons/fi'
+import { MEETING_TYPES } from '../../../lib/meetingStatus'
 import CourseCalendar from './CourseCalendar'
 import { useConfirm, useToast } from '../ui/UIProvider'
 import moment from 'moment'
@@ -426,7 +427,15 @@ function CourseContentManager({ course, onBack }) {
                   ...prev,
                   meetings: [
                     ...prev.meetings,
-                    { title: '', date: '', link: '', transcript: '', transcriptSummary: '' }
+                    {
+                      title: '', type: 'live-class', date: '', scheduledAt: null,
+                      durationMinutes: MEETING_TYPES['live-class'].defaultDuration,
+                      // Seed the room up front: a "Generate Room" click that was
+                      // never saved left students unable to join.
+                      link: `DSATGuru-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                      roomName: `DSATGuru-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                      status: 'scheduled', transcript: '', transcriptSummary: ''
+                    }
                   ]
                 }))}
                 className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
@@ -455,17 +464,66 @@ function CourseContentManager({ course, onBack }) {
                     className="w-full mb-2 rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     placeholder="Meeting title"
                   />
+                  <div className="mb-2 grid grid-cols-2 gap-2">
+                    <select
+                      value={m.type || 'live-class'}
+                      onChange={(e) => {
+                        const updated = [...courseData.meetings]
+                        const t = e.target.value
+                        updated[index] = {
+                          ...updated[index],
+                          type: t,
+                          // Adopt the new type's default length unless the admin
+                          // already set one by hand.
+                          durationMinutes: updated[index].durationMinutes || MEETING_TYPES[t].defaultDuration,
+                        }
+                        setCourseData(prev => ({ ...prev, meetings: updated }))
+                      }}
+                      className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-indigo-500"
+                    >
+                      {Object.entries(MEETING_TYPES).map(([key, t]) => (
+                        <option key={key} value={key}>{t.icon} {t.label}</option>
+                      ))}
+                    </select>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        min="5"
+                        step="5"
+                        value={m.durationMinutes ?? MEETING_TYPES[m.type || 'live-class'].defaultDuration}
+                        onChange={(e) => {
+                          const updated = [...courseData.meetings]
+                          updated[index] = { ...updated[index], durationMinutes: Number(e.target.value) || 0 }
+                          setCourseData(prev => ({ ...prev, meetings: updated }))
+                        }}
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <span className="text-xs text-slate-500 whitespace-nowrap">min</span>
+                    </div>
+                  </div>
                   <input
                     type="datetime-local"
                     value={m.date}
                     onChange={(e) => {
                       const updated = [...courseData.meetings]
-                      updated[index] = { ...updated[index], date: e.target.value }
+                      const v = e.target.value
+                      const asDate = v ? new Date(v) : null
+                      updated[index] = {
+                        ...updated[index],
+                        date: v,
+                        // datetime-local has no timezone, so the same string used
+                        // to mean a different instant for every student. Store the
+                        // resolved instant too — that is what everything reads.
+                        scheduledAt: asDate && !isNaN(asDate.getTime()) ? asDate.toISOString() : null,
+                      }
                       setCourseData(prev => ({ ...prev, meetings: updated }))
                     }}
                     className="w-full mb-2 rounded-lg border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
                     placeholder="Date & time"
                   />
+                  <p className="mb-2 text-[11px] text-slate-400">
+                    Students can join from 15 min before the start until 30 min after it ends.
+                  </p>
                   <div className="flex gap-2 mb-2">
                     <input
                       type="text"
@@ -484,7 +542,7 @@ function CourseContentManager({ course, onBack }) {
                         const updated = [...courseData.meetings]
                         const randomId = Math.random().toString(36).substring(7)
                         const roomName = `DSATGuru-${Date.now()}-${randomId}`
-                        updated[index] = { ...updated[index], link: roomName }
+                        updated[index] = { ...updated[index], link: roomName, roomName }
                         setCourseData(prev => ({ ...prev, meetings: updated }))
                       }}
                       className="bg-violet-50 text-violet-700 px-3 py-2 rounded-lg hover:bg-violet-100 text-sm whitespace-nowrap transition-colors"

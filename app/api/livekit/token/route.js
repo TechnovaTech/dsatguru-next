@@ -4,6 +4,7 @@ import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
 import { STAFF_ROLES } from '../../../../lib/constants/roles'
 import { connectDB } from '../../../../lib/db'
 import Course, { CourseEnrollment } from '../../../../lib/models/Course'
+import { meetingState, meetingRoom, typeInfo } from '../../../../lib/meetingStatus'
 
 export async function GET(request) {
   try {
@@ -31,35 +32,69 @@ export async function GET(request) {
 
     let authorized = isStaff
     let canPublish = isStaff
+    let denyReason = 'You are not allowed to join this class.'
+    // Lecture-style sessions start students muted; Q&A style start them live.
+    let studentsSpeakByDefault = true
 
     if (!isStaff) {
       await connectDB()
-      // Find the course that contains a meeting with this room link.
-      const course = await Course.findOne({ 'meetings.link': String(room) }).select('_id').lean()
-      if (course) {
-        const enrollment = await CourseEnrollment.findOne({
-          userId: decoded.userId,
-          courseId: course._id
-        }).select('_id expiresAt').lean()
-        if (enrollment) {
-          // Reject expired enrollments.
-          const expired = enrollment.expiresAt && new Date(enrollment.expiresAt) < new Date()
-          if (!expired) {
-            authorized = true
-            // Enrolled students may publish (mic/cam) in their class.
-            canPublish = true
-          }
-        }
+      // Resolve the room to its meeting. `roomName` is canonical; `link` is the
+      // legacy field that held the room name before the split.
+      const course = await Course.findOne({
+        $or: [{ 'meetings.roomName': String(room) }, { 'meetings.link': String(room) }],
+      }).select('_id meetings').lean()
+
+      if (!course) {
+        // FAIL CLOSED. The old code authorized ANY signed-in user for an
+        // unknown room, so a guessed/shared room name let strangers in.
+        return NextResponse.json(
+          { error: 'This meeting link is not valid any more. Please open the class from your dashboard.' },
+          { status: 403 }
+        )
+      }
+
+      const meeting = (course.meetings || []).find(
+        (m) => meetingRoom(m) === String(room) || m.link === String(room)
+      )
+
+      const enrollment = await CourseEnrollment.findOne({
+        userId: decoded.userId,
+        courseId: course._id,
+      }).select('_id expiresAt isActive').lean()
+
+      if (!enrollment) {
+        denyReason = 'You are not enrolled in the course this class belongs to.'
+      } else if (enrollment.isActive === false) {
+        denyReason = 'Your access to this course is currently inactive. Please contact support.'
+      } else if (enrollment.expiresAt && new Date(enrollment.expiresAt) < new Date()) {
+        denyReason = 'Your access to this course has expired.'
+      } else if (
+        meeting &&
+        Array.isArray(meeting.allowedStudentIds) &&
+        meeting.allowedStudentIds.length > 0 &&
+        !meeting.allowedStudentIds.some((id) => String(id) === String(decoded.userId))
+      ) {
+        // 1-on-1 / restricted session booked for specific students.
+        denyReason = 'This session is reserved for another student.'
+      } else if (meeting && !meetingState(meeting).canJoin) {
+        const st = meetingState(meeting)
+        denyReason = st.state === 'ended'
+          ? 'This class has ended.'
+          : st.state === 'cancelled'
+            ? 'This class was cancelled.'
+            : `This class has not started yet. ${st.label}.`
       } else {
-        // Room -> meeting mapping could not be resolved. Fail safe: allow a valid
-        // student to join subscribe-only rather than granting publish.
         authorized = true
-        canPublish = false
+        // Students keep publish rights (they must be able to unmute to ask a
+        // question) — what varies by session kind is whether they arrive
+        // already unmuted, which the client applies via `startMuted` below.
+        canPublish = true
+        if (meeting) studentsSpeakByDefault = typeInfo(meeting).studentsPublishByDefault
       }
     }
 
     if (!authorized) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return NextResponse.json({ error: denyReason }, { status: 403 })
     }
 
     const isHost = isStaff
@@ -98,10 +133,24 @@ export async function GET(request) {
 
     const livekitToken = await at.toJwt()
 
+    // A misconfigured URL must fail loudly: ws://localhost:7880 silently points
+    // every student's browser at their OWN machine (and is blocked as mixed
+    // content on HTTPS), which presented as an unexplained hang.
+    const wsUrl = process.env.LIVEKIT_WS_URL
+    if (!wsUrl) {
+      return NextResponse.json(
+        { error: 'Live classes are not configured on this server (LIVEKIT_WS_URL missing).' },
+        { status: 500 }
+      )
+    }
+
     return NextResponse.json({
       token: livekitToken,
-      wsUrl: process.env.LIVEKIT_WS_URL || 'ws://localhost:7880',
-      userInfo: { name, email, role, isHost }
+      wsUrl,
+      userInfo: { name, email, role, isHost },
+      // Hosts always arrive live; students arrive muted in lecture-style
+      // sessions and unmuted where they are expected to talk.
+      startMuted: isHost ? false : !studentsSpeakByDefault,
     })
   } catch (error) {
     console.error('LiveKit token error:', error)

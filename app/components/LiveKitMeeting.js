@@ -20,8 +20,20 @@ import {
   FiMic, FiMicOff, FiVideo, FiVideoOff, FiMonitor,
   FiPhoneOff, FiUsers, FiMessageSquare, FiMoreVertical,
   FiLoader, FiMaximize, FiMinimize, FiGrid, FiUser,
-  FiEdit3, FiType, FiFileText, FiDownload, FiImage
+  FiEdit3, FiType, FiFileText, FiDownload, FiImage, FiAlertTriangle
 } from 'react-icons/fi'
+
+// LiveKit `identity` is the Mongo user id — never show it. The token sets
+// `name` to "Full Name (Role)" and stuffs the raw name into metadata.
+function personName(participant, fallback = 'Participant') {
+  if (!participant) return fallback
+  if (participant.name) return participant.name
+  try {
+    const meta = participant.metadata ? JSON.parse(participant.metadata) : null
+    if (meta?.name) return meta.name
+  } catch { /* metadata is not always JSON */ }
+  return fallback
+}
 
 // ─── Inner room UI (must be inside <LiveKitRoom>) ───────────────────────────
 function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
@@ -48,6 +60,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   const [showLangPicker, setShowLangPicker] = useState(false)
   const captionRef = useRef(null)
   const recognitionRef = useRef(null)
+
 
   const LANGUAGES = [
     { code: 'en-US', label: 'English (US)', flag: '🇺🇸' },
@@ -109,6 +122,19 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   // ── Live Captions via Web Speech API ──────────────────────────────────────
   const CAPTION_CHANNEL = 'caption'
   const captionsOnRef = useRef(false)
+
+  // Hard stop on unmount — otherwise leaving the meeting leaves the mic hot in
+  // the onend restart loop and keeps setState-ing an unmounted tree.
+  useEffect(() => () => {
+    captionsOnRef.current = false
+    const rec = recognitionRef.current
+    if (rec) {
+      try { rec.onend = null; rec.onerror = null; rec.onresult = null } catch {}
+      try { rec.stop() } catch {}
+      try { rec.abort?.() } catch {}
+      recognitionRef.current = null
+    }
+  }, [])
   const captionLangRef = useRef(captionLang)
   useEffect(() => { captionLangRef.current = captionLang }, [captionLang])
 
@@ -149,7 +175,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
             if (!text) continue
             
             const id = Date.now()
-            const speakerName = displayName || localParticipant?.name || localParticipant?.identity || 'Host'
+            const speakerName = displayName || personName(localParticipant, 'Host')
             
             setFinalLines(prev => [...prev.slice(-2), { id, speaker: speakerName, text }])
             setMeetingTranscript(prev => {
@@ -228,7 +254,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
         const msg = JSON.parse(new TextDecoder().decode(payload))
         if (msg.type !== CAPTION_CHANNEL) return
         const id = Date.now()
-        const speakerName = msg.speaker || participant?.name || participant?.identity || 'Guest'
+        const speakerName = msg.speaker || personName(participant, 'Guest')
         setFinalLines(prev => [...prev.slice(-2), { id, speaker: speakerName, text: msg.text }])
         setMeetingTranscript(prev => prev + `[${new Date().toLocaleTimeString()}] ${speakerName}: ${msg.text}\n`)
         setTimeout(() => setFinalLines(prev => prev.filter(l => l.id !== id)), 5000)
@@ -270,7 +296,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
         const msg = JSON.parse(new TextDecoder().decode(payload))
         if (msg.type === 'chat') {
           setChatMessages(prev => [...prev, {
-            sender: participant?.identity || 'Unknown',
+            sender: personName(participant, 'Unknown'),
             text: msg.text,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }])
@@ -642,7 +668,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
                   <div className="flex-1 relative rounded-xl overflow-hidden bg-black">
                     <VideoTrack trackRef={screenTracks[0]} className="w-full h-full object-contain" />
                     <div className="absolute top-2 left-2 bg-blue-600/90 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                      <FiMonitor size={12} /> {screenTracks[0].participant?.name || screenTracks[0].participant?.identity} is sharing screen
+                      <FiMonitor size={12} /> {personName(screenTracks[0].participant)} is sharing screen
                     </div>
                   </div>
                   {/* Camera strip */}
@@ -651,19 +677,20 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
                       {camTracks.map((trackRef, i) => {
                         const identity = trackRef.participant?.identity || ''
                         const isSelf   = identity === localParticipant?.identity
+                        const label    = personName(trackRef.participant)
                         return (
                           <div key={i} className="relative flex-shrink-0 w-32 rounded-lg overflow-hidden bg-[#2d2d44]">
                             {trackRef.publication?.track
                               ? <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
                               : <div className="w-full h-full flex items-center justify-center">
                                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold">
-                                    {identity[0]?.toUpperCase() || '?'}
+                                    {label[0]?.toUpperCase() || '?'}
                                   </div>
                                 </div>
                             }
                             <div className="absolute bottom-1 left-1 right-1">
                               <span className="bg-black/70 text-white text-xs px-1.5 py-0.5 rounded truncate block text-center">
-                                {isSelf ? 'You' : (trackRef.participant?.name || identity)}
+                                {isSelf ? 'You' : label}
                               </span>
                             </div>
                           </div>
@@ -685,12 +712,12 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
                       ? <VideoTrack trackRef={pinned} className="w-full h-full object-cover" />
                       : <div className="w-full h-full flex items-center justify-center">
                           <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold">
-                            {(pinned.participant?.identity || '?')[0].toUpperCase()}
+                            {(personName(pinned.participant, '?')[0] || '?').toUpperCase()}
                           </div>
                         </div>
                     }
                     <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                      {pinned.participant?.name || pinned.participant?.identity}
+                      {personName(pinned.participant)}
                     </div>
                   </div>
                 ) : null}
@@ -706,6 +733,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
                   {(gridView || !pinned ? camTracks : camTracks.filter(t => t.participant?.identity !== pinnedParticipant)).map((trackRef, i) => {
                     const identity = trackRef.participant?.identity || ''
                     const isSelf   = identity === localParticipant?.identity
+                    const label    = personName(trackRef.participant)
                     return (
                       <div key={i}
                         className={`relative rounded-xl overflow-hidden bg-[#2d2d44] cursor-pointer group ${!gridView && pinned ? 'flex-shrink-0 w-28' : ''}`}
@@ -715,13 +743,13 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
                           ? <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
                           : <div className="w-full h-full flex items-center justify-center min-h-[120px]">
                               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                                {identity[0]?.toUpperCase() || '?'}
+                                {label[0]?.toUpperCase() || '?'}
                               </div>
                             </div>
                         }
                         <div className="absolute bottom-2 left-2 right-2">
                           <span className="bg-black/60 text-white text-xs px-2 py-0.5 rounded truncate max-w-[80%] block">
-                            {isSelf ? `${trackRef.participant?.name || identity} (You)` : (trackRef.participant?.name || identity)}
+                            {isSelf ? `${label} (You)` : label}
                           </span>
                         </div>
                         {!gridView && (
@@ -1076,32 +1104,47 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
 }
 
 // ─── Outer wrapper — handles token fetch ────────────────────────────────────
-export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin = false }) {
+export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin = false, meetingTitle, meeting }) {
   const [token, setToken] = useState(null)
   const [wsUrl, setWsUrl] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
+  // Connection / device failures used to be swallowed into a console warning
+  // while the UI rendered a normal-looking (but dead) meeting.
+  const [roomError, setRoomError] = useState(null)
+  const [startMuted, setStartMuted] = useState(false)
+  const [serverIsHost, setServerIsHost] = useState(null)
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
+    let cancelled = false
     const fetchToken = async () => {
+      setLoading(true); setError(null); setRoomError(null)
       try {
         const authToken = localStorage.getItem('token')
         const res = await fetch(
-          `/api/livekit/token?room=${encodeURIComponent(roomName)}&name=${encodeURIComponent(displayName)}`,
+          `/api/livekit/token?room=${encodeURIComponent(roomName)}&name=${encodeURIComponent(displayName || '')}`,
           { headers: authToken ? { Authorization: `Bearer ${authToken}` } : {} }
         )
-        if (!res.ok) throw new Error('Failed to get meeting token')
-        const data = await res.json()
+        const data = await res.json().catch(() => ({}))
+        // Surface the server's actual reason (not enrolled / expired / not
+        // started yet) instead of a generic failure.
+        if (!res.ok) throw new Error(data?.error || `Could not join this meeting (${res.status}).`)
+        if (cancelled) return
         setToken(data.token)
         setWsUrl(data.wsUrl)
+        setStartMuted(!!data.startMuted)
+        setServerIsHost(!!data?.userInfo?.isHost)
       } catch (err) {
-        setError(err.message)
+        if (!cancelled) setError(err.message)
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
-    fetchToken()
-  }, [roomName, displayName])
+    if (roomName) fetchToken()
+    else { setError('This meeting has no room yet. Please contact your tutor.'); setLoading(false) }
+    return () => { cancelled = true }
+  }, [roomName, displayName, attempt])
 
   if (loading) {
     return (
@@ -1122,32 +1165,74 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
           <div className="w-16 h-16 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <FiPhoneOff className="text-red-400" size={28} />
           </div>
-          <p className="text-white font-semibold text-lg mb-2">Failed to join meeting</p>
+          <p className="text-white font-semibold text-lg mb-2">Can&apos;t join this class</p>
           <p className="text-gray-400 mb-6">{error}</p>
-          <button onClick={onClose} className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-full transition-colors">
-            Close
-          </button>
+          <div className="flex items-center justify-center gap-3">
+            <button onClick={() => setAttempt(a => a + 1)} className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-full transition-colors">
+              Try again
+            </button>
+            <button onClick={onClose} className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-full transition-colors">
+              Close
+            </button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <LiveKitRoom
-      token={token}
-      serverUrl={wsUrl}
-      connect={true}
-      video={true}
-      audio={true}
-      onDisconnected={onClose}
-      style={{ position: 'fixed', inset: 0, zIndex: 50 }}
-    >
-      <MeetingRoom
-        roomName={roomName}
-        displayName={displayName}
-        isAdmin={isAdmin}
-        onClose={onClose}
-      />
-    </LiveKitRoom>
+    <>
+      {roomError && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
+          <div className="max-w-md rounded-2xl border border-white/10 bg-[#242438] p-8 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/20">
+              <FiAlertTriangle className="text-amber-400" size={28} />
+            </div>
+            <p className="mb-2 text-lg font-semibold text-white">{roomError.title}</p>
+            <p className="mb-6 text-gray-400">{roomError.message}</p>
+            <div className="flex items-center justify-center gap-3">
+              <button onClick={() => { setRoomError(null); setAttempt(a => a + 1) }}
+                className="rounded-full bg-indigo-600 px-6 py-2 text-white transition-colors hover:bg-indigo-500">
+                Rejoin
+              </button>
+              <button onClick={onClose}
+                className="rounded-full bg-white/10 px-6 py-2 text-white transition-colors hover:bg-white/20">
+                Leave
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <LiveKitRoom
+        token={token}
+        serverUrl={wsUrl}
+        connect={true}
+        video={!startMuted}
+        audio={!startMuted}
+        options={{ adaptiveStream: true, dynacast: true }}
+        onError={(e) => setRoomError({
+          title: 'Connection problem',
+          message: (e && e.message) || 'We could not reach the class server. Check your internet and try again.',
+        })}
+        onMediaDeviceFailure={(f) => setRoomError({
+          title: 'Camera / microphone blocked',
+          message: String(f).includes('Permission')
+            ? 'Allow camera and microphone access in your browser, then rejoin.'
+            : 'We could not start your camera or microphone. Check that no other app is using them, then rejoin.',
+        })}
+        onConnected={() => setRoomError(null)}
+        onDisconnected={onClose}
+        style={{ position: 'fixed', inset: 0, zIndex: 50 }}
+      >
+        <MeetingRoom
+          roomName={roomName}
+          displayName={displayName}
+          meetingTitle={meetingTitle}
+          meeting={meeting}
+          isAdmin={serverIsHost ?? isAdmin}
+          onClose={onClose}
+        />
+      </LiveKitRoom>
+    </>
   )
 }

@@ -6,6 +6,7 @@ import axios from 'axios'
 import dynamic from 'next/dynamic'
 import { FiCalendar, FiVideo, FiClock, FiRefreshCw, FiBell, FiGlobe, FiAlertCircle, FiBookOpen, FiCheckCircle, FiFileText, FiImage } from 'react-icons/fi'
 const LiveKitMeeting = dynamic(() => import('../../components/LiveKitMeeting'), { ssr: false })
+import { meetingState, meetingStart, meetingRoom, typeInfo, isExternalLink } from '../../../lib/meetingStatus'
 
 export default function LiveClassesPage() {
   const { user, loading: authLoading } = useAuth()
@@ -27,6 +28,18 @@ export default function LiveClassesPage() {
     }
   }, [user, authLoading, router])
 
+  // A student waiting for class must see it flip to "Happening now" without
+  // reloading, so re-evaluate the clock every 30s (and refetch every 5 min in
+  // case the tutor just added/started a session).
+  const [clockTick, setClockTick] = useState(0)
+  useEffect(() => {
+    if (!user || activeMeeting) return
+    const tick = setInterval(() => setClockTick(t => t + 1), 30000)
+    const refetch = setInterval(() => fetchMeetings(), 300000)
+    return () => { clearInterval(tick); clearInterval(refetch) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, activeMeeting])
+
   const fetchMeetings = async () => {
     try {
       setLoading(true)
@@ -45,7 +58,7 @@ export default function LiveClassesPage() {
             ...m,
             courseTitle: e.courseId.title,
             courseId: e.courseId._id,
-            parsedDate: new Date(m.date)
+            parsedDate: meetingStart(m) || new Date(NaN)
           })))
           .sort((a, b) => {
             const dateA = !isNaN(a.parsedDate) ? a.parsedDate : new Date(0)
@@ -88,13 +101,21 @@ export default function LiveClassesPage() {
     )
   }
 
-  const now = new Date()
-  const upcomingMeetings = meetings.filter(m => !isNaN(m.parsedDate) && m.parsedDate > now)
-  const pastMeetings = meetings.filter(m => isNaN(m.parsedDate) || m.parsedDate <= now).reverse()
+  // Recomputed on every clockTick so a class flips to "Happening now" on its own.
+  const now = new Date(Date.now() + clockTick * 0)
+  // Partition by JOINABILITY, never by "start time has passed" — the old rule
+  // moved a class into "Past" the moment it began, so a student who arrived on
+  // time could never get in.
+  const withState = meetings.map(m => ({ ...m, _state: meetingState(m, now) }))
+  const liveMeetings = withState.filter(m => m._state.canJoin)
+  const upcomingMeetings = withState.filter(m => m._state.state === 'upcoming')
+  const pastMeetings = withState
+    .filter(m => m._state.state === 'ended' || m._state.state === 'cancelled')
+    .reverse()
 
   const stats = [
     { label: 'Total Classes', value: meetings.length, icon: FiVideo, color: 'bg-indigo-500' },
-    { label: 'Upcoming', value: upcomingMeetings.length, icon: FiClock, color: 'bg-emerald-500' },
+    { label: 'Live now', value: liveMeetings.length, icon: FiVideo, color: 'bg-emerald-500' },
     { label: 'Completed', value: pastMeetings.length, icon: FiCheckCircle, color: 'bg-violet-500' },
     { label: 'Notifications', value: notifications.length, icon: FiBell, color: 'bg-amber-500' },
   ]
@@ -226,6 +247,53 @@ export default function LiveClassesPage() {
               </div>
             ) : (
               <div className="mt-8 space-y-10">
+                {/* Happening now — joinable right this moment */}
+                {liveMeetings.length > 0 && (
+                  <div>
+                    <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      </span>
+                      Happening now
+                    </h2>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {liveMeetings.map((meeting, idx) => {
+                        const ti = typeInfo(meeting)
+                        const externalUrl = meeting.externalUrl || (isExternalLink(meeting.link) ? meeting.link : '')
+                        return (
+                          <div key={`live-${idx}`} className="flex flex-col rounded-2xl border-2 border-emerald-200 bg-white p-6 shadow-sm">
+                            <div className="mb-3 flex items-start justify-between gap-2">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700">
+                                <FiBookOpen className="h-3 w-3" /> {meeting.courseTitle || '—'}
+                              </span>
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                                {meeting._state.label}
+                              </span>
+                            </div>
+                            <h3 className="mb-1 text-lg font-bold text-slate-900">{meeting.title || '—'}</h3>
+                            <div className="mb-3 flex items-center gap-2 text-xs text-slate-500">
+                              <span>{ti.icon} {ti.label}</span>
+                              {meeting._state.start && <span>· {meeting._state.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
+                            </div>
+                            {externalUrl ? (
+                              <a href={externalUrl} target="_blank" rel="noopener noreferrer"
+                                className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">
+                                <FiVideo className="h-4 w-4" /> Join Class
+                              </a>
+                            ) : (
+                              <button onClick={() => setActiveMeeting(meeting)}
+                                className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">
+                                <FiVideo className="h-4 w-4" /> Join Class
+                              </button>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Upcoming Classes */}
                 <div>
                   <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900">
@@ -239,15 +307,9 @@ export default function LiveClassesPage() {
                             <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700">
                               <FiBookOpen className="h-3 w-3" /> {meeting.courseTitle || '—'}
                             </span>
-                            {isClassLive(meeting.parsedDate) ? (
-                              <span className="flex flex-shrink-0 animate-pulse items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-medium text-rose-700">
-                                <span className="h-2 w-2 rounded-full bg-rose-600"></span> LIVE NOW
-                              </span>
-                            ) : (
-                              <span className="flex flex-shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">
-                                <FiClock className="h-3 w-3" /> Upcoming
-                              </span>
-                            )}
+                            <span className="flex flex-shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">
+                              <FiClock className="h-3 w-3" /> {typeInfo(meeting).short}
+                            </span>
                           </div>
                           <h3 className="mb-2 text-lg font-bold text-slate-900">{meeting.title || '—'}</h3>
                           <div className="mb-2 flex items-center gap-2 text-sm text-slate-500">
@@ -259,21 +321,12 @@ export default function LiveClassesPage() {
                               <FiGlobe className="h-3.5 w-3.5" /> {meeting.transcriptLanguage}
                             </div>
                           )}
-                          {isClassLive(meeting.parsedDate) ? (
-                            <button
-                              onClick={() => setActiveMeeting(meeting)}
-                              className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
-                            >
-                              <FiVideo className="h-4 w-4" /> Join Class
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setActiveMeeting(meeting)}
-                              className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg border border-indigo-200 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-600 transition-colors hover:bg-indigo-50"
-                            >
-                              <FiClock className="h-4 w-4" /> Join when it&apos;s live
-                            </button>
-                          )}
+                          <div
+                            className="mt-auto flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-400"
+                            title="The room opens 15 minutes before the start time"
+                          >
+                            <FiClock className="h-4 w-4" /> {meeting._state.label}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -356,13 +409,6 @@ export default function LiveClassesPage() {
       </div>
     </div>
   )
-}
-
-function isClassLive(dateObj) {
-  if (!isValidDate(dateObj)) return false
-  const now = new Date()
-  const diffInMinutes = (now - dateObj) / 1000 / 60
-  return diffInMinutes > -15 && diffInMinutes < 120
 }
 
 function isValidDate(d) {

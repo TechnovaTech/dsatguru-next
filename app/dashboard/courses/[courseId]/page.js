@@ -1,6 +1,9 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
+import { meetingState, meetingRoom, isExternalLink } from '../../../../lib/meetingStatus'
+const LiveKitMeeting = dynamic(() => import('../../../components/LiveKitMeeting'), { ssr: false })
 import {
   FiArrowLeft,
   FiVideo,
@@ -62,6 +65,7 @@ export default function CourseDetailPage() {
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState('meetings')
   const [recap, setRecap] = useState(null)
+  const [activeMeeting, setActiveMeeting] = useState(null)
 
   const fetchCourseContent = async () => {
     try {
@@ -262,16 +266,40 @@ export default function CourseDetailPage() {
                                 <FiSummary className="h-4 w-4" /> View Recap
                               </button>
                             )}
-                            {meeting.link && (
-                              <a
-                                href={meeting.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
-                              >
-                                <FiExternalLink className="h-4 w-4" /> Join
-                              </a>
-                            )}
+                            {(() => {
+                              // `link` historically held EITHER a LiveKit room
+                              // name OR an external URL. A room name rendered
+                              // as an <a href> navigated to a 404 — open the
+                              // in-app meeting for it instead.
+                              const externalUrl = meeting.externalUrl || (isExternalLink(meeting.link) ? meeting.link : '')
+                              const room = meetingRoom(meeting)
+                              const st = meetingState(meeting)
+                              if (externalUrl) {
+                                return (
+                                  <a
+                                    href={externalUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+                                  >
+                                    <FiExternalLink className="h-4 w-4" /> Join
+                                  </a>
+                                )
+                              }
+                              if (!room) return null
+                              return st.canJoin ? (
+                                <button
+                                  onClick={() => setActiveMeeting(meeting)}
+                                  className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+                                >
+                                  <FiVideo className="h-4 w-4" /> Join
+                                </button>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-400">
+                                  {st.label}
+                                </span>
+                              )
+                            })()}
                           </div>
                         </div>
                       </div>
@@ -533,6 +561,15 @@ export default function CourseDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {activeMeeting && (
+        <LiveKitMeeting
+          roomName={meetingRoom(activeMeeting)}
+          meetingTitle={activeMeeting.title}
+          meeting={activeMeeting}
+          onClose={() => setActiveMeeting(null)}
+        />
       )}
     </div>
   )
