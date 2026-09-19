@@ -76,10 +76,13 @@ export default function Login() {
       const response = await axios.post('/api/auth/login', cleanData)
       login(response.data.token, response.data.user)
       const role = response.data.user.role
-      if (role === 'Admin') router.push('/admin')
+      // An explicit returnTo wins for EVERY role — a tutor who opens a class
+      // join link must land in the class, not on their dashboard.
+      if (returnTo) router.push(returnTo)
+      else if (role === 'Admin') router.push('/admin')
       else if (role === 'TutorAdmin') router.push('/admin/tutor/question-bank')
       else if (role === 'Tutor') router.push('/tutor/dashboard')
-      else router.push(returnTo || '/dashboard')
+      else router.push('/dashboard')
     } catch (error) {
       console.error('Login error:', error)
       const status = error.response?.status

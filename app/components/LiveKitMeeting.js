@@ -53,6 +53,41 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
   const [showWhiteboard, setShowWhiteboard] = useState(false)
   const [captionsOn, setCaptionsOn] = useState(false)
   const [leaving, setLeaving] = useState(false)
+  // People who opened a guest link and are waiting to be let in (hosts only).
+  const [lobby, setLobby] = useState([])
+
+  useEffect(() => {
+    if (!isAdmin) return
+    let stop = false
+    const poll = async () => {
+      try {
+        const authToken = localStorage.getItem('token')
+        const res = await fetch(`/api/livekit/guest?room=${encodeURIComponent(roomName)}`, {
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        if (!stop) setLobby(data.waiting || [])
+      } catch { /* transient — try again on the next tick */ }
+    }
+    poll()
+    const t = setInterval(poll, 5000)
+    return () => { stop = true; clearInterval(t) }
+  }, [isAdmin, roomName])
+
+  const decideGuest = async (claimId, action) => {
+    setLobby((l) => l.filter((g) => g.claimId !== claimId))   // optimistic
+    try {
+      const authToken = localStorage.getItem('token')
+      await fetch('/api/livekit/guest', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) },
+        body: JSON.stringify({ claimId, action }),
+      })
+    } catch (e) {
+      console.error('Could not update the guest request:', e)
+    }
+  }
   const [captionStatus, setCaptionStatus] = useState('idle') // idle, listening, error
   const [interimText, setInterimText] = useState('')
   const [finalLines, setFinalLines] = useState([])
@@ -648,6 +683,33 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
   return (
     <div className="fixed inset-0 bg-[#1a1a2e] z-50 flex flex-col select-none" style={{ fontFamily: 'Google Sans, sans-serif' }}>
 
+      {/* ── Waiting room (host only) ── */}
+      {isAdmin && lobby.length > 0 && (
+        <div className="absolute right-4 top-16 z-[55] w-72 rounded-xl border border-white/10 bg-[#242438] p-3 shadow-2xl">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-amber-400">
+            Waiting to join ({lobby.length})
+          </p>
+          <div className="space-y-2">
+            {lobby.map((g) => (
+              <div key={g.claimId} className="flex items-center gap-2">
+                <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-xs font-bold text-amber-300">
+                  {(g.name || '?')[0].toUpperCase()}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-sm text-white">{g.name}</span>
+                <button onClick={() => decideGuest(g.claimId, 'approve')}
+                  className="rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-500">
+                  Admit
+                </button>
+                <button onClick={() => decideGuest(g.claimId, 'deny')}
+                  className="rounded-md bg-white/10 px-2 py-1 text-xs font-semibold text-gray-300 hover:bg-white/20">
+                  Deny
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── TOP BAR ── */}
       <div className="flex items-center justify-between px-4 py-2 bg-[#1a1a2e] border-b border-white/10">
         <div className="flex items-center gap-3">
@@ -1133,7 +1195,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
 }
 
 // ─── Outer wrapper — handles token fetch ────────────────────────────────────
-export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin = false, meetingTitle, meeting }) {
+export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin = false, meetingTitle, meeting, session }) {
   const [token, setToken] = useState(null)
   const [wsUrl, setWsUrl] = useState(null)
   const [error, setError] = useState(null)
@@ -1147,6 +1209,15 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
 
   useEffect(() => {
     let cancelled = false
+    // A guest arrives with a token already minted by the waiting-room flow.
+    if (session?.token) {
+      setToken(session.token)
+      setWsUrl(session.wsUrl)
+      setStartMuted(!!session.startMuted)
+      setServerIsHost(!!session.userInfo?.isHost)
+      setLoading(false)
+      return () => { cancelled = true }
+    }
     const fetchToken = async () => {
       setLoading(true); setError(null); setRoomError(null)
       try {
@@ -1173,7 +1244,7 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
     if (roomName) fetchToken()
     else { setError('This meeting has no room yet. Please contact your tutor.'); setLoading(false) }
     return () => { cancelled = true }
-  }, [roomName, displayName, attempt])
+  }, [roomName, displayName, attempt, session])
 
   if (loading) {
     return (

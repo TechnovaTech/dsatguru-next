@@ -159,6 +159,24 @@ function CourseContentManager({ course, onBack }) {
   const [viewingAssignment, setViewingAssignment] = useState(null)
   const [editingAssignmentIndex, setEditingAssignmentIndex] = useState(null)
   const [activeAdminMeeting, setActiveAdminMeeting] = useState(null)
+  const [copiedLink, setCopiedLink] = useState('')
+
+  // Shareable join links. The room is the canonical id; the guest code is the
+  // unguessable half that turns a link into a lobby pass.
+  const siteOrigin = () => (typeof window !== 'undefined' ? window.location.origin : 'https://dsatguru.com')
+  const studentJoinLink = (m) => `${siteOrigin()}/join/${encodeURIComponent(m.roomName || m.link || '')}`
+  const guestJoinLink = (m) => `${studentJoinLink(m)}?g=${encodeURIComponent(m.guestAccess?.code || '')}`
+  const copyMeetingLink = async (url, key) => {
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      // Clipboard API needs a secure context / permission — fall back to a prompt.
+      window.prompt('Copy this link:', url)
+    }
+    setCopiedLink(key)
+    setTimeout(() => setCopiedLink(''), 2000)
+  }
+
 
   useEffect(() => {
     fetchContent()
@@ -559,6 +577,89 @@ function CourseContentManager({ course, onBack }) {
                       </button>
                     )}
                   </div>
+
+                  {/* ── Shareable links (save the course first so the room exists server-side) ── */}
+                  {(m.roomName || m.link) && (
+                    <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Student link</span>
+                        <button
+                          type="button"
+                          onClick={() => copyMeetingLink(studentJoinLink(m), `student-${index}`)}
+                          className="rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-indigo-700"
+                        >
+                          {copiedLink === `student-${index}` ? 'Copied!' : 'Copy link'}
+                        </button>
+                      </div>
+                      <code className="block truncate rounded bg-white px-2 py-1 text-[11px] text-slate-500">{studentJoinLink(m)}</code>
+                      <p className="mt-1 text-[11px] text-slate-400">Enrolled students only — they sign in, then land straight in the class.</p>
+
+                      <div className="mt-3 border-t border-slate-200 pt-3">
+                        <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                          <input
+                            type="checkbox"
+                            checked={!!m.guestAccess?.enabled}
+                            onChange={(e) => {
+                              const updated = [...courseData.meetings]
+                              const on = e.target.checked
+                              updated[index] = {
+                                ...updated[index],
+                                guestAccess: {
+                                  enabled: on,
+                                  // A fresh code each time it is switched on, so an
+                                  // old shared link can never be revived.
+                                  code: on
+                                    ? (updated[index].guestAccess?.code || Math.random().toString(36).slice(2, 12))
+                                    : '',
+                                },
+                              }
+                              setCourseData(prev => ({ ...prev, meetings: updated }))
+                            }}
+                            className="h-3.5 w-3.5 rounded border-slate-300"
+                          />
+                          Allow guests (no account) — demo / trial / parents
+                        </label>
+                        {m.guestAccess?.enabled && (
+                          <div className="mt-2">
+                            <div className="mb-1.5 flex items-center justify-between gap-2">
+                              <span className="text-xs font-bold uppercase tracking-wide text-amber-600">Guest link</span>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const updated = [...courseData.meetings]
+                                    updated[index] = {
+                                      ...updated[index],
+                                      guestAccess: { enabled: true, code: Math.random().toString(36).slice(2, 12) },
+                                    }
+                                    setCourseData(prev => ({ ...prev, meetings: updated }))
+                                  }}
+                                  className="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-white"
+                                  title="Invalidates the previous guest link"
+                                >
+                                  New code
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => copyMeetingLink(guestJoinLink(m), `guest-${index}`)}
+                                  className="rounded-md bg-amber-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-amber-600"
+                                >
+                                  {copiedLink === `guest-${index}` ? 'Copied!' : 'Copy guest link'}
+                                </button>
+                              </div>
+                            </div>
+                            <code className="block truncate rounded bg-white px-2 py-1 text-[11px] text-slate-500">{guestJoinLink(m)}</code>
+                            <p className="mt-1 text-[11px] text-amber-600">
+                              Guests wait in the lobby until you admit them from inside the class.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      <p className="mt-2 text-[11px] font-semibold text-rose-500">
+                        Click &quot;Save Changes&quot; before sharing a new link.
+                      </p>
+                    </div>
+                  )}
                   <div className="flex flex-col gap-3 mt-2">
                     <textarea
                       value={m.transcript || ''}
