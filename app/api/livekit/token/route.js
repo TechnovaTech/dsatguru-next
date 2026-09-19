@@ -105,15 +105,18 @@ export async function GET(request) {
     if (isHost) {
       try {
         await connectDB()
+        // The positional `$` cannot resolve a match made through `$or`, so the
+        // element is selected with arrayFilters instead.
         await Course.updateOne(
           { $or: [{ 'meetings.roomName': String(room) }, { 'meetings.link': String(room) }] },
           {
             $set: {
-              'meetings.$.status': 'live',
-              'meetings.$.startedAt': new Date(),
-              'meetings.$.hostName': decoded.name || decoded.email || 'Host',
+              'meetings.$[m].status': 'live',
+              'meetings.$[m].startedAt': new Date(),
+              'meetings.$[m].hostName': decoded.name || decoded.email || 'Host',
             },
-          }
+          },
+          { arrayFilters: [{ $or: [{ 'm.roomName': String(room) }, { 'm.link': String(room) }] }] }
         )
       } catch (e) {
         // Never block a host from joining because the status write failed.

@@ -26,17 +26,20 @@ export async function POST(request) {
     if (!room) return NextResponse.json({ error: 'room is required' }, { status: 400 })
 
     await connectDB()
+    // The positional `$` cannot resolve a match made through `$or`, so the
+    // element is selected with arrayFilters instead.
     const set = action === 'end'
-      ? { 'meetings.$.status': 'ended', 'meetings.$.endedAt': new Date() }
+      ? { 'meetings.$[m].status': 'ended', 'meetings.$[m].endedAt': new Date() }
       : {
-          'meetings.$.status': 'live',
-          'meetings.$.startedAt': new Date(),
-          'meetings.$.hostName': decoded.name || decoded.email || 'Host',
+          'meetings.$[m].status': 'live',
+          'meetings.$[m].startedAt': new Date(),
+          'meetings.$[m].hostName': decoded.name || decoded.email || 'Host',
         }
 
     const res = await Course.updateOne(
       { $or: [{ 'meetings.roomName': room }, { 'meetings.link': room }] },
-      { $set: set }
+      { $set: set },
+      { arrayFilters: [{ $or: [{ 'm.roomName': room }, { 'm.link': room }] }] }
     )
 
     if (!res.matchedCount) {
