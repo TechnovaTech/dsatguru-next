@@ -36,7 +36,7 @@ function personName(participant, fallback = 'Participant') {
 }
 
 // ─── Inner room UI (must be inside <LiveKitRoom>) ───────────────────────────
-function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
+function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, meeting }) {
   const toast = useToast()
   const participants = useParticipants()
   const { localParticipant } = useLocalParticipant()
@@ -52,6 +52,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
   const [snapshots, setSnapshots] = useState([])
   const [showWhiteboard, setShowWhiteboard] = useState(false)
   const [captionsOn, setCaptionsOn] = useState(false)
+  const [leaving, setLeaving] = useState(false)
   const [captionStatus, setCaptionStatus] = useState('idle') // idle, listening, error
   const [interimText, setInterimText] = useState('')
   const [finalLines, setFinalLines] = useState([])
@@ -593,7 +594,21 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
 
   const others = videoTracks.filter(t => t.participant?.identity !== pinnedParticipant)
 
-  const handleLeave = async () => {
+  const handleLeave = async (endForEveryone = false) => {
+    setLeaving(true)
+    if (isAdmin && endForEveryone) {
+      // Closes the join window for students even before the scheduled end.
+      try {
+        const token = localStorage.getItem('token')
+        await fetch('/api/livekit/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ room: roomName, action: 'end' }),
+        })
+      } catch (e) {
+        console.error('Could not end the session:', e)
+      }
+    }
     if (isAdmin) {
       try {
         const token = localStorage.getItem('token')
@@ -605,13 +620,16 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
         
         console.log('Sending transcript to save:', body)
 
+        // The server summarises with Gemini, which can take tens of seconds —
+        // never hold the host hostage to it.
         const res = await fetch('/api/admin/meetings/save-transcript', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
           },
-          body: JSON.stringify(body)
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout ? AbortSignal.timeout(12000) : undefined
         })
         
         const data = await res.json()
@@ -635,7 +653,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">D</div>
           <div>
-            <div className="text-white text-sm font-medium">{roomName}</div>
+            <div className="text-white text-sm font-medium">{meetingTitle || roomName}</div>
             <div className="text-gray-400 text-xs">{fmt(elapsed)}</div>
           </div>
           {isAdmin && <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">Host</span>}
@@ -989,13 +1007,24 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose }) {
             <FiEdit3 size={20} />
           </button>
 
-          {/* Leave */}
-          <button onClick={handleLeave}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-full transition-all font-medium"
+          {/* Leave (hosts can also close the class for everyone) */}
+          <button onClick={() => handleLeave(false)} disabled={leaving}
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white px-5 py-3 rounded-full transition-all font-medium"
             title="Leave meeting">
-            <FiPhoneOff size={20} />
-            <span className="hidden md:inline text-sm">Leave</span>
+            {leaving ? <FiLoader size={20} className="animate-spin" /> : <FiPhoneOff size={20} />}
+            <span className="hidden md:inline text-sm">{leaving ? 'Leaving…' : 'Leave'}</span>
           </button>
+          {isAdmin && (
+            <button
+              onClick={() => {
+                if (window.confirm('End this class for everyone? Students will no longer be able to join.')) handleLeave(true)
+              }}
+              disabled={leaving}
+              className="flex items-center gap-2 rounded-full border border-red-500/40 px-4 py-3 text-red-300 transition-all hover:bg-red-600/20 disabled:opacity-60"
+              title="End the class for everyone">
+              <span className="text-sm font-medium">End class</span>
+            </button>
+          )}
         </div>
 
         {/* Right — participants & chat */}

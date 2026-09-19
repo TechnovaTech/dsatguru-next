@@ -2304,7 +2304,9 @@ function CourseContentManager({ course, onBack }) {
       {/* LiveKit Meeting Modal */}
       {activeAdminMeeting && (
         <LiveKitMeeting
-          roomName={activeAdminMeeting.link}
+          roomName={activeAdminMeeting.roomName || activeAdminMeeting.link}
+          meetingTitle={activeAdminMeeting.title}
+          meeting={activeAdminMeeting}
           displayName="Admin"
           isAdmin={true}
           onClose={() => setActiveAdminMeeting(null)}

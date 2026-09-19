@@ -98,6 +98,29 @@ export async function GET(request) {
     }
 
     const isHost = isStaff
+
+    // A host entering the room IS the class starting. Marking it live keeps the
+    // door open for students even when the schedule slips, which is how every
+    // teacher actually runs a session.
+    if (isHost) {
+      try {
+        await connectDB()
+        await Course.updateOne(
+          { $or: [{ 'meetings.roomName': String(room) }, { 'meetings.link': String(room) }] },
+          {
+            $set: {
+              'meetings.$.status': 'live',
+              'meetings.$.startedAt': new Date(),
+              'meetings.$.hostName': decoded.name || decoded.email || 'Host',
+            },
+          }
+        )
+      } catch (e) {
+        // Never block a host from joining because the status write failed.
+        console.error('Could not mark meeting live:', e?.message)
+      }
+    }
+
     const role = decoded.role || 'Student'
     const name = decoded.name || decoded.email || 'Participant'
     const email = decoded.email || ''

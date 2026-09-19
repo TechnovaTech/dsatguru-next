@@ -400,7 +400,9 @@ export default function LiveClassesPage() {
         {/* LiveKit Meeting */}
         {activeMeeting && (
           <LiveKitMeeting
-            roomName={activeMeeting.link}
+            roomName={meetingRoom(activeMeeting)}
+            meetingTitle={activeMeeting.title}
+            meeting={activeMeeting}
             displayName={user?.name || 'Student'}
             isAdmin={false}
             onClose={() => setActiveMeeting(null)}
