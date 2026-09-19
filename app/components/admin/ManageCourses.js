@@ -166,6 +166,30 @@ function CourseContentManager({ course, onBack }) {
   const siteOrigin = () => (typeof window !== 'undefined' ? window.location.origin : 'https://dsatguru.com')
   const studentJoinLink = (m) => `${siteOrigin()}/join/${encodeURIComponent(m.roomName || m.link || '')}`
   const guestJoinLink = (m) => `${studentJoinLink(m)}?g=${encodeURIComponent(m.guestAccess?.code || '')}`
+  // Persist a meetings array immediately. Toggling guest access has to hit the
+  // database right away — otherwise Copy hands out a link the server rejects
+  // until someone remembers to press Save Changes.
+  const [savingAccess, setSavingAccess] = useState(false)
+  const persistMeetings = async (meetings) => {
+    setSavingAccess(true)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`/api/admin/courses/${course.id}/content`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ content: { ...courseData, meetings } }),
+      })
+      if (!res.ok) throw new Error('save failed')
+      toast.success('Guest access updated')
+      return true
+    } catch (e) {
+      toast.error('Could not save guest access — press Save Changes')
+      return false
+    } finally {
+      setSavingAccess(false)
+    }
+  }
+
   const copyMeetingLink = async (url, key) => {
     try {
       await navigator.clipboard.writeText(url)
@@ -599,6 +623,7 @@ function CourseContentManager({ course, onBack }) {
                           <input
                             type="checkbox"
                             checked={!!m.guestAccess?.enabled}
+                            disabled={savingAccess}
                             onChange={(e) => {
                               const updated = [...courseData.meetings]
                               const on = e.target.checked
@@ -614,6 +639,7 @@ function CourseContentManager({ course, onBack }) {
                                 },
                               }
                               setCourseData(prev => ({ ...prev, meetings: updated }))
+                              persistMeetings(updated)
                             }}
                             className="h-3.5 w-3.5 rounded border-slate-300"
                           />
@@ -633,6 +659,7 @@ function CourseContentManager({ course, onBack }) {
                                       guestAccess: { enabled: true, code: Math.random().toString(36).slice(2, 12) },
                                     }
                                     setCourseData(prev => ({ ...prev, meetings: updated }))
+                                    persistMeetings(updated)
                                   }}
                                   className="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-white"
                                   title="Invalidates the previous guest link"
@@ -655,8 +682,9 @@ function CourseContentManager({ course, onBack }) {
                           </div>
                         )}
                       </div>
-                      <p className="mt-2 text-[11px] font-semibold text-rose-500">
-                        Click &quot;Save Changes&quot; before sharing a new link.
+                      <p className="mt-2 text-[11px] text-slate-400">
+                        Guest access saves on its own. For a brand-new meeting, press
+                        &quot;Save Changes&quot; once so the room exists.
                       </p>
                     </div>
                   )}

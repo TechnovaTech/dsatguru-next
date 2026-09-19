@@ -63,13 +63,18 @@ export async function POST(request) {
       return NextResponse.json({ error: 'This meeting link is not valid.' }, { status: 404 })
     }
     if (!meeting.guestAccess?.enabled) {
+      // They were handed a guest link, so "please sign in" is the wrong advice:
+      // guest access is simply switched off for this session.
       return NextResponse.json(
-        { error: 'This class is open to enrolled students only. Please sign in.' },
+        { error: 'Guest access is turned off for this class. Ask your tutor to enable guest access, or sign in if you are an enrolled student.' },
         { status: 403 }
       )
     }
     if (!meeting.guestAccess.code || meeting.guestAccess.code !== code) {
-      return NextResponse.json({ error: 'This guest link is not valid any more.' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'This guest link has expired — a newer one was generated. Please ask your tutor for the current link.' },
+        { status: 403 }
+      )
     }
     const st = meetingState(meeting)
     if (!st.canJoin) {
