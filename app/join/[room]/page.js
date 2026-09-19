@@ -6,6 +6,28 @@ import { FiVideo, FiLoader, FiAlertCircle, FiLogIn, FiClock, FiUser } from 'reac
 
 const LiveKitMeeting = dynamic(() => import('../../components/LiveKitMeeting'), { ssr: false })
 
+// Declared at module scope on purpose: defining this inside the page component
+// makes a NEW component type on every render, so React would unmount the form
+// (and the focused input) after every keystroke.
+function Shell({ children }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="mb-6 flex items-center gap-3">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-600 text-white">
+            <FiVideo size={20} />
+          </span>
+          <div>
+            <p className="text-base font-extrabold text-slate-900">DsatGuru Live Class</p>
+            <p className="text-xs text-slate-500">You have been invited to join a session</p>
+          </div>
+        </div>
+        {children}
+      </div>
+    </div>
+  )
+}
+
 // The shareable join link: dsatguru.com/join/<room>[?g=<code>]
 //
 //  - Signed-in student  → straight into the class (enrollment still checked
@@ -101,23 +123,6 @@ export default function JoinPage() {
       />
     )
   }
-
-  const Shell = ({ children }) => (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <div className="mb-6 flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-600 text-white">
-            <FiVideo size={20} />
-          </span>
-          <div>
-            <p className="text-base font-extrabold text-slate-900">DsatGuru Live Class</p>
-            <p className="text-xs text-slate-500">You have been invited to join a session</p>
-          </div>
-        </div>
-        {children}
-      </div>
-    </div>
-  )
 
   if (mode === 'checking') {
     return <Shell><div className="flex items-center gap-2 text-slate-500"><FiLoader className="animate-spin" /> Checking your access…</div></Shell>
