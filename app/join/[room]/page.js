@@ -49,6 +49,18 @@ export default function JoinPage() {
 
   const roomName = decodeURIComponent(String(room || ''))
 
+  // Where this person belongs when they leave the class.
+  const homeForRole = () => {
+    try {
+      const raw = localStorage.getItem('user')
+      const role = raw ? JSON.parse(raw)?.role : null
+      if (role === 'Admin') return '/admin'
+      if (role === 'TutorAdmin') return '/admin/tutor/question-bank'
+      if (role === 'Tutor') return '/tutor/dashboard'
+    } catch { /* fall through to the student area */ }
+    return '/dashboard/live-classes'
+  }
+
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
     if (token) setMode('member')
@@ -107,7 +119,9 @@ export default function JoinPage() {
       <LiveKitMeeting
         roomName={roomName}
         displayName={undefined}
-        onClose={() => router.push('/dashboard/live-classes')}
+        // Send people back to THEIR area — an admin closing a class should not
+        // land in the student dashboard.
+        onClose={() => router.push(homeForRole())}
       />
     )
   }
