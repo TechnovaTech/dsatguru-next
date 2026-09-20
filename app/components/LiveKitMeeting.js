@@ -36,7 +36,9 @@ function personName(participant, fallback = 'Participant') {
 }
 
 // ─── Inner room UI (must be inside <LiveKitRoom>) ───────────────────────────
-function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, meeting }) {
+function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, meeting,
+  authKey = 'token', guestApi = '/api/livekit/guest',
+  transcriptApi = '/api/admin/meetings/save-transcript', onEndClass }) {
   const toast = useToast()
   const participants = useParticipants()
   const { localParticipant } = useLocalParticipant()
@@ -61,8 +63,8 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
     let stop = false
     const poll = async () => {
       try {
-        const authToken = localStorage.getItem('token')
-        const res = await fetch(`/api/livekit/guest?room=${encodeURIComponent(roomName)}`, {
+        const authToken = localStorage.getItem(authKey)
+        const res = await fetch(`${guestApi}?room=${encodeURIComponent(roomName)}`, {
           headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
         })
         if (!res.ok) return
@@ -73,13 +75,13 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
     poll()
     const t = setInterval(poll, 5000)
     return () => { stop = true; clearInterval(t) }
-  }, [isAdmin, roomName])
+  }, [isAdmin, roomName, authKey, guestApi])
 
   const decideGuest = async (claimId, action) => {
     setLobby((l) => l.filter((g) => g.claimId !== claimId))   // optimistic
     try {
-      const authToken = localStorage.getItem('token')
-      await fetch('/api/livekit/guest', {
+      const authToken = localStorage.getItem(authKey)
+      await fetch(guestApi, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) },
         body: JSON.stringify({ claimId, action }),
@@ -634,19 +636,23 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
     if (isAdmin && endForEveryone) {
       // Closes the join window for students even before the scheduled end.
       try {
-        const token = localStorage.getItem('token')
-        await fetch('/api/livekit/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ room: roomName, action: 'end' }),
-        })
+        if (onEndClass) {
+          await onEndClass()
+        } else {
+          const token = localStorage.getItem(authKey)
+          await fetch('/api/livekit/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ room: roomName, action: 'end' }),
+          })
+        }
       } catch (e) {
         console.error('Could not end the session:', e)
       }
     }
-    if (isAdmin) {
+    if (isAdmin && transcriptApi) {
       try {
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem(authKey)
         const body = { 
           roomName, 
           transcript: meetingTranscript || '',
@@ -657,7 +663,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
 
         // The server summarises with Gemini, which can take tens of seconds —
         // never hold the host hostage to it.
-        const res = await fetch('/api/admin/meetings/save-transcript', {
+        const res = await fetch(transcriptApi, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1195,7 +1201,9 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
 }
 
 // ─── Outer wrapper — handles token fetch ────────────────────────────────────
-export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin = false, meetingTitle, meeting, session }) {
+export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin = false, meetingTitle, meeting, session,
+  authKey = 'token', tokenApi = '/api/livekit/token',
+  guestApi = '/api/livekit/guest', transcriptApi = '/api/admin/meetings/save-transcript', onEndClass }) {
   const [token, setToken] = useState(null)
   const [wsUrl, setWsUrl] = useState(null)
   const [error, setError] = useState(null)
@@ -1221,9 +1229,9 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
     const fetchToken = async () => {
       setLoading(true); setError(null); setRoomError(null)
       try {
-        const authToken = localStorage.getItem('token')
+        const authToken = localStorage.getItem(authKey)
         const res = await fetch(
-          `/api/livekit/token?room=${encodeURIComponent(roomName)}&name=${encodeURIComponent(displayName || '')}`,
+          `${tokenApi}?room=${encodeURIComponent(roomName)}&name=${encodeURIComponent(displayName || '')}`,
           { headers: authToken ? { Authorization: `Bearer ${authToken}` } : {} }
         )
         const data = await res.json().catch(() => ({}))
@@ -1244,7 +1252,7 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
     if (roomName) fetchToken()
     else { setError('This meeting has no room yet. Please contact your tutor.'); setLoading(false) }
     return () => { cancelled = true }
-  }, [roomName, displayName, attempt, session])
+  }, [roomName, displayName, attempt, session, authKey, tokenApi])
 
   if (loading) {
     return (
@@ -1329,6 +1337,10 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
           displayName={displayName}
           meetingTitle={meetingTitle}
           meeting={meeting}
+          authKey={authKey}
+          guestApi={guestApi}
+          transcriptApi={transcriptApi}
+          onEndClass={onEndClass}
           isAdmin={serverIsHost ?? isAdmin}
           onClose={onClose}
         />

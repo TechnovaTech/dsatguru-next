@@ -7,7 +7,7 @@ import Watermark from '../components/Watermark'
 import {
   FiGrid, FiDatabase, FiLayers, FiClipboard, FiMic, FiSend, FiActivity,
   FiUsers, FiTrendingUp, FiBarChart2, FiFileText, FiPieChart, FiLogOut,
-  FiMenu, FiX, FiChevronDown,
+  FiMenu, FiX, FiChevronDown, FiVideo,
 } from 'react-icons/fi'
 
 const LINKS = [
@@ -20,6 +20,7 @@ const GROUPS = [
       { label: 'APT · SMS · CSQ', path: '/igcsc/assessments', icon: FiLayers },
       { label: 'Tests', path: '/igcsc/tests', icon: FiClipboard },
       { label: 'Exam Paper', path: '/igcsc/exam-paper', icon: FiFileText },
+      { label: 'Live Sessions', path: '/igcsc/meetings', icon: FiVideo },
       { label: 'Oral Tests', path: '/igcsc/oral-tests', icon: FiMic },
       { label: 'Test Allocation', path: '/igcsc/test-allocation', icon: FiSend },
       { label: 'Assessment Tracker', path: '/igcsc/assessment-tracker', icon: FiActivity },
@@ -66,13 +67,18 @@ export default function IgcscLayout({ children }) {
   const navRef = useRef(null)
 
   const isLoginPage = pathname === '/igcsc/login'
+  // Class join links are public: a guest has no account, and a signed-in user's
+  // token is still checked by the meeting API. Both render without the portal
+  // chrome and without the auth guard.
+  const isJoinPage = pathname.startsWith('/igcsc/join/')
+  const isPublicPage = isLoginPage || isJoinPage
 
   useEffect(() => {
-    if (isLoginPage) return
+    if (isPublicPage) return
     const t = igcscToken()
     if (!t || igcscTokenExpired(t)) { router.replace('/igcsc/login'); return }
     setUser(igcscUser())
-  }, [pathname, router, isLoginPage])
+  }, [pathname, router, isPublicPage])
 
   useEffect(() => { setOpenMenu(null); setMobileOpen(false) }, [pathname])
   useEffect(() => {
@@ -87,7 +93,7 @@ export default function IgcscLayout({ children }) {
   )
 
   // The login page renders full-screen with no portal chrome or guard.
-  if (isLoginPage) return <>{children}</>
+  if (isPublicPage) return <>{children}</>
   if (!user) return null
 
   const handleLogout = () => { igcscLogout(); router.push('/igcsc/login') }
