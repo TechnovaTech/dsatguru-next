@@ -38,7 +38,6 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   // Sharing the board out of the class.
   const [shareOpen, setShareOpen] = useState(false)
   const [shareTitle, setShareTitle] = useState('')
-  const [picked, setPicked] = useState([])        // empty = everyone in the class
   const [sharing, setSharing] = useState(false)
   const [shareMsg, setShareMsg] = useState('')
   // People the host handed the board to — they may draw on it.
@@ -286,6 +285,32 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     redraw()
   }
 
+  // Grant or revoke one person's drawing rights and announce it immediately.
+  const setRights = useCallback((id, may) => {
+    setEditors((cur) => {
+      const next = may ? [...new Set([...cur, id])] : cur.filter((x) => x !== id)
+      try {
+        const enc = new TextEncoder().encode(JSON.stringify({ type: WB_GRANT, ids: next }))
+        room?.localParticipant?.publishData(enc, { reliable: true })
+      } catch (e) {
+        console.error('Could not publish the grant:', e)
+      }
+      return next
+    })
+    setShareMsg(may ? 'They can draw now.' : 'Set back to view only.')
+  }, [room])
+
+  // Someone who has left cannot draw, and must not be counted as a recipient —
+  // a stale id is what made this panel claim more people than were in the room.
+  useEffect(() => {
+    if (!isAdmin) return
+    const present = new Set(participants.map((pp) => pp.id))
+    setEditors((cur) => {
+      const next = cur.filter((id) => present.has(id))
+      return next.length === cur.length ? cur : next
+    })
+  }, [participants, isAdmin])
+
   // Flatten the board onto a white background — a transparent PNG looks like an
   // empty image everywhere it is later viewed.
   const shareBoard = async () => {
@@ -295,7 +320,7 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
 
     // Hand the board over FIRST — this is the part the room actually feels,
     // and it must not depend on the upload succeeding.
-    const grantIds = picked.length ? picked : participants.map((pp) => pp.id)
+    const grantIds = editorsRef.current.length ? editorsRef.current : participants.map((pp) => pp.id)
     try {
       setEditors(grantIds)
       const enc = new TextEncoder().encode(JSON.stringify({ type: WB_GRANT, ids: grantIds }))
@@ -327,14 +352,15 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
           room: roomName || '',
           title: shareTitle.trim() || meetingTitle || 'Class whiteboard',
           image,
-          recipients: picked,
+          // Addressed to whoever can draw; nobody selected = the whole class.
+          recipients: editorsRef.current,
         }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data?.error || 'Could not share the board.')
-      setShareMsg(picked.length
-        ? `Shared with ${picked.length} — they can draw on it now ✓`
-        : 'Shared with the class — everyone can draw on it now ✓')
+      setShareMsg(editorsRef.current.length
+        ? `Copy sent to ${editorsRef.current.length} ✓`
+        : 'Copy sent to the whole class ✓')
       setTimeout(() => { setShareOpen(false); setShareMsg('') }, 1800)
     } catch (e) {
       // The hand-over already happened; only the saved copy failed.
@@ -361,57 +387,50 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
       {/* ── SHARE PANEL (admin only) ── */}
       {isAdmin && shareOpen && (
         <div className="absolute right-3 top-14 z-30 w-72 rounded-xl border border-slate-200 bg-white p-3 shadow-2xl">
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Share this board</p>
           <input
             value={shareTitle}
             onChange={(e) => setShareTitle(e.target.value)}
             placeholder={meetingTitle || 'Class whiteboard'}
             className="mb-2 w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:border-indigo-400 focus:outline-none"
           />
-          <p className="mb-1 text-[11px] text-slate-500">
-            {picked.length === 0 ? 'Going to everyone in this class.' : `Going to ${picked.length} selected student${picked.length === 1 ? '' : 's'}.`}
-          </p>
-          <div className="mb-2 max-h-40 space-y-1 overflow-y-auto rounded-lg border border-slate-100 bg-slate-50 p-1.5">
+          <div className="mb-2 max-h-48 space-y-1 overflow-y-auto rounded-lg border border-slate-100 bg-slate-50 p-1.5">
             {participants.length === 0 && (
               <p className="px-1 py-2 text-xs text-slate-400">No one else is in the room yet.</p>
             )}
-            {participants.map((pp) => (
-              <label key={pp.id} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-white">
-                <input
-                  type="checkbox"
-                  checked={picked.includes(pp.id)}
-                  onChange={(e) => setPicked((cur) => (e.target.checked ? [...cur, pp.id] : cur.filter((x) => x !== pp.id)))}
-                  className="h-3.5 w-3.5 rounded border-slate-300"
-                />
-                <span className="min-w-0 flex-1 truncate text-slate-700">{pp.name}</span>
-              </label>
-            ))}
+            {participants.map((pp) => {
+              const may = editors.includes(pp.id)
+              return (
+                <div key={pp.id} className="flex items-center gap-2 rounded px-1 py-1.5 text-sm hover:bg-white">
+                  <span className="min-w-0 flex-1 truncate text-slate-700">{pp.name}</span>
+                  <span className={`text-[10px] font-semibold ${may ? 'text-emerald-600' : 'text-slate-400'}`}>
+                    {may ? 'Can draw' : 'View only'}
+                  </span>
+                  {/* Flips their rights straight away — no Send needed. */}
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={may}
+                    onClick={() => setRights(pp.id, !may)}
+                    className={`relative h-5 w-9 flex-shrink-0 rounded-full transition-colors ${may ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                    title={may ? 'Make view only' : 'Let them draw'}
+                  >
+                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${may ? 'left-[18px]' : 'left-0.5'}`} />
+                  </button>
+                </div>
+              )
+            })}
           </div>
           {shareMsg && <p className="mb-2 text-xs font-semibold text-emerald-600">{shareMsg}</p>}
           <div className="flex items-center gap-2">
             <button onClick={shareBoard} disabled={sharing}
               className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60">
-              {sharing ? 'Sharing…' : picked.length ? 'Send to selected' : 'Send to class'}
+              {sharing ? 'Sending…' : 'Send a copy'}
             </button>
             <button onClick={() => setShareOpen(false)}
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
-              Cancel
+              Close
             </button>
           </div>
-          {editors.length > 0 && (
-            <button
-              onClick={() => {
-                setEditors([])
-                try {
-                  const enc = new TextEncoder().encode(JSON.stringify({ type: WB_GRANT, ids: [] }))
-                  room?.localParticipant?.publishData(enc, { reliable: true })
-                } catch {}
-                setShareMsg('Drawing access taken back.')
-              }}
-              className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">
-              Take back drawing access
-            </button>
-          )}
         </div>
       )}
 
