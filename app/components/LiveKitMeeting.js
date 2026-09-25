@@ -56,6 +56,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
   const [captionsOn, setCaptionsOn] = useState(false)
   const [leaving, setLeaving] = useState(false)
   // Tile columns must follow the viewport; an inline grid style cannot.
+  const [boardCanDraw, setBoardCanDraw] = useState(false)
   const [isNarrow, setIsNarrow] = useState(false)
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)')
@@ -882,12 +883,17 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
         </div>
 
         {/* ── WHITEBOARD PANEL ── */}
-        {showWhiteboard && (
-          <div className="w-1/2 bg-white flex flex-col border-l border-white/10">
+        {/* Mounted for the whole meeting, not just while the panel is open:
+            the strokes live in here, and someone has to be listening to answer
+            a late viewer's sync request. Closing the panel only hides it. */}
+        <div className={`${showWhiteboard
+            ? 'absolute inset-0 z-30 flex w-full flex-col md:relative md:inset-auto md:z-auto md:w-1/2'
+            : 'hidden'} bg-white border-l border-white/10`}>
             <div className="flex items-center justify-between px-4 py-2 bg-[#2d2e30] border-b border-white/10">
               <span className="text-white text-sm font-medium flex items-center gap-2">
                 <FiEdit3 size={16} /> Whiteboard
-                {!isAdmin && <span className="text-xs text-yellow-400 ml-2">View only</span>}
+                {!boardCanDraw && <span className="text-xs text-yellow-400 ml-2">View only</span>}
+                {boardCanDraw && !isAdmin && <span className="ml-2 text-xs text-emerald-400">You can draw</span>}
               </span>
               <button onClick={() => setShowWhiteboard(false)} className="text-gray-400 hover:text-white text-xs">Close</button>
             </div>
@@ -903,10 +909,10 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
                 participants={participants
                   .filter(pp => pp.identity !== localParticipant?.identity)
                   .map(pp => ({ id: pp.identity, name: personName(pp) }))}
+                onCanDrawChange={setBoardCanDraw}
               />
             </div>
-          </div>
-        )}
+        </div>
 
         {/* ── SIDE PANEL ── */}
         {(showParticipants || showChat || showTranscript) && (

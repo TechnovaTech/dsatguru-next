@@ -23,7 +23,7 @@ function senderIsHost(participant) {
 }
 
 export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, participants = [],
-  authKey = 'token', boardsApi = '/api/meetings/boards' }) {
+  authKey = 'token', boardsApi = '/api/meetings/boards', onCanDrawChange }) {
   const room        = useRoomContext()
   const canvasRef   = useRef(null)
   const drawing     = useRef(false)
@@ -50,6 +50,8 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   useEffect(() => { editorsRef.current = editors }, [editors])
   const myId = room?.localParticipant?.identity || ''
   const canDraw = isAdmin || editors.includes(myId)
+  // Let the panel header say something true about the viewer's rights.
+  useEffect(() => { onCanDrawChange?.(canDraw) }, [canDraw, onCanDrawChange])
   const [textPos,   setTextPos]   = useState(null)
 
   // ── draw all strokes onto canvas ──────────────────────────────────────────
