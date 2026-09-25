@@ -64,7 +64,7 @@ export async function POST(request) {
       imageUrl: `/uploads/boards/${filename}`,
       sharedBy: decoded.name || decoded.email || 'Tutor',
       sharedById: decoded.userId,
-      recipients: Array.isArray(body?.recipients) ? body.recipients.filter(Boolean) : [],
+      recipients: Array.isArray(body?.recipients) ? body.recipients.filter(Boolean).map(String) : [],
     })
 
     return NextResponse.json({
@@ -97,7 +97,7 @@ export async function GET(request) {
         .select('courseId').lean()
       const courseIds = enrolled.map((e) => e.courseId)
       filter.$or = [
-        { recipients: decoded.userId },
+        { recipients: String(decoded.userId) },
         { $and: [{ recipients: { $size: 0 } }, { courseId: { $in: courseIds } }] },
       ]
     }

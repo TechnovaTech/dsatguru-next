@@ -90,6 +90,7 @@ export default function IgcscJoinPage() {
         tokenApi="/api/igcsc/meetings/token"
         guestApi="/api/igcsc/meetings/guest"
         transcriptApi={null}
+        boardsApi={null}
         onClose={() => router.push('/igcsc/meetings')}
       />
     )
@@ -105,6 +106,7 @@ export default function IgcscJoinPage() {
         tokenApi="/api/igcsc/meetings/token"
         guestApi="/api/igcsc/meetings/guest"
         transcriptApi={null}
+        boardsApi={null}
         onClose={() => { setGuestState('idle'); setGuestSession(null) }}
       />
     )

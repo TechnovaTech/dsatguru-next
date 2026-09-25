@@ -110,6 +110,7 @@ export default function IgcscMeetingsPage() {
         tokenApi="/api/igcsc/meetings/token"
         guestApi="/api/igcsc/meetings/guest"
         transcriptApi={null}
+        boardsApi={null}
         onEndClass={() => endClass(active)}
         onClose={() => { setActive(null); load() }}
       />

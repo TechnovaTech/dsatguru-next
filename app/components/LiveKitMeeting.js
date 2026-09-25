@@ -38,7 +38,7 @@ function personName(participant, fallback = 'Participant') {
 // ─── Inner room UI (must be inside <LiveKitRoom>) ───────────────────────────
 function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, meeting,
   authKey = 'token', guestApi = '/api/livekit/guest',
-  transcriptApi = '/api/admin/meetings/save-transcript', onEndClass }) {
+  transcriptApi = '/api/admin/meetings/save-transcript', boardsApi = '/api/meetings/boards', onEndClass }) {
   const toast = useToast()
   const participants = useParticipants()
   const { localParticipant } = useLocalParticipant()
@@ -160,6 +160,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
   // ── Live Captions via Web Speech API ──────────────────────────────────────
   const CAPTION_CHANNEL = 'caption'
   const captionsOnRef = useRef(false)
+  const captionErrorShownRef = useRef(false)
 
   // Hard stop on unmount — otherwise leaving the meeting leaves the mic hot in
   // the onend restart loop and keeps setState-ing an unmounted tree.
@@ -243,9 +244,17 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
 
       rec.onerror = (e) => {
         console.error('Speech Recognition Error:', e.error)
-        if (e.error === 'not-allowed') {
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+          // Permission is not going to appear on a retry — stop the loop dead
+          // and tell the user once.
+          captionsOnRef.current = false
+          setCaptionsOn(false)
           setCaptionStatus('error')
-          toast.error('Microphone access denied for captions.')
+          if (!captionErrorShownRef.current) {
+            captionErrorShownRef.current = true
+            toast.error('Microphone access is blocked, so captions are off. Allow the mic in your browser to use them.')
+          }
+          try { recognitionRef.current?.stop() } catch {}
         } else if (e.error === 'network') {
           setCaptionStatus('error')
         }
@@ -310,6 +319,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
       setShowParticipants(false)
       
       captionsOnRef.current = true
+      captionErrorShownRef.current = false
       setCaptionsOn(true)
       setCaptionStatus('idle') // will update to listening onstart
       startCaptions()
@@ -865,6 +875,8 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
             <div className="flex-1 overflow-hidden">
               <MeetingWhiteboard
                 isAdmin={isAdmin}
+                authKey={authKey}
+                boardsApi={boardsApi}
                 roomName={roomName}
                 meetingTitle={meetingTitle}
                 // Real students in the room, so the host can share the board
@@ -1212,7 +1224,8 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
 // ─── Outer wrapper — handles token fetch ────────────────────────────────────
 export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin = false, meetingTitle, meeting, session,
   authKey = 'token', tokenApi = '/api/livekit/token',
-  guestApi = '/api/livekit/guest', transcriptApi = '/api/admin/meetings/save-transcript', onEndClass }) {
+  guestApi = '/api/livekit/guest', transcriptApi = '/api/admin/meetings/save-transcript',
+  boardsApi = '/api/meetings/boards', onEndClass }) {
   const [token, setToken] = useState(null)
   const [wsUrl, setWsUrl] = useState(null)
   const [error, setError] = useState(null)
@@ -1338,6 +1351,7 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
             : 'We could not start your camera or microphone. Check that no other app is using them, then rejoin.',
         })}
         onConnected={() => setRoomError(null)}
+        // Covers both leaving and the host closing the room out from under us.
         onDisconnected={onClose}
         style={{ position: 'fixed', inset: 0, zIndex: 50 }}
       >
@@ -1349,6 +1363,7 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
           authKey={authKey}
           guestApi={guestApi}
           transcriptApi={transcriptApi}
+          boardsApi={boardsApi}
           onEndClass={onEndClass}
           isAdmin={serverIsHost ?? isAdmin}
           onClose={onClose}

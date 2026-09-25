@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { closeRoom } from '../../../../lib/livekitAdmin'
 import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
 import { STAFF_ROLES } from '../../../../lib/constants/roles'
 import { connectDB } from '../../../../lib/db'
@@ -45,7 +46,11 @@ export async function POST(request) {
     if (!res.matchedCount) {
       return NextResponse.json({ error: 'No meeting found for that room.' }, { status: 404 })
     }
-    return NextResponse.json({ ok: true, action })
+
+    // Ending the class must actually empty the room — a database flag alone
+    // left everyone sitting in the call.
+    const disconnected = action === 'end' ? await closeRoom(room) : false
+    return NextResponse.json({ ok: true, action, disconnected })
   } catch (e) {
     console.error('POST /api/livekit/session failed:', e?.message)
     return NextResponse.json({ error: 'Failed to update the session' }, { status: 500 })

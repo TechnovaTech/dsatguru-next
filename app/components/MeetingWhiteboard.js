@@ -3,11 +3,27 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRoomContext } from '@livekit/components-react'
 import { RoomEvent } from 'livekit-client'
 
-const WB_CHANNEL = 'wb'
+const WB_CHANNEL = 'wb'          // legacy full-state (host snapshot)
+const WB_GRANT   = 'wb-grant'    // host hands drawing rights to identities
+const WB_STROKE  = 'wb-stroke'   // one appended stroke
+const WB_SYNC    = 'wb-sync'     // "someone please send me the board"
+const WB_CLEAR   = 'wb-clear'    // host wiped the board
 const COLORS = ['#000000','#ef4444','#3b82f6','#22c55e','#f59e0b','#8b5cf6','#ec4899','#ffffff']
 const SIZES  = [2, 4, 8, 14, 22]
 
-export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, participants = [] }) {
+// A participant's metadata is minted server-side into their LiveKit token, so
+// it is the only trustworthy claim we have in a client-to-client message.
+function senderIsHost(participant) {
+  if (!participant) return false
+  try {
+    return !!JSON.parse(participant.metadata || '{}').isHost
+  } catch {
+    return false
+  }
+}
+
+export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, participants = [],
+  authKey = 'token', boardsApi = '/api/meetings/boards' }) {
   const room        = useRoomContext()
   const canvasRef   = useRef(null)
   const drawing     = useRef(false)
@@ -25,6 +41,15 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   const [picked, setPicked] = useState([])        // empty = everyone in the class
   const [sharing, setSharing] = useState(false)
   const [shareMsg, setShareMsg] = useState('')
+  // People the host handed the board to — they may draw on it.
+  const [editors, setEditors] = useState([])          // identities
+  const editorsRef = useRef([])
+  // Stable per-stroke id: identity + counter, so appends are idempotent.
+  const strokeSeq = useRef(0)
+  const nextStrokeId = () => `${room?.localParticipant?.identity || 'me'}-${Date.now()}-${++strokeSeq.current}`
+  useEffect(() => { editorsRef.current = editors }, [editors])
+  const myId = room?.localParticipant?.identity || ''
+  const canDraw = isAdmin || editors.includes(myId)
   const [textPos,   setTextPos]   = useState(null)
 
   // ── draw all strokes onto canvas ──────────────────────────────────────────
@@ -73,30 +98,109 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     ctx.restore()
   }
 
-  // ── broadcast strokes via LiveKit ─────────────────────────────────────────
-  const broadcast = useCallback(() => {
-    if (!room || !isAdmin) return
+  // ── send over LiveKit ─────────────────────────────────────────────────────
+  const send = useCallback((msg) => {
+    if (!room?.localParticipant) return
     try {
-      const payload = JSON.stringify({ type: WB_CHANNEL, strokes: strokesRef.current })
-      const enc = new TextEncoder().encode(payload)
+      const enc = new TextEncoder().encode(JSON.stringify(msg))
+      // LiveKit caps a data packet; a full snapshot of a long lesson can exceed
+      // it, so snapshots are chunk-free but bounded and strokes are tiny.
       if (enc.length < 60000) room.localParticipant.publishData(enc, { reliable: true })
-    } catch {}
-  }, [room, isAdmin])
+      else console.warn('whiteboard payload too large to send:', enc.length)
+    } catch (e) {
+      console.error('whiteboard send failed:', e)
+    }
+  }, [room])
 
-  // ── receive strokes (students) ────────────────────────────────────────────
+  // One finished stroke — appended by every receiver, never replacing anything.
+  const broadcastStroke = useCallback((stroke) => {
+    if (!canDraw) return
+    send({ type: WB_STROKE, stroke })
+  }, [send, canDraw])
+
+  // The host's authoritative picture of the board.
+  const broadcastSnapshot = useCallback(() => {
+    if (!isAdmin) return
+    send({ type: WB_CHANNEL, strokes: strokesRef.current })
+  }, [send, isAdmin])
+
+  // ── receive ───────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!room || isAdmin) return
-    const handler = (payload) => {
+    if (!room) return
+    const handler = (payload, participant) => {
       try {
         const msg = JSON.parse(new TextDecoder().decode(payload))
-        if (msg.type !== WB_CHANNEL) return
-        strokesRef.current = msg.strokes || []
-        redraw()
-      } catch {}
+        const fromHost = senderIsHost(participant)
+
+        switch (msg.type) {
+          // Only a host may hand out drawing rights. Without this check any
+          // student could grant themselves and wipe the board.
+          case WB_GRANT:
+            if (!fromHost) return
+            setEditors(Array.isArray(msg.ids) ? msg.ids : [])
+            return
+
+          // A full picture of the board is only believable from the host.
+          case WB_CHANNEL:
+            if (!fromHost) return
+            strokesRef.current = Array.isArray(msg.strokes) ? msg.strokes : []
+            redraw()
+            return
+
+          case WB_CLEAR:
+            if (!fromHost) return
+            strokesRef.current = []
+            redraw()
+            return
+
+          // An append. Idempotent on id, so a replayed or out-of-order packet
+          // cannot duplicate or lose work.
+          case WB_STROKE: {
+            const st = msg.stroke
+            if (!st || !st.id) return
+            if (strokesRef.current.some((x) => x.id === st.id)) return
+            strokesRef.current.push(st)
+            redraw()
+            return
+          }
+
+          // Someone joined or reopened the panel and has nothing. The host —
+          // and only the host — answers with the real board.
+          case WB_SYNC:
+            if (isAdmin) {
+              broadcastSnapshot()
+              if (editorsRef.current.length) send({ type: WB_GRANT, ids: editorsRef.current })
+            }
+            return
+
+          default:
+            return
+        }
+      } catch { /* a malformed packet is not worth crashing the board over */ }
     }
     room.on(RoomEvent.DataReceived, handler)
     return () => room.off(RoomEvent.DataReceived, handler)
-  }, [room, isAdmin, redraw])
+  }, [room, redraw, isAdmin, broadcastSnapshot, send])
+
+  // On mount (the panel is opened) ask for the current board. Without this a
+  // late viewer stares at a blank canvas while everyone else sees the lesson.
+  useEffect(() => {
+    if (!room || isAdmin) return
+    const t = setTimeout(() => send({ type: WB_SYNC }), 250)
+    return () => clearTimeout(t)
+  }, [room, isAdmin, send])
+
+  // The host re-announces the board and its editors whenever someone new
+  // arrives, so a rejoining student is not silently left out.
+  useEffect(() => {
+    if (!room || !isAdmin) return
+    const onJoin = () => {
+      broadcastSnapshot()
+      if (editorsRef.current.length) send({ type: WB_GRANT, ids: editorsRef.current })
+    }
+    room.on(RoomEvent.ParticipantConnected, onJoin)
+    return () => room.off(RoomEvent.ParticipantConnected, onJoin)
+  }, [room, isAdmin, broadcastSnapshot, send])
 
   // ── canvas resize ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -122,7 +226,7 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   }
 
   const onDown = (e) => {
-    if (!isAdmin) return
+    if (!canDraw) return
     if (tool === 'text') {
       setTextPos(getXY(e))
       return
@@ -134,7 +238,7 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   }
 
   const onMove = (e) => {
-    if (!isAdmin || !drawing.current || !currentRef.current) return
+    if (!canDraw || !drawing.current || !currentRef.current) return
     const pt = getXY(e)
     currentRef.current.pts.push(pt)
     lastPt.current = pt
@@ -142,35 +246,41 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   }
 
   const onUp = () => {
-    if (!isAdmin || !drawing.current) return
+    if (!canDraw || !drawing.current) return
     drawing.current = false
     if (currentRef.current) {
-      strokesRef.current.push(currentRef.current)
+      const stroke = { ...currentRef.current, id: nextStrokeId() }
+      strokesRef.current.push(stroke)
       currentRef.current = null
-      broadcast()
+      broadcastStroke(stroke)
     }
     redraw()
   }
 
   const addText = () => {
     if (!textInput.trim() || !textPos) return
-    strokesRef.current.push({ tool: 'text', color, size, pts: [textPos], text: textInput })
+    const stroke = { tool: 'text', color, size, pts: [textPos], text: textInput, id: nextStrokeId() }
+    strokesRef.current.push(stroke)
     setTextInput('')
     setTextPos(null)
-    broadcast()
+    broadcastStroke(stroke)
     redraw()
   }
 
+  // Clear and undo rewrite the WHOLE board, so they belong to the host alone —
+  // a student undoing would pop the host's last stroke on everyone's screen.
   const clearBoard = () => {
+    if (!isAdmin) return
     strokesRef.current = []
     currentRef.current = null
-    broadcast()
+    send({ type: WB_CLEAR })
     redraw()
   }
 
   const undo = () => {
+    if (!isAdmin) return
     strokesRef.current.pop()
-    broadcast()
+    broadcastSnapshot()
     redraw()
   }
 
@@ -180,6 +290,18 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     const canvas = canvasRef.current
     if (!canvas) return
     setSharing(true); setShareMsg('')
+
+    // Hand the board over FIRST — this is the part the room actually feels,
+    // and it must not depend on the upload succeeding.
+    const grantIds = picked.length ? picked : participants.map((pp) => pp.id)
+    try {
+      setEditors(grantIds)
+      const enc = new TextEncoder().encode(JSON.stringify({ type: WB_GRANT, ids: grantIds }))
+      room?.localParticipant?.publishData(enc, { reliable: true })
+    } catch (e) {
+      console.error('Could not hand over the board:', e)
+    }
+
     try {
       const flat = document.createElement('canvas')
       flat.width = canvas.width; flat.height = canvas.height
@@ -188,8 +310,15 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
       fx.drawImage(canvas, 0, 0)
       const image = flat.toDataURL('image/png')
 
-      const token = localStorage.getItem('token')
-      const res = await fetch('/api/meetings/boards', {
+      if (!boardsApi) {
+        // This portal has no board archive yet — the live hand-over is the
+        // whole feature here, so do not claim a failure.
+        setShareMsg('Shared — they can draw on it now ✓')
+        setTimeout(() => { setShareOpen(false); setShareMsg('') }, 1800)
+        return
+      }
+      const token = localStorage.getItem(authKey)
+      const res = await fetch(boardsApi, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -201,10 +330,13 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data?.error || 'Could not share the board.')
-      setShareMsg(picked.length ? `Shared with ${picked.length} student${picked.length === 1 ? '' : 's'} ✓` : 'Shared with the whole class ✓')
+      setShareMsg(picked.length
+        ? `Shared with ${picked.length} — they can draw on it now ✓`
+        : 'Shared with the class — everyone can draw on it now ✓')
       setTimeout(() => { setShareOpen(false); setShareMsg('') }, 1800)
     } catch (e) {
-      setShareMsg(e.message)
+      // The hand-over already happened; only the saved copy failed.
+      setShareMsg(`They can draw on it now, but saving a copy failed: ${e.message}`)
     } finally {
       setSharing(false)
     }
@@ -264,11 +396,25 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
               Cancel
             </button>
           </div>
+          {editors.length > 0 && (
+            <button
+              onClick={() => {
+                setEditors([])
+                try {
+                  const enc = new TextEncoder().encode(JSON.stringify({ type: WB_GRANT, ids: [] }))
+                  room?.localParticipant?.publishData(enc, { reliable: true })
+                } catch {}
+                setShareMsg('Drawing access taken back.')
+              }}
+              className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+              Take back drawing access
+            </button>
+          )}
         </div>
       )}
 
       {/* ── TOOLBAR (admin only) ── */}
-      {isAdmin && (
+      {canDraw && (
         <div className="flex items-center gap-1.5 px-3 py-2 bg-[#202124] flex-wrap z-10 border-b border-white/10">
 
           {/* Tools */}
@@ -309,14 +455,21 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
           {/* Divider */}
           <div className="w-px h-6 bg-white/20" />
 
-          {/* Actions */}
-          <button onClick={undo}      className="px-2 py-1.5 bg-[#3c4043] hover:bg-[#4a4d51] text-white rounded text-sm" title="Undo">↩</button>
-          <button onClick={clearBoard} className="px-2 py-1.5 bg-red-600/80 hover:bg-red-600 text-white rounded text-sm" title="Clear">🗑 Clear</button>
-          <button onClick={() => { setShareOpen(v => !v); setShareMsg('') }}
-            className="px-2 py-1.5 bg-emerald-600/90 hover:bg-emerald-600 text-white rounded text-sm font-medium"
-            title="Send this board to students">
-            📤 Share
-          </button>
+          {/* Actions — whole-board operations belong to the host only */}
+          {isAdmin && (
+            <>
+              <button onClick={undo}      className="px-2 py-1.5 bg-[#3c4043] hover:bg-[#4a4d51] text-white rounded text-sm" title="Undo">↩</button>
+              <button onClick={clearBoard} className="px-2 py-1.5 bg-red-600/80 hover:bg-red-600 text-white rounded text-sm" title="Clear">🗑 Clear</button>
+              <button onClick={() => { setShareOpen(v => !v); setShareMsg('') }}
+                className="px-2 py-1.5 bg-emerald-600/90 hover:bg-emerald-600 text-white rounded text-sm font-medium"
+                title="Send this board to students">
+                📤 Share
+              </button>
+            </>
+          )}
+          {!isAdmin && canDraw && (
+            <span className="px-2 py-1.5 text-xs font-medium text-emerald-300">You can draw on this board</span>
+          )}
         </div>
       )}
 
@@ -324,7 +477,7 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
       <div className="flex-1 relative overflow-hidden">
         <canvas
           ref={canvasRef}
-          className={`absolute inset-0 ${isAdmin ? (tool === 'eraser' ? 'cursor-cell' : 'cursor-crosshair') : 'cursor-default'}`}
+          className={`absolute inset-0 ${canDraw ? (tool === 'eraser' ? 'cursor-cell' : 'cursor-crosshair') : 'cursor-default'}`}
           style={{ background: '#ffffff', touchAction: 'none' }}
           onMouseDown={onDown}
           onMouseMove={onMove}
@@ -336,7 +489,7 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
         />
 
         {/* Text input popup */}
-        {isAdmin && textPos && (
+        {canDraw && textPos && (
           <div className="absolute z-20 flex gap-2 shadow-xl"
             style={{ left: textPos.x, top: textPos.y - 40 }}>
             <input

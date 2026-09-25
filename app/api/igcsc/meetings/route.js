@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { closeRoom } from '../../../../lib/livekitAdmin'
 import { igcscModels } from '../../../../lib/igcscDb'
 import { requireIgcscAuth, IGCSC_STAFF, IGCSC_ADMIN } from '../../../../lib/igcscAuth'
 import { MEETING_TYPES, DEFAULT_TYPE } from '../../../../lib/meetingStatus'
@@ -120,6 +121,9 @@ export async function PATCH(request) {
     const update = sanitize(body, existing)
     if (body?.regenerateRoom) update.roomName = newRoom()
     const saved = await Meeting.findByIdAndUpdate(id, { $set: update }, { new: true }).lean()
+
+    // Ending a session has to empty the room, not just mark it ended.
+    if (update.status === 'ended' && saved?.roomName) await closeRoom(saved.roomName)
     return NextResponse.json({ meeting: { ...saved, _id: saved._id.toString() } })
   } catch (e) {
     console.error('PATCH /api/igcsc/meetings failed:', e?.message)
