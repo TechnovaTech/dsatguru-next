@@ -55,6 +55,15 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
   const [showWhiteboard, setShowWhiteboard] = useState(false)
   const [captionsOn, setCaptionsOn] = useState(false)
   const [leaving, setLeaving] = useState(false)
+  // Tile columns must follow the viewport; an inline grid style cannot.
+  const [isNarrow, setIsNarrow] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const apply = () => setIsNarrow(mq.matches)
+    apply()
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [])
   // People who opened a guest link and are waiting to be let in (hosts only).
   const [lobby, setLobby] = useState([])
 
@@ -727,25 +736,31 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
       )}
 
       {/* ── TOP BAR ── */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[#202124] border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">D</div>
-          <div>
-            <div className="text-white text-sm font-medium">{meetingTitle || roomName}</div>
-            <div className="text-gray-400 text-xs">{fmt(elapsed)}</div>
+      <div className="flex items-center justify-between gap-2 px-3 py-2 bg-[#202124] border-b border-white/10 md:px-4">
+        <div className="flex min-w-0 items-center gap-2 md:gap-3">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">D</div>
+          <div className="min-w-0">
+            {/* A room id is long and meaningless — clip it to one line. */}
+            <div className="truncate text-sm font-medium text-white">{meetingTitle || roomName}</div>
+            <div className="text-xs text-gray-400">{fmt(elapsed)}</div>
           </div>
-          {isAdmin && <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">Host</span>}
+          {isAdmin && <span className="flex-shrink-0 rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">Host</span>}
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setGridView(v => !v)} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors" title={gridView ? 'Speaker view' : 'Grid view'}>
+        <div className="flex flex-shrink-0 items-center gap-1 md:gap-2">
+          <button onClick={() => setGridView(v => !v)} className="rounded-full p-2 text-gray-400 transition-colors hover:bg-white/10 hover:text-white" title={gridView ? 'Speaker view' : 'Grid view'}>
             {gridView ? <FiUser size={18} /> : <FiGrid size={18} />}
           </button>
-          <span className="text-gray-400 text-sm">{participants.length} participant{participants.length !== 1 ? 's' : ''}</span>
+          <span className="hidden text-sm text-gray-400 sm:inline">
+            {participants.length} participant{participants.length !== 1 ? 's' : ''}
+          </span>
+          <span className="flex items-center gap-1 text-sm text-gray-400 sm:hidden">
+            <FiUsers size={14} />{participants.length}
+          </span>
         </div>
       </div>
 
       {/* ── MAIN AREA ── */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="relative flex flex-1 overflow-hidden">
 
         {/* Video grid */}
         <div className={`flex flex-col overflow-hidden p-2 gap-2 ${showWhiteboard ? 'w-1/2' : 'flex-1'}`}>
@@ -821,10 +836,14 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
                 {/* Grid */}
                 <div className={`${!gridView && pinned ? 'h-28 flex gap-2 overflow-x-auto' : 'flex-1 grid gap-2'}`}
                   style={gridView || !pinned ? {
-                    gridTemplateColumns: camTracks.length <= 1 ? '1fr'
-                      : camTracks.length <= 2 ? 'repeat(2,1fr)'
+                    // On a phone: one tile per row up to two people, then two
+                    // columns — three would be unreadable slivers.
+                    gridTemplateColumns: isNarrow
+                      ? (camTracks.length <= 2 ? '1fr' : 'repeat(2,1fr)')
+                      : camTracks.length <= 1 ? '1fr'
                       : camTracks.length <= 4 ? 'repeat(2,1fr)'
-                      : 'repeat(3,1fr)'
+                      : 'repeat(3,1fr)',
+                    gridAutoRows: '1fr'
                   } : {}}>
                   {(gridView || !pinned ? camTracks : camTracks.filter(t => t.participant?.identity !== pinnedParticipant)).map((trackRef, i) => {
                     const identity = trackRef.participant?.identity || ''
@@ -891,7 +910,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
 
         {/* ── SIDE PANEL ── */}
         {(showParticipants || showChat || showTranscript) && (
-          <div className="w-72 bg-[#2d2e30] border-l border-white/10 flex flex-col">
+          <div className="absolute inset-0 z-30 flex w-full flex-col border-l border-white/10 bg-[#2d2e30] md:relative md:inset-auto md:z-auto md:w-72">
             {!showTranscript && (
               <div className="flex border-b border-white/10">
                 <button onClick={() => { setShowParticipants(true); setShowChat(false) }}
@@ -1061,13 +1080,15 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
       )}
 
       {/* ── BOTTOM CONTROLS ── */}
-      <div className="flex items-center justify-between px-6 py-3 bg-[#202124] border-t border-white/10">
+      {/* On a phone this stacks: secondary controls scroll on top, the core
+          controls (and Leave) sit underneath, always reachable by the thumb. */}
+      <div className="flex flex-col-reverse gap-2 border-t border-white/10 bg-[#202124] px-2 py-2 md:flex-row md:items-center md:justify-between md:gap-0 md:px-6 md:py-3">
 
         {/* Left — time */}
         <div className="text-gray-400 text-sm w-32 hidden md:block">{fmt(elapsed)}</div>
 
-        {/* Center — controls */}
-        <div className="flex items-center gap-3">
+        {/* Center — core controls */}
+        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
           {/* Mic */}
           <button onClick={toggleMic}
             className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${micOn ? 'bg-[#3c4043] hover:bg-[#4a4d51] text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
@@ -1098,10 +1119,10 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
 
           {/* Leave (hosts can also close the class for everyone) */}
           <button onClick={() => handleLeave(false)} disabled={leaving}
-            className="flex items-center gap-2 bg-[#ea4335] hover:bg-[#f28b82] disabled:opacity-60 text-white px-7 py-3 rounded-full transition-all font-medium"
+            className="flex items-center gap-2 bg-[#ea4335] hover:bg-[#f28b82] disabled:opacity-60 text-white px-5 md:px-7 py-3 rounded-full transition-all font-medium"
             title="Leave call">
             {leaving ? <FiLoader size={20} className="animate-spin" /> : <FiPhoneOff size={20} />}
-            <span className="hidden md:inline text-sm">{leaving ? 'Leaving…' : 'Leave'}</span>
+            <span className="text-sm">{leaving ? 'Leaving…' : 'Leave'}</span>
           </button>
           {isAdmin && (
             <button
@@ -1111,13 +1132,13 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
               disabled={leaving}
               className="flex items-center gap-2 rounded-full border border-red-500/40 px-4 py-3 text-red-300 transition-all hover:bg-red-600/20 disabled:opacity-60"
               title="End the class for everyone">
-              <span className="text-sm font-medium">End class</span>
+              <span className="text-sm font-medium"><span className="md:hidden">End</span><span className="hidden md:inline">End class</span></span>
             </button>
           )}
         </div>
 
-        {/* Right — participants & chat */}
-        <div className="flex items-center gap-2 w-32 justify-end">
+        {/* Right — secondary controls */}
+        <div className="flex w-full items-center justify-center gap-2 overflow-x-auto pb-0.5 md:w-32 md:justify-end md:overflow-visible">
           <button onClick={toggleCaptions}
             className={`relative px-3 py-2 rounded-lg transition-all text-sm font-bold border ${
               captionsOn 
