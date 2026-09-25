@@ -687,11 +687,11 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
   }
 
   return (
-    <div className="fixed inset-0 bg-[#1a1a2e] z-50 flex flex-col select-none" style={{ fontFamily: 'Google Sans, sans-serif' }}>
+    <div className="fixed inset-0 bg-[#202124] z-50 flex flex-col select-none" style={{ fontFamily: 'Google Sans, sans-serif' }}>
 
       {/* ── Waiting room (host only) ── */}
       {isAdmin && lobby.length > 0 && (
-        <div className="absolute right-4 top-16 z-[55] w-72 rounded-xl border border-white/10 bg-[#242438] p-3 shadow-2xl">
+        <div className="absolute right-4 top-16 z-[55] w-72 rounded-xl border border-white/10 bg-[#2d2e30] p-3 shadow-2xl">
           <p className="mb-2 text-xs font-bold uppercase tracking-wide text-amber-400">
             Waiting to join ({lobby.length})
           </p>
@@ -717,7 +717,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
       )}
 
       {/* ── TOP BAR ── */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[#1a1a2e] border-b border-white/10">
+      <div className="flex items-center justify-between px-4 py-2 bg-[#202124] border-b border-white/10">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">D</div>
           <div>
@@ -765,7 +765,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
                         const isSelf   = identity === localParticipant?.identity
                         const label    = personName(trackRef.participant)
                         return (
-                          <div key={i} className="relative flex-shrink-0 w-32 rounded-lg overflow-hidden bg-[#2d2d44]">
+                          <div key={i} className="relative flex-shrink-0 w-32 rounded-lg overflow-hidden bg-[#3c4043]">
                             {trackRef.publication?.track
                               ? <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
                               : <div className="w-full h-full flex items-center justify-center">
@@ -775,7 +775,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
                                 </div>
                             }
                             <div className="absolute bottom-1 left-1 right-1">
-                              <span className="bg-black/70 text-white text-xs px-1.5 py-0.5 rounded truncate block text-center">
+                              <span className="inline-block max-w-full truncate rounded-md bg-black/60 px-1.5 py-0.5 text-xs font-medium text-white">
                                 {isSelf ? 'You' : label}
                               </span>
                             </div>
@@ -793,7 +793,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
               <>
                 {/* Pinned speaker view */}
                 {!gridView && pinned ? (
-                  <div className="flex-1 relative rounded-xl overflow-hidden bg-[#2d2d44] cursor-pointer" onClick={() => setPinnedParticipant(null)}>
+                  <div className="flex-1 relative rounded-xl overflow-hidden bg-[#3c4043] cursor-pointer" onClick={() => setPinnedParticipant(null)}>
                     {pinned.publication?.track
                       ? <VideoTrack trackRef={pinned} className="w-full h-full object-cover" />
                       : <div className="w-full h-full flex items-center justify-center">
@@ -822,7 +822,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
                     const label    = personName(trackRef.participant)
                     return (
                       <div key={i}
-                        className={`relative rounded-xl overflow-hidden bg-[#2d2d44] cursor-pointer group ${!gridView && pinned ? 'flex-shrink-0 w-28' : ''}`}
+                        className={`relative rounded-xl overflow-hidden bg-[#3c4043] cursor-pointer group ${!gridView && pinned ? 'flex-shrink-0 w-28' : ''}`}
                         onClick={() => !gridView && setPinnedParticipant(identity)}
                       >
                         {trackRef.publication?.track
@@ -834,7 +834,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
                             </div>
                         }
                         <div className="absolute bottom-2 left-2 right-2">
-                          <span className="bg-black/60 text-white text-xs px-2 py-0.5 rounded truncate max-w-[80%] block">
+                          <span className="inline-block max-w-[85%] truncate rounded-md bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
                             {isSelf ? `${label} (You)` : label}
                           </span>
                         </div>
@@ -855,7 +855,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
         {/* ── WHITEBOARD PANEL ── */}
         {showWhiteboard && (
           <div className="w-1/2 bg-white flex flex-col border-l border-white/10">
-            <div className="flex items-center justify-between px-4 py-2 bg-[#242438] border-b border-white/10">
+            <div className="flex items-center justify-between px-4 py-2 bg-[#2d2e30] border-b border-white/10">
               <span className="text-white text-sm font-medium flex items-center gap-2">
                 <FiEdit3 size={16} /> Whiteboard
                 {!isAdmin && <span className="text-xs text-yellow-400 ml-2">View only</span>}
@@ -863,14 +863,23 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
               <button onClick={() => setShowWhiteboard(false)} className="text-gray-400 hover:text-white text-xs">Close</button>
             </div>
             <div className="flex-1 overflow-hidden">
-              <MeetingWhiteboard isAdmin={isAdmin} />
+              <MeetingWhiteboard
+                isAdmin={isAdmin}
+                roomName={roomName}
+                meetingTitle={meetingTitle}
+                // Real students in the room, so the host can share the board
+                // with specific people. Identity IS the Mongo user id.
+                participants={participants
+                  .filter(pp => pp.identity !== localParticipant?.identity)
+                  .map(pp => ({ id: pp.identity, name: personName(pp) }))}
+              />
             </div>
           </div>
         )}
 
         {/* ── SIDE PANEL ── */}
         {(showParticipants || showChat || showTranscript) && (
-          <div className="w-72 bg-[#242438] border-l border-white/10 flex flex-col">
+          <div className="w-72 bg-[#2d2e30] border-l border-white/10 flex flex-col">
             {!showTranscript && (
               <div className="flex border-b border-white/10">
                 <button onClick={() => { setShowParticipants(true); setShowChat(false) }}
@@ -886,11 +895,11 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
 
             {showTranscript && (
               <div className="flex-1 flex flex-col h-full overflow-hidden">
-                <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#2d2d44]">
+                <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#3c4043]">
                   <h3 className="text-white font-semibold flex items-center gap-2">
                     <FiFileText className="text-blue-400" /> Live Transcript
                   </h3>
-                  <button onClick={downloadTranscript} className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition-colors flex items-center gap-1">
+                  <button onClick={downloadTranscript} className="text-xs bg-[#8ab4f8] hover:bg-[#aecbfa] text-[#202124] px-2 py-1 rounded transition-colors flex items-center gap-1">
                   <FiDownload size={12} /> Download PDF
                 </button>
                 </div>
@@ -1000,7 +1009,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
                     placeholder="Send a message..."
                     className="flex-1 bg-white/10 text-white placeholder-gray-500 rounded-full px-4 py-2 text-sm outline-none focus:bg-white/15"
                   />
-                  <button onClick={sendChat} className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 text-sm transition-colors">
+                  <button onClick={sendChat} className="bg-[#8ab4f8] hover:bg-[#aecbfa] text-[#202124] rounded-full px-4 py-2 text-sm transition-colors">
                     Send
                   </button>
                 </div>
@@ -1040,7 +1049,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
       )}
 
       {/* ── BOTTOM CONTROLS ── */}
-      <div className="flex items-center justify-between px-6 py-3 bg-[#1a1a2e] border-t border-white/10">
+      <div className="flex items-center justify-between px-6 py-3 bg-[#202124] border-t border-white/10">
 
         {/* Left — time */}
         <div className="text-gray-400 text-sm w-32 hidden md:block">{fmt(elapsed)}</div>
@@ -1049,36 +1058,36 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
         <div className="flex items-center gap-3">
           {/* Mic */}
           <button onClick={toggleMic}
-            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${micOn ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${micOn ? 'bg-[#3c4043] hover:bg-[#4a4d51] text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
             title={micOn ? 'Mute' : 'Unmute'}>
             {micOn ? <FiMic size={20} /> : <FiMicOff size={20} />}
           </button>
 
           {/* Camera */}
           <button onClick={toggleCam}
-            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${camOn ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${camOn ? 'bg-[#3c4043] hover:bg-[#4a4d51] text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
             title={camOn ? 'Turn off camera' : 'Turn on camera'}>
             {camOn ? <FiVideo size={20} /> : <FiVideoOff size={20} />}
           </button>
 
           {/* Screen share */}
           <button onClick={toggleScreen}
-            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${screenSharing ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${screenSharing ? 'bg-[#8ab4f8] hover:bg-[#aecbfa] text-[#202124]' : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white'}`}
             title={screenSharing ? 'Stop sharing' : 'Share screen'}>
             <FiMonitor size={20} />
           </button>
 
           {/* Whiteboard */}
           <button onClick={() => setShowWhiteboard(v => !v)}
-            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${showWhiteboard ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${showWhiteboard ? 'bg-[#8ab4f8] hover:bg-[#aecbfa] text-[#202124]' : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white'}`}
             title="Whiteboard">
             <FiEdit3 size={20} />
           </button>
 
           {/* Leave (hosts can also close the class for everyone) */}
           <button onClick={() => handleLeave(false)} disabled={leaving}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white px-5 py-3 rounded-full transition-all font-medium"
-            title="Leave meeting">
+            className="flex items-center gap-2 bg-[#ea4335] hover:bg-[#f28b82] disabled:opacity-60 text-white px-7 py-3 rounded-full transition-all font-medium"
+            title="Leave call">
             {leaving ? <FiLoader size={20} className="animate-spin" /> : <FiPhoneOff size={20} />}
             <span className="hidden md:inline text-sm">{leaving ? 'Leaving…' : 'Leave'}</span>
           </button>
@@ -1101,12 +1110,12 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
             className={`relative px-3 py-2 rounded-lg transition-all text-sm font-bold border ${
               captionsOn 
                 ? 'bg-blue-600 text-white border-blue-500' 
-                : 'bg-white/10 hover:bg-white/20 text-white border-white/10'
+                : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white border-white/10'
             }`}
             title="Toggle Live Captions (CC)">
             CC
             {captionsOn && (
-              <span className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-[#1a1a2e] ${
+              <span className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-[#202124] ${
                 captionStatus === 'listening' ? 'bg-green-500 animate-pulse' : 
                 captionStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'
               }`} />
@@ -1116,7 +1125,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
             <div className="relative">
               <button
                 onClick={() => setShowLangPicker(v => !v)}
-                className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs rounded-full px-3 py-2 border border-white/20 transition-all"
+                className="flex items-center gap-1 bg-[#3c4043] hover:bg-[#4a4d51] text-white text-xs rounded-full px-3 py-2 border border-white/20 transition-all"
               >
                 <span>{LANGUAGES.find(l => l.code === captionLang)?.flag}</span>
                 <span className="max-w-[70px] truncate">{LANGUAGES.find(l => l.code === captionLang)?.label}</span>
@@ -1124,7 +1133,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
               </button>
 
               {showLangPicker && (
-                <div className="absolute bottom-12 right-0 w-56 bg-[#1e1e2e] border border-white/20 rounded-xl shadow-2xl z-50 overflow-hidden">
+                <div className="absolute bottom-12 right-0 w-56 bg-[#202124] border border-white/20 rounded-xl shadow-2xl z-50 overflow-hidden">
                   {/* Search */}
                   <div className="p-2 border-b border-white/10">
                     <input
@@ -1170,22 +1179,22 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
             </div>
           )}
           <button onClick={() => { setShowParticipants(v => !v); setShowChat(false); setShowTranscript(false) }}
-            className={`p-3 rounded-full transition-all ${showParticipants ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+            className={`p-3 rounded-full transition-all ${showParticipants ? 'bg-blue-600 text-white' : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white'}`}
             title="Participants">
             <FiUsers size={18} />
           </button>
           <button onClick={captureManualSnapshot}
-            className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all"
+            className="p-3 rounded-full bg-[#3c4043] hover:bg-[#4a4d51] text-white transition-all"
             title="Capture Screen to Transcript">
             <FiImage size={18} />
           </button>
           <button onClick={() => { setShowTranscript(v => !v); setShowChat(false); setShowParticipants(false) }}
-            className={`p-3 rounded-full transition-all ${showTranscript ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+            className={`p-3 rounded-full transition-all ${showTranscript ? 'bg-blue-600 text-white' : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white'}`}
             title="Meeting Transcript">
             <FiFileText size={18} />
           </button>
           <button onClick={() => { setShowChat(v => !v); setShowParticipants(false); setShowTranscript(false) }}
-            className={`relative p-3 rounded-full transition-all ${showChat ? 'bg-blue-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+            className={`relative p-3 rounded-full transition-all ${showChat ? 'bg-blue-600 text-white' : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white'}`}
             title="Chat">
             <FiMessageSquare size={18} />
             {chatMessages.length > 0 && !showChat && (
@@ -1256,7 +1265,7 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-[#1a1a2e] z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-[#202124] z-50 flex items-center justify-center">
         <div className="text-white text-center">
           <FiLoader className="animate-spin w-10 h-10 mx-auto mb-4" />
           <p className="text-lg">Joining meeting...</p>
@@ -1268,8 +1277,8 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
 
   if (error) {
     return (
-      <div className="fixed inset-0 bg-[#1a1a2e] z-50 flex items-center justify-center">
-        <div className="bg-[#242438] rounded-2xl p-8 max-w-md text-center border border-white/10">
+      <div className="fixed inset-0 bg-[#202124] z-50 flex items-center justify-center">
+        <div className="bg-[#2d2e30] rounded-2xl p-8 max-w-md text-center border border-white/10">
           <div className="w-16 h-16 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <FiPhoneOff className="text-red-400" size={28} />
           </div>
@@ -1279,7 +1288,7 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
             <button onClick={() => setAttempt(a => a + 1)} className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-full transition-colors">
               Try again
             </button>
-            <button onClick={onClose} className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-full transition-colors">
+            <button onClick={onClose} className="bg-[#3c4043] hover:bg-[#4a4d51] text-white px-6 py-2 rounded-full transition-colors">
               Close
             </button>
           </div>
@@ -1292,7 +1301,7 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
     <>
       {roomError && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
-          <div className="max-w-md rounded-2xl border border-white/10 bg-[#242438] p-8 text-center">
+          <div className="max-w-md rounded-2xl border border-white/10 bg-[#2d2e30] p-8 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/20">
               <FiAlertTriangle className="text-amber-400" size={28} />
             </div>

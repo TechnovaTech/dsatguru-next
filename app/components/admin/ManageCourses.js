@@ -160,6 +160,27 @@ function CourseContentManager({ course, onBack }) {
   const [editingAssignmentIndex, setEditingAssignmentIndex] = useState(null)
   const [activeAdminMeeting, setActiveAdminMeeting] = useState(null)
   const [copiedLink, setCopiedLink] = useState('')
+  // Enrolled students, used by the per-meeting "who can join" picker.
+  const [enrolledStudents, setEnrolledStudents] = useState([])
+  const [pickerFor, setPickerFor] = useState(null)      // meeting index being edited
+  useEffect(() => {
+    if (!course?.id) return
+    ;(async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const res = await fetch(`/api/admin/courses/${course.id}/enrollments`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        setEnrolledStudents(
+          (data.enrollments || [])
+            .filter((e) => e.isActive !== false && e.userId?._id)
+            .map((e) => ({ id: String(e.userId._id), name: e.userName || e.userEmail || 'Student', email: e.userEmail || '' }))
+        )
+      } catch { /* the picker simply stays empty */ }
+    })()
+  }, [course?.id])
 
   // Shareable join links. The room is the canonical id; the guest code is the
   // unguessable half that turns a link into a lobby pass.
@@ -599,6 +620,74 @@ function CourseContentManager({ course, onBack }) {
                       >
                         <FiVideo className="mr-1" /> Join
                       </button>
+                    )}
+                  </div>
+
+                  {/* ── Who can join ── */}
+                  <div className="mb-3 rounded-lg border border-slate-200 bg-white p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Who can join</span>
+                      <button
+                        type="button"
+                        onClick={() => setPickerFor(pickerFor === index ? null : index)}
+                        className="rounded-md border border-slate-300 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                      >
+                        {(m.allowedStudentIds?.length || 0) === 0
+                          ? 'Everyone enrolled'
+                          : `${m.allowedStudentIds.length} student${m.allowedStudentIds.length === 1 ? '' : 's'}`}
+                      </button>
+                    </div>
+                    {pickerFor === index && (
+                      <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
+                        <p className="mb-2 text-[11px] text-slate-500">
+                          Pick nobody to leave it open to every enrolled student — useful for 1-on-1s and small groups.
+                        </p>
+                        <div className="max-h-44 space-y-1 overflow-y-auto">
+                          {enrolledStudents.length === 0 && (
+                            <p className="px-1 py-2 text-xs text-slate-400">No active enrolments in this course yet.</p>
+                          )}
+                          {enrolledStudents.map((stu) => {
+                            const picked = (m.allowedStudentIds || []).map(String).includes(stu.id)
+                            return (
+                              <label key={stu.id} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-white">
+                                <input
+                                  type="checkbox"
+                                  checked={picked}
+                                  onChange={(e) => {
+                                    const updated = [...courseData.meetings]
+                                    const cur = (updated[index].allowedStudentIds || []).map(String)
+                                    updated[index] = {
+                                      ...updated[index],
+                                      allowedStudentIds: e.target.checked
+                                        ? [...cur, stu.id]
+                                        : cur.filter((id) => id !== stu.id),
+                                    }
+                                    setCourseData((prev) => ({ ...prev, meetings: updated }))
+                                    persistMeetings(updated)
+                                  }}
+                                  className="h-3.5 w-3.5 rounded border-slate-300"
+                                />
+                                <span className="min-w-0 flex-1 truncate text-slate-700">{stu.name}</span>
+                                <span className="truncate text-[11px] text-slate-400">{stu.email}</span>
+                              </label>
+                            )
+                          })}
+                        </div>
+                        {(m.allowedStudentIds?.length || 0) > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = [...courseData.meetings]
+                              updated[index] = { ...updated[index], allowedStudentIds: [] }
+                              setCourseData((prev) => ({ ...prev, meetings: updated }))
+                              persistMeetings(updated)
+                            }}
+                            className="mt-2 text-[11px] font-semibold text-indigo-600 hover:underline"
+                          >
+                            Clear — open to everyone enrolled
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
 

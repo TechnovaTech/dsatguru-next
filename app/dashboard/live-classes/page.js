@@ -32,6 +32,22 @@ export default function LiveClassesPage() {
   // reloading, so re-evaluate the clock every 30s (and refetch every 5 min in
   // case the tutor just added/started a session).
   const [clockTick, setClockTick] = useState(0)
+  // Whiteboards a tutor shared out of a class, addressed to this student.
+  const [boards, setBoards] = useState([])
+  useEffect(() => {
+    if (!user) return
+    ;(async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const res = await fetch('/api/meetings/boards', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        setBoards(data.boards || [])
+      } catch { /* the section simply stays hidden */ }
+    })()
+  }, [user])
   useEffect(() => {
     if (!user || activeMeeting) return
     const tick = setInterval(() => setClockTick(t => t + 1), 30000)
@@ -52,9 +68,16 @@ export default function LiveClassesPage() {
       if (response.data.success) {
         const enrollments = response.data.data || []
 
+        const myId = String(user?.id || user?._id || '')
         const allMeetings = enrollments
           .filter(e => e.type === 'course' && e.courseId && Array.isArray(e.courseId.meetings))
-          .flatMap(e => e.courseId.meetings.map(m => ({
+          // A session booked for named students (a 1-on-1, a small group) is
+          // hidden from everyone else — the token route would refuse them anyway.
+          .flatMap(e => e.courseId.meetings.filter(m => {
+            const only = m.allowedStudentIds
+            if (!Array.isArray(only) || only.length === 0) return true
+            return only.map(String).includes(myId)
+          }).map(m => ({
             ...m,
             courseTitle: e.courseId.title,
             courseId: e.courseId._id,
@@ -290,6 +313,33 @@ export default function LiveClassesPage() {
                           </div>
                         )
                       })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Shared whiteboards */}
+                {boards.length > 0 && (
+                  <div>
+                    <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900">
+                      <FiImage className="h-5 w-5 text-violet-500" /> Class boards shared with you
+                    </h2>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {boards.map((b) => (
+                        <a key={b._id} href={b.imageUrl} target="_blank" rel="noopener noreferrer"
+                          className="group flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-shadow hover:shadow-md">
+                          <img src={b.imageUrl} alt={b.title}
+                            className="h-40 w-full bg-slate-50 object-contain transition-transform group-hover:scale-[1.02]" />
+                          <div className="p-4">
+                            <p className="truncate text-sm font-bold text-slate-900">{b.title}</p>
+                            <p className="mt-0.5 truncate text-xs text-slate-500">
+                              {b.meetingTitle ? `${b.meetingTitle} · ` : ''}{b.sharedBy}
+                            </p>
+                            <p className="mt-1 text-[11px] text-slate-400">
+                              {new Date(b.createdAt).toLocaleString()}
+                            </p>
+                          </div>
+                        </a>
+                      ))}
                     </div>
                   </div>
                 )}
