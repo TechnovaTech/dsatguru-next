@@ -168,7 +168,7 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     const st = want ? strokesRef.current.find((x) => x.id === want) : null
     if (!st || !canvas || st.tool !== 'image') { setSelBox(null); return }
     const r = imageRect(st, canvas.width, canvas.height)
-    setSelBox({ left: r.x, top: r.y, width: r.w, height: r.h })
+    setSelBox({ left: r.x, top: r.y, width: r.w, height: r.h, cw: canvas.width, ch: canvas.height })
   }, [])
 
   const selectImage = useCallback((id) => {
@@ -711,6 +711,10 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     const from = back ? undoStack.current : redoStack.current
     const to   = back ? redoStack.current : undoStack.current
     if (!from.length) return
+    // A drag still in flight would re-apply its own geometry over the state
+    // being restored, and its "already saved" flag would swallow the save the
+    // rest of the gesture needs - so let go of the picture first.
+    if (dragRef.current) { dragRef.current = null; setDragActive(false) }
     to.push(strokesRef.current.slice())
     strokesRef.current = from.pop()
     setHistDepth({ undo: undoStack.current.length, redo: redoStack.current.length })
@@ -1347,8 +1351,16 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
                   top:  selBox.top  + hd.fy * selBox.height - 6.5,
                 }} />
             ))}
+            {/* Kept inside the board. Stretch a diagram to fill the canvas and
+                this used to sit past the bottom edge, where overflow-hidden
+                clipped it away along with the only route to Front and Back. */}
             <div className="absolute z-20 flex items-center gap-1 rounded-lg bg-[#202124] px-1.5 py-1 shadow-xl"
-              style={{ left: Math.max(4, selBox.left), top: selBox.top > 40 ? selBox.top - 36 : selBox.top + selBox.height + 8 }}>
+              style={{
+                left: Math.min(Math.max(4, selBox.left), Math.max(4, selBox.cw - (isAdmin ? 236 : 124))),
+                top: selBox.top > 40
+                  ? selBox.top - 36
+                  : Math.min(selBox.top + selBox.height + 8, selBox.ch - 40),
+              }}>
               {isAdmin && (
                 <>
                   <button onClick={() => reorderSelected(true)} title="Bring to front"
