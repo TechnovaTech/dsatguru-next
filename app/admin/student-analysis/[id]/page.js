@@ -10,6 +10,7 @@ import {
 import { useToast } from '../../../components/ui/UIProvider'
 // Shared College-Board-aligned topic/subtopic breakdown, identical on every analysis screen.
 import SatScoreAnalysis from '../../../components/SatScoreAnalysis'
+import MistakeAnalysis from '../../../components/MistakeAnalysis'
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -816,6 +817,11 @@ export default function StudentAnalysisDetail() {
             scores={hasScaled ? { total: scaledScores.total, rw: scaledScores.rw ?? null, math: scaledScores.math ?? null } : null}
             subtitle={`Every question ${user?.name || 'this student'} has answered, by Subject, Content Domain & Skill (College Board aligned)`}
           />
+        </div>
+
+        {/* Identical diagnosis to the one the student sees on their Progress page. */}
+        <div className="mt-6">
+          <MistakeAnalysis rows={taxonomyRows} forWhom={user?.name || 'this student'} />
         </div>
 
       </div>

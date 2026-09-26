@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { FiTrendingUp, FiTarget, FiBook, FiClock, FiBarChart2, FiAward, FiAlertCircle } from 'react-icons/fi'
 // Shared College-Board-aligned topic/subtopic breakdown, identical on every analysis screen.
 import SatScoreAnalysis from '../../components/SatScoreAnalysis'
+import MistakeAnalysis from '../../components/MistakeAnalysis'
 
 export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true)
@@ -292,6 +293,11 @@ export default function AnalyticsPage() {
             scores={{ rw: stats.latestScores?.rw || null, math: stats.latestScores?.math || null }}
             subtitle="Every question you have attempted, by Subject, Content Domain & Skill (College Board aligned)"
           />
+        </div>
+
+        {/* The same diagnosis a tutor sees for this student. */}
+        <div className="mt-6">
+          <MistakeAnalysis rows={stats.taxonomyRows || []} forWhom="you" />
         </div>
       </div>
     </div>

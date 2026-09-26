@@ -6,6 +6,7 @@ import ReassignTestModal from './admin/ReassignTestModal'
 import { renderContent } from './admin/LatexRenderer'
 // Shared College-Board-aligned topic/subtopic breakdown, identical on every analysis screen.
 import SatScoreAnalysis from './SatScoreAnalysis'
+import MistakeAnalysis from './MistakeAnalysis'
 import { useConfirm, useToast } from './ui/UIProvider'
 // answersMatch decides MCQ correctness by option LETTER (bare letter, "B) 240"-style key,
 // or option-text match — never by casing); resolveAnswerLetter maps an answer to its letter
@@ -1412,6 +1413,14 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                     subtitle="Detailed performance by Subject, Content Domain & Skill (College Board aligned)"
                 />
             </div>
+
+            {/* Why the marks were lost on THIS attempt. Same component the
+                Progress page uses, so a student and their tutor read the same
+                diagnosis rather than two different pictures. */}
+            <MistakeAnalysis
+                rows={questions}
+                subtitle="Why marks were lost on this attempt"
+            />
 
             {/* Overall Test Analytics - Show for everyone if data available */}
             {testAnalytics && testAnalytics.totalStudents > 0 && (
