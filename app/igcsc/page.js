@@ -3,11 +3,23 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { FiUsers, FiDatabase, FiBookOpen, FiClipboard, FiTarget, FiActivity, FiArrowRight, FiFileText } from 'react-icons/fi'
 import { apiGetSafe } from './_components/api'
+import { igcscUser } from './_components/auth'
+import StudentHome from './_components/StudentHome'
 import { PageHeader, StatCard, Card, Loading, Table, EmptyState, Badge } from './_components/ui'
 
 const gradeTone = (g) => (['A*', 'A'].includes(g) ? 'green' : ['B', 'C'].includes(g) ? 'blue' : ['D', 'E'].includes(g) ? 'amber' : 'red')
 
 export default function IgcscDashboard() {
+  // Students never load the centre-wide analytics — it is not theirs to see.
+  const [role, setRole] = useState(undefined)
+  useEffect(() => { setRole(igcscUser()?.role || null) }, [])
+
+  if (role === undefined) return <Loading label="Loading…" />
+  if (role === 'student') return <StudentHome />
+  return <StaffDashboard />
+}
+
+function StaffDashboard() {
   const [totals, setTotals] = useState(null)
   const [recent, setRecent] = useState([])
   const [loading, setLoading] = useState(true)

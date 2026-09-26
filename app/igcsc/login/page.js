@@ -94,6 +94,10 @@ export default function IgcscLoginPage() {
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-60">
               {loading ? 'Signing in…' : <>Sign in <FiArrowRight size={16} /></>}
             </button>
+            <p className="mt-4 text-center text-sm text-slate-500">
+              New student?{' '}
+              <a href="/igcsc/register" className="font-semibold text-indigo-600 hover:underline">Create an account</a>
+            </p>
           </form>
         </div>
       </div>

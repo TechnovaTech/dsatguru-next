@@ -7,8 +7,26 @@ import Watermark from '../components/Watermark'
 import {
   FiGrid, FiDatabase, FiLayers, FiClipboard, FiMic, FiSend, FiActivity,
   FiUsers, FiTrendingUp, FiBarChart2, FiFileText, FiPieChart, FiLogOut,
-  FiMenu, FiX, FiChevronDown, FiVideo,
+  FiMenu, FiX, FiChevronDown, FiVideo, FiEdit3, FiUser,
 } from 'react-icons/fi'
+
+// Staff run the centre; students sit exams. They share a shell and nothing else.
+const STUDENT_LINKS = [
+  { label: 'Dashboard', path: '/igcsc', icon: FiGrid, exact: true },
+  { label: 'Practice', path: '/igcsc/practice', icon: FiEdit3 },
+  { label: 'My Results', path: '/igcsc/my-results', icon: FiBarChart2 },
+  { label: 'Live Sessions', path: '/igcsc/meetings', icon: FiVideo },
+  { label: 'Profile', path: '/igcsc/profile', icon: FiUser },
+]
+
+// Everything a student must never reach. The nav hides them; this bounces a
+// typed URL as well.
+const STAFF_ONLY = [
+  '/igcsc/question-bank', '/igcsc/assessments', '/igcsc/tests', '/igcsc/exam-paper',
+  '/igcsc/oral-tests', '/igcsc/test-allocation', '/igcsc/assessment-tracker',
+  '/igcsc/users', '/igcsc/student-tracker', '/igcsc/student-performance',
+  '/igcsc/reports', '/igcsc/analytics',
+]
 
 const LINKS = [
   { label: 'Dashboard', path: '/igcsc', icon: FiGrid, exact: true },
@@ -71,13 +89,23 @@ export default function IgcscLayout({ children }) {
   // token is still checked by the meeting API. Both render without the portal
   // chrome and without the auth guard.
   const isJoinPage = pathname.startsWith('/igcsc/join/')
-  const isPublicPage = isLoginPage || isJoinPage
+  // Registration must be reachable without an account — same trap as the join
+  // page: the guard would send a would-be student to a login they cannot pass.
+  const isRegisterPage = pathname === '/igcsc/register'
+  const isPublicPage = isLoginPage || isJoinPage || isRegisterPage
 
   useEffect(() => {
     if (isPublicPage) return
     const t = igcscToken()
     if (!t || igcscTokenExpired(t)) { router.replace('/igcsc/login'); return }
-    setUser(igcscUser())
+    const u = igcscUser()
+    // A student must not reach a staff screen by typing its URL — those pages
+    // hold the question bank, the user list and other students' performance.
+    if (u?.role === 'student' && STAFF_ONLY.some((base) => pathname === base || pathname.startsWith(base + '/'))) {
+      router.replace('/igcsc')
+      return
+    }
+    setUser(u)
   }, [pathname, router, isPublicPage])
 
   useEffect(() => { setOpenMenu(null); setMobileOpen(false) }, [pathname])
@@ -101,6 +129,7 @@ export default function IgcscLayout({ children }) {
   const linkCls = (active) => `flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${active ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`
   const groupActive = (g) => g.items.some((it) => isActive(it, pathname))
   const roleLabel = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : ''
+  const isStudent = user.role === 'student'
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -108,10 +137,10 @@ export default function IgcscLayout({ children }) {
         <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 lg:px-8">
           <Link href="/igcsc"><BrandMark /></Link>
           <nav ref={navRef} className="hidden flex-1 items-center justify-center gap-1 lg:flex">
-            {LINKS.map((l) => (
+            {(isStudent ? STUDENT_LINKS : LINKS).map((l) => (
               <Link key={l.path} href={l.path} className={linkCls(isActive(l, pathname))}><l.icon size={15} /> {l.label}</Link>
             ))}
-            {GROUPS.map((g) => (
+            {!isStudent && GROUPS.map((g) => (
               <div key={g.id} className="relative">
                 <button onClick={() => setOpenMenu((m) => (m === g.id ? null : g.id))} className={linkCls(groupActive(g) || openMenu === g.id)}>
                   <g.icon size={15} /> {g.label}
@@ -148,7 +177,7 @@ export default function IgcscLayout({ children }) {
         {mobileOpen && (
           <div className="border-t border-slate-100 bg-white px-4 py-3 lg:hidden">
             <div className="flex flex-col gap-0.5">
-              {FLAT.map((it) => (
+              {(isStudent ? STUDENT_LINKS : FLAT).map((it) => (
                 <Link key={it.path} href={it.path} className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition-colors ${isActive(it, pathname) ? 'bg-indigo-50 font-semibold text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>
                   <it.icon size={16} className="text-slate-400" /> {it.label}
                 </Link>

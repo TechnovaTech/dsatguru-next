@@ -21,7 +21,13 @@ export async function POST(request) {
       name, email, password: await hashPw(password), role: 'student',
       yearGroup: body.yearGroup || '', subjects: Array.isArray(body.subjects) ? body.subjects : [], isActive: true,
     })
-    const token = generateIgcscToken({ id: user._id.toString(), email: user.email, role: user.role })
+    const token = generateIgcscToken({
+      // `userId` and `name` are what the rest of the IGCSC API reads; without
+      // them a student-restricted session matched nobody and participants
+      // showed up as their email address.
+      userId: user._id.toString(), id: user._id.toString(),
+      name: user.name, email: user.email, role: user.role,
+    })
     return NextResponse.json({
       token, user: { id: user._id.toString(), name: user.name, email: user.email, role: user.role },
     }, { status: 201 })
