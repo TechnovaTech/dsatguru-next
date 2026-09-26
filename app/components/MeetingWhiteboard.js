@@ -27,7 +27,8 @@ function senderIsHost(participant) {
 
 export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, participants = [],
   authKey = 'token', boardsApi = '/api/meetings/boards',
-  imagesApi = '/api/meetings/board-images', onCanDrawChange }) {
+  imagesApi = '/api/meetings/board-images',
+  pushApi = '/api/meetings/board-push', onCanDrawChange }) {
   const room        = useRoomContext()
   const canvasRef   = useRef(null)
   const drawing     = useRef(false)
@@ -55,6 +56,15 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   const [pasting, setPasting] = useState(false)
   const [pasteMsg, setPasteMsg] = useState('')
   const [snipping, setSnipping] = useState(false)
+  // "Snip from anywhere" — see the routes described at the top of this patch.
+  const [snipPanel, setSnipPanel] = useState(false)
+  const [autoClip, setAutoClip] = useState(false)
+  const lastClipRef = useRef('')
+  const [pushCode, setPushCode] = useState('')
+  const [helperCmd, setHelperCmd] = useState('')
+  const [pushBusy, setPushBusy] = useState(false)
+  const [pushCount, setPushCount] = useState(0)
+  const [copied, setCopied] = useState(false)
   const nextStrokeId = () => `${room?.localParticipant?.identity || 'me'}-${Date.now()}-${++strokeSeq.current}`
   useEffect(() => { editorsRef.current = editors }, [editors])
   const myId = room?.localParticipant?.identity || ''
@@ -317,6 +327,35 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     redraw()
   }
 
+  // Put an already-uploaded image on the board, centred and fitted. Shared by
+  // the paste/upload path and by snips that arrive from the desktop helper
+  // (which are uploaded by the helper, so only the URL reaches us).
+  const placeImage = useCallback(async (url, knownW, knownH) => {
+    let iw = knownW, ih = knownH
+    if (!iw || !ih) {
+      const dims = await new Promise((resolve) => {
+        const img = new Image()
+        img.onload = () => resolve({ w: img.width, h: img.height })
+        img.onerror = () => resolve(null)
+        img.src = url
+      })
+      if (!dims) return
+      iw = dims.w; ih = dims.h
+    }
+    const canvas = canvasRef.current
+    const cw = canvas?.width || 1, chh = canvas?.height || 1
+    const fit = Math.min((cw * 0.8) / iw, (chh * 0.8) / ih, 1)
+    const w = (iw * fit) / cw, h = (ih * fit) / chh
+    const stroke = {
+      id: nextStrokeId(), tool: 'image', url,
+      x: (1 - w) / 2, y: (1 - h) / 2, w, h,
+    }
+    strokesRef.current.push(stroke)
+    redraw()
+    broadcastStroke(stroke)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [redraw, broadcastStroke])
+
   // Drop an image onto the board: upload it, then broadcast only the URL.
   const addImage = useCallback(async (file) => {
     if (!canDraw || !file) return
@@ -357,19 +396,7 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data?.error || 'Could not upload that image.')
 
-      // Fit it inside the canvas, keeping its shape, and centre it.
-      const canvas = canvasRef.current
-      const cw = canvas?.width || 1, chh = canvas?.height || 1
-      const iw = shrunk.w || cw, ih = shrunk.h || chh
-      const fit = Math.min((cw * 0.8) / iw, (chh * 0.8) / ih, 1)
-      const w = (iw * fit) / cw, h = (ih * fit) / chh
-      const stroke = {
-        id: nextStrokeId(), tool: 'image', url: data.url,
-        x: (1 - w) / 2, y: (1 - h) / 2, w, h,
-      }
-      strokesRef.current.push(stroke)
-      redraw()
-      broadcastStroke(stroke)
+      await placeImage(data.url, shrunk.w, shrunk.h)
       setPasteMsg('Image added')
       setTimeout(() => setPasteMsg(''), 1500)
     } catch (e) {
@@ -379,7 +406,124 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
       setPasting(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canDraw, authKey, imagesApi, redraw, broadcastStroke])
+  }, [canDraw, authKey, imagesApi, placeImage])
+
+  // ── Snip from anywhere ────────────────────────────────────────────────
+  // Nothing on the web can read another window on the machine, so both routes
+  // below start with the snipping tool the operating system already has.
+
+  // Whatever image is on the clipboard right now, with a fingerprint so the
+  // same snip is never inserted twice.
+  const readClipImage = useCallback(async () => {
+    if (!navigator.clipboard?.read) throw new Error('unsupported')
+    const items = await navigator.clipboard.read()
+    for (const it of items) {
+      const type = it.types.find((t) => t.startsWith('image/'))
+      if (!type) continue
+      const blob = await it.getType(type)
+      const buf = await blob.arrayBuffer()
+      const d = await crypto.subtle.digest('SHA-256', buf)
+      const hash = Array.from(new Uint8Array(d)).map((b) => b.toString(16).padStart(2, '0')).join('')
+      return { blob, hash }
+    }
+    return null
+  }, [])
+
+  // Turning it on has to happen inside the click: the permission prompt needs
+  // that gesture, and a prompt raised from a timer is refused outright.
+  const enableAutoClip = useCallback(async () => {
+    try {
+      const current = await readClipImage()
+      // Do not fire on whatever happened to be copied before this was armed.
+      lastClipRef.current = current?.hash || ''
+      setAutoClip(true)
+      setPasteMsg('Watching for snips')
+      setTimeout(() => setPasteMsg(''), 2000)
+    } catch (e) {
+      setPasteMsg(e?.message === 'unsupported'
+        ? 'This browser cannot read the clipboard — use Ctrl+V instead.'
+        : 'Clipboard access was blocked. Allow it from the icon in the address bar.')
+      setTimeout(() => setPasteMsg(''), 5000)
+    }
+  }, [readClipImage])
+
+  // The clipboard is only readable while this tab has focus, so the moment it
+  // comes forward is exactly when a fresh snip is waiting.
+  useEffect(() => {
+    if (!autoClip || !canDraw) return
+    let alive = true
+    const check = async () => {
+      if (!alive || document.visibilityState !== 'visible' || !document.hasFocus()) return
+      try {
+        const found = await readClipImage()
+        if (!alive || !found || found.hash === lastClipRef.current) return
+        lastClipRef.current = found.hash
+        addImage(new File([found.blob], 'snip.png', { type: found.blob.type || 'image/png' }))
+      } catch (e) {
+        // Losing the permission is worth saying once; a momentary read failure
+        // while another app holds the clipboard is not.
+        if (e?.name === 'NotAllowedError' && document.hasFocus()) {
+          setAutoClip(false)
+          setPasteMsg('Clipboard access was withdrawn.')
+          setTimeout(() => setPasteMsg(''), 4000)
+        }
+      }
+    }
+    const id = setInterval(check, 1200)
+    window.addEventListener('focus', check)
+    check()
+    return () => { alive = false; clearInterval(id); window.removeEventListener('focus', check) }
+  }, [autoClip, canDraw, readClipImage, addImage])
+
+  // Link a desktop helper to this room: it posts snips straight to the board,
+  // so the meeting tab never has to come forward at all.
+  const linkHelper = useCallback(async () => {
+    setPushBusy(true)
+    try {
+      const token = localStorage.getItem(authKey)
+      const res = await fetch(`${pushApi}/code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ room: roomName }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.error || 'Could not set up the helper.')
+      setPushCode(data.code)
+      setHelperCmd(`irm "${window.location.origin}${pushApi}/helper?code=${data.code}" | iex`)
+    } catch (e) {
+      setPasteMsg(e.message)
+      setTimeout(() => setPasteMsg(''), 5000)
+    } finally {
+      setPushBusy(false)
+    }
+  }, [authKey, pushApi, roomName])
+
+  // Collect what the helper has sent. Only runs once a helper is actually
+  // linked, so a room that never uses one costs nothing.
+  useEffect(() => {
+    if (!pushCode || !canDraw) return
+    let alive = true
+    const tick = async () => {
+      try {
+        const token = localStorage.getItem(authKey)
+        const res = await fetch(`${pushApi}?code=${encodeURIComponent(pushCode)}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
+        if (!res.ok || !alive) return
+        const data = await res.json().catch(() => ({}))
+        for (const push of data?.pushes || []) {
+          if (!alive) return
+          await placeImage(push.url)
+          setPushCount((n) => n + 1)
+        }
+      } catch {
+        // A dropped poll just means we collect on the next one.
+      }
+    }
+    const id = setInterval(tick, 1800)
+    tick()
+    return () => { alive = false; clearInterval(id) }
+  }, [pushCode, canDraw, authKey, pushApi, placeImage])
 
   // Ctrl+V anywhere on the page while the board is open.
   useEffect(() => {
@@ -496,6 +640,79 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   return (
     <div className="w-full h-full flex flex-col bg-white relative">
 
+      {/* ── SNIP PANEL ── */}
+      {canDraw && snipPanel && (
+        <div className="absolute left-3 top-14 z-30 w-[23rem] max-w-[calc(100%-1.5rem)] rounded-xl border border-slate-200 bg-white p-3 text-slate-700 shadow-2xl">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-sm font-semibold text-slate-800">Snip from anywhere</span>
+            <button onClick={() => setSnipPanel(false)} className="text-xs text-slate-400 hover:text-slate-600">Close</button>
+          </div>
+
+          <div className="mb-2.5 rounded-lg border border-slate-200 p-2.5">
+            <div className="flex items-start gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-slate-800">Auto-paste snips</p>
+                <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
+                  Press <b>Win+Shift+S</b> on any screen and drag. Come back to this tab and it is already on the board.
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={autoClip}
+                onClick={() => (autoClip ? setAutoClip(false) : enableAutoClip())}
+                className={`relative mt-0.5 h-5 w-9 flex-shrink-0 rounded-full transition-colors ${autoClip ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                title={autoClip ? 'Stop watching the clipboard' : 'Watch the clipboard for snips'}
+              >
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${autoClip ? 'left-[18px]' : 'left-0.5'}`} />
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-2.5 rounded-lg border border-slate-200 p-2.5">
+            <p className="text-xs font-semibold text-slate-800">Desktop helper — stay in your game</p>
+            <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
+              Snips land on the board without switching back to this tab. Windows only; nothing is installed.
+            </p>
+            {!pushCode ? (
+              <button onClick={linkHelper} disabled={pushBusy}
+                className="mt-2 w-full rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-60">
+                {pushBusy ? 'Setting up…' : 'Set it up'}
+              </button>
+            ) : (
+              <div className="mt-2">
+                <p className="mb-1 text-[11px] text-slate-500">Run this once in <b>Windows PowerShell</b>:</p>
+                <div className="flex items-center gap-1">
+                  <code className="min-w-0 flex-1 truncate rounded bg-slate-900 px-2 py-1.5 text-[10px] text-emerald-300" title={helperCmd}>{helperCmd}</code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard?.writeText(helperCmd)
+                      setCopied(true); setTimeout(() => setCopied(false), 1500)
+                    }}
+                    className="flex-shrink-0 rounded bg-slate-200 px-2 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-300">
+                    {copied ? '✓' : 'Copy'}
+                  </button>
+                </div>
+                <p className="mt-1.5 text-[11px] font-semibold text-emerald-600">
+                  ● Listening{pushCount > 0 ? ` — ${pushCount} snip${pushCount > 1 ? 's' : ''} received` : ''}
+                </p>
+                <p className="mt-1 text-[10px] leading-snug text-amber-600">
+                  While the helper runs, every image you copy goes to the board. Press P in its window to pause it.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <button onClick={() => { setSnipPanel(false); setSnipping(true) }}
+            className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50">
+            Capture a screen instead
+          </button>
+          <p className="mt-1.5 text-center text-[10px] leading-snug text-slate-400">
+            A web page cannot read another window on its own, so that one asks which screen to share.
+          </p>
+        </div>
+      )}
+
       {snipping && (
         <BoardSnip
           onInsert={(blob) => addImage(new File([blob], 'snip.png', { type: 'image/png' }))}
@@ -577,10 +794,13 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
           </label>
           <button
             type="button"
-            onClick={() => setSnipping(true)}
-            className="flex items-center gap-1 rounded bg-white/10 px-2 py-1.5 text-sm text-white transition-colors hover:bg-white/20"
+            onClick={() => setSnipPanel((v) => !v)}
+            className={`flex items-center gap-1 rounded px-2 py-1.5 text-sm text-white transition-colors ${
+              snipPanel ? 'bg-blue-600' : 'bg-white/10 hover:bg-white/20'
+            }`}
             title="Snip any part of your screen straight onto the board">
             ✂️ Snip
+            {(autoClip || pushCode) && <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />}
           </button>
           {pasteMsg && <span className="text-xs text-emerald-300">{pasteMsg}</span>}
 

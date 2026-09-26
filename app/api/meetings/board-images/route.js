@@ -2,9 +2,7 @@ import { NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import crypto from 'crypto'
-import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
-import { STAFF_ROLES } from '../../../../lib/constants/roles'
-import { verifyIgcscToken, IGCSC_STAFF } from '../../../../lib/igcscAuth'
+import { staffFromEitherProduct } from '../../../../lib/meetingStaff'
 
 // Somewhere to put an image pasted onto a live whiteboard.
 //
@@ -15,16 +13,6 @@ import { verifyIgcscToken, IGCSC_STAFF } from '../../../../lib/igcscAuth'
 // no per-product data — so it accepts a staff token from either side rather
 // than duplicating the endpoint.
 const MAX_BYTES = 6 * 1024 * 1024
-
-function staffFromEitherProduct(request) {
-  const raw = getTokenFromRequest(request)
-  if (!raw) return null
-  const dsat = verifyToken(raw)
-  if (dsat && STAFF_ROLES.includes(dsat.role)) return { name: dsat.name || dsat.email, product: 'dsat' }
-  const igcsc = verifyIgcscToken(raw)
-  if (igcsc && IGCSC_STAFF.includes(igcsc.role)) return { name: igcsc.name || igcsc.email, product: 'igcsc' }
-  return null
-}
 
 export async function POST(request) {
   try {
