@@ -11,8 +11,72 @@ const WB_GRANT   = 'wb-grant'    // host hands drawing rights to identities
 const WB_STROKE  = 'wb-stroke'   // one appended stroke
 const WB_SYNC    = 'wb-sync'     // "someone please send me the board"
 const WB_CLEAR   = 'wb-clear'    // host wiped the board
+const WB_UPDATE  = 'wb-update'   // one image moved or was resized
+const WB_DELETE  = 'wb-delete'   // one stroke was removed
 const COLORS = ['#000000','#ef4444','#3b82f6','#22c55e','#f59e0b','#8b5cf6','#ec4899','#ffffff']
 const SIZES  = [2, 4, 8, 14, 22]
+const MIN_IMAGE_PX = 32
+// A LiveKit data packet caps out around 60KB and a busy lesson's board is far
+// bigger, so snapshots go in pieces. Sized in characters with room for UTF-8 to
+// triple them and still fit.
+const SNAP_CHUNK = 18000
+const HISTORY_LIMIT = 60
+
+// Where the resize grips sit, as a fraction of the selection box.
+const HANDLES = [
+  { k: 'nw', fx: 0,   fy: 0,   cursor: 'nwse-resize' },
+  { k: 'n',  fx: 0.5, fy: 0,   cursor: 'ns-resize'   },
+  { k: 'ne', fx: 1,   fy: 0,   cursor: 'nesw-resize' },
+  { k: 'e',  fx: 1,   fy: 0.5, cursor: 'ew-resize'   },
+  { k: 'se', fx: 1,   fy: 1,   cursor: 'nwse-resize' },
+  { k: 's',  fx: 0.5, fy: 1,   cursor: 'ns-resize'   },
+  { k: 'sw', fx: 0,   fy: 1,   cursor: 'nesw-resize' },
+  { k: 'w',  fx: 0,   fy: 0.5, cursor: 'ew-resize'   },
+]
+
+// Where an image actually sits on the canvas, in pixels.
+//
+// x, y and w are fractions of the canvas so a picture lands in the same place
+// on a laptop and a phone. Height is NOT: taking it as a fraction of the canvas
+// height stretched every image whenever the board changed shape - which it does
+// every time the tutor flips between split view and full screen. It comes from
+// `sar`, the on-screen aspect ratio the image was last given, so the picture
+// keeps its shape. Strokes made before `sar` existed fall back to the old box.
+function imageRect(st, cw, ch) {
+  const x = (st.x || 0) * cw
+  const y = (st.y || 0) * ch
+  const bw = (st.w || 1) * cw
+  const bh = (st.h || 1) * ch
+  if (!(st.sar > 0)) return { x, y, w: bw, h: bh }   // made before `sar` existed
+  // Fit the picture's shape INSIDE the box it was given. Taking the height from
+  // `sar` alone scaled it by the board's width in both directions, so widening
+  // the panel - which the full-screen and chat toggles both do - pushed it off
+  // the bottom. While the board's proportions are unchanged bh * sar === bw, so
+  // this is bit-identical in the ordinary case.
+  const w = Math.min(bw, bh * st.sar)
+  return { x, y, w, h: w / st.sar }
+}
+
+// Stroke ids are minted as "<identity>-<time>-<n>", which makes ownership
+// something a receiver can check without trusting the sender's word for it.
+function strokeOwnedBy(st, identity) {
+  return !!st && !!identity && typeof st.id === 'string' && st.id.startsWith(identity + '-')
+}
+
+// Declared out here on purpose. A component defined inside another is a new
+// type on every render, so React throws the old one away and builds it again -
+// and the board now re-renders on every frame of a drag.
+function ToolBtn({ t, label, emoji, tool, setTool }) {
+  return (
+    <button
+      onClick={() => setTool(t)}
+      title={label}
+      className={`px-2 py-1.5 rounded text-sm font-medium transition-all ${tool === t ? 'bg-blue-600 text-white shadow' : 'bg-white/10 text-white hover:bg-white/20'}`}
+    >
+      {emoji}
+    </button>
+  )
+}
 
 // A participant's metadata is minted server-side into their LiveKit token, so
 // it is the only trustworthy claim we have in a client-to-client message.
@@ -36,7 +100,21 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   const strokesRef  = useRef([])   // [{tool,color,size,pts:[{x,y}]}]
   const currentRef  = useRef(null)
 
-  const [tool,  setTool]  = useState('pen')   // pen | eraser | line | rect | circle | text
+  const [tool,  setTool]  = useState('pen')   // select | pen | eraser | line | rect | circle | text
+  // The picked-up image, and its box in canvas pixels for the DOM overlay.
+  const [selectedId, setSelectedId] = useState(null)
+  const selectedIdRef = useRef(null)
+  const [selBox, setSelBox] = useState(null)
+  const [dragActive, setDragActive] = useState(false)
+  const dragRef = useRef(null)
+  const lastGeomSend = useRef(0)
+  // Saved board states. Snapshots rather than "pop the last stroke", because a
+  // move is not a stroke and popping deleted other people's work.
+  const undoStack = useRef([])
+  const redoStack = useRef([])
+  const snapSeq = useRef(0)
+  const snapBuf = useRef({ seq: null, parts: 0, got: [] })
+  const [histDepth, setHistDepth] = useState({ undo: 0, redo: 0 })
   const [color, setColor] = useState('#000000')
   const [size,  setSize]  = useState(4)
   const [textInput, setTextInput] = useState('')
@@ -83,6 +161,48 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     if (currentRef.current) drawStroke(ctx, currentRef.current)
   }, [])
 
+  // Keep the overlay box on top of wherever the image now is.
+  const refreshSel = useCallback((id) => {
+    const want = id === undefined ? selectedIdRef.current : id
+    const canvas = canvasRef.current
+    const st = want ? strokesRef.current.find((x) => x.id === want) : null
+    if (!st || !canvas || st.tool !== 'image') { setSelBox(null); return }
+    const r = imageRect(st, canvas.width, canvas.height)
+    setSelBox({ left: r.x, top: r.y, width: r.w, height: r.h })
+  }, [])
+
+  const selectImage = useCallback((id) => {
+    selectedIdRef.current = id || null
+    setSelectedId(id || null)
+    refreshSel(id || null)
+  }, [refreshSel])
+
+  // Save the board before a local change, so it can be walked back.
+  const pushHistory = useCallback(() => {
+    undoStack.current.push(strokesRef.current.slice())
+    if (undoStack.current.length > HISTORY_LIMIT) undoStack.current.shift()
+    redoStack.current = []
+    setHistDepth({ undo: undoStack.current.length, redo: 0 })
+  }, [])
+
+  // A change from someone else has to land in the saved states too. Without
+  // this, undoing after a student drew would quietly delete their stroke,
+  // because the state being restored predates it.
+  const rebaseHistory = useCallback((fn) => {
+    undoStack.current = undoStack.current.map(fn)
+    redoStack.current = redoStack.current.map(fn)
+  }, [])
+
+  // Two staff in one room are both hosts. When the other one replaces the whole
+  // board, the states saved here describe something nobody is looking at any
+  // more - stepping back into one would drag the room with it.
+  const resetHistory = useCallback(() => {
+    undoStack.current = []
+    redoStack.current = []
+    snapBuf.current = { seq: null, parts: 0, got: [] }
+    setHistDepth({ undo: 0, redo: 0 })
+  }, [])
+
   function drawStroke(ctx, s) {
     if (!s) return
 
@@ -101,8 +221,8 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
         return
       }
       if (!cached) return   // still loading, or it failed
-      const cw = ctx.canvas.width, ch = ctx.canvas.height
-      ctx.drawImage(cached, (s.x || 0) * cw, (s.y || 0) * ch, (s.w || 1) * cw, (s.h || 1) * ch)
+      const r = imageRect(s, ctx.canvas.width, ctx.canvas.height)
+      ctx.drawImage(cached, r.x, r.y, r.w, r.h)
       return
     }
 
@@ -164,12 +284,31 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   // The host's authoritative picture of the board.
   const broadcastSnapshot = useCallback(() => {
     if (!isAdmin) return
-    send({ type: WB_CHANNEL, strokes: strokesRef.current })
+    const json = JSON.stringify(strokesRef.current)
+    if (json.length <= SNAP_CHUNK) {
+      send({ type: WB_CHANNEL, strokes: strokesRef.current })
+      return
+    }
+    // Too big for one packet. Until this existed the send was simply dropped,
+    // which meant that on a busy board undo never reached the room and a late
+    // joiner asking for the lesson got nothing back.
+    const seq = ++snapSeq.current
+    const parts = Math.ceil(json.length / SNAP_CHUNK)
+    for (let i = 0; i < parts; i++) {
+      send({ type: WB_CHANNEL, seq, part: i, parts, chunk: json.slice(i * SNAP_CHUNK, (i + 1) * SNAP_CHUNK) })
+    }
   }, [send, isAdmin])
 
   // ── receive ───────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!room) return
+    // Metadata minted into the sender's token says who is host; the host's
+    // grant list says who else may draw. A view-only viewer's packets were
+    // being taken at face value, which let anyone with the join link draw on
+    // everybody's board.
+    const senderMayDraw = (participant, fromHost) => (
+      fromHost || (!!participant?.identity && editorsRef.current.includes(participant.identity))
+    )
     const handler = (payload, participant) => {
       try {
         const msg = JSON.parse(new TextDecoder().decode(payload))
@@ -184,25 +323,82 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
             return
 
           // A full picture of the board is only believable from the host.
-          case WB_CHANNEL:
+          case WB_CHANNEL: {
             if (!fromHost) return
-            strokesRef.current = Array.isArray(msg.strokes) ? msg.strokes : []
+            let list = null
+            if (Array.isArray(msg.strokes)) {
+              list = msg.strokes
+            } else if (msg.parts > 0) {
+              // A snapshot in pieces. Reliable delivery keeps one sender's
+              // packets in order, so a new seq simply supersedes the last.
+              const buf = snapBuf.current
+              if (buf.seq !== msg.seq) snapBuf.current = { seq: msg.seq, parts: msg.parts, got: [] }
+              snapBuf.current.got[msg.part] = String(msg.chunk || '')
+              const have = snapBuf.current.got.filter((c) => typeof c === 'string').length
+              if (have < snapBuf.current.parts) return
+              try { list = JSON.parse(snapBuf.current.got.join('')) } catch { return }
+              snapBuf.current = { seq: null, parts: 0, got: [] }
+            }
+            if (!Array.isArray(list)) return
+            strokesRef.current = list
+            resetHistory()
             redraw()
+            // The picture being held may not have survived the host's version.
+            const keep = strokesRef.current.some((x) => x.id === selectedIdRef.current)
+            if (!keep) selectImage(null); else refreshSel()
             return
+          }
 
           case WB_CLEAR:
             if (!fromHost) return
             strokesRef.current = []
+            resetHistory()
+            selectImage(null)
             redraw()
             return
+
+          // An image moved or was resized. Only the host, or whoever put it
+          // there, may say so.
+          case WB_UPDATE: {
+            const up = msg.stroke
+            if (!up || !up.id) return
+            const idx = strokesRef.current.findIndex((x) => x.id === up.id)
+            if (idx < 0) return
+            if (!senderMayDraw(participant, fromHost)) return
+            if (!fromHost && !strokeOwnedBy(strokesRef.current[idx], participant?.identity)) return
+            const geom = { x: up.x, y: up.y, w: up.w, h: up.h, sar: up.sar }
+            strokesRef.current[idx] = { ...strokesRef.current[idx], ...geom }
+            // Only once the drag is over: rewriting every saved state on every
+            // frame of someone else's drag is real work for no benefit.
+            if (msg.final) rebaseHistory((list) => list.map((x) => (x.id === up.id ? { ...x, ...geom } : x)))
+            redraw()
+            if (up.id === selectedIdRef.current) refreshSel()
+            return
+          }
+
+          case WB_DELETE: {
+            const id = msg.id
+            if (!id) return
+            const victim = strokesRef.current.find((x) => x.id === id)
+            if (!victim) return
+            if (!senderMayDraw(participant, fromHost)) return
+            if (!fromHost && !strokeOwnedBy(victim, participant?.identity)) return
+            strokesRef.current = strokesRef.current.filter((x) => x.id !== id)
+            rebaseHistory((list) => list.filter((x) => x.id !== id))
+            if (id === selectedIdRef.current) selectImage(null)
+            redraw()
+            return
+          }
 
           // An append. Idempotent on id, so a replayed or out-of-order packet
           // cannot duplicate or lose work.
           case WB_STROKE: {
             const st = msg.stroke
             if (!st || !st.id) return
+            if (!senderMayDraw(participant, fromHost)) return
             if (strokesRef.current.some((x) => x.id === st.id)) return
             strokesRef.current.push(st)
+            rebaseHistory((list) => (list.some((x) => x.id === st.id) ? list : [...list, st]))
             redraw()
             return
           }
@@ -223,7 +419,7 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     }
     room.on(RoomEvent.DataReceived, handler)
     return () => room.off(RoomEvent.DataReceived, handler)
-  }, [room, redraw, isAdmin, broadcastSnapshot, send])
+  }, [room, redraw, isAdmin, broadcastSnapshot, send, rebaseHistory, resetHistory, refreshSel, selectImage])
 
   // On mount (the panel is opened) ask for the current board. Without this a
   // late viewer stares at a blank canvas while everyone else sees the lesson.
@@ -254,12 +450,13 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
       canvas.width  = width
       canvas.height = height
       redraw()
+      refreshSel()
     }
     resize()
     const ro = new ResizeObserver(resize)
     ro.observe(canvas.parentElement)
     return () => ro.disconnect()
-  }, [redraw])
+  }, [redraw, refreshSel])
 
   // ── pointer helpers ───────────────────────────────────────────────────────
   const getXY = (e) => {
@@ -268,8 +465,175 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     return { x: src.clientX - r.left, y: src.clientY - r.top }
   }
 
+  // Only the host may rearrange everyone's board; anyone else may move the
+  // pictures they added themselves. Enforced here as well as on the receiving
+  // side, so a student never watches an image move and then snap back.
+  const canEditStroke = useCallback((st) => (
+    !!st && st.tool === 'image' && (isAdmin || strokeOwnedBy(st, myId))
+  ), [isAdmin, myId])
+
+  // Topmost image under the pointer.
+  const hitImage = useCallback((px, py) => {
+    const canvas = canvasRef.current
+    if (!canvas) return null
+    for (let i = strokesRef.current.length - 1; i >= 0; i--) {
+      const st = strokesRef.current[i]
+      if (!canEditStroke(st)) continue
+      const r = imageRect(st, canvas.width, canvas.height)
+      if (px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) return st
+    }
+    return null
+  }, [canEditStroke])
+
+  // Write a new geometry, redraw, and tell the room. Throttled while a drag is
+  // in flight so a fast mouse cannot flood the data channel, and always sent
+  // once more when the drag ends so everyone finishes on the same numbers.
+  const commitGeom = useCallback((id, px, py, pw, ph, final) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const idx = strokesRef.current.findIndex((x) => x.id === id)
+    if (idx < 0) return
+    const geom = {
+      x: px / canvas.width,
+      y: py / canvas.height,
+      w: pw / canvas.width,
+      h: ph / canvas.height,
+      sar: pw / (ph || 1),
+    }
+    // A NEW object every time: the saved states hold references to these, and
+    // editing one in place would rewrite history as well as the board.
+    strokesRef.current[idx] = { ...strokesRef.current[idx], ...geom }
+    redraw()
+    refreshSel(id)
+    const now = Date.now()
+    if (canDraw && (final || now - lastGeomSend.current > 110)) {
+      lastGeomSend.current = now
+      send({ type: WB_UPDATE, final: !!final, stroke: { id, ...geom } })
+    }
+  }, [redraw, refreshSel, send, canDraw])
+
+  const beginDrag = useCallback((e, mode, stroke) => {
+    const canvas = canvasRef.current
+    const st = stroke || strokesRef.current.find((x) => x.id === selectedIdRef.current)
+    if (!canvas || !canEditStroke(st)) return
+    const box = canvas.getBoundingClientRect()
+    const src = e.touches ? e.touches[0] : e
+    const rect = imageRect(st, canvas.width, canvas.height)
+    dragRef.current = {
+      mode, id: st.id, rect, saved: false,
+      ar: rect.w / (rect.h || 1),
+      startX: src.clientX - box.left,
+      startY: src.clientY - box.top,
+    }
+    setDragActive(true)
+  }, [canEditStroke])
+
+  // Live drag maths, in canvas pixels; commitGeom normalises on the way out.
+  const applyDrag = useCallback((clientX, clientY) => {
+    const canvas = canvasRef.current
+    const d = dragRef.current
+    if (!canvas || !d) return
+    // Let go of the picture (Escape) and the drag stops here, rather than
+    // carrying on moving something nobody is holding.
+    if (selectedIdRef.current !== d.id) return
+    // Saved on the first real movement, so picking a picture up and putting it
+    // straight back down does not leave a do-nothing step in the history.
+    if (!d.saved) { d.saved = true; pushHistory() }
+    const box = canvas.getBoundingClientRect()
+    const dx = (clientX - box.left) - d.startX
+    const dy = (clientY - box.top) - d.startY
+    let { x, y, w, h } = d.rect
+
+    if (d.mode === 'move') {
+      // Never park a picture where no pointer can reach it again: a grabbable
+      // strip of it always stays on the board.
+      const keep = Math.min(MIN_IMAGE_PX, w, h)
+      x = Math.min(Math.max(x + dx, keep - w), canvas.width - keep)
+      y = Math.min(Math.max(y + dy, keep - h), canvas.height - keep)
+    } else {
+      if (d.mode.includes('w')) w = d.rect.w - dx
+      if (d.mode.includes('e')) w = d.rect.w + dx
+      if (d.mode.includes('n')) h = d.rect.h - dy
+      if (d.mode.includes('s')) h = d.rect.h + dy
+
+      if (d.mode.length === 2) {
+        // A corner keeps the picture's shape, driven by whichever axis the hand
+        // moved further - measured in the SAME units, or the axis in charge
+        // flips at the wrong moment and a wide picture jumps sideways.
+        const ar = d.ar > 0 ? d.ar : 1
+        if (Math.abs(w - d.rect.w) >= Math.abs(h - d.rect.h) * ar) h = w / ar
+        else w = h * ar
+        // The size floor has to move BOTH axes together. Clamping them
+        // separately undoes the lock above, and the squash is what `sar`
+        // remembers - permanently.
+        const minW = MIN_IMAGE_PX * Math.max(1, ar)
+        if (w < minW) { w = minW; h = w / ar }
+      } else {
+        if (w < MIN_IMAGE_PX) w = MIN_IMAGE_PX
+        if (h < MIN_IMAGE_PX) h = MIN_IMAGE_PX
+      }
+
+      // Anchor the far side to the FINAL size. Deriving it before the clamp let
+      // a shrink past the opposite corner turn into an unbounded slide that
+      // pushed the picture off the board for good.
+      x = d.mode.includes('w') ? d.rect.x + d.rect.w - w : d.rect.x
+      y = d.mode.includes('n') ? d.rect.y + d.rect.h - h : d.rect.y
+    }
+    commitGeom(d.id, x, y, w, h, false)
+  }, [commitGeom, pushHistory])
+
+  const endDrag = useCallback(() => {
+    const d = dragRef.current
+    dragRef.current = null
+    setDragActive(false)
+    if (!d) return
+    const st = strokesRef.current.find((x) => x.id === d.id)
+    if (st && canDraw) {
+      send({ type: WB_UPDATE, final: true, stroke: { id: st.id, x: st.x, y: st.y, w: st.w, h: st.h, sar: st.sar } })
+    }
+  }, [send, canDraw])
+
+  // Bound to the window, not the canvas: a drag that runs off the edge of the
+  // board - or onto one of the handles - must keep working.
+  useEffect(() => {
+    if (!dragActive) return
+    const move = (e) => {
+      // Released over the browser's own chrome, so no mouseup ever reached the
+      // page. The button being up is the signal that the drag is over.
+      if (!e.touches && e.buttons === 0) { endDrag(); return }
+      const src = e.touches ? e.touches[0] : e
+      if (e.cancelable) e.preventDefault()
+      applyDrag(src.clientX, src.clientY)
+    }
+    window.addEventListener('mousemove', move)
+    window.addEventListener('mouseup', endDrag)
+    window.addEventListener('touchmove', move, { passive: false })
+    window.addEventListener('touchend', endDrag)
+    window.addEventListener('touchcancel', endDrag)
+    window.addEventListener('blur', endDrag)
+    return () => {
+      window.removeEventListener('mousemove', move)
+      window.removeEventListener('mouseup', endDrag)
+      window.removeEventListener('touchmove', move)
+      window.removeEventListener('touchend', endDrag)
+      window.removeEventListener('touchcancel', endDrag)
+      window.removeEventListener('blur', endDrag)
+    }
+  }, [dragActive, applyDrag, endDrag])
+
+  // Putting a tool down lets go of whatever was held.
+  useEffect(() => { if (tool !== 'select') selectImage(null) }, [tool, selectImage])
+
   const onDown = (e) => {
     if (!canDraw) return
+    if (tool === 'select') {
+      const pt = getXY(e)
+      const hit = hitImage(pt.x, pt.y)
+      if (!hit) { selectImage(null); return }
+      selectImage(hit.id)
+      beginDrag(e, 'move', hit)
+      return
+    }
     if (tool === 'text') {
       setTextPos(getXY(e))
       return
@@ -281,6 +645,8 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   }
 
   const onMove = (e) => {
+    // No tool check: in select mode drawing.current is never set, and a stroke
+    // already in flight when a snip flipped the tool must still finish.
     if (!canDraw || !drawing.current || !currentRef.current) return
     const pt = getXY(e)
     currentRef.current.pts.push(pt)
@@ -292,6 +658,20 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     if (!canDraw || !drawing.current) return
     drawing.current = false
     if (currentRef.current) {
+      const pts = currentRef.current.pts || []
+      if (pts.length < 2) {
+        // A click rather than a drag. For the pen that is a deliberate dot; for
+        // a shape it is a stray click, and saving it would spend the next undo
+        // on something nobody can see.
+        if (currentRef.current.tool === 'pen' || currentRef.current.tool === 'eraser') {
+          pts.push({ ...pts[0] })
+        } else {
+          currentRef.current = null
+          redraw()
+          return
+        }
+      }
+      pushHistory()
       const stroke = { ...currentRef.current, id: nextStrokeId() }
       strokesRef.current.push(stroke)
       currentRef.current = null
@@ -302,6 +682,7 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
 
   const addText = () => {
     if (!textInput.trim() || !textPos) return
+    pushHistory()
     const stroke = { tool: 'text', color, size, pts: [textPos], text: textInput, id: nextStrokeId() }
     strokesRef.current.push(stroke)
     setTextInput('')
@@ -314,18 +695,61 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   // a student undoing would pop the host's last stroke on everyone's screen.
   const clearBoard = () => {
     if (!isAdmin) return
+    pushHistory()
     strokesRef.current = []
     currentRef.current = null
+    selectImage(null)
     send({ type: WB_CLEAR })
     redraw()
   }
 
-  const undo = () => {
+  // Step between saved states. Host only, because the way a whole board is
+  // published is the host snapshot - a student stepping back would have no way
+  // to tell the room, and their screen would drift out of step with everyone.
+  const stepHistory = useCallback((back) => {
     if (!isAdmin) return
-    strokesRef.current.pop()
+    const from = back ? undoStack.current : redoStack.current
+    const to   = back ? redoStack.current : undoStack.current
+    if (!from.length) return
+    to.push(strokesRef.current.slice())
+    strokesRef.current = from.pop()
+    setHistDepth({ undo: undoStack.current.length, redo: redoStack.current.length })
+    const keep = strokesRef.current.some((x) => x.id === selectedIdRef.current)
+    if (!keep) selectImage(null); else refreshSel()
     broadcastSnapshot()
     redraw()
-  }
+  }, [isAdmin, broadcastSnapshot, redraw, refreshSel, selectImage])
+
+  const undo = useCallback(() => stepHistory(true), [stepHistory])
+  const redo = useCallback(() => stepHistory(false), [stepHistory])
+
+  const deleteSelected = useCallback(() => {
+    const id = selectedIdRef.current
+    const st = id ? strokesRef.current.find((x) => x.id === id) : null
+    if (!canEditStroke(st)) return
+    pushHistory()
+    strokesRef.current = strokesRef.current.filter((x) => x.id !== id)
+    selectImage(null)
+    redraw()
+    if (canDraw) send({ type: WB_DELETE, id })
+  }, [canEditStroke, pushHistory, selectImage, redraw, send, canDraw])
+
+  // Front and back reorder the whole board, so like clear and undo they are the
+  // host's to do.
+  const reorderSelected = useCallback((toFront) => {
+    if (!isAdmin) return
+    const id = selectedIdRef.current
+    const idx = strokesRef.current.findIndex((x) => x.id === id)
+    if (idx < 0) return
+    pushHistory()
+    const next = strokesRef.current.slice()
+    const [st] = next.splice(idx, 1)
+    if (toFront) next.push(st); else next.unshift(st)
+    strokesRef.current = next
+    redraw()
+    refreshSel(id)
+    broadcastSnapshot()
+  }, [isAdmin, pushHistory, redraw, refreshSel, broadcastSnapshot])
 
   // Put an already-uploaded image on the board, centred and fitted. Shared by
   // the paste/upload path and by snips that arrive from the desktop helper
@@ -349,12 +773,21 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     const stroke = {
       id: nextStrokeId(), tool: 'image', url,
       x: (1 - w) / 2, y: (1 - h) / 2, w, h,
+      // The shape to keep when the board changes size. Set here as well as on
+      // resize, or a picture would draw from its stretchy box until the first
+      // time somebody happened to move it.
+      sar: iw / ih,
     }
+    pushHistory()
     strokesRef.current.push(stroke)
     redraw()
     broadcastStroke(stroke)
+    // Hand it straight over ready to be moved - positioning a snip is almost
+    // always the next thing the tutor does.
+    setTool('select')
+    selectImage(stroke.id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [redraw, broadcastStroke])
+  }, [redraw, broadcastStroke, pushHistory, selectImage])
 
   // Drop an image onto the board: upload it, then broadcast only the URL.
   const addImage = useCallback(async (file) => {
@@ -525,10 +958,37 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     return () => { alive = false; clearInterval(id) }
   }, [pushCode, canDraw, authKey, pushApi, placeImage])
 
+  // The board stays mounted while the panel is shut so a student is never left
+  // staring at a blank canvas - which means every shortcut below has to check
+  // that it is actually on screen before acting.
+  const boardVisible = () => !!canvasRef.current && canvasRef.current.offsetParent !== null
+
+  useEffect(() => {
+    if (!canDraw) return
+    const onKey = (e) => {
+      if (!boardVisible()) return
+      const tag = e.target?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return
+      const key = (e.key || '').toLowerCase()
+      if (e.ctrlKey || e.metaKey) {
+        if (key === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return }
+        if (key === 'y') { e.preventDefault(); redo(); return }
+        return
+      }
+      if (e.key === 'Escape') { selectImage(null); return }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIdRef.current) {
+        e.preventDefault(); deleteSelected()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [canDraw, undo, redo, selectImage, deleteSelected])
+
   // Ctrl+V anywhere on the page while the board is open.
   useEffect(() => {
     if (!canDraw) return
     const onPaste = (e) => {
+      if (!boardVisible()) return
       const items = e.clipboardData?.items || []
       for (const it of items) {
         if (it.type?.startsWith('image/')) {
@@ -626,16 +1086,6 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     }
   }
 
-  // ── tool button helper ────────────────────────────────────────────────────
-  const Btn = ({ t, label, emoji }) => (
-    <button
-      onClick={() => setTool(t)}
-      title={label}
-      className={`px-2 py-1.5 rounded text-sm font-medium transition-all ${tool === t ? 'bg-blue-600 text-white shadow' : 'bg-white/10 text-white hover:bg-white/20'}`}
-    >
-      {emoji}
-    </button>
-  )
 
   return (
     <div className="w-full h-full flex flex-col bg-white relative">
@@ -776,12 +1226,13 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
 
           {/* Tools */}
           <div className="flex gap-1 bg-white/5 rounded p-1">
-            <Btn t="pen"    label="Pen"     emoji="✏️" />
-            <Btn t="eraser" label="Eraser"  emoji="🧹" />
-            <Btn t="line"   label="Line"    emoji="╱" />
-            <Btn t="rect"   label="Rect"    emoji="▭" />
-            <Btn t="circle" label="Circle"  emoji="○" />
-            <Btn t="text"   label="Text"    emoji="T" />
+            <ToolBtn t="select" label="Select — move and resize a picture" emoji="↖" tool={tool} setTool={setTool} />
+            <ToolBtn t="pen"    label="Pen"    emoji="✏️" tool={tool} setTool={setTool} />
+            <ToolBtn t="eraser" label="Eraser" emoji="🧹" tool={tool} setTool={setTool} />
+            <ToolBtn t="line"   label="Line"   emoji="╱"  tool={tool} setTool={setTool} />
+            <ToolBtn t="rect"   label="Rect"   emoji="▭"  tool={tool} setTool={setTool} />
+            <ToolBtn t="circle" label="Circle" emoji="○"  tool={tool} setTool={setTool} />
+            <ToolBtn t="text"   label="Text"   emoji="T"  tool={tool} setTool={setTool} />
           </div>
 
           {/* Paste a screenshot with Ctrl+V, or pick a file. */}
@@ -835,7 +1286,12 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
           {/* Actions — whole-board operations belong to the host only */}
           {isAdmin && (
             <>
-              <button onClick={undo}      className="px-2 py-1.5 bg-[#3c4043] hover:bg-[#4a4d51] text-white rounded text-sm" title="Undo">↩</button>
+              <button onClick={undo} disabled={!histDepth.undo}
+                className="rounded bg-[#3c4043] px-2 py-1.5 text-sm text-white hover:bg-[#4a4d51] disabled:cursor-not-allowed disabled:opacity-40"
+                title="Undo (Ctrl+Z)">↩</button>
+              <button onClick={redo} disabled={!histDepth.redo}
+                className="rounded bg-[#3c4043] px-2 py-1.5 text-sm text-white hover:bg-[#4a4d51] disabled:cursor-not-allowed disabled:opacity-40"
+                title="Redo (Ctrl+Shift+Z)">↪</button>
               <button onClick={clearBoard} className="px-2 py-1.5 bg-red-600/80 hover:bg-red-600 text-white rounded text-sm" title="Clear">🗑 Clear</button>
               <button onClick={() => { setShareOpen(v => !v); setShareMsg('') }}
                 className="px-2 py-1.5 bg-emerald-600/90 hover:bg-emerald-600 text-white rounded text-sm font-medium"
@@ -854,7 +1310,9 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
       <div className="flex-1 relative overflow-hidden">
         <canvas
           ref={canvasRef}
-          className={`absolute inset-0 ${canDraw ? (tool === 'eraser' ? 'cursor-cell' : 'cursor-crosshair') : 'cursor-default'}`}
+          className={`absolute inset-0 ${!canDraw ? 'cursor-default'
+            : tool === 'select' ? 'cursor-default'
+            : tool === 'eraser' ? 'cursor-cell' : 'cursor-crosshair'}`}
           style={{ background: '#ffffff', touchAction: 'none' }}
           onMouseDown={onDown}
           onMouseMove={onMove}
@@ -864,6 +1322,56 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
           onTouchMove={onMove}
           onTouchEnd={onUp}
         />
+
+        {/* ── SELECTED PICTURE ──
+            Handles live in the DOM rather than on the canvas: the board is
+            flattened with toDataURL when it is shared, and anything painted on
+            the canvas would be baked into that saved picture. */}
+        {canDraw && tool === 'select' && selBox && (
+          <>
+            <div className="pointer-events-none absolute z-10 border-2 border-blue-500"
+              style={{ left: selBox.left, top: selBox.top, width: selBox.width, height: selBox.height }} />
+            <div className="absolute z-10"
+              style={{ left: selBox.left, top: selBox.top, width: selBox.width, height: selBox.height,
+                       cursor: 'move', touchAction: 'none' }}
+              onMouseDown={(e) => { e.preventDefault(); beginDrag(e, 'move') }}
+              onTouchStart={(e) => beginDrag(e, 'move')} />
+            {HANDLES.map((hd) => (
+              <div key={hd.k}
+                onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); beginDrag(e, hd.k) }}
+                onTouchStart={(e) => { e.stopPropagation(); beginDrag(e, hd.k) }}
+                className="absolute z-20 rounded-full border-2 border-white bg-blue-500 shadow"
+                style={{
+                  width: 13, height: 13, cursor: hd.cursor, touchAction: 'none',
+                  left: selBox.left + hd.fx * selBox.width - 6.5,
+                  top:  selBox.top  + hd.fy * selBox.height - 6.5,
+                }} />
+            ))}
+            <div className="absolute z-20 flex items-center gap-1 rounded-lg bg-[#202124] px-1.5 py-1 shadow-xl"
+              style={{ left: Math.max(4, selBox.left), top: selBox.top > 40 ? selBox.top - 36 : selBox.top + selBox.height + 8 }}>
+              {isAdmin && (
+                <>
+                  <button onClick={() => reorderSelected(true)} title="Bring to front"
+                    className="rounded px-2 py-1 text-xs text-white hover:bg-white/15">⬆ Front</button>
+                  <button onClick={() => reorderSelected(false)} title="Send to back"
+                    className="rounded px-2 py-1 text-xs text-white hover:bg-white/15">⬇ Back</button>
+                  <span className="h-4 w-px bg-white/20" />
+                </>
+              )}
+              <button onClick={deleteSelected} title="Remove this picture (Delete)"
+                className="rounded px-2 py-1 text-xs text-red-300 hover:bg-red-500/20">🗑 Remove</button>
+              <button onClick={() => selectImage(null)} title="Deselect (Esc)"
+                className="rounded px-2 py-1 text-xs text-gray-300 hover:bg-white/15">✕</button>
+            </div>
+          </>
+        )}
+
+        {/* Nothing picked up yet — say what the tool is for. */}
+        {canDraw && tool === 'select' && !selBox && (
+          <div className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-full bg-slate-900/80 px-3 py-1 text-xs text-white">
+            Click a picture to move or resize it
+          </div>
+        )}
 
         {/* Text input popup */}
         {canDraw && textPos && (
