@@ -1,7 +1,10 @@
 'use client'
 import { useEffect, useRef, useState, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { useRoomContext } from '@livekit/components-react'
 import { RoomEvent } from 'livekit-client'
+
+const BoardSnip = dynamic(() => import('./BoardSnip'), { ssr: false })
 
 const WB_CHANNEL = 'wb'          // legacy full-state (host snapshot)
 const WB_GRANT   = 'wb-grant'    // host hands drawing rights to identities
@@ -51,6 +54,7 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   const imgCache = useRef(new Map())
   const [pasting, setPasting] = useState(false)
   const [pasteMsg, setPasteMsg] = useState('')
+  const [snipping, setSnipping] = useState(false)
   const nextStrokeId = () => `${room?.localParticipant?.identity || 'me'}-${Date.now()}-${++strokeSeq.current}`
   useEffect(() => { editorsRef.current = editors }, [editors])
   const myId = room?.localParticipant?.identity || ''
@@ -492,6 +496,13 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   return (
     <div className="w-full h-full flex flex-col bg-white relative">
 
+      {snipping && (
+        <BoardSnip
+          onInsert={(blob) => addImage(new File([blob], 'snip.png', { type: 'image/png' }))}
+          onClose={() => setSnipping(false)}
+        />
+      )}
+
       {/* ── SHARE PANEL (admin only) ── */}
       {isAdmin && shareOpen && (
         <div className="absolute right-3 top-14 z-30 w-72 rounded-xl border border-slate-200 bg-white p-3 shadow-2xl">
@@ -564,6 +575,13 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
             <input type="file" accept="image/*" className="hidden" disabled={pasting}
               onChange={(e) => { const f = e.target.files?.[0]; if (f) addImage(f); e.target.value = '' }} />
           </label>
+          <button
+            type="button"
+            onClick={() => setSnipping(true)}
+            className="flex items-center gap-1 rounded bg-white/10 px-2 py-1.5 text-sm text-white transition-colors hover:bg-white/20"
+            title="Snip any part of your screen straight onto the board">
+            ✂️ Snip
+          </button>
           {pasteMsg && <span className="text-xs text-emerald-300">{pasteMsg}</span>}
 
           {/* Divider */}
