@@ -23,7 +23,8 @@ function senderIsHost(participant) {
 }
 
 export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, participants = [],
-  authKey = 'token', boardsApi = '/api/meetings/boards', onCanDrawChange }) {
+  authKey = 'token', boardsApi = '/api/meetings/boards',
+  imagesApi = '/api/meetings/board-images', onCanDrawChange }) {
   const room        = useRoomContext()
   const canvasRef   = useRef(null)
   const drawing     = useRef(false)
@@ -45,6 +46,11 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   const editorsRef = useRef([])
   // Stable per-stroke id: identity + counter, so appends are idempotent.
   const strokeSeq = useRef(0)
+  // Decoded images, kept so a redraw (which happens on every stroke) does not
+  // re-download or flicker.
+  const imgCache = useRef(new Map())
+  const [pasting, setPasting] = useState(false)
+  const [pasteMsg, setPasteMsg] = useState('')
   const nextStrokeId = () => `${room?.localParticipant?.identity || 'me'}-${Date.now()}-${++strokeSeq.current}`
   useEffect(() => { editorsRef.current = editors }, [editors])
   const myId = room?.localParticipant?.identity || ''
@@ -64,7 +70,29 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   }, [])
 
   function drawStroke(ctx, s) {
-    if (!s || !s.pts || s.pts.length === 0) return
+    if (!s) return
+
+    // A pasted image. Coordinates are a fraction of the canvas, so it sits in
+    // the same place whatever the screen size.
+    if (s.tool === 'image' && s.url) {
+      const cached = imgCache.current.get(s.url)
+      if (cached === undefined) {
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        // Mark it pending so a redraw storm cannot queue a hundred loads.
+        imgCache.current.set(s.url, null)
+        img.onload = () => { imgCache.current.set(s.url, img); redraw() }
+        img.onerror = () => { imgCache.current.set(s.url, false) }
+        img.src = s.url
+        return
+      }
+      if (!cached) return   // still loading, or it failed
+      const cw = ctx.canvas.width, ch = ctx.canvas.height
+      ctx.drawImage(cached, (s.x || 0) * cw, (s.y || 0) * ch, (s.w || 1) * cw, (s.h || 1) * ch)
+      return
+    }
+
+    if (!s.pts || s.pts.length === 0) return
     ctx.save()
     ctx.strokeStyle = s.tool === 'eraser' ? '#ffffff' : s.color
     ctx.fillStyle   = s.color
@@ -285,6 +313,86 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     redraw()
   }
 
+  // Drop an image onto the board: upload it, then broadcast only the URL.
+  const addImage = useCallback(async (file) => {
+    if (!canDraw || !file) return
+    setPasting(true); setPasteMsg('')
+    try {
+      if (!imagesApi) throw new Error('Images are not enabled for this board.')
+      const dataUrl = await new Promise((resolve, reject) => {
+        const fr = new FileReader()
+        fr.onload = () => resolve(fr.result)
+        fr.onerror = () => reject(new Error('Could not read that image.'))
+        fr.readAsDataURL(file)
+      })
+
+      // Shrink before upload: a full-screen grab is several megabytes and the
+      // board never needs more than about 1600px.
+      const shrunk = await new Promise((resolve) => {
+        const img = new Image()
+        img.onload = () => {
+          const MAX = 1600
+          const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+          if (scale === 1) return resolve({ url: dataUrl, w: img.width, h: img.height })
+          const c = document.createElement('canvas')
+          c.width = Math.round(img.width * scale)
+          c.height = Math.round(img.height * scale)
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height)
+          resolve({ url: c.toDataURL('image/png'), w: c.width, h: c.height })
+        }
+        img.onerror = () => resolve({ url: dataUrl, w: 0, h: 0 })
+        img.src = dataUrl
+      })
+
+      const token = localStorage.getItem(authKey)
+      const res = await fetch(imagesApi, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ image: shrunk.url }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.error || 'Could not upload that image.')
+
+      // Fit it inside the canvas, keeping its shape, and centre it.
+      const canvas = canvasRef.current
+      const cw = canvas?.width || 1, chh = canvas?.height || 1
+      const iw = shrunk.w || cw, ih = shrunk.h || chh
+      const fit = Math.min((cw * 0.8) / iw, (chh * 0.8) / ih, 1)
+      const w = (iw * fit) / cw, h = (ih * fit) / chh
+      const stroke = {
+        id: nextStrokeId(), tool: 'image', url: data.url,
+        x: (1 - w) / 2, y: (1 - h) / 2, w, h,
+      }
+      strokesRef.current.push(stroke)
+      redraw()
+      broadcastStroke(stroke)
+      setPasteMsg('Image added')
+      setTimeout(() => setPasteMsg(''), 1500)
+    } catch (e) {
+      setPasteMsg(e.message)
+      setTimeout(() => setPasteMsg(''), 4000)
+    } finally {
+      setPasting(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canDraw, authKey, imagesApi, redraw, broadcastStroke])
+
+  // Ctrl+V anywhere on the page while the board is open.
+  useEffect(() => {
+    if (!canDraw) return
+    const onPaste = (e) => {
+      const items = e.clipboardData?.items || []
+      for (const it of items) {
+        if (it.type?.startsWith('image/')) {
+          const file = it.getAsFile()
+          if (file) { e.preventDefault(); addImage(file); return }
+        }
+      }
+    }
+    window.addEventListener('paste', onPaste)
+    return () => window.removeEventListener('paste', onPaste)
+  }, [canDraw, addImage])
+
   // Grant or revoke one person's drawing rights and announce it immediately.
   const setRights = useCallback((id, may) => {
     setEditors((cur) => {
@@ -447,6 +555,16 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
             <Btn t="circle" label="Circle"  emoji="○" />
             <Btn t="text"   label="Text"    emoji="T" />
           </div>
+
+          {/* Paste a screenshot with Ctrl+V, or pick a file. */}
+          <label
+            className={`flex cursor-pointer items-center gap-1 rounded bg-white/10 px-2 py-1.5 text-sm text-white transition-colors hover:bg-white/20 ${pasting ? 'opacity-60' : ''}`}
+            title="Paste a screenshot (Ctrl+V) or choose an image">
+            🖼 {pasting ? 'Adding…' : 'Image'}
+            <input type="file" accept="image/*" className="hidden" disabled={pasting}
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) addImage(f); e.target.value = '' }} />
+          </label>
+          {pasteMsg && <span className="text-xs text-emerald-300">{pasteMsg}</span>}
 
           {/* Divider */}
           <div className="w-px h-6 bg-white/20" />

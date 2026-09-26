@@ -38,7 +38,8 @@ function personName(participant, fallback = 'Participant') {
 // ─── Inner room UI (must be inside <LiveKitRoom>) ───────────────────────────
 function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, meeting,
   authKey = 'token', guestApi = '/api/livekit/guest',
-  transcriptApi = '/api/admin/meetings/save-transcript', boardsApi = '/api/meetings/boards', onEndClass }) {
+  transcriptApi = '/api/admin/meetings/save-transcript', boardsApi = '/api/meetings/boards',
+  imagesApi = '/api/meetings/board-images', onEndClass }) {
   const toast = useToast()
   const participants = useParticipants()
   const { localParticipant } = useLocalParticipant()
@@ -920,6 +921,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
                 isAdmin={isAdmin}
                 authKey={authKey}
                 boardsApi={boardsApi}
+                imagesApi={imagesApi}
                 roomName={roomName}
                 meetingTitle={meetingTitle}
                 // Real students in the room, so the host can share the board
@@ -1270,7 +1272,7 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
 export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin = false, meetingTitle, meeting, session,
   authKey = 'token', tokenApi = '/api/livekit/token',
   guestApi = '/api/livekit/guest', transcriptApi = '/api/admin/meetings/save-transcript',
-  boardsApi = '/api/meetings/boards', onEndClass }) {
+  boardsApi = '/api/meetings/boards', imagesApi = '/api/meetings/board-images', onEndClass }) {
   const [token, setToken] = useState(null)
   const [wsUrl, setWsUrl] = useState(null)
   const [error, setError] = useState(null)
@@ -1409,6 +1411,7 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
           guestApi={guestApi}
           transcriptApi={transcriptApi}
           boardsApi={boardsApi}
+          imagesApi={imagesApi}
           onEndClass={onEndClass}
           isAdmin={serverIsHost ?? isAdmin}
           onClose={onClose}
