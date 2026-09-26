@@ -57,6 +57,8 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
   const [leaving, setLeaving] = useState(false)
   // Tile columns must follow the viewport; an inline grid style cannot.
   const [boardCanDraw, setBoardCanDraw] = useState(false)
+  // A half-width board is unusable for teaching, so it opens full.
+  const [boardFull, setBoardFull] = useState(true)
   const [isNarrow, setIsNarrow] = useState(false)
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)')
@@ -763,8 +765,10 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
       {/* ── MAIN AREA ── */}
       <div className="relative flex flex-1 overflow-hidden">
 
-        {/* Video grid */}
-        <div className={`flex flex-col overflow-hidden p-2 gap-2 ${showWhiteboard ? 'w-1/2' : 'flex-1'}`}>
+        {/* Video grid — hidden entirely while the board is full screen. */}
+        <div className={`flex flex-col overflow-hidden p-2 gap-2 ${
+          showWhiteboard ? (boardFull ? 'hidden' : 'w-1/2') : 'flex-1'
+        }`}>
           {(() => {
             // Separate screen share tracks from camera tracks
             const screenTracks = videoTracks.filter(t => t.source === Track.Source.ScreenShare && t.publication?.track)
@@ -887,15 +891,29 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
             the strokes live in here, and someone has to be listening to answer
             a late viewer's sync request. Closing the panel only hides it. */}
         <div className={`${showWhiteboard
-            ? 'absolute inset-0 z-30 flex w-full flex-col md:relative md:inset-auto md:z-auto md:w-1/2'
+            ? `absolute inset-0 z-30 flex w-full flex-col md:relative md:inset-auto md:z-auto ${boardFull ? 'md:w-full' : 'md:w-1/2'}`
             : 'hidden'} bg-white border-l border-white/10`}>
-            <div className="flex items-center justify-between px-4 py-2 bg-[#2d2e30] border-b border-white/10">
-              <span className="text-white text-sm font-medium flex items-center gap-2">
-                <FiEdit3 size={16} /> Whiteboard
-                {!boardCanDraw && <span className="text-xs text-yellow-400 ml-2">View only</span>}
-                {boardCanDraw && !isAdmin && <span className="ml-2 text-xs text-emerald-400">You can draw</span>}
+            <div className="flex items-center justify-between gap-2 px-4 py-2 bg-[#2d2e30] border-b border-white/10">
+              <span className="flex min-w-0 items-center gap-2 text-sm font-medium text-white">
+                <FiEdit3 size={16} className="flex-shrink-0" />
+                <span className="truncate">Whiteboard</span>
+                {!boardCanDraw && <span className="ml-1 flex-shrink-0 text-xs text-yellow-400">View only</span>}
+                {boardCanDraw && !isAdmin && <span className="ml-1 flex-shrink-0 text-xs text-emerald-400">You can draw</span>}
               </span>
-              <button onClick={() => setShowWhiteboard(false)} className="text-gray-400 hover:text-white text-xs">Close</button>
+              <div className="flex flex-shrink-0 items-center gap-1">
+                {/* Full screen hides the tiles; the split view keeps faces visible. */}
+                <button
+                  onClick={() => setBoardFull((v) => !v)}
+                  className="hidden items-center gap-1.5 rounded px-2 py-1 text-xs text-gray-300 transition-colors hover:bg-white/10 hover:text-white md:flex"
+                  title={boardFull ? 'Show the video tiles beside the board' : 'Use the whole screen for the board'}
+                >
+                  {boardFull ? <FiMinimize size={13} /> : <FiMaximize size={13} />}
+                  {boardFull ? 'Split view' : 'Full screen'}
+                </button>
+                <button onClick={() => setShowWhiteboard(false)} className="rounded px-2 py-1 text-xs text-gray-400 transition-colors hover:bg-white/10 hover:text-white">
+                  Close
+                </button>
+              </div>
             </div>
             <div className="flex-1 overflow-hidden">
               <MeetingWhiteboard
