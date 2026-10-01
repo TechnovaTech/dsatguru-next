@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { FiSearch, FiUsers, FiPlus, FiEdit2, FiTrash2, FiX } from 'react-icons/fi'
 import { apiGet, apiSend } from '../_components/api'
 import { igcscUser } from '../_components/auth'
+import SubjectPicker from '../_components/SubjectPicker'
 import { PageHeader, Card, Loading, Table, Badge, EmptyState, ErrorState, Pill } from '../_components/ui'
 
 // Managing the people on IGCSC — create, edit, suspend, remove.
@@ -17,7 +18,6 @@ const ROLES = [
   { key: 'tutor', label: 'Tutors' },
   { key: 'admin', label: 'Admins' },
 ]
-const SUBJECTS = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English Language', 'Economics', 'Computer Science']
 
 const BLANK = {
   name: '', email: '', password: '', role: 'student',
@@ -29,10 +29,6 @@ const BLANK = {
 // after each keystroke — which is exactly how an input loses focus mid-word.
 function UserForm({ draft, setDraft, editing, saving, error, onSave, onClose }) {
   const set = (k) => (e) => setDraft((d) => ({ ...d, [k]: e.target.value }))
-  const toggleSubject = (s) => setDraft((d) => ({
-    ...d,
-    subjects: d.subjects.includes(s) ? d.subjects.filter((x) => x !== s) : [...d.subjects, s],
-  }))
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4 sm:items-center">
@@ -107,19 +103,10 @@ function UserForm({ draft, setDraft, editing, saving, error, onSave, onClose }) 
                 <input type="email" value={draft.guardianEmail} onChange={set('guardianEmail')} placeholder="parent@example.com"
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100" />
               </label>
-              <div>
-                <span className="mb-1.5 block text-xs font-semibold text-slate-600">Subjects</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {SUBJECTS.map((s) => (
-                    <button key={s} type="button" onClick={() => toggleSubject(s)}
-                      className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                        draft.subjects.includes(s) ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}>
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <SubjectPicker
+                value={draft.subjects}
+                onChange={(subjects) => setDraft((d) => ({ ...d, subjects }))}
+              />
             </>
           )}
 
