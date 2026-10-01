@@ -3,6 +3,10 @@ import { igcscModels } from '../../../../lib/igcscDb'
 import { requireIgcscAuth, IGCSC_STAFF } from '../../../../lib/igcscAuth'
 
 // Assign / unassign an IGCSE test to a student. Creates (or removes) an ASSIGNED session.
+//
+// The session is filed under the student's ACCOUNT id, which is what their own
+// results page looks sessions up by. It used to be filed under a separate
+// `Student` document's id, so an allocated test reached nobody.
 export async function PUT(request) {
   try {
     const auth = requireIgcscAuth(request, IGCSC_STAFF)
@@ -11,8 +15,8 @@ export async function PUT(request) {
     if (!studentId || !testId || !action) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
-    const { Student, Test, Session } = await igcscModels()
-    const student = await Student.findById(studentId)
+    const { IgcscUser, Test, Session } = await igcscModels()
+    const student = await IgcscUser.findOne({ _id: studentId, role: 'student' })
     const test = await Test.findById(testId)
     if (!student || !test) return NextResponse.json({ error: 'Student or test not found' }, { status: 404 })
 

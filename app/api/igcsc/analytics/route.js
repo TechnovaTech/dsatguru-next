@@ -6,10 +6,10 @@ export async function GET(request) {
   try {
     const auth = requireIgcscAuth(request, IGCSC_STAFF)
     if (auth.error) return auth.error
-    const { Student, QuestionBank, Test, Session } = await igcscModels()
+    const { IgcscUser, QuestionBank, Test, Session } = await igcscModels()
 
     const [students, banks, tests, sessions] = await Promise.all([
-      Student.countDocuments({}),
+      IgcscUser.countDocuments({ role: 'student' }),
       QuestionBank.countDocuments({}),
       Test.countDocuments({}),
       Session.countDocuments({ state: 'COMPLETED' }),

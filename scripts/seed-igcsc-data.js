@@ -33,7 +33,9 @@ if (!isLocalMongo(uri)) console.warn(`WARNING: ${WIPE_FLAG} given; wiping the "$
 
 const gradeFromPct = (p) => p >= 90 ? 'A*' : p >= 80 ? 'A' : p >= 70 ? 'B' : p >= 60 ? 'C' : p >= 50 ? 'D' : p >= 40 ? 'E' : 'U'
 
-const userSchema = new mongoose.Schema({ name: String, email: { type: String, lowercase: true }, password: String, role: { type: String, default: 'student' }, yearGroup: String, subjects: [String], isActive: { type: Boolean, default: true } }, { timestamps: true })
+const userSchema = new mongoose.Schema({ name: String, email: { type: String, lowercase: true }, password: String, role: { type: String, default: 'student' }, yearGroup: String, subjects: [String], targetGrade: String, targetDate: Date, guardianEmail: String, assignedTests: [mongoose.Schema.Types.ObjectId], isActive: { type: Boolean, default: true } }, { timestamps: true })
+// Retired - people live in `users` now. Declared only so the wipe below can
+// still clear anything an older run of this script left behind.
 const studentSchema = new mongoose.Schema({ name: String, email: { type: String, lowercase: true }, yearGroup: String, targetGrade: String, targetDate: Date, subjects: [String], guardianEmail: String, isActive: { type: Boolean, default: true }, assignedTests: [mongoose.Schema.Types.ObjectId] }, { timestamps: true })
 const bankSchema = new mongoose.Schema({ title: String, subject: String, description: String, totalQuestions: Number, status: { type: String, default: 'Active' } }, { timestamps: true })
 const testSchema = new mongoose.Schema({ title: String, subject: String, testType: String, totalQuestions: Number, durationMin: Number, maxMarks: Number, isActive: { type: Boolean, default: true } }, { timestamps: true })
@@ -73,18 +75,19 @@ async function run() {
       isActive: i % 9 !== 0,
     })
   }
-  const studentDocs = await Student.insertMany(students)
-  console.log(`Inserted ${studentDocs.length} students`)
-
-  // IGCSC login accounts (own auth, own DB): 1 admin + a login per demo student.
+  // ONE record per person: their login and their profile together.
+  //
+  // This used to insert each demo student twice - once as a `Student` and again
+  // as a login - and then file their sessions under the Student id, which is
+  // the id their own results page never looks at. That is the split the product
+  // has since been fixed to stop having; do not reintroduce it here.
   const adminPw = await bcrypt.hash(process.env.IGCSC_ADMIN_PASSWORD || 'admin@igcsc', 12)
   const studentPw = await bcrypt.hash('igcsc123', 12)
-  const userDocs = [{ name: 'IGCSC Administrator', email: 'admin@igcsc.com', password: adminPw, role: 'admin', isActive: true }]
-  for (const s of studentDocs) {
-    userDocs.push({ name: s.name, email: s.email, password: studentPw, role: 'student', yearGroup: s.yearGroup, subjects: s.subjects, isActive: s.isActive })
-  }
-  await IgcscUser.insertMany(userDocs)
-  console.log(`Inserted ${userDocs.length} IGCSC login accounts (admin@igcsc.com / admin@igcsc; students / igcsc123)`)
+  await IgcscUser.create({ name: 'IGCSC Administrator', email: 'admin@igcsc.com', password: adminPw, role: 'admin', isActive: true })
+  const studentDocs = await IgcscUser.insertMany(
+    students.map((st) => ({ ...st, password: studentPw, role: 'student' })),
+  )
+  console.log(`Inserted ${studentDocs.length + 1} IGCSC accounts (admin@igcsc.com / admin@igcsc; students / igcsc123)`)
 
   // Question banks (one per subject)
   const banks = SUBJECTS.map((s, i) => ({
