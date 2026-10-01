@@ -1,14 +1,13 @@
 'use client'
 import Link from 'next/link'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { igcscToken, igcscUser, igcscTokenExpired, igcscLogout } from './_components/auth'
+import { apiGetSafe } from './_components/api'
 import Watermark from '../components/Watermark'
 import {
-  FiGrid, FiDatabase, FiLayers, FiClipboard, FiMic, FiSend, FiActivity,
-  FiUsers, FiTrendingUp, FiBarChart2, FiFileText, FiPieChart, FiLogOut,
-  FiMenu, FiX, FiChevronDown, FiVideo, FiEdit3, FiUser,
-  FiShoppingBag, FiBookOpen, FiCheckSquare, FiTag,
+  FiGrid, FiDatabase, FiSend, FiUsers, FiBarChart2, FiLogOut, FiMenu, FiX,
+  FiVideo, FiEdit3, FiUser, FiShoppingBag, FiBookOpen, FiCheckSquare, FiTag,
 } from 'react-icons/fi'
 
 // Staff run the centre; students sit exams. They share a shell and nothing else.
@@ -18,60 +17,31 @@ const STUDENT_LINKS = [
   { label: 'My Tests', path: '/igcsc/my-tests', icon: FiBookOpen },
   { label: 'Practice', path: '/igcsc/practice', icon: FiEdit3 },
   { label: 'My Results', path: '/igcsc/my-results', icon: FiBarChart2 },
-  { label: 'Live Sessions', path: '/igcsc/meetings', icon: FiVideo },
+  { label: 'Live Classes', path: '/igcsc/meetings', icon: FiVideo },
   { label: 'Profile', path: '/igcsc/profile', icon: FiUser },
+]
+
+// Seven plain links, in the order the work happens: find a paper, give it to
+// students, check what comes back. There used to be five dropdowns of
+// seventeen pages, most of them built on an old test model that never held a
+// single record - an admin could not tell where anything was.
+const STAFF_LINKS = [
+  { label: 'Dashboard', path: '/igcsc', icon: FiGrid, exact: true },
+  { label: 'Question Bank', path: '/igcsc/question-bank', icon: FiDatabase },
+  { label: 'Users', path: '/igcsc/users', icon: FiUsers },
+  { label: 'Assigned', path: '/igcsc/paper-assign', icon: FiSend },
+  { label: 'Marking', path: '/igcsc/grading', icon: FiCheckSquare, badge: 'marking' },
+  { label: 'Live Classes', path: '/igcsc/meetings', icon: FiVideo },
+  { label: 'Store', path: '/igcsc/store-admin', icon: FiTag, adminOnly: true },
 ]
 
 // Everything a student must never reach. The nav hides them; this bounces a
 // typed URL as well.
 const STAFF_ONLY = [
-  '/igcsc/question-bank', '/igcsc/assessments', '/igcsc/tests', '/igcsc/exam-paper',
-  '/igcsc/oral-tests', '/igcsc/test-allocation', '/igcsc/assessment-tracker',
-  '/igcsc/users', '/igcsc/student-tracker', '/igcsc/student-performance',
-  '/igcsc/reports', '/igcsc/analytics',
+  '/igcsc/question-bank', '/igcsc/exam-paper', '/igcsc/users',
   '/igcsc/store-admin', '/igcsc/paper-assign', '/igcsc/grading',
 ]
 
-const LINKS = [
-  { label: 'Dashboard', path: '/igcsc', icon: FiGrid, exact: true },
-]
-const GROUPS = [
-  {
-    id: 'assessments', label: 'Assessments', icon: FiClipboard, items: [
-      { label: 'Question Bank', path: '/igcsc/question-bank', icon: FiDatabase },
-      { label: 'APT · SMS · CSQ', path: '/igcsc/assessments', icon: FiLayers },
-      { label: 'Tests', path: '/igcsc/tests', icon: FiClipboard },
-      { label: 'Exam Paper', path: '/igcsc/exam-paper', icon: FiFileText },
-      { label: 'Live Sessions', path: '/igcsc/meetings', icon: FiVideo },
-      { label: 'Oral Tests', path: '/igcsc/oral-tests', icon: FiMic },
-      { label: 'Test Allocation', path: '/igcsc/test-allocation', icon: FiSend },
-      { label: 'Assessment Tracker', path: '/igcsc/assessment-tracker', icon: FiActivity },
-    ],
-  },
-  {
-    id: 'students', label: 'Students', icon: FiUsers, items: [
-      { label: 'Users', path: '/igcsc/users', icon: FiUsers },
-      { label: 'Student Tracker', path: '/igcsc/student-tracker', icon: FiTrendingUp },
-      { label: 'Student Performance', path: '/igcsc/student-performance', icon: FiBarChart2 },
-    ],
-  },
-  {
-    id: 'store', label: 'Papers', icon: FiShoppingBag, items: [
-      { label: 'Store & Pricing', path: '/igcsc/store-admin', icon: FiTag, adminOnly: true },
-      { label: 'Assign Papers', path: '/igcsc/paper-assign', icon: FiSend },
-      { label: 'Marking', path: '/igcsc/grading', icon: FiCheckSquare },
-    ],
-  },
-  {
-    id: 'reports', label: 'Reports', icon: FiPieChart, items: [
-      { label: 'Test Report', path: '/igcsc/reports', icon: FiFileText },
-      { label: 'Reports', path: '/igcsc/analytics', icon: FiPieChart },
-    ],
-  },
-]
-
-export const NAV = [{ group: '', items: [...LINKS, ...GROUPS.flatMap((g) => g.items)] }]
-const FLAT = [...LINKS, ...GROUPS.flatMap((g) => g.items)]
 const isActive = (item, pathname) =>
   item.exact ? pathname === item.path : pathname === item.path || pathname.startsWith(item.path + '/')
 
@@ -87,13 +57,22 @@ function BrandMark() {
   )
 }
 
+function CountBadge({ n }) {
+  if (!n) return null
+  return (
+    <span className="ml-0.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-violet-600 px-1.5 text-[10px] font-bold leading-5 text-white">
+      {n > 99 ? '99+' : n}
+    </span>
+  )
+}
+
 export default function IgcscLayout({ children }) {
   const router = useRouter()
   const pathname = usePathname()
   const [user, setUser] = useState(undefined) // undefined = checking, null = none
-  const [openMenu, setOpenMenu] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const navRef = useRef(null)
+  // Answers waiting for a tutor, shown on the Marking link.
+  const [toCheck, setToCheck] = useState(0)
 
   const isLoginPage = pathname === '/igcsc/login'
   // Class join links are public: a guest has no account, and a signed-in user's
@@ -114,7 +93,7 @@ export default function IgcscLayout({ children }) {
     if (!t || igcscTokenExpired(t)) { router.replace('/igcsc/login'); return }
     const u = igcscUser()
     // A student must not reach a staff screen by typing its URL — those pages
-    // hold the question bank, the user list and other students' performance.
+    // hold the question bank, the user list and other students' work.
     if (u?.role === 'student' && STAFF_ONLY.some((base) => pathname === base || pathname.startsWith(base + '/'))) {
       router.replace('/igcsc')
       return
@@ -122,17 +101,22 @@ export default function IgcscLayout({ children }) {
     setUser(u)
   }, [pathname, router, isPublicPage])
 
-  useEffect(() => { setOpenMenu(null); setMobileOpen(false) }, [pathname])
-  useEffect(() => {
-    const onClick = (e) => { if (navRef.current && !navRef.current.contains(e.target)) setOpenMenu(null) }
-    document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
-  }, [])
+  useEffect(() => { setMobileOpen(false) }, [pathname])
 
-  const activeItem = useMemo(
-    () => FLAT.filter((i) => isActive(i, pathname)).sort((a, b) => b.path.length - a.path.length)[0],
-    [pathname]
-  )
+  // The Marking badge: refreshed on every page change (the layout itself never
+  // remounts) and once a minute, so it falls as answers are checked.
+  const isStaff = user?.role === 'admin' || user?.role === 'tutor'
+  useEffect(() => {
+    if (!isStaff) return undefined
+    let alive = true
+    const load = async () => {
+      const r = await apiGetSafe('/api/igcsc/grading?status=needs_review', null)
+      if (alive && r?.counts) setToCheck(Number(r.counts.needs_review || 0))
+    }
+    load()
+    const t = setInterval(load, 60000)
+    return () => { alive = false; clearInterval(t) }
+  }, [isStaff, pathname])
 
   // The login page renders full-screen with no portal chrome or guard.
   if (isPublicPage) return <>{children}</>
@@ -148,43 +132,24 @@ export default function IgcscLayout({ children }) {
 
   const handleLogout = () => { igcscLogout(); router.push('/igcsc/login') }
   const initials = (user.name || user.email || 'A').trim().slice(0, 2).toUpperCase()
-  const linkCls = (active) => `flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${active ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`
-  const groupActive = (g) => g.items.some((it) => isActive(it, pathname))
+  const linkCls = (active) => `flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${active ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`
   const roleLabel = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : ''
   const isStudent = user.role === 'student'
-  const isAdmin = user.role === 'admin'
-  const visibleGroups = GROUPS
-    .map((g) => ({ ...g, items: g.items.filter((it) => isAdmin || !it.adminOnly) }))
-    .filter((g) => g.items.length)
-  const visibleFlat = [...LINKS, ...visibleGroups.flatMap((g) => g.items)]
+  const links = isStudent ? STUDENT_LINKS : STAFF_LINKS.filter((l) => user.role === 'admin' || !l.adminOnly)
+  const badgeFor = (l) => (l.badge === 'marking' ? toCheck : 0)
 
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 lg:px-8">
           <Link href="/igcsc"><BrandMark /></Link>
-          {/* Students have seven links - too many for an iPad in landscape, so
-              their full nav waits for xl and the menu button covers below it. */}
-          <nav ref={navRef} className={`hidden flex-1 items-center justify-center gap-1 ${isStudent ? 'xl:flex' : 'lg:flex'}`}>
-            {(isStudent ? STUDENT_LINKS : LINKS).map((l) => (
-              <Link key={l.path} href={l.path} className={linkCls(isActive(l, pathname))}><l.icon size={15} /> {l.label}</Link>
-            ))}
-            {!isStudent && visibleGroups.map((g) => (
-              <div key={g.id} className="relative">
-                <button onClick={() => setOpenMenu((m) => (m === g.id ? null : g.id))} className={linkCls(groupActive(g) || openMenu === g.id)}>
-                  <g.icon size={15} /> {g.label}
-                  <FiChevronDown size={13} className={`transition-transform ${openMenu === g.id ? 'rotate-180' : ''}`} />
-                </button>
-                {openMenu === g.id && (
-                  <div className="absolute left-0 top-full z-[60] mt-2 w-60 overflow-hidden rounded-xl border border-slate-100 bg-white py-1.5 shadow-xl">
-                    {g.items.map((it) => (
-                      <Link key={it.path} href={it.path} className={`flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors ${isActive(it, pathname) ? 'bg-indigo-50 font-semibold text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>
-                        <it.icon size={15} className="text-slate-400" /> {it.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
+          {/* Seven links do not fit an iPad in landscape: the full row waits for
+              xl, and the menu button covers everything below it. */}
+          <nav className="hidden flex-1 items-center justify-center gap-1 xl:flex">
+            {links.map((l) => (
+              <Link key={l.path} href={l.path} className={linkCls(isActive(l, pathname))}>
+                <l.icon size={15} /> {l.label} <CountBadge n={badgeFor(l)} />
+              </Link>
             ))}
           </nav>
           <div className="flex items-center gap-3">
@@ -198,17 +163,18 @@ export default function IgcscLayout({ children }) {
             <button onClick={handleLogout} className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600" title="Logout">
               <FiLogOut size={16} /> <span className="hidden sm:inline">Logout</span>
             </button>
-            <button onClick={() => setMobileOpen((o) => !o)} className={`rounded-lg p-2 text-slate-600 hover:bg-slate-100 ${isStudent ? 'xl:hidden' : 'lg:hidden'}`}>
+            <button onClick={() => setMobileOpen((o) => !o)} className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100 xl:hidden" aria-label="Menu">
               {mobileOpen ? <FiX size={20} /> : <FiMenu size={20} />}
+              {!mobileOpen && toCheck > 0 && <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-violet-600" />}
             </button>
           </div>
         </div>
         {mobileOpen && (
-          <div className={`border-t border-slate-100 bg-white px-4 py-3 ${isStudent ? 'xl:hidden' : 'lg:hidden'}`}>
+          <div className="border-t border-slate-100 bg-white px-4 py-3 xl:hidden">
             <div className="flex flex-col gap-0.5">
-              {(isStudent ? STUDENT_LINKS : visibleFlat).map((it) => (
+              {links.map((it) => (
                 <Link key={it.path} href={it.path} className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition-colors ${isActive(it, pathname) ? 'bg-indigo-50 font-semibold text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>
-                  <it.icon size={16} className="text-slate-400" /> {it.label}
+                  <it.icon size={16} className="text-slate-400" /> {it.label} <CountBadge n={badgeFor(it)} />
                 </Link>
               ))}
             </div>

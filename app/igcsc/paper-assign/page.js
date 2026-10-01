@@ -573,8 +573,8 @@ export default function PaperAssignPage() {
   return (
     <div>
       <PageHeader
-        title="Assign papers"
-        subtitle="Pick students and papers, set a due date, and the papers appear in each student's My Tests — free to them."
+        title="Assigned"
+        subtitle="Every paper you have given students, and how they did. To give one paper, open it in the Question Bank and press Assign; to give many papers to many students at once, use the form below."
         actions={(
           <Link href="/igcsc/grading" className={BTN_SECONDARY}>
             <FiCheckSquare size={15} /> Marking queue

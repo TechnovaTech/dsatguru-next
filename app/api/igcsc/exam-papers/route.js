@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { igcscModels } from '../../../../lib/igcscDb'
 import { requireIgcscAuth, IGCSC_STAFF } from '../../../../lib/igcscAuth'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/igcsc/exam-papers — powers the printable Exam Paper flow.
 // Papers are the bank's real source groupings: one `sourceFolder` (one exported
 // worksheet/paper page) = one printable paper, in original PDF order.
@@ -55,17 +57,28 @@ export async function GET(request) {
         } },
         { $sort: { course: 1, _id: 1 } },
       ])
-      // Frozen numbers from the store catalogue win over sort position.
+      // The catalogue's own record of each paper: its frozen number, and what
+      // staff need to act on it from here - its id to assign it, whether it is
+      // on sale, at what price, and why it is held back if it is.
       const { Paper } = await igcscModels()
-      const frozen = new Map(
-        (await Paper.find({ curriculum, subject }).select('sourceFolder paperNo').lean())
-          .map((p) => [p.sourceFolder || '', p.paperNo]),
+      const docs = new Map(
+        (await Paper.find({ curriculum, subject })
+          .select('sourceFolder paperNo isPublished missingFromBank price clean holdReason mcqCount writtenCount').lean())
+          .map((p) => [p.sourceFolder || '', p]),
       )
       // A folder imported since the last catalogue sync has no frozen number
       // yet; it goes after the highest one rather than colliding with it.
-      let next = Math.max(0, ...frozen.values())
-      const papers = rows.map((r, i) => ({
-        n: frozen.get(r._id || '') || (frozen.size ? ++next : i + 1),
+      let next = Math.max(0, ...[...docs.values()].map((d) => d.paperNo || 0))
+      const papers = rows.map((r, i) => {
+        const d = docs.get(r._id || '')
+        return {
+        n: d?.paperNo || (docs.size ? ++next : i + 1),
+        paperId: d ? String(d._id) : null,
+        onSale: !!(d && d.isPublished && !d.missingFromBank),
+        price: d ? Number(d.price || 0) : null,
+        held: d ? !d.clean : false,
+        holdReason: d?.holdReason || '',
+        markable: d ? (d.mcqCount || 0) + (d.writtenCount || 0) : null,
         folder: r._id || '',
         course: r.course || '',
         topic: r.topic || '',
@@ -74,7 +87,8 @@ export async function GET(request) {
         count: r.count,
         mcq: r.mcq,
         marks: r.marks,
-      }))
+        }
+      })
       papers.sort((a, b) => a.n - b.n)
       return NextResponse.json({ curriculum, subject, papers })
     }
