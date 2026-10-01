@@ -55,8 +55,17 @@ export async function GET(request) {
         } },
         { $sort: { course: 1, _id: 1 } },
       ])
+      // Frozen numbers from the store catalogue win over sort position.
+      const { Paper } = await igcscModels()
+      const frozen = new Map(
+        (await Paper.find({ curriculum, subject }).select('sourceFolder paperNo').lean())
+          .map((p) => [p.sourceFolder || '', p.paperNo]),
+      )
+      // A folder imported since the last catalogue sync has no frozen number
+      // yet; it goes after the highest one rather than colliding with it.
+      let next = Math.max(0, ...frozen.values())
       const papers = rows.map((r, i) => ({
-        n: i + 1,
+        n: frozen.get(r._id || '') || (frozen.size ? ++next : i + 1),
         folder: r._id || '',
         course: r.course || '',
         topic: r.topic || '',
@@ -66,6 +75,7 @@ export async function GET(request) {
         mcq: r.mcq,
         marks: r.marks,
       }))
+      papers.sort((a, b) => a.n - b.n)
       return NextResponse.json({ curriculum, subject, papers })
     }
 

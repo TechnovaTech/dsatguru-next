@@ -27,6 +27,11 @@ export async function GET(request) {
     // Students by default: every existing caller (the tracker, test allocation)
     // asks this endpoint for students and nothing else.
     const query = role === 'all' ? {} : { role: ROLES.includes(role) ? role : 'student' }
+    const q = String(new URL(request.url).searchParams.get('q') || '').trim().slice(0, 80)
+    if (q) {
+      const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
+      query.$or = [{ name: rx }, { email: rx }]
+    }
 
     const { IgcscUser } = await igcscModels()
     const people = await IgcscUser.find(query).select(SAFE).sort({ createdAt: -1 }).limit(1000).lean()

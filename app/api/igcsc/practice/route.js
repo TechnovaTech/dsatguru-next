@@ -137,6 +137,11 @@ export async function PATCH(request) {
     if (session.state === 'COMPLETED') {
       return NextResponse.json({ error: 'This attempt was already submitted.' }, { status: 409 })
     }
+    // Only a practice set is graded here. Without this an owner could point the
+    // letter-comparison grader at an allocated test and overwrite its marks.
+    if (session.mode !== 'practice') {
+      return NextResponse.json({ error: 'This is not a practice set.' }, { status: 409 })
+    }
 
     // Grade against the bank — never against anything the client sent.
     const questions = await Question.find({ _id: { $in: session.questionIds } })

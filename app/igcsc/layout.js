@@ -8,11 +8,14 @@ import {
   FiGrid, FiDatabase, FiLayers, FiClipboard, FiMic, FiSend, FiActivity,
   FiUsers, FiTrendingUp, FiBarChart2, FiFileText, FiPieChart, FiLogOut,
   FiMenu, FiX, FiChevronDown, FiVideo, FiEdit3, FiUser,
+  FiShoppingBag, FiBookOpen, FiCheckSquare, FiTag,
 } from 'react-icons/fi'
 
 // Staff run the centre; students sit exams. They share a shell and nothing else.
 const STUDENT_LINKS = [
   { label: 'Dashboard', path: '/igcsc', icon: FiGrid, exact: true },
+  { label: 'Test Papers', path: '/igcsc/store', icon: FiShoppingBag },
+  { label: 'My Tests', path: '/igcsc/my-tests', icon: FiBookOpen },
   { label: 'Practice', path: '/igcsc/practice', icon: FiEdit3 },
   { label: 'My Results', path: '/igcsc/my-results', icon: FiBarChart2 },
   { label: 'Live Sessions', path: '/igcsc/meetings', icon: FiVideo },
@@ -26,6 +29,7 @@ const STAFF_ONLY = [
   '/igcsc/oral-tests', '/igcsc/test-allocation', '/igcsc/assessment-tracker',
   '/igcsc/users', '/igcsc/student-tracker', '/igcsc/student-performance',
   '/igcsc/reports', '/igcsc/analytics',
+  '/igcsc/store-admin', '/igcsc/paper-assign', '/igcsc/grading',
 ]
 
 const LINKS = [
@@ -49,6 +53,13 @@ const GROUPS = [
       { label: 'Users', path: '/igcsc/users', icon: FiUsers },
       { label: 'Student Tracker', path: '/igcsc/student-tracker', icon: FiTrendingUp },
       { label: 'Student Performance', path: '/igcsc/student-performance', icon: FiBarChart2 },
+    ],
+  },
+  {
+    id: 'store', label: 'Papers', icon: FiShoppingBag, items: [
+      { label: 'Store & Pricing', path: '/igcsc/store-admin', icon: FiTag, adminOnly: true },
+      { label: 'Assign Papers', path: '/igcsc/paper-assign', icon: FiSend },
+      { label: 'Marking', path: '/igcsc/grading', icon: FiCheckSquare },
     ],
   },
   {
@@ -93,6 +104,9 @@ export default function IgcscLayout({ children }) {
   // page: the guard would send a would-be student to a login they cannot pass.
   const isRegisterPage = pathname === '/igcsc/register'
   const isPublicPage = isLoginPage || isJoinPage || isRegisterPage
+  // A timed test and a printable answer sheet take the whole screen: the
+  // portal header would sit on top of the timer, and would print.
+  const isBarePage = /^\/igcsc\/attempt\/[^/]+\/(mcq|print)(\/|$)/.test(pathname)
 
   useEffect(() => {
     if (isPublicPage) return
@@ -123,6 +137,14 @@ export default function IgcscLayout({ children }) {
   // The login page renders full-screen with no portal chrome or guard.
   if (isPublicPage) return <>{children}</>
   if (!user) return null
+  if (isBarePage) {
+    return (
+      <>
+        {children}
+        {user?.email && <Watermark label={user.email} />}
+      </>
+    )
+  }
 
   const handleLogout = () => { igcscLogout(); router.push('/igcsc/login') }
   const initials = (user.name || user.email || 'A').trim().slice(0, 2).toUpperCase()
@@ -130,17 +152,24 @@ export default function IgcscLayout({ children }) {
   const groupActive = (g) => g.items.some((it) => isActive(it, pathname))
   const roleLabel = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : ''
   const isStudent = user.role === 'student'
+  const isAdmin = user.role === 'admin'
+  const visibleGroups = GROUPS
+    .map((g) => ({ ...g, items: g.items.filter((it) => isAdmin || !it.adminOnly) }))
+    .filter((g) => g.items.length)
+  const visibleFlat = [...LINKS, ...visibleGroups.flatMap((g) => g.items)]
 
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 lg:px-8">
           <Link href="/igcsc"><BrandMark /></Link>
-          <nav ref={navRef} className="hidden flex-1 items-center justify-center gap-1 lg:flex">
+          {/* Students have seven links - too many for an iPad in landscape, so
+              their full nav waits for xl and the menu button covers below it. */}
+          <nav ref={navRef} className={`hidden flex-1 items-center justify-center gap-1 ${isStudent ? 'xl:flex' : 'lg:flex'}`}>
             {(isStudent ? STUDENT_LINKS : LINKS).map((l) => (
               <Link key={l.path} href={l.path} className={linkCls(isActive(l, pathname))}><l.icon size={15} /> {l.label}</Link>
             ))}
-            {!isStudent && GROUPS.map((g) => (
+            {!isStudent && visibleGroups.map((g) => (
               <div key={g.id} className="relative">
                 <button onClick={() => setOpenMenu((m) => (m === g.id ? null : g.id))} className={linkCls(groupActive(g) || openMenu === g.id)}>
                   <g.icon size={15} /> {g.label}
@@ -169,15 +198,15 @@ export default function IgcscLayout({ children }) {
             <button onClick={handleLogout} className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600" title="Logout">
               <FiLogOut size={16} /> <span className="hidden sm:inline">Logout</span>
             </button>
-            <button onClick={() => setMobileOpen((o) => !o)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden">
+            <button onClick={() => setMobileOpen((o) => !o)} className={`rounded-lg p-2 text-slate-600 hover:bg-slate-100 ${isStudent ? 'xl:hidden' : 'lg:hidden'}`}>
               {mobileOpen ? <FiX size={20} /> : <FiMenu size={20} />}
             </button>
           </div>
         </div>
         {mobileOpen && (
-          <div className="border-t border-slate-100 bg-white px-4 py-3 lg:hidden">
+          <div className={`border-t border-slate-100 bg-white px-4 py-3 ${isStudent ? 'xl:hidden' : 'lg:hidden'}`}>
             <div className="flex flex-col gap-0.5">
-              {(isStudent ? STUDENT_LINKS : FLAT).map((it) => (
+              {(isStudent ? STUDENT_LINKS : visibleFlat).map((it) => (
                 <Link key={it.path} href={it.path} className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition-colors ${isActive(it, pathname) ? 'bg-indigo-50 font-semibold text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>
                   <it.icon size={16} className="text-slate-400" /> {it.label}
                 </Link>
