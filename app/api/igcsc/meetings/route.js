@@ -41,12 +41,15 @@ function sanitize(body, existing = {}) {
   }
   if (body?.guestAccess) {
     const enabled = !!body.guestAccess.enabled
+    // No code sent keeps the current one; an explicit empty string is the UI's
+    // "New code" and rotates it. Switching off clears it so an old link dies.
+    const requested = body.guestAccess.code
+    const keep = requested === undefined || requested === null
+      ? existing.guestAccess?.code
+      : String(requested)
     out.guestAccess = {
       enabled,
-      // Regenerate on demand; switching off clears the code so an old link dies.
-      code: enabled
-        ? (body.guestAccess.code || existing.guestAccess?.code || crypto.randomBytes(5).toString('hex'))
-        : '',
+      code: enabled ? (keep || crypto.randomBytes(5).toString('hex')) : '',
     }
   }
   return out

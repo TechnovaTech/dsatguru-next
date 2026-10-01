@@ -8,6 +8,7 @@ import Test from '../../../../../lib/models/Test'
 import Question from '../../../../../lib/models/Question'
 import { requireRole } from '../../../../../lib/auth'
 import { STAFF_ROLES } from '../../../../../lib/constants/roles'
+import { tutorStudentIds } from '../../../../../lib/tutorScope'
 
 export async function GET(request, { params }) {
   try {
@@ -18,6 +19,12 @@ export async function GET(request, { params }) {
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: 'Invalid user id' }, { status: 400 })
+    }
+
+    // A Tutor may only open their own students' analysis.
+    const scope = await tutorStudentIds(auth.decoded)
+    if (scope && !scope.some((sid) => String(sid) === String(id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // 1. Fetch User

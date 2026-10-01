@@ -9,6 +9,7 @@ import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
 import { answersMatch } from '../../../../../lib/scoring/satScale'
 import { getCustomMap, effectiveCorrectAnswer, effectiveOptions } from '../../../../../lib/tutorCustomQuestions'
 import { computeUnitCohort, computePercentile } from '../../../../../lib/testCohort'
+import { STAFF_ROLES } from '../../../../../lib/constants/roles'
 
 export async function GET(request, { params }) {
   try {
@@ -27,6 +28,19 @@ export async function GET(request, { params }) {
     const test = await Test.findById(testId).populate('questions')
     if (!test) {
       return NextResponse.json({ error: 'Test not found' }, { status: 404 })
+    }
+
+    // The payload carries every question's key. Staff may always read it; a student only
+    // once they have completed this test (review) — never while an attempt is open.
+    if (!STAFF_ROLES.includes(decoded.role)) {
+      const completed = await TestSession.exists({
+        userId: decoded.userId,
+        testId,
+        $or: [{ status: 'Completed' }, { state: 'COMPLETED' }]
+      })
+      if (!completed) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     // Get all completed sessions for this test

@@ -6,13 +6,18 @@ import User from '../../../../lib/models/User'
 import Test from '../../../../lib/models/Test'
 import { requireRole } from '../../../../lib/auth'
 import { STAFF_ROLES } from '../../../../lib/constants/roles'
+import { tutorStudentIds } from '../../../../lib/tutorScope'
 
 export async function GET(request) {
   try {
     const auth = requireRole(request, STAFF_ROLES)
     if (auth.error) return auth.error
     await connectDB()
-    const sessions = await TestSession.find({ state: { $in: ['COMPLETED', 'TERMINATED'] } })
+    const scope = await tutorStudentIds(auth.decoded)
+    const sessions = await TestSession.find({
+      state: { $in: ['COMPLETED', 'TERMINATED'] },
+      ...(scope ? { userId: { $in: scope } } : {})
+    })
       .sort({ endTime: -1 })
       .limit(100)
       .populate('userId', 'name email')

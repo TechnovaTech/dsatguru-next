@@ -7,8 +7,7 @@ const program = {
   title: 'Digital SAT Individual Tutoring',
   highlightTag: '1:1 Personalized Support',
   heroArt: '/art/prog-tutoring.png',
-  seoTitle: 'SAT Tutoring Online | One-on-One SAT Prep',
-  seoDescription: 'Get personalized one-on-one SAT tutoring with expert SAT tutors, customized study plans, and proven strategies designed to maximize your score.',
+  // <title> / meta description for this page live in ./layout.js (server metadata).
   overview: 'Personalized tutoring focused on your unique strengths, weaknesses, and goals, with flexible scheduling and tailored lesson plans.',
   keyPoints: [
     'One-on-one coaching with expert instructors',

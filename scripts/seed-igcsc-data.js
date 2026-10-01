@@ -1,12 +1,35 @@
 // Seed the SEPARATE `igcsc` database with realistic IGCSE demo data.
-//   node scripts/seed-igcsc-data.js
+//   node scripts/seed-igcsc-data.js --yes-wipe
 // Idempotent: clears the igcsc collections, then inserts a fresh demo dataset.
 try { require('@next/env').loadEnvConfig(process.cwd()) } catch { try { require('dotenv').config() } catch {} }
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 
 const base = process.env.MONGO_URI || 'mongodb://localhost:27017/dsatmain'
-const uri = process.env.IGCSC_MONGO_URI || base.replace(/\/([^/?]+)(\?|$)/, '/igcsc$2')
+// Server to connect to. The IGCSC database on it is selected BY NAME below, exactly
+// as lib/igcscDb.js does (IGCSC_DB_NAME || 'igcsc'), instead of regex-rewriting the
+// URI path, which silently targeted the server's default database for URIs without
+// a path segment.
+const uri = process.env.IGCSC_MONGO_URI || base
+const IGCSC_DB_NAME = process.env.IGCSC_DB_NAME || 'igcsc'
+
+// --- Wipe guard --------------------------------------------------------------
+// This script DELETES every IGCSC user, student, question bank, test and session
+// before re-seeding, so it only runs with an explicit --yes-wipe flag, and says so
+// loudly when the target is not a local database.
+const WIPE_FLAG = '--yes-wipe'
+const isLocalMongo = (u) => {
+  try { return ['localhost', '127.0.0.1', '[::1]'].includes(new URL(u).hostname) }
+  catch { return /^mongodb(\+srv)?:\/\/(?:[^@/]*@)?(?:localhost|127\.0\.0\.1)(?::\d+)?(?:[/?]|$)/i.test(u) }
+}
+const redactedUri = uri.replace(/\/\/[^@/]+@/, '//***@')
+if (!process.argv.includes(WIPE_FLAG)) {
+  console.error(`Refusing to run: scripts/seed-igcsc-data.js DELETES every document in the "${IGCSC_DB_NAME}" database on ${redactedUri}${isLocalMongo(uri) ? '' : ' (NOT a localhost server!)'}.`)
+  console.error(`Re-run with the ${WIPE_FLAG} flag to confirm:  node scripts/seed-igcsc-data.js ${WIPE_FLAG}`)
+  process.exit(1)
+}
+if (!isLocalMongo(uri)) console.warn(`WARNING: ${WIPE_FLAG} given; wiping the "${IGCSC_DB_NAME}" database on a NON-local server: ${redactedUri}`)
+// -----------------------------------------------------------------------------
 
 const gradeFromPct = (p) => p >= 90 ? 'A*' : p >= 80 ? 'A' : p >= 70 ? 'B' : p >= 60 ? 'C' : p >= 50 ? 'D' : p >= 40 ? 'E' : 'U'
 
@@ -22,12 +45,14 @@ const LAST = ['Sharma', 'Patel', 'Khan', 'Reddy', 'Nair', 'Gupta', 'Shah', 'Meht
 
 async function run() {
   await mongoose.connect(uri)
-  console.log('Connected to IGCSC DB:', mongoose.connection.name)
-  const IgcscUser = mongoose.model('IgcscUser', userSchema)
-  const Student = mongoose.model('Student', studentSchema)
-  const QuestionBank = mongoose.model('QuestionBank', bankSchema)
-  const Test = mongoose.model('Test', testSchema)
-  const Session = mongoose.model('Session', sessionSchema)
+  // Same selection as lib/igcscDb.js: a named database on the shared connection.
+  const conn = mongoose.connection.useDb(IGCSC_DB_NAME, { useCache: true })
+  console.log('Connected to IGCSC DB:', conn.name)
+  const IgcscUser = conn.model('IgcscUser', userSchema)
+  const Student = conn.model('Student', studentSchema)
+  const QuestionBank = conn.model('QuestionBank', bankSchema)
+  const Test = conn.model('Test', testSchema)
+  const Session = conn.model('Session', sessionSchema)
 
   await Promise.all([IgcscUser.deleteMany({}), Student.deleteMany({}), QuestionBank.deleteMany({}), Test.deleteMany({}), Session.deleteMany({})])
   console.log('Cleared existing igcsc collections')

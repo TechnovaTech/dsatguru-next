@@ -6,6 +6,23 @@ import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
+// A student receives their course documents whole, so trim each meeting to what the
+// viewer may know: drop 1-on-1s they are not part of, and never expose the guest code or
+// the allow-list itself. Transcripts/recaps of classes they belong to stay.
+function sanitizeCourseForStudent(course, userId) {
+  if (!course || typeof course !== 'object') return course
+  const c = typeof course.toObject === 'function' ? course.toObject() : { ...course }
+  const uid = String(userId)
+  c.meetings = (c.meetings || [])
+    .filter((m) => !(Array.isArray(m.allowedStudentIds) && m.allowedStudentIds.length)
+      || m.allowedStudentIds.some((id) => String(id) === uid))
+    .map((m) => {
+      const { guestAccess, allowedStudentIds, ...rest } = m
+      return { ...rest, guestAccess: { enabled: !!(guestAccess && guestAccess.enabled) } }
+    })
+  return c
+}
+
 // Verify a real, succeeded Stripe payment belonging to this user for this course.
 // On success returns { verified: true, scheduleId } using the trusted Stripe metadata.
 async function verifyStripePayment({ sessionId, paymentIntentId, userId, courseId }) {
@@ -56,12 +73,12 @@ export async function GET(request) {
     const allEnrollments = [
       ...courseEnrollments.map(e => ({
         ...e.toObject(),
-        courseId: e.courseId,
+        courseId: sanitizeCourseForStudent(e.courseId, decoded.userId),
         type: 'course'
       })),
       ...questionBankEnrollments.map(e => ({
         ...e.toObject(),
-        courseId: e.questionBankId, // Map questionBankId to courseId for compatibility
+        courseId: sanitizeCourseForStudent(e.questionBankId, decoded.userId), // Map questionBankId to courseId for compatibility
         type: 'questionBank',
         accessType: e.accessType
       }))

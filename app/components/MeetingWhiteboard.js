@@ -113,7 +113,13 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   const undoStack = useRef([])
   const redoStack = useRef([])
   const snapSeq = useRef(0)
-  const snapBuf = useRef({ seq: null, parts: 0, got: [] })
+  // One reassembly buffer per sender: when a host comes back every student
+  // answers at once, and their chunks interleave.
+  const snapBufs = useRef(new Map())
+  // True from mount until the board arrives or this client changes it. A host
+  // who refreshed holds an empty board, and until this existed announced it as
+  // the lesson at the next join - wiping everyone's.
+  const awaitingSyncRef = useRef(true)
   const [histDepth, setHistDepth] = useState({ undo: 0, redo: 0 })
   const [color, setColor] = useState('#000000')
   const [size,  setSize]  = useState(4)
@@ -179,6 +185,9 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
 
   // Save the board before a local change, so it can be walked back.
   const pushHistory = useCallback(() => {
+    // A local change: what this board holds is real now, not a blank waiting
+    // for the room to fill it in.
+    awaitingSyncRef.current = false
     undoStack.current.push(strokesRef.current.slice())
     if (undoStack.current.length > HISTORY_LIMIT) undoStack.current.shift()
     redoStack.current = []
@@ -199,7 +208,7 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
   const resetHistory = useCallback(() => {
     undoStack.current = []
     redoStack.current = []
-    snapBuf.current = { seq: null, parts: 0, got: [] }
+    snapBufs.current = new Map()
     setHistDepth({ undo: 0, redo: 0 })
   }, [])
 
@@ -281,9 +290,8 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     send({ type: WB_STROKE, stroke })
   }, [send, canDraw])
 
-  // The host's authoritative picture of the board.
-  const broadcastSnapshot = useCallback(() => {
-    if (!isAdmin) return
+  // This client's copy of the board, in one packet or several.
+  const sendSnapshot = useCallback(() => {
     const json = JSON.stringify(strokesRef.current)
     if (json.length <= SNAP_CHUNK) {
       send({ type: WB_CHANNEL, strokes: strokesRef.current })
@@ -297,7 +305,13 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     for (let i = 0; i < parts; i++) {
       send({ type: WB_CHANNEL, seq, part: i, parts, chunk: json.slice(i * SNAP_CHUNK, (i + 1) * SNAP_CHUNK) })
     }
-  }, [send, isAdmin])
+  }, [send])
+
+  // The host's authoritative picture of the board.
+  const broadcastSnapshot = useCallback(() => {
+    if (!isAdmin) return
+    sendSnapshot()
+  }, [sendSnapshot, isAdmin])
 
   // ── receive ───────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -322,35 +336,48 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
             setEditors(Array.isArray(msg.ids) ? msg.ids : [])
             return
 
-          // A full picture of the board is only believable from the host.
+          // A full picture of the board is only believable from the host -
+          // unless this IS a host, freshly mounted with nothing (a refresh), in
+          // which case the first non-empty board anyone offers is the lesson.
           case WB_CHANNEL: {
-            if (!fromHost) return
+            const recovering = isAdmin && awaitingSyncRef.current
+            if (!fromHost && !recovering) return
             let list = null
             if (Array.isArray(msg.strokes)) {
               list = msg.strokes
             } else if (msg.parts > 0) {
               // A snapshot in pieces. Reliable delivery keeps one sender's
               // packets in order, so a new seq simply supersedes the last.
-              const buf = snapBuf.current
-              if (buf.seq !== msg.seq) snapBuf.current = { seq: msg.seq, parts: msg.parts, got: [] }
-              snapBuf.current.got[msg.part] = String(msg.chunk || '')
-              const have = snapBuf.current.got.filter((c) => typeof c === 'string').length
-              if (have < snapBuf.current.parts) return
-              try { list = JSON.parse(snapBuf.current.got.join('')) } catch { return }
-              snapBuf.current = { seq: null, parts: 0, got: [] }
+              const who = participant?.identity || ''
+              let buf = snapBufs.current.get(who)
+              if (!buf || buf.seq !== msg.seq) {
+                buf = { seq: msg.seq, parts: msg.parts, got: [] }
+                snapBufs.current.set(who, buf)
+              }
+              buf.got[msg.part] = String(msg.chunk || '')
+              const have = buf.got.filter((c) => typeof c === 'string').length
+              if (have < buf.parts) return
+              snapBufs.current.delete(who)
+              try { list = JSON.parse(buf.got.join('')) } catch { return }
             }
             if (!Array.isArray(list)) return
+            if (!fromHost && list.length === 0) return
+            awaitingSyncRef.current = false
             strokesRef.current = list
             resetHistory()
             redraw()
             // The picture being held may not have survived the host's version.
             const keep = strokesRef.current.some((x) => x.id === selectedIdRef.current)
             if (!keep) selectImage(null); else refreshSel()
+            // Handed back by a student: make it official for everyone, including
+            // anyone who joined while this host still had nothing to give them.
+            if (!fromHost) broadcastSnapshot()
             return
           }
 
           case WB_CLEAR:
             if (!fromHost) return
+            awaitingSyncRef.current = false
             strokesRef.current = []
             resetHistory()
             selectImage(null)
@@ -403,12 +430,17 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
             return
           }
 
-          // Someone joined or reopened the panel and has nothing. The host —
-          // and only the host — answers with the real board.
+          // Someone joined or reopened the panel and has nothing. The host
+          // answers with the real board. A host who comes back after a refresh
+          // has nothing either, so the students hand it back to them.
           case WB_SYNC:
             if (isAdmin) {
-              broadcastSnapshot()
+              // An empty board that is only empty because this host has not
+              // been synced yet is no answer - it would wipe the requester's.
+              if (strokesRef.current.length || !awaitingSyncRef.current) broadcastSnapshot()
               if (editorsRef.current.length) send({ type: WB_GRANT, ids: editorsRef.current })
+            } else if (fromHost && strokesRef.current.length) {
+              sendSnapshot()
             }
             return
 
@@ -419,22 +451,25 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
     }
     room.on(RoomEvent.DataReceived, handler)
     return () => room.off(RoomEvent.DataReceived, handler)
-  }, [room, redraw, isAdmin, broadcastSnapshot, send, rebaseHistory, resetHistory, refreshSel, selectImage])
+  }, [room, redraw, isAdmin, broadcastSnapshot, sendSnapshot, send, rebaseHistory, resetHistory, refreshSel, selectImage])
 
   // On mount (the panel is opened) ask for the current board. Without this a
   // late viewer stares at a blank canvas while everyone else sees the lesson.
+  // The host asks too: after a refresh they have nothing, and the room has it.
   useEffect(() => {
-    if (!room || isAdmin) return
+    if (!room) return
     const t = setTimeout(() => send({ type: WB_SYNC }), 250)
     return () => clearTimeout(t)
-  }, [room, isAdmin, send])
+  }, [room, send])
 
   // The host re-announces the board and its editors whenever someone new
   // arrives, so a rejoining student is not silently left out.
   useEffect(() => {
     if (!room || !isAdmin) return
     const onJoin = () => {
-      broadcastSnapshot()
+      // Never announce a board that is empty only because this host has not
+      // been synced yet - that is what wiped the class on a host refresh.
+      if (strokesRef.current.length || !awaitingSyncRef.current) broadcastSnapshot()
       if (editorsRef.current.length) send({ type: WB_GRANT, ids: editorsRef.current })
     }
     room.on(RoomEvent.ParticipantConnected, onJoin)

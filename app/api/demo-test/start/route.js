@@ -3,6 +3,7 @@ import { connectDB } from '../../../../lib/db'
 import DemoTest from '../../../../lib/models/DemoTest'
 import DemoTestAttempt from '../../../../lib/models/DemoTestAttempt'
 import Question from '../../../../lib/models/Question'
+import { rateLimit, clientIp } from '../../../../lib/rateLimit'
 
 function parseOptions(raw) {
   if (Array.isArray(raw)) return raw
@@ -29,6 +30,10 @@ function shapeQuestionForUser(q, customMap) {
 
 export async function POST(request) {
   try {
+    const limit = rateLimit('demo-start:' + clientIp(request), { max: 5, windowMs: 600000 })
+    if (!limit.ok) {
+      return NextResponse.json({ error: 'Too many demo attempts from this network. Please try again later.' }, { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } })
+    }
     await connectDB()
     const body = await request.json()
     const { name, email, phone } = body || {}

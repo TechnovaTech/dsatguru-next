@@ -33,8 +33,9 @@ export async function PUT(request, { params }) {
     const body = await request.json()
     const updateData = pickStudyPlanFields(body)
 
-    const updatedPlan = await StudyPlan.findByIdAndUpdate(
-      id,
+    // Catalog templates only — a student's personal plan (userId set) is never reachable here.
+    const updatedPlan = await StudyPlan.findOneAndUpdate(
+      { _id: id, userId: null },
       updateData,
       { new: true, runValidators: true }
     )
@@ -56,7 +57,7 @@ export async function DELETE(request, { params }) {
     if (auth.error) return auth.error
     await connectDB()
     const { id } = params
-    const deletedPlan = await StudyPlan.findByIdAndDelete(id)
+    const deletedPlan = await StudyPlan.findOneAndDelete({ _id: id, userId: null })
 
     if (!deletedPlan) {
       return NextResponse.json({ error: 'Study plan not found' }, { status: 404 })

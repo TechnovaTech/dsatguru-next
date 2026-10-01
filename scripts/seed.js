@@ -2,6 +2,25 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 
 const uri = process.env.MONGO_URI || 'mongodb://localhost:27017/dsatmain'
+
+// --- Wipe guard --------------------------------------------------------------
+// This script DELETES every user and course before re-seeding, so it only runs
+// with an explicit --yes-wipe flag, and says so loudly when the target is not a
+// local database.
+const WIPE_FLAG = '--yes-wipe'
+const isLocalMongo = (u) => {
+  try { return ['localhost', '127.0.0.1', '[::1]'].includes(new URL(u).hostname) }
+  catch { return /^mongodb(\+srv)?:\/\/(?:[^@/]*@)?(?:localhost|127\.0\.0\.1)(?::\d+)?(?:[/?]|$)/i.test(u) }
+}
+const redactedUri = uri.replace(/\/\/[^@/]+@/, '//***@')
+if (!process.argv.includes(WIPE_FLAG)) {
+  console.error(`Refusing to run: scripts/seed.js DELETES every user and course in ${redactedUri}${isLocalMongo(uri) ? '' : ' (NOT a localhost database!)'}.`)
+  console.error(`Re-run with the ${WIPE_FLAG} flag to confirm:  node scripts/seed.js ${WIPE_FLAG}`)
+  process.exit(1)
+}
+if (!isLocalMongo(uri)) console.warn(`WARNING: ${WIPE_FLAG} given; wiping a NON-local database: ${redactedUri}`)
+// -----------------------------------------------------------------------------
+
 mongoose.connect(uri)
 
 const userSchema = new mongoose.Schema({

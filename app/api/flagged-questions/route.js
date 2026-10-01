@@ -17,9 +17,12 @@ export async function GET(request) {
     const decoded = verifyToken(token)
     if (!decoded) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const flagged = await FlaggedQuestion.find(ADMIN_ROLES.includes(decoded.role) ? {} : { userId: decoded.userId })
+    const isAdmin = ADMIN_ROLES.includes(decoded.role)
+    const flagged = await FlaggedQuestion.find(isAdmin ? {} : { userId: decoded.userId })
       .populate('userId', 'name email')
-      .populate('questionId')
+      // A student gets the question text for context — never its key or explanations
+      // (flagging mid-test must not double as an answer lookup).
+      .populate('questionId', isAdmin ? undefined : 'content questionParagraph subject difficulty questionId options imageUrl')
       .populate('testId', 'title')
       .sort({ createdAt: -1 })
 

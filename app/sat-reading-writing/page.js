@@ -7,8 +7,7 @@ const program = {
   title: 'Digital SAT Reading and Writing Section',
   highlightTag: 'Verbal Mastery',
   heroArt: '/art/prog-rw.png',
-  seoTitle: 'SAT Reading & Writing Prep | Practice Questions',
-  seoDescription: 'Prepare for the SAT reading and writing test with practice questions, reading passages, writing prompts, and structured test prep strategies.',
+  // <title> / meta description for this page live in ./layout.js (server metadata).
   overview: 'Specialized training for Reading and Writing that focuses on comprehension, grammar, vocabulary in context, and evidence-based reasoning.',
   keyPoints: [
     'Strategies for complex passages and question types',

@@ -4,6 +4,7 @@ import TestSession from '../../../../../lib/models/TestSession'
 import User from '../../../../../lib/models/User'
 import Test from '../../../../../lib/models/Test'
 import { getTokenFromRequest, verifyToken } from '../../../../../lib/auth'
+import { tutorStudentIds } from '../../../../../lib/tutorScope'
 
 export async function GET(request) {
   try {
@@ -13,8 +14,10 @@ export async function GET(request) {
     }
     await connectDB()
     
+    const scope = await tutorStudentIds(decoded)
     const activeSessions = await TestSession.find({
-      state: { $in: ['IN_PROGRESS_BASE', 'IN_PROGRESS_ADAPTIVE'] }
+      state: { $in: ['IN_PROGRESS_BASE', 'IN_PROGRESS_ADAPTIVE'] },
+      ...(scope ? { userId: { $in: scope } } : {})
     })
     .populate('userId', 'name email')
     .populate('testId', 'title')

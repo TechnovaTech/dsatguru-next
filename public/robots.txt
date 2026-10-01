@@ -1,8 +1,19 @@
 User-agent: *
 Disallow: /admin
 Disallow: /dashboard
+# Public pages render their course cards client-side from these two endpoints.
+Allow: /api/courses
+Allow: /api/stats/students
 Disallow: /api
+Disallow: /tutor
+Disallow: /igcsc
+Disallow: /join
+Disallow: /thank-you
+Disallow: /demo-test/take
+Disallow: /demo-test/rules
+Disallow: /demo-test/result
+Disallow: /reports
+Disallow: /uploads
 Allow: /
 
 Sitemap: https://www.dsatguru.com/sitemap.xml
-

@@ -587,22 +587,43 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
     return bits.join('  |  ')
   }, [session])
 
-  // Module tests run a fixed Module 1 then a routed Module 2 — the report calls
-  // those "Static" and "Hard". Derive the per-subject split from moduleScores.
-  const subjectSplits = useMemo(() => {
+  // session.moduleScores is always an OBJECT, never an array: module tests store
+  // { "0": { subject, correct, total, score } } (recomputeModuleScores) and adaptive tests
+  // store { rw_module1: { correct, total, difficulty } } (gradeModules). Normalize it ONCE
+  // into a list — the old `.length` / `.map` checks on the object meant nothing ever rendered.
+  const moduleScoreList = useMemo(() => {
     const ms = session?.moduleScores
-    if (!Array.isArray(ms) || !ms.length) return null
+    if (Array.isArray(ms)) return ms.filter(v => v && typeof v === 'object').map((v, i) => ({ key: String(i), ...v }))
+    if (!ms || typeof ms !== 'object') return []
+    return Object.entries(ms)
+      .filter(([, v]) => v && typeof v === 'object')
+      .map(([key, v]) => ({ key, ...v }))
+  }, [session])
+
+  // "Module 1 — Math" for module tests (subject stored), "R&W Module 1" for adaptive keys.
+  const moduleScoreLabel = (m, i) => {
+    if (m?.subject) return `Module ${i + 1} — ${m.subject}`
+    const match = /^(rw|math)_module(\d+)$/i.exec(String(m?.key || ''))
+    if (match) return `${match[1].toLowerCase() === 'math' ? 'Math' : 'R&W'} Module ${match[2]}`
+    return `Module ${i + 1}`
+  }
+
+  // Module tests run a fixed Module 1 then a routed Module 2 — the report calls
+  // those "Static" and "Hard"; adaptive modules carry their graded difficulty tier.
+  // Derive the per-subject split from moduleScores.
+  const subjectSplits = useMemo(() => {
+    if (!moduleScoreList.length) return null
     const out = {}
     const seen = {}
-    for (const m of ms) {
-      const key = String(m?.subject || '').toLowerCase().includes('math') ? 'math' : 'rw'
+    for (const m of moduleScoreList) {
+      const key = String(m?.subject || m?.key || '').toLowerCase().includes('math') ? 'math' : 'rw'
       seen[key] = (seen[key] || 0) + 1
-      const label = seen[key] === 1 ? 'Static' : 'Hard'
+      const label = m?.difficulty || (seen[key] === 1 ? 'Static' : 'Hard')
       const part = `${label} (${m.correct ?? 0}/${m.total ?? 0})`
       out[key] = out[key] ? `${out[key]} | ${part}` : part
     }
     return Object.keys(out).length ? out : null
-  }, [session])
+  }, [moduleScoreList])
 
   // Minutes actually spent per subject against the minutes the modules allow.
   const subjectMinutes = useMemo(() => {
@@ -1317,17 +1338,17 @@ export default function TestResultView({ testId, sessionId, returnUrl, viewMode,
                 </div>
             </div>
 
-            {/* Module Scores - only for module tests */}
-            {test?.isModuleTest && session?.moduleScores?.length > 0 && (
+            {/* Module Scores - module tests always; adaptive tests once there is a real per-module breakdown */}
+            {moduleScoreList.length > 0 && (test?.isModuleTest || moduleScoreList.length > 1) && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 className="text-sm font-bold text-gray-900 mb-4 border-b pb-2">Module Scores</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {session.moduleScores.map((ms, i) => {
+                  {moduleScoreList.map((ms, i) => {
                     const pct = ms.total > 0 ? Math.round((ms.correct / ms.total) * 100) : 0
                     return (
-                      <div key={i} className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
-                        <div className="text-xs font-bold text-gray-500 uppercase mb-1">Module {i + 1} — {ms.subject}</div>
-                        <div className="text-2xl font-bold text-gray-900">{ms.correct}/{ms.total}</div>
+                      <div key={ms.key ?? i} className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                        <div className="text-xs font-bold text-gray-500 uppercase mb-1">{moduleScoreLabel(ms, i)}</div>
+                        <div className="text-2xl font-bold text-gray-900">{ms.correct ?? 0}/{ms.total ?? 0}</div>
                         <div className={`text-xs font-semibold mt-1 ${pct >= 70 ? 'text-green-600' : pct >= 40 ? 'text-yellow-600' : 'text-red-600'}`}>{pct}% correct</div>
                       </div>
                     )

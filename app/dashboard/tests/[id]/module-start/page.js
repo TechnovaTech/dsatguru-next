@@ -56,7 +56,6 @@ export default function ModuleTestPage() {
   const [showShortcutsModal, setShowShortcutsModal] = useState(false)
   const [showFlagModal, setShowFlagModal] = useState(false)
   const [flagNote, setFlagNote] = useState('')
-  const [showAnswer, setShowAnswer] = useState(false)
   const [assistiveTechMode, setAssistiveTechMode] = useState(false)
   const [showCalculator, setShowCalculator] = useState(false)
   const [calcPosition, setCalcPosition] = useState({ x: 50, y: 100 })
@@ -135,9 +134,6 @@ export default function ModuleTestPage() {
     const timer = setInterval(() => setQuestionTimes(prev => ({ ...prev, [q._id]: (prev[q._id] || 0) + 1 })), 1000)
     return () => clearInterval(timer)
   }, [currentQIdx, currentModuleIdx, loading, showModuleSummary, testCompleted])
-
-  // Reset showAnswer on question change
-  useEffect(() => { setShowAnswer(false) }, [currentQIdx, currentModuleIdx])
 
   // Timer countdown per module. Must be PAUSED on every non-test overlay (start screen,
   // module intro, break, summary) — otherwise the next module's clock, which is set the
@@ -729,9 +725,6 @@ export default function ModuleTestPage() {
                 <button onClick={() => { setLineReaderActive(p => !p); setShowMoreMenu(false) }} className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50">
                   <FiBookOpen className="text-gray-500" /><span className="text-sm font-medium">Line Reader {lineReaderActive ? '(On)' : '(Off)'}</span>
                 </button>
-                <button onClick={() => { setShowAnswer(p => !p); setShowMoreMenu(false) }} className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50">
-                  <FiCheckCircle className="text-gray-500" /><span className="text-sm font-medium">Show Answer {showAnswer ? '(On)' : '(Off)'}</span>
-                </button>
                 <div className="border-t my-2" />
                 <button onClick={() => { setShowShortcutsModal(true); setShowMoreMenu(false) }} className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50">
                   <FiGrid className="text-gray-500" /><span className="text-sm font-medium">Shortcuts</span>
@@ -976,14 +969,6 @@ export default function ModuleTestPage() {
                   <span className="font-medium text-sm">Mark for Review</span>
                 </button>
               </div>
-
-              {/* Show Answer */}
-              {showAnswer && (
-                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm font-semibold text-green-800">Correct Answer: {currentQ.correctAnswer}</p>
-                  {currentQ.shortExplanation && <p className="text-sm text-green-700 mt-1">{renderWithImages(currentQ.shortExplanation)}</p>}
-                </div>
-              )}
 
               {/* Options */}
               {(['A','B','C','D'].some(l => getOptText(currentQ, l))) ? (

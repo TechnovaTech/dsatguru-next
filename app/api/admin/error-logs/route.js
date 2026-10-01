@@ -4,6 +4,7 @@ import ErrorLog from '@/lib/models/ErrorLog'
 import User from '@/lib/models/User'
 import { requireRole } from '@/lib/auth'
 import { STAFF_ROLES, ADMIN_ROLES } from '@/lib/constants/roles'
+import { tutorStudentIds } from '@/lib/tutorScope'
 
 export async function GET(request) {
   const auth = requireRole(request, STAFF_ROLES)
@@ -12,7 +13,9 @@ export async function GET(request) {
   await dbConnect()
 
   try {
-    const logs = await ErrorLog.find({})
+    // A Tutor sees only their own students' logs; Admin/TutorAdmin see everyone's.
+    const scope = await tutorStudentIds(decoded)
+    const logs = await ErrorLog.find(scope ? { userId: { $in: scope } } : {})
       .populate('userId', 'name email')
       .sort({ createdAt: -1 })
     return NextResponse.json({ logs })

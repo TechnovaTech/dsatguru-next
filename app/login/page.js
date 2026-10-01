@@ -27,7 +27,11 @@ export default function Login() {
   // enrollment page). Falls back to the role-based default.
   const [returnTo, setReturnTo] = useState('')
   useEffect(() => {
-    try { setReturnTo(new URLSearchParams(window.location.search).get('returnTo') || '') } catch {}
+    try {
+      const raw = new URLSearchParams(window.location.search).get('returnTo') || ''
+      // Same-origin paths only: blocks //evil.com, https://…, and javascript: payloads.
+      setReturnTo(/^\/(?![\/\\])/.test(raw) ? raw : '')
+    } catch {}
   }, [])
 
   // Already signed in with a still-valid token? Skip the form and send them home.

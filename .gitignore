@@ -61,3 +61,12 @@ bank-input/
 sheet-input/
 sheet-input-2/
 json-output/
+
+# Generated student reports (served from /reports, never source) and local junk
+public/reports/
+_ops_backup_*.json
+desktop.ini
+scratchpad/
+
+# Shared student reports live here and are served only via the signed /api/reports route
+private/

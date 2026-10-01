@@ -53,6 +53,11 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
     }
     const { text, fileUrl, fileName, fileType } = body || {}
+    // Attachments are rendered as href/src for the other participant — only our own
+    // upload paths or https links, never javascript:/data: payloads.
+    if (fileUrl && !/^(\/uploads\/|https:\/\/)/i.test(String(fileUrl))) {
+      return NextResponse.json({ error: 'Invalid attachment URL' }, { status: 400 })
+    }
 
     const msg = await Message.create({
       conversationId,

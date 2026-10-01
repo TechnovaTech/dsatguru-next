@@ -24,7 +24,13 @@ export async function POST(request) {
     if (!demoTest) return NextResponse.json({ error: 'Demo test not found' }, { status: 404 })
 
     const customMap = demoTest.customQuestions || {}
-    const allQuestionIds = answers.map(a => a.questionId).filter(Boolean)
+    // Only the questions this demo is configured with may be graded here, and each at most
+    // once — anything else would make this public endpoint an answer oracle for the bank.
+    const mathIds = new Set((demoTest.mathQuestionIds || []).map(id => String(id)))
+    const rwIds = new Set((demoTest.rwQuestionIds || []).map(id => String(id)))
+    const allQuestionIds = [...new Set(
+      answers.map(a => String(a?.questionId || '')).filter(id => mathIds.has(id) || rwIds.has(id))
+    )]
     const questions = await Question.find({ _id: { $in: allQuestionIds } })
     const qMap = new Map(questions.map(q => [q._id.toString(), q]))
 
@@ -33,14 +39,18 @@ export async function POST(request) {
     let rwCorrect = 0
     let mathTotal = 0
     let rwTotal = 0
+    const graded = new Set()
 
     for (const ans of answers) {
-      const q = qMap.get(String(ans.questionId))
-      if (!q) continue
-      const custom = customMap[String(ans.questionId)] || null
+      const qid = String(ans?.questionId || '')
+      const q = qMap.get(qid)
+      if (!q || graded.has(qid)) continue
+      graded.add(qid)
+      const custom = customMap[qid] || null
       const correctAnswer = custom?.correctAnswer ?? q.correctAnswer
       const isCorrect = answersMatch(correctAnswer, ans.selectedAnswer, custom?.options ?? q.options)
-      const module = ans.module === 'math' ? 'math' : 'rw'
+      // The section is decided by the demo's configuration, not by the client.
+      const module = mathIds.has(qid) ? 'math' : 'rw'
       if (module === 'math') {
         mathTotal++
         if (isCorrect) mathCorrect++

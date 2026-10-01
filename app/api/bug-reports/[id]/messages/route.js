@@ -31,7 +31,10 @@ export async function POST(request, { params }) {
 
     const body = await request.json()
     const text = (body.text || '').toString().trim()
-    const attachments = Array.isArray(body.attachments) ? body.attachments.filter(Boolean) : []
+    // Attachments render as href/src for the other side — only our own upload paths or https links.
+    const attachments = Array.isArray(body.attachments)
+      ? body.attachments.filter((a) => typeof a === 'string' && /^(\/uploads\/|https:\/\/)/i.test(a))
+      : []
     if (!text && !attachments.length) {
       return NextResponse.json({ error: 'Empty message' }, { status: 400 })
     }

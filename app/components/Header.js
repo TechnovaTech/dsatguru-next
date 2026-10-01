@@ -72,15 +72,15 @@ export default function Header() {
   }
 
   const dsatLinks = [
-    { title: 'Digital SAT Live Bootcamp Course', href: '/programs/dsat/live-bootcamp-course' },
-    { title: 'Digital SAT Live Prep Course', href: '/programs/dsat/live-prep-course' },
-    { title: 'Digital SAT Individual Tutoring', href: '/programs/dsat/individual-tutoring' },
-    { title: 'Reading and Writing Section', href: '/programs/dsat/reading-and-writing-section' },
-    { title: 'Diagnostic Test', href: '/programs/dsat/diagnostic-test' },
-    { title: 'Practice Test', href: '/programs/dsat/practice-test' },
-    { title: 'Mock Test', href: '/programs/dsat/mock-test' },
-    { title: 'Math Section', href: '/programs/dsat/math-section' },
-    { title: 'Study-Guide', href: '/programs/dsat/study-guide' },
+    { title: 'Digital SAT Live Bootcamp Course', href: '/sat-bootcamp-courses' },
+    { title: 'Digital SAT Live Prep Course', href: '/sat-live-prep-course' },
+    { title: 'Digital SAT Individual Tutoring', href: '/sat-individual-tutoring' },
+    { title: 'Reading and Writing Section', href: '/sat-reading-writing' },
+    { title: 'Diagnostic Test', href: '/free-sat-diagnostic-test' },
+    { title: 'Practice Test', href: '/free-sat-practice-test' },
+    { title: 'Mock Test', href: '/free-sat-mock-test' },
+    { title: 'Math Section', href: '/sat-math' },
+    { title: 'Study-Guide', href: '/sat-study-guide' },
   ]
 
   // Pill-style nav trigger
@@ -225,7 +225,7 @@ export default function Header() {
                       <DropdownPanel
                         render={
                           questionBanks.length > 0
-                            ? questionBanks.map((qBank, idx) => linkRow(qBank.id, `/question-bank/${qBank.id}`, qBank.title, idx))
+                            ? questionBanks.map((qBank, idx) => linkRow(qBank.id, `/enrollment/${qBank.id}`, qBank.title, idx))
                             : <div className="p-4 text-center text-sm text-slate-400">No question banks available</div>
                         }
                       />
@@ -389,7 +389,7 @@ export default function Header() {
                             <div className="space-y-0.5 pb-2">
                               {questionBanks.length > 0 ? (
                                 questionBanks.map((qBank) => (
-                                  <Link key={qBank.id} href={`/question-bank/${qBank.id}`} onClick={closeMenu} className="block rounded-lg py-2 pl-10 text-sm text-slate-600 hover:text-indigo-600">
+                                  <Link key={qBank.id} href={`/enrollment/${qBank.id}`} onClick={closeMenu} className="block rounded-lg py-2 pl-10 text-sm text-slate-600 hover:text-indigo-600">
                                     {qBank.title}
                                   </Link>
                                 ))

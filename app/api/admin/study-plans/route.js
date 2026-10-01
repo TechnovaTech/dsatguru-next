@@ -31,7 +31,9 @@ export async function GET(request) {
     const auth = requireRole(request, STAFF_ROLES)
     if (auth.error) return auth.error
     await connectDB()
-    const studyPlans = await StudyPlan.find()
+    // Templates only. Students' personal planners share this collection (they carry a
+    // userId) and must never show up — or be editable — in the admin catalog.
+    const studyPlans = await StudyPlan.find({ userId: null })
       .sort({ createdAt: -1 })
       .limit(500)
       .lean()

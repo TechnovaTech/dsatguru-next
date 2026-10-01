@@ -129,6 +129,22 @@ export async function GET(request, { params }) {
       test.questions = test.questions.map(stripAnswerFields)
     }
 
+    // The raw overlay was merged into `questions` above, but each entry still carries the
+    // tutor's correctAnswer/explanations — strip those the same way (the module player
+    // merges the overlay client-side, so the content/options edits must survive). The
+    // assignment lists are other students' ids and never belong in a student payload.
+    if (!STAFF_ROLES.includes(decoded.role)) {
+      if (test.customQuestions && typeof test.customQuestions === 'object') {
+        const safe = {}
+        for (const [qid, cv] of Object.entries(test.customQuestions)) {
+          safe[qid] = (cv && typeof cv === 'object' && !revealAnswers) ? stripAnswerFields(cv) : cv
+        }
+        test.customQuestions = safe
+      }
+      delete test.assignedTo
+      delete test.assignedTutors
+    }
+
     // No caching: a tutor's just-saved customQuestions edit (image/text/answer) must reach the
     // student's exam immediately — a cached response could keep serving the pre-edit figure.
     return NextResponse.json(test, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } })

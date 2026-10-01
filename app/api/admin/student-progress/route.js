@@ -4,6 +4,7 @@ import User from '../../../../lib/models/User'
 import TestSession from '../../../../lib/models/TestSession'
 import { requireRole } from '../../../../lib/auth'
 import { ROLES, STAFF_ROLES } from '../../../../lib/constants/roles'
+import { tutorStudentIds } from '../../../../lib/tutorScope'
 
 export async function GET(request) {
   try {
@@ -11,7 +12,8 @@ export async function GET(request) {
     if (auth.error) return auth.error
     await connectDB()
 
-    const students = await User.find({ role: ROLES.STUDENT }).lean()
+    const scope = await tutorStudentIds(auth.decoded)
+    const students = await User.find(scope ? { role: ROLES.STUDENT, _id: { $in: scope } } : { role: ROLES.STUDENT }).lean()
 
     const studentIds = students.map(s => s._id)
 

@@ -16,13 +16,16 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing data' }, { status: 400 })
     }
 
-    // Find course with this meeting
-    const course = await Course.findOne({ 'meetings.link': roomName })
+    // Find course with this meeting. The host joins by roomName, and older
+    // meetings were seeded with a different link string, so match either.
+    const course = await Course.findOne({
+      $or: [{ 'meetings.roomName': roomName }, { 'meetings.link': roomName }],
+    })
     if (!course) {
       return NextResponse.json({ error: 'Meeting not found in any course' }, { status: 404 })
     }
 
-    const meetingIndex = course.meetings.findIndex(m => m.link === roomName)
+    const meetingIndex = course.meetings.findIndex(m => m.roomName === roomName || m.link === roomName)
     if (meetingIndex === -1) {
       return NextResponse.json({ error: 'Meeting link mismatch' }, { status: 404 })
     }

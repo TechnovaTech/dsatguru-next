@@ -1,5 +1,4 @@
 'use client'
-import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -8,18 +7,9 @@ import {
 } from 'react-icons/fa'
 import { FiCheck, FiArrowRight, FiStar } from 'react-icons/fi'
 
+// <title> / meta description for each program page are server-rendered by that
+// route's layout.js (exported `metadata`), so nothing is patched into <head> here.
 export default function ProgramPageTemplate({ program }) {
-  useEffect(() => {
-    document.title = program.seoTitle || `${program.title} | DSATGURU`
-    let metaDescription = document.querySelector('meta[name="description"]')
-    if (!metaDescription) {
-      metaDescription = document.createElement('meta')
-      metaDescription.name = 'description'
-      document.head.appendChild(metaDescription)
-    }
-    metaDescription.content = program.seoDescription || program.overview
-  }, [program])
-
   const features = [
     {
       icon: <FaChalkboardTeacher size={24} />,

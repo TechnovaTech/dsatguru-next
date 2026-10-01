@@ -43,7 +43,10 @@ export async function POST(request) {
 
     const body = await request.json()
     const text = (body.text || '').toString().trim()
-    const attachments = Array.isArray(body.attachments) ? body.attachments.filter(Boolean) : []
+    // Attachments render as href/src for staff — only our own upload paths or https links.
+    const attachments = Array.isArray(body.attachments)
+      ? body.attachments.filter((a) => typeof a === 'string' && /^(\/uploads\/|https:\/\/)/i.test(a))
+      : []
     if (!text && !attachments.length) {
       return NextResponse.json({ error: 'Please describe the bug or attach a screenshot.' }, { status: 400 })
     }

@@ -4,6 +4,7 @@ import { connectDB } from '../../../../lib/db'
 import User from '../../../../lib/models/User'
 import TestSession from '../../../../lib/models/TestSession'
 import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
+import { tutorStudentIds } from '../../../../lib/tutorScope'
 
 export async function GET(request) {
   try {
@@ -13,8 +14,9 @@ export async function GET(request) {
     }
     await connectDB()
 
-    // 1. Fetch all students
-    const students = await User.find({ role: 'Student' })
+    // 1. Fetch the students this caller may see (a Tutor: only their own)
+    const scope = await tutorStudentIds(decoded)
+    const students = await User.find(scope ? { role: 'Student', _id: { $in: scope } } : { role: 'Student' })
       .select('name email createdAt isActive')
       .lean()
 

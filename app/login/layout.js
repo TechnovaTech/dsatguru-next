@@ -1,4 +1,5 @@
 export const metadata = {
+  alternates: { canonical: '/login' },
   title: 'Log in to your DSATGURU account',
   description: 'Log in to your DSATGURU account to continue SAT practice, track progress, access adaptive tests, and improve your score with personalized learning tools.',
 }

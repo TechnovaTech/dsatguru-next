@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../lib/db'
 import User from '../../../../lib/models/User'
 import { requireRole } from '../../../../lib/auth'
-import { ROLES, STAFF_ROLES, ADMIN_ROLES } from '../../../../lib/constants/roles'
+import { ROLES, ALL_ROLES, STAFF_ROLES, ADMIN_ROLES } from '../../../../lib/constants/roles'
 import bcrypt from 'bcryptjs'
 
 export async function GET(request) {
@@ -65,9 +65,17 @@ export async function POST(request) {
     await connectDB()
 
     const { name, email, password, role } = await request.json()
-    
+
     if (!name || !email || !password) {
       return NextResponse.json({ error: 'Name, email and password are required' }, { status: 400 })
+    }
+    const newRole = role || ROLES.STUDENT
+    if (!ALL_ROLES.includes(newRole)) {
+      return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+    }
+    // A TutorAdmin must not be able to mint a full Admin account.
+    if (newRole === ROLES.ADMIN && auth.decoded.role !== ROLES.ADMIN) {
+      return NextResponse.json({ error: 'Only an Admin can create Admin accounts' }, { status: 403 })
     }
 
     // Check if user already exists (coerce email to a string to block NoSQL injection)
@@ -84,7 +92,7 @@ export async function POST(request) {
       name,
       email,
       password: hashedPassword,
-      role: role || 'Student',
+      role: newRole,
       isActive: true
     })
 

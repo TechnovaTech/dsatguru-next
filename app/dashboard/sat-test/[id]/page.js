@@ -1,7 +1,7 @@
 ﻿'use client'
 import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
 import { parseOptionsArray, hasRealOptions } from '../../../../lib/questionOptions'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import axios from 'axios'
 
@@ -118,6 +118,15 @@ export default function SatTestRunner() {
     return baseQuestions?.[currentIndex] || null
   }, [baseQuestions, currentIndex])
 
+  // Per-question stopwatch: restarts whenever the displayed question changes, so the answer
+  // POST can report the real seconds spent instead of a hard-coded value.
+  const questionStartRef = useRef(Date.now())
+  useEffect(() => {
+    questionStartRef.current = Date.now()
+  }, [currentQuestion])
+
+  // Module countdown, re-armed per phase: the interval clears itself when Module 1 times
+  // out, so it has to be created again for Module 2 or the second module never counts down.
   useEffect(() => {
     const timer = setInterval(() => {
       setRemaining((r) => {
@@ -130,7 +139,8 @@ export default function SatTestRunner() {
       })
     }, 1000)
     return () => clearInterval(timer)
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase])
 
   const autoSubmitModule = async () => {
     try {
@@ -183,10 +193,12 @@ export default function SatTestRunner() {
       const token = typeof window !== 'undefined'
         ? (localStorage.getItem('token') || localStorage.getItem('authToken'))
         : null
+      // Real seconds on this question, capped at 30 min so a backgrounded tab can't log hours.
+      const timeSpent = Math.min(1800, Math.max(0, Math.round((Date.now() - questionStartRef.current) / 1000)))
       await axios.post(`/api/test-sessions/${sessionId}/answer`, {
         questionId: currentQuestion.id || currentQuestion._id,
         selectedOption: opt,
-        timeSpent: 30
+        timeSpent
       }, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       setAnsweredMap(prev => ({ ...prev, [qKey]: true }))
       setSelectedMap(prev => ({ ...prev, [qKey]: opt }))

@@ -68,6 +68,17 @@ function DemoTestTake() {
 
   const currentQ = currentList?.[currentIndex] || null
 
+  // The module timer's interval closes over the state of the render that armed it, so the
+  // timeout path (handleModuleEnd -> submitAll) must read the LATEST answers, per-question
+  // times and current question through refs. Otherwise an R&W timeout submitted the answers
+  // as they were when the module started — i.e. none of the R&W answers.
+  const answersRef = useRef(answers)
+  useEffect(() => { answersRef.current = answers }, [answers])
+  const timeSpentPerQRef = useRef(timeSpentPerQ)
+  useEffect(() => { timeSpentPerQRef.current = timeSpentPerQ }, [timeSpentPerQ])
+  const currentQRef = useRef(currentQ)
+  useEffect(() => { currentQRef.current = currentQ }, [currentQ])
+
   // Timer
   useEffect(() => {
     if (!session) return
@@ -146,10 +157,14 @@ function DemoTestTake() {
   }, [isDraggingRef])
 
   const recordTimeForCurrent = () => {
-    if (!currentQ) return
-    const qid = currentQ.id
+    const q = currentQRef.current
+    if (!q) return
+    const qid = q.id
     const elapsed = Math.floor((Date.now() - qStartTimeRef.current) / 1000)
-    setTimeSpentPerQ(prev => ({ ...prev, [qid]: (prev[qid] || 0) + elapsed }))
+    // Update the ref synchronously too, so a submit in the same tick already sees this chunk.
+    const next = { ...timeSpentPerQRef.current, [qid]: (timeSpentPerQRef.current[qid] || 0) + elapsed }
+    timeSpentPerQRef.current = next
+    setTimeSpentPerQ(next)
     qStartTimeRef.current = Date.now()
   }
 
@@ -197,17 +212,21 @@ function DemoTestTake() {
   const submitAll = async () => {
     setModuleTransition('submitting')
     try {
+      // Read through the refs: when the timer ends the module, the `answers` / `timeSpentPerQ`
+      // in this closure are stale (captured when the module started).
+      const latestAnswers = answersRef.current || {}
+      const latestTimes = timeSpentPerQRef.current || {}
       const mathAns = (session.mathQuestions || []).map(q => ({
         questionId: q.id,
         module: 'math',
-        selectedAnswer: answers[q.id] || '',
-        timeSpent: timeSpentPerQ[q.id] || 0
+        selectedAnswer: latestAnswers[q.id] || '',
+        timeSpent: latestTimes[q.id] || 0
       }))
       const rwAns = (session.rwQuestions || []).map(q => ({
         questionId: q.id,
         module: 'rw',
-        selectedAnswer: answers[q.id] || '',
-        timeSpent: timeSpentPerQ[q.id] || 0
+        selectedAnswer: latestAnswers[q.id] || '',
+        timeSpent: latestTimes[q.id] || 0
       }))
       const totalTime = Math.floor((Date.now() - startTimeRef.current) / 1000)
       const res = await axios.post('/api/demo-test/submit', {

@@ -3,8 +3,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiTrash2, FiEye, FiX, FiFlag } from 'react-icons/fi'
 import { useConfirm } from '../../components/ui/UIProvider'
+import { renderContent as renderWithImages } from '../../components/admin/LatexRenderer'
 // Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
 import { resolveAnswerLetter } from '../../../lib/scoring/satScale'
+// Question.options is a JSON string (array or {A,B,C,D}); this normalises it to { A, B, C, D }.
+import { parseOptions } from '../../../lib/questionOptions'
 
 export default function FlaggedQuestionsPage() {
   const confirm = useConfirm()
@@ -180,25 +183,44 @@ export default function FlaggedQuestionsPage() {
 
               <div className="border-t border-slate-100 pt-4">
                 <h3 className="mb-2 font-semibold text-slate-900">Question:</h3>
-                <p className="mb-4 text-slate-700">{selectedFlag.questionId?.question || selectedFlag.questionId?.content}</p>
+                <div className="mb-4 text-slate-700">{renderWithImages(selectedFlag.questionId?.content || selectedFlag.questionId?.question || '')}</div>
 
-                <div className="space-y-2">
-                  {['A', 'B', 'C', 'D'].map((opt) => {
-                    const isCorrect = resolveAnswerLetter(selectedFlag.questionId?.correctAnswer, selectedFlag.questionId) === opt
+                {(() => {
+                  const q = selectedFlag.questionId
+                  const options = parseOptions(q)
+                  const letters = ['A', 'B', 'C', 'D'].filter((opt) => options[opt])
+                  if (letters.length === 0) {
+                    // Fill-in-the-blank / grid-in: no choices, just the expected answer.
                     return (
-                      <div key={opt} className={`rounded-lg p-3 ${isCorrect ? 'border-2 border-emerald-500 bg-emerald-50' : 'bg-slate-50'}`}>
-                        <span className="font-semibold text-slate-900">{opt}.</span> <span className="text-slate-700">{selectedFlag.questionId?.[`option${opt}`]}</span>
-                        {isCorrect && <span className="ml-2 font-semibold text-emerald-600">✓ Correct</span>}
+                      <div className="rounded-lg border-2 border-emerald-500 bg-emerald-50 p-3">
+                        <span className="font-semibold text-slate-900">Correct answer (fill-in-the-blank):</span>
+                        <div className="text-slate-700">{renderWithImages(String(q?.correctAnswer ?? ''))}</div>
                       </div>
                     )
-                  })}
-                </div>
+                  }
+                  return (
+                    <div className="space-y-2">
+                      {letters.map((opt) => {
+                        const isCorrect = resolveAnswerLetter(q?.correctAnswer, q) === opt
+                        return (
+                          <div key={opt} className={`rounded-lg p-3 ${isCorrect ? 'border-2 border-emerald-500 bg-emerald-50' : 'bg-slate-50'}`}>
+                            <div className="flex items-start gap-2">
+                              <span className="font-semibold text-slate-900">{opt}.</span>
+                              <div className="flex-1 text-slate-700">{renderWithImages(options[opt])}</div>
+                              {isCorrect && <span className="ml-2 font-semibold text-emerald-600">✓ Correct</span>}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
               </div>
 
               {selectedFlag.questionId?.shortExplanation && (
                 <div className="border-t border-slate-100 pt-4">
                   <h3 className="mb-2 font-semibold text-slate-900">Explanation:</h3>
-                  <p className="rounded-lg bg-indigo-50 p-3 text-slate-700">{selectedFlag.questionId.shortExplanation}</p>
+                  <div className="rounded-lg bg-indigo-50 p-3 text-slate-700">{renderWithImages(selectedFlag.questionId.shortExplanation)}</div>
                 </div>
               )}
 

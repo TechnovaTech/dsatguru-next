@@ -7,7 +7,7 @@ import Course from '../../../lib/models/Course'
 import User from '../../../lib/models/User'
 import { verifyToken, getTokenFromRequest, requireRole } from '../../../lib/auth'
 import { generateQuestionId } from '../../../lib/idGenerator'
-import { ROLES, ADMIN_ROLES } from '../../../lib/constants/roles'
+import { ROLES, ADMIN_ROLES, STAFF_ROLES } from '../../../lib/constants/roles'
 import { stripAnswerFields } from '../../../lib/serializers/question'
 import { logger } from '../../../lib/logger'
 
@@ -43,8 +43,9 @@ export async function GET(request) {
       const questions = await Question.find({ _id: { $in: idArray } })
         .populate('createdBy', 'name')
         .sort({ createdAt: -1 })
-      
-      const isStudent = decoded.role === ROLES.STUDENT
+
+      // Allow-list, not deny-list: anything that isn't a known staff role is a student.
+      const isStudent = !STAFF_ROLES.includes(decoded.role)
       return NextResponse.json(questions.map(q => {
         let data = q.toObject ? q.toObject() : { ...q }
         data.id = data._id.toString()
@@ -193,7 +194,7 @@ export async function GET(request) {
       // their ids aren't real Course docs, so a student "Purchase Access" click dead-ends
       // at /enrollment/admin-math. Students receive ONLY real question_bank Course docs;
       // staff/unauthenticated tooling (tokenless admin fetch) still gets the buckets.
-      const includeSyntheticBanks = !decoded || decoded.role !== ROLES.STUDENT
+      const includeSyntheticBanks = !decoded || STAFF_ROLES.includes(decoded.role)
       return NextResponse.json({
         success: true,
         data: includeSyntheticBanks ? [...adminBanks, ...questionBanksData] : questionBanksData,
@@ -276,7 +277,7 @@ export async function GET(request) {
 
     logger.debug('GET /api/questions - fetched', questions.length, 'questions')
 
-    const isStudent = decoded.role === ROLES.STUDENT
+    const isStudent = !STAFF_ROLES.includes(decoded.role)
     const questionsData = questions.map(q => {
       // Return the full question object but ensure options and tags are parsed if they are strings
       let data = q.toObject ? q.toObject() : { ...q }

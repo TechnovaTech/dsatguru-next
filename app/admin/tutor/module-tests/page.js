@@ -2,6 +2,7 @@
 import { renderContent as renderWithImages } from '../../../components/admin/LatexRenderer'
 // Maps an answer (letter, "B) 240"-style key, or option text — any casing) to its option letter.
 import { resolveAnswerLetter } from '../../../../lib/scoring/satScale'
+import { parseOptions } from '../../../../lib/questionOptions'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiSearch, FiEye, FiTrash, FiClock, FiX, FiArrowLeft, FiSave, FiEdit, FiUserPlus, FiUsers, FiPlus, FiUpload, FiGrid } from 'react-icons/fi'
@@ -261,6 +262,9 @@ export default function ModuleTestSheets() {
   }
 
   const handleOptionChange = (questionId, optionKey, value) => {
+    // The question as currently displayed (bank version merged with any saved overlay). When the
+    // overlay has no options yet, this still holds the full original option set — needed below.
+    const displayedQ = Object.values(moduleQuestionsMap).flat().find(q => (q.id || q._id || '').toString() === questionId.toString())
     setModuleQuestionsMap(prev => {
       const next = { ...prev }
       Object.keys(next).forEach(idx => {
@@ -277,6 +281,10 @@ export default function ModuleTestSheets() {
       const cur = prev[questionId] || {}
       let opts = (() => { try { return typeof cur.options === 'string' ? JSON.parse(cur.options) : (cur.options || {}) } catch(e) { return {} } })()
       if (Array.isArray(opts)) opts = { A: opts[0]||'', B: opts[1]||'', C: opts[2]||'', D: opts[3]||'' }
+      // First option edit for this question: seed with ALL four original options, not just the
+      // edited letter — effectiveOptions() treats the saved overlay as the complete option set,
+      // so a partial { B: '…' } would blank the other three choices for students.
+      if (!opts || typeof opts !== 'object' || Object.keys(opts).length === 0) opts = parseOptions(displayedQ)
       return { ...prev, [questionId]: { ...cur, options: { ...opts, [optionKey]: value } } }
     })
   }

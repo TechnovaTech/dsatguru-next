@@ -21,20 +21,16 @@ export const metadata = {
     shortcut: '/logo (2).png',
     apple: '/logo (2).png',
   },
+  // Homepage canonical only. Each indexable route sets its own alternates.canonical
+  // in its layout.js, so pages no longer all canonicalise to the homepage.
+  alternates: {
+    canonical: '/',
+  },
 }
 
 export default function RootLayout({ children }) {
-  const canonicalUrl = BASE_URL
-
   return (
     <html lang="en">
-      <head>
-        <link rel="canonical" href={canonicalUrl} />
-        <meta
-          name="google-site-verification"
-          content="oiH_6dKW-lPMKtoR8WH7sQDkqZ-_3Oe6uy7BxLZdhWA"
-        />
-      </head>
       <body className="font-[Poppins]">
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-2S6R8YEWQM"

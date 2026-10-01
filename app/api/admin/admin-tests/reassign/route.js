@@ -5,6 +5,7 @@ import TestSession from '../../../../../lib/models/TestSession'
 import User from '../../../../../lib/models/User'
 import { requireRole } from '../../../../../lib/auth'
 import { ROLES, STAFF_ROLES } from '../../../../../lib/constants/roles'
+import { getCustomMap } from '../../../../../lib/tutorCustomQuestions'
 
 export async function POST(request) {
   try {
@@ -17,6 +18,9 @@ export async function POST(request) {
 
     if (!originalSessionId || !originalTestId || !questionIds || !userId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+    if (!Array.isArray(questionIds) || questionIds.length === 0) {
+      return NextResponse.json({ error: 'No questions to reassign' }, { status: 400 })
     }
 
     // Tutors can only reassign to their own assigned students
@@ -33,11 +37,21 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Original test not found' }, { status: 404 })
     }
 
+    // Carry over any edited question versions (keyed by question id) for the questions in the
+    // new test — otherwise edited answers/options regress to bank content on the copy.
+    const originalCustom = getCustomMap(originalTest)
+    const customQuestions = {}
+    for (const qId of questionIds) {
+      const key = String(qId)
+      if (originalCustom[key]) customQuestions[key] = originalCustom[key]
+    }
+
     // Create a new test with the selected questions
     const newTest = await Test.create({
       title: `${originalTest.title} (Reassigned)`,
       subject: originalTest.subject,
       questions: questionIds,
+      ...(Object.keys(customQuestions).length > 0 && { customQuestions }),
       assignedTo: [userId],
       isTutorTest: false,
       testType: 'Practice',

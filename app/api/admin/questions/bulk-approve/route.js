@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '../../../../../lib/db'
 import Question from '../../../../../lib/models/Question'
 import User from '../../../../../lib/models/User'
-import { requireRole, hashPassword } from '../../../../../lib/auth'
+import { requireRole } from '../../../../../lib/auth'
 import { STAFF_ROLES } from '../../../../../lib/constants/roles'
 import { generateQuestionId } from '../../../../../lib/idGenerator'
 
@@ -30,18 +30,6 @@ export async function POST(request) {
       return NextResponse.json({ error: 'No valid questions — all missing content or answer' }, { status: 400 })
 
     console.log(`📋 ${questions.length} received → ${validQuestions.length} valid`)
-
-    // Get or create admin user
-    let adminUser = await User.findOne({ role: 'Admin' })
-    if (!adminUser) {
-      const hashedPassword = await hashPassword('admin123')
-      adminUser = await User.create({
-        name: 'System Admin',
-        email: 'admin@dsatguru.com',
-        password: hashedPassword,
-        role: 'Admin'
-      })
-    }
 
     // Build serial counters — find max existing serial per bankType+subject+tag+difficulty
     // so IDs like TMGE-M-1 and TMGE-H-1 are tracked separately and never collide.
@@ -135,7 +123,7 @@ export async function POST(request) {
         questionBankId: isTutor ? null : (questionBankId || null),
         isTutor: !!isTutor,
         isAdminTest: isAdminTest === true,
-        createdBy: adminUser._id,
+        createdBy: decoded.userId,
         remark: q.remark || ''
       })
     }

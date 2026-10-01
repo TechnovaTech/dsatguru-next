@@ -21,6 +21,16 @@ export async function POST(request) {
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
+    // Files land under the app's own origin, so an .html/.svg "image" would be a stored
+    // script on dsatguru.com — only real raster image types, and a sane size.
+    const ALLOWED_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp'])
+    const ext = path.extname(file.name || '').toLowerCase()
+    if (!ALLOWED_EXT.has(ext)) {
+      return NextResponse.json({ error: 'Only PNG, JPG, GIF or WEBP images are allowed' }, { status: 400 })
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: 'Image must be under 10 MB' }, { status: 400 })
+    }
 
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'questions')
     try {

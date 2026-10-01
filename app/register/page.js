@@ -53,7 +53,11 @@ export default function Register() {
   // Resume the pre-signup flow (e.g. enrollment) after the account is created.
   const [returnTo, setReturnTo] = useState('')
   useEffect(() => {
-    try { setReturnTo(new URLSearchParams(window.location.search).get('returnTo') || '') } catch {}
+    try {
+      const raw = new URLSearchParams(window.location.search).get('returnTo') || ''
+      // Same-origin paths only: blocks //evil.com, https://…, and javascript: payloads.
+      setReturnTo(/^\/(?![\/\\])/.test(raw) ? raw : '')
+    } catch {}
   }, [])
 
   // Already signed in with a still-valid token? No need to register — go home.

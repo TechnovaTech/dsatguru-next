@@ -452,6 +452,14 @@ export default function TakeTestPage() {
         })
       ])
 
+      // Parse the history body exactly ONCE. A Response body can only be read a single time —
+      // the excludeUsedQuestions branch below used to call .json() on it a second time, which
+      // threw "body stream already read" and the self-practice player never loaded.
+      let historyData = null
+      if (historyRes.ok) {
+        try { historyData = await historyRes.json() } catch { historyData = null }
+      }
+
       if (testRes.ok) {
         const testData = await testRes.json()
 
@@ -465,8 +473,7 @@ export default function TakeTestPage() {
         }
 
         // Check if user already took this test (do this first)
-        if (historyRes.ok) {
-          const historyData = await historyRes.json()
+        if (historyData) {
           const sessions = historyData.sessions || historyData || []
           const testSessions = sessions.filter(s => String(s.testId?._id || s.testId) === String(testId))
           // A ?sessionId in the URL only counts as "resume" if that specific session is
@@ -528,8 +535,7 @@ export default function TakeTestPage() {
             finalQuestions = questions
 
             // Filter out used questions if requested by test configuration
-            if (testData.excludeUsedQuestions && historyRes.ok) {
-              const historyData = await historyRes.json()
+            if (testData.excludeUsedQuestions && historyData) {
               const sessions = historyData.sessions || historyData || []
               const usedIds = new Set()
               sessions.forEach(s => {
@@ -872,6 +878,43 @@ export default function TakeTestPage() {
     }
   }
 
+  // Build the responses payload from a { moduleKey: { answers, questionIds } } map — EVERY
+  // question served in every module, answered or skipped. Shared by the normal completion
+  // path and the violation auto-submit so both always persist the whole attempt (the
+  // auto-submit used to send only the current module and silently drop earlier modules).
+  // Scoring is re-graded server-side, so the isCorrect flags here are advisory only.
+  const buildResponses = (modAnswersMap) => {
+    const responses = []
+    Object.keys(modAnswersMap || {}).forEach(moduleKey => {
+      const mod = modAnswersMap[moduleKey]
+      const modAnswers = (mod && mod.answers) || {}
+      const modQuestionIds = (mod && mod.questionIds) || []
+
+      modQuestionIds.forEach(qId => {
+        const q = allQuestions.find(qt => String(qt._id) === String(qId))
+          || moduleQuestions.find(qt => String(qt._id) === String(qId))
+        if (q) {
+          const userAnswer = modAnswers[qId]
+          let isCorrect = false
+
+          if (userAnswer) {
+            isCorrect = isAnswerCorrect(q, userAnswer)
+          }
+
+          responses.push({
+            questionId: qId,
+            selectedAnswer: userAnswer || null,
+            isCorrect: isCorrect,
+            timeSpent: questionTimes[qId] || 0,
+            answeredAt: userAnswer ? new Date() : null,
+            omitted: !userAnswer
+          })
+        }
+      })
+    })
+    return responses
+  }
+
   const handleAutoSubmit = async (reason) => {
     const isProctored = test?.practiceMode === 'tutor' || test?.practiceMode === 'admin' || isFullAdaptiveTest
 
@@ -902,26 +945,22 @@ export default function TakeTestPage() {
         return
       }
 
-      // Persist EVERY question (answered or skipped) so the auto-submit actually saves
-      // the student's work. Scoring is re-graded server-side, so client flags are advisory.
+      // Persist EVERY question served so far (answered or skipped): the earlier modules
+      // already committed to moduleAnswers PLUS the current module, which has NOT been
+      // committed yet because handleModuleComplete never ran. Built the same way as the
+      // normal completion path so a violation can't drop earlier modules' answers.
       const totalTimeSpent = Object.values(questionTimes).reduce((a, b) => a + b, 0)
-      const responses = moduleQuestions.map((q) => {
-        const userAnswer = answers[q._id]
-        return {
-          questionId: q._id,
-          selectedAnswer: userAnswer || null,
-          isCorrect: userAnswer ? isAnswerCorrect(q, userAnswer) : false,
-          timeSpent: questionTimes[q._id] || 0,
-          answeredAt: userAnswer ? new Date() : null,
-          omitted: !userAnswer,
-        }
-      })
+      const allModuleAnswers = {
+        ...moduleAnswers,
+        [`${currentSection}_module${currentModule}`]: { answers, questionIds: moduleQuestions.map(q => q._id) },
+      }
+      const responses = buildResponses(allModuleAnswers)
 
       const sessionData = {
         testId,
         status: 'Completed',
         moduleScores,
-        moduleAnswers,
+        moduleAnswers: allModuleAnswers,
         responses,
         timeSpent: totalTimeSpent,
         completedAt: new Date().toISOString(),
@@ -1172,37 +1211,8 @@ export default function TakeTestPage() {
         return
       }
       
-    // Generate responses array with time tracking
-    const responses = []
-    if (moduleAnswers) {
-        Object.keys(moduleAnswers).forEach(moduleKey => {
-          const mod = moduleAnswers[moduleKey]
-          const modAnswers = mod.answers || {}
-          const modQuestionIds = mod.questionIds || []
-          
-          modQuestionIds.forEach(qId => {
-             const q = allQuestions.find(qt => String(qt._id) === String(qId))
-             if (q) {
-               const userAnswer = modAnswers[qId]
-               const correctAnswer = q.correctAnswer
-               let isCorrect = false
-               
-               if (userAnswer) {
-                 isCorrect = isAnswerCorrect(q, userAnswer)
-               }
-               
-               responses.push({
-                 questionId: qId,
-                 selectedAnswer: userAnswer || null,
-                 isCorrect: isCorrect,
-                 timeSpent: questionTimes[qId] || 0,
-                 answeredAt: userAnswer ? new Date() : null,
-                 omitted: !userAnswer
-               })
-             }
-          })
-        })
-    }
+    // Generate responses array with time tracking (every module, answered or skipped)
+    const responses = buildResponses(moduleAnswers)
 
     const sessionData = {
         testId,

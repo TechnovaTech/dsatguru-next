@@ -21,6 +21,19 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    // Server-side eligibility (the same rule lib/reattempt.canReattempt shows the button
+    // for): a retake is only for a first auto-submitted (violation) attempt, or when staff
+    // approved an unlock request. Without this, any completed test could be reset at will.
+    const unlocked = session.unlockRequest && session.unlockRequest.status === 'approved'
+    const violationRetake = !session.isReassigned
+      && (session.autoSubmitted || session.autoSubmitReason)
+      && (session.attemptCount || 1) < 2
+    if (!unlocked && !violationRetake) {
+      return NextResponse.json({ error: 'This test cannot be reattempted' }, { status: 403 })
+    }
+    // An approval is single-use.
+    if (unlocked) session.unlockRequest = undefined
+
     // Reset session to fresh state — same test, same user, clean slate
     session.status = 'InProgress'
     session.state = 'CREATED'

@@ -4,6 +4,7 @@ import { Conversation, Message } from '../../../../lib/models/Message'
 import { getTokenFromRequest, verifyToken } from '../../../../lib/auth'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
+import { signReportLink } from '../../reports/[file]/route'
 
 const MAX_PDF_SIZE_BYTES = 25 * 1024 * 1024 // 25 MB
 
@@ -38,13 +39,14 @@ export async function POST(request) {
       return NextResponse.json({ error: 'File too large (max 25MB)' }, { status: 400 })
     }
 
-    // Save PDF to public/reports folder
+    // Save the PDF OUTSIDE public/ — it is a student's report, served only via the
+    // signed /api/reports/<file> link below, never as a public static URL.
     const bytes = await pdfFile.arrayBuffer()
     const buffer = Buffer.from(bytes)
     // Sanitize: only ever use the base filename with a timestamp prefix.
     const safeName = path.basename(pdfFile.name || 'report.pdf').replace(/[^a-zA-Z0-9.-]/g, '_')
     const fileName = `${Date.now()}-${safeName}`
-    const reportsDir = path.join(process.cwd(), 'public', 'reports')
+    const reportsDir = path.join(process.cwd(), 'private', 'reports')
     
     // Create reports directory if it doesn't exist
     try {
@@ -56,7 +58,8 @@ export async function POST(request) {
     const filePath = path.join(reportsDir, fileName)
     await writeFile(filePath, buffer)
     
-    const pdfUrl = `/reports/${fileName}`
+    const expiresAt = Date.now() + 180 * 24 * 60 * 60 * 1000 // link lives 180 days
+    const pdfUrl = `/api/reports/${fileName}?exp=${expiresAt}&sig=${signReportLink(fileName, expiresAt)}`
 
     // Create conversation and message for each selected user
     const messagePromises = userIds.map(async (userId) => {

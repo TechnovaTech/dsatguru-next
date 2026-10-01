@@ -200,14 +200,27 @@ export default function TutorTests() {
   }
 
   const handleConfirmAssign = async () => {
-    if (!assigningTest || selectedStudents.length === 0) return
+    if (!assigningTest) return
+
+    // Students who already had this test when the modal opened (they were pre-selected).
+    // Re-sending `add` for them would overwrite their session's showExplanation with the
+    // checkbox value, so only diff: add the newly checked, remove the newly unchecked.
+    const studentsWithTest = students
+      .filter(s => s.assignedTests && s.assignedTests.includes(assigningTest._id))
+      .map(s => s._id)
+    const toAssign = selectedStudents.filter(id => !studentsWithTest.includes(id))
+    const toUnassign = studentsWithTest.filter(id => !selectedStudents.includes(id))
+    if (toAssign.length === 0 && toUnassign.length === 0) {
+      toast.info('No changes to save')
+      return
+    }
 
     setAssigningInProgress(true)
     try {
       const token = localStorage.getItem('token')
 
-      // Assign test to each selected student
-      for (const studentId of selectedStudents) {
+      // Assign test to each newly selected student
+      for (const studentId of toAssign) {
         await fetch('/api/tutor/students/assign-test', {
           method: 'PUT',
           headers: {
@@ -224,12 +237,6 @@ export default function TutorTests() {
       }
 
       // Unassign from students who were deselected
-      const studentsWithTest = students
-        .filter(s => s.assignedTests && s.assignedTests.includes(assigningTest._id))
-        .map(s => s._id)
-
-      const toUnassign = studentsWithTest.filter(id => !selectedStudents.includes(id))
-
       for (const studentId of toUnassign) {
         await fetch('/api/tutor/students/assign-test', {
           method: 'PUT',
@@ -292,7 +299,11 @@ export default function TutorTests() {
   }
 
   const filteredTests = tests.filter(test => {
-    if (test.subject !== activeTab) return false
+    // Module tests are stored with subject = modules[0].subject, so route them by isModuleTest
+    // rather than subject — otherwise the "Module Tests" tab is always empty and module tests
+    // leak into the subject tabs.
+    if (activeTab === 'Module Tests') { if (!test.isModuleTest) return false }
+    else if (test.isModuleTest || test.subject !== activeTab) return false
     if (searchTerm && !(test.title || '').toLowerCase().includes(searchTerm.toLowerCase())) return false
     if (filterMode === 'timed' && !test.isTimed) return false
     if (filterMode === 'untimed' && test.isTimed) return false

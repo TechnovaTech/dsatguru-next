@@ -486,21 +486,26 @@ function CourseContentManager({ course, onBack }) {
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-slate-900">Live Meetings</h2>
               <button
-                onClick={() => setCourseData(prev => ({
-                  ...prev,
-                  meetings: [
-                    ...prev.meetings,
-                    {
-                      title: '', type: 'live-class', date: '', scheduledAt: null,
-                      durationMinutes: MEETING_TYPES['live-class'].defaultDuration,
-                      // Seed the room up front: a "Generate Room" click that was
-                      // never saved left students unable to join.
-                      link: `DSATGuru-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                      roomName: `DSATGuru-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                      status: 'scheduled', transcript: '', transcriptSummary: ''
-                    }
-                  ]
-                }))}
+                onClick={() => {
+                  // Seed the room up front: a "Generate Room" click that was
+                  // never saved left students unable to join. ONE string for
+                  // both fields: the transcript is filed under the room the
+                  // host was actually in, and two different names meant it
+                  // never matched.
+                  const roomName = `DSATGuru-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+                  setCourseData(prev => ({
+                    ...prev,
+                    meetings: [
+                      ...prev.meetings,
+                      {
+                        title: '', type: 'live-class', date: '', scheduledAt: null,
+                        durationMinutes: MEETING_TYPES['live-class'].defaultDuration,
+                        link: roomName, roomName,
+                        status: 'scheduled', transcript: '', transcriptSummary: ''
+                      }
+                    ]
+                  }))
+                }}
                 className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 Add Meeting
@@ -1467,7 +1472,7 @@ function CourseContentManager({ course, onBack }) {
                                         Authorization: `Bearer ${token}`
                                       },
                                       body: JSON.stringify({ 
-                                        courseId: selectedCourse?._id || courseData?._id, 
+                                        courseId: course.id, 
                                         meetingId: m._id 
                                       })
                                     })
@@ -1801,6 +1806,7 @@ function CourseContentManager({ course, onBack }) {
                     
                     const uploadResponse = await fetch('/api/upload/materials', {
                       method: 'POST',
+                      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                       body: formData
                     })
                     
@@ -2201,6 +2207,7 @@ function CourseContentManager({ course, onBack }) {
                     
                     const uploadResponse = await fetch('/api/upload/materials', {
                       method: 'POST',
+                      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                       body: formData
                     })
                     

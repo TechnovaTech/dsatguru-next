@@ -47,7 +47,10 @@ export default function ScoreTrackerPage() {
     const guessCount = r.guessCount !== null && r.guessCount !== '' ? Number(r.guessCount) : r.autoGuessCount
     const carelessMistakes = r.carelessMistakes !== null && r.carelessMistakes !== '' ? Number(r.carelessMistakes) : r.autoCarelessMistakes
 
-    const total = rawMisses + timingIssues + guessCount + carelessMistakes
+    // Timing / guess / careless are SUBSETS of the raw misses (each is tallied from the same
+    // wrong responses — see app/api/score-tracker/route.js), so the total IS the raw misses.
+    // Summing all four used to count every categorized miss up to three times over.
+    const total = rawMisses
     const prev = acc[acc.length - 1]
     const prevTotal = prev ? prev.total : null
 
@@ -95,10 +98,10 @@ export default function ScoreTrackerPage() {
   }
 
   const statCards = [
-    { label: 'Total Errors (All Tests)', value: totalErrors, icon: FiAlertCircle, chip: 'bg-rose-500' },
+    { label: 'Total Misses (All Tests)', value: totalErrors, icon: FiAlertCircle, chip: 'bg-rose-500' },
     { label: 'Improvements', value: improvedDays, icon: FiTrendingUp, chip: 'bg-emerald-500' },
     { label: 'Tests Tracked', value: computed.length, icon: FiClipboard, chip: 'bg-indigo-500' },
-    { label: 'Best Performance', value: bestDay && bestDay.total > 0 ? `${bestDay.total} Errors` : '—', icon: FiAward, chip: 'bg-violet-500' },
+    { label: 'Best Performance', value: bestDay && bestDay.total > 0 ? `${bestDay.total} Misses` : '—', icon: FiAward, chip: 'bg-violet-500' },
   ]
 
   return (
@@ -166,7 +169,7 @@ export default function ScoreTrackerPage() {
                     Careless<br /><span className="font-normal normal-case tracking-normal text-slate-400 text-[10px]">Knew but wrong</span>
                   </th>
                   <th className="px-6 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Total<br /><span className="font-normal normal-case tracking-normal text-slate-400 text-[10px]">Auto-sum</span>
+                    Total<br /><span className="font-normal normal-case tracking-normal text-slate-400 text-[10px]">Raw misses (breakdown not added)</span>
                   </th>
                   <th className="px-6 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Trend</th>
                 </tr>

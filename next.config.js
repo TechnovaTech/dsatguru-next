@@ -21,11 +21,6 @@ const nextConfig = {
         destination: '/blog',
         permanent: true,
       },
-      {
-        source: '/blog.html',
-        destination: '/blog',
-        permanent: true,
-      },
       // Old DSAT program URLs to new SEO-friendly URLs
       {
         source: '/programs/dsat/live-bootcamp-course',
@@ -95,11 +90,6 @@ const nextConfig = {
       {
         source: '/blog/digital-sat-reading-strategies',
         destination: '/blog/digital-sat-reading-writing-strategies',
-        permanent: true,
-      },
-      {
-        source: '/blog/using-practice-tests-effectively',
-        destination: '/blog/digital-sat-practice-tests-right-way',
         permanent: true,
       },
     ]

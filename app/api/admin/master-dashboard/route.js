@@ -5,6 +5,7 @@ import TestSession from '@/lib/models/TestSession'
 import ErrorLog from '@/lib/models/ErrorLog'
 import StudyPlan from '@/lib/models/StudyPlan'
 import { verifyToken, getTokenFromRequest } from '@/lib/auth'
+import { tutorStudentIds } from '@/lib/tutorScope'
 
 export async function GET(req) {
   try {
@@ -17,8 +18,9 @@ export async function GET(req) {
 
     await connectDB()
 
-    // Fetch all students
-    const students = await User.find({ role: 'Student' }).lean()
+    // Fetch the students this caller may see (a Tutor: only their own).
+    const scope = await tutorStudentIds(decoded)
+    const students = await User.find(scope ? { role: 'Student', _id: { $in: scope } } : { role: 'Student' }).lean()
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)

@@ -4,6 +4,7 @@ import TestSession from '../../../../../lib/models/TestSession'
 import User from '../../../../../lib/models/User'
 import { requireRole } from '../../../../../lib/auth'
 import { ROLES, STAFF_ROLES } from '../../../../../lib/constants/roles'
+import { tutorStudentIds } from '../../../../../lib/tutorScope'
 
 export async function GET(request) {
   try {
@@ -11,11 +12,13 @@ export async function GET(request) {
     if (auth.error) return auth.error
     await connectDB()
 
-    const completed = await TestSession.countDocuments({ state: 'COMPLETED' })
-    const totalStudents = await User.countDocuments({ role: ROLES.STUDENT })
+    const scope = await tutorStudentIds(auth.decoded)
+    const userFilter = scope ? { userId: { $in: scope } } : {}
+    const completed = await TestSession.countDocuments({ state: 'COMPLETED', ...userFilter })
+    const totalStudents = await User.countDocuments(scope ? { role: ROLES.STUDENT, _id: { $in: scope } } : { role: ROLES.STUDENT })
     
     const avgScores = await TestSession.aggregate([
-      { $match: { state: 'COMPLETED', totalScore: { $ne: null } } },
+      { $match: { state: 'COMPLETED', totalScore: { $ne: null }, ...userFilter } },
       { $group: { 
         _id: null, 
         avgTotal: { $avg: '$totalScore' },
@@ -25,7 +28,7 @@ export async function GET(request) {
     ])
     
     const passRate = await TestSession.aggregate([
-      { $match: { state: 'COMPLETED', totalScore: { $ne: null } } },
+      { $match: { state: 'COMPLETED', totalScore: { $ne: null }, ...userFilter } },
       { $group: {
         _id: null,
         total: { $sum: 1 },

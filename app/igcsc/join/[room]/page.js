@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { FiVideo, FiLoader, FiAlertCircle, FiLogIn, FiClock, FiUser } from 'react-icons/fi'
-import { IG_TOKEN } from '../../_components/auth'
+import { IG_TOKEN, igcscUser } from '../../_components/auth'
+import { apiGet, apiSend } from '../../_components/api'
 
 const LiveKitMeeting = dynamic(() => import('../../../components/LiveKitMeeting'), { ssr: false })
 
@@ -34,20 +35,44 @@ export default function IgcscJoinPage() {
   const guestCode = search.get('g') || ''
 
   const [mode, setMode] = useState('checking')          // checking | member | guest | signin
+  const [member, setMember] = useState(null)            // { meeting, isStaff } once signed in
   const [guestName, setGuestName] = useState('')
   const [guestState, setGuestState] = useState('idle')  // idle | waiting | denied | admitted
   const [guestSession, setGuestSession] = useState(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const me = typeof window !== 'undefined' ? igcscUser() : null
 
   const roomName = decodeURIComponent(String(room || ''))
 
   useEffect(() => {
     const t = typeof window !== 'undefined' ? localStorage.getItem(IG_TOKEN) : null
-    if (t) setMode('member')
-    else if (guestCode) setMode('guest')
-    else setMode('signin')
-  }, [guestCode])
+    if (!t) { setMode(guestCode ? 'guest' : 'signin'); return }
+    // Signed in: find this room's session first, so a host can end the class
+    // the IGCSC way (PATCH by id). Without it the End button fell back to
+    // DsatGuru's session API, which rejects an IGCSC token.
+    let cancelled = false
+    ;(async () => {
+      let meeting = null, isStaff = false
+      try {
+        const res = await apiGet('/api/igcsc/meetings')
+        isStaff = !!res?.isStaff
+        meeting = (res?.meetings || []).find((x) => x.roomName === roomName) || null
+      } catch { /* the token route is the real gate and reports its own reason */ }
+      if (cancelled) return
+      setMember({ meeting, isStaff })
+      setMode('member')
+    })()
+    return () => { cancelled = true }
+  }, [guestCode, roomName])
+
+  // Mirrors /igcsc/meetings: ending a session is a status change on the IGCSC
+  // record, which also empties the LiveKit room.
+  const endClass = async () => {
+    const id = member?.meeting?._id
+    if (!id) throw new Error('This session could not be found, so it was not ended. End it from Live Sessions.')
+    await apiSend('/api/igcsc/meetings', 'PATCH', { id, status: 'ended' })
+  }
 
   const requestAccess = async () => {
     const name = guestName.trim()
@@ -86,11 +111,16 @@ export default function IgcscJoinPage() {
     return (
       <LiveKitMeeting
         roomName={roomName}
+        meetingTitle={member?.meeting?.title}
+        meeting={member?.meeting || undefined}
+        displayName={me?.name || me?.email || 'Participant'}
+        isAdmin={!!member?.isStaff}
         authKey={IG_TOKEN}
         tokenApi="/api/igcsc/meetings/token"
         guestApi="/api/igcsc/meetings/guest"
         transcriptApi={null}
         boardsApi={null}
+        onEndClass={endClass}
         onClose={() => router.push('/igcsc/meetings')}
       />
     )

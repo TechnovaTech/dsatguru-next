@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server'
 import { igcscModels } from '../../../../../lib/igcscDb'
 import { generateIgcscToken, hashPw } from '../../../../../lib/igcscAuth'
+import { rateLimit, clientIp } from '../../../../../lib/rateLimit'
 
 // Self-registration for IGCSE students.
 export async function POST(request) {
   try {
+    const limit = rateLimit('igcsc-register:' + clientIp(request), { max: 5, windowMs: 60000 })
+    if (!limit.ok) {
+      return NextResponse.json({ error: 'Too many sign-ups from this network. Please try again later.' }, { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } })
+    }
     const body = await request.json()
     const name = (body?.name || '').trim()
     const email = typeof body?.email === 'string' ? body.email.toLowerCase().trim() : ''

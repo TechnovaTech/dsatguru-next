@@ -118,6 +118,17 @@ export async function POST(request) {
         .sort({ createdAt: 1 })
         .lean()
       sessionData.showExplanation = priorSession?.showExplanation === true
+    } else if (!STAFF_ROLES.includes(decoded.role)) {
+      // No testId means there is no assignment to check, so a student may only OPEN a
+      // bank-practice session here. A ready-made "completed" payload would be graded
+      // against arbitrary question ids and then reveal their keys on the next GET.
+      const hasResponses = Array.isArray(sessionData.responses) && sessionData.responses.length > 0
+      if (sessionData.status === 'Completed' || hasResponses) {
+        return NextResponse.json({ error: 'A test must be referenced to submit results' }, { status: 400 })
+      }
+      delete sessionData.responses
+      delete sessionData.moduleAnswers
+      delete sessionData.moduleScores
     }
 
     // If this is a completed test, grade it server-side. Triggered by status alone so a

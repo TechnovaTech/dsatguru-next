@@ -25,7 +25,7 @@ export async function POST(request) {
     }
 
     const meetingIndex = course.meetings.findIndex(m => 
-      m._id?.toString() === meetingId || m.link === meetingId
+      m._id?.toString() === meetingId || m.roomName === meetingId || m.link === meetingId
     )
     
     if (meetingIndex === -1) {

@@ -92,9 +92,12 @@ export default function TutorAndStudents() {
       if (res.ok) {
         const students = await res.json()
         setAllStudents(students)
-        // Filter students already assigned to this tutor
+        // Filter students already assigned to this tutor. /api/admin/users populates
+        // assignedTutors as { _id, name, email } objects, so normalise each entry to its id
+        // string (calling toString() on the object yields "[object Object]").
+        const toIdStr = (t) => (typeof t === 'object' && t !== null ? String(t._id || t.id) : String(t))
         const assigned = students.filter(s =>
-          (s.assignedTutors || []).map(id => id?.toString()).includes(tutor._id?.toString())
+          (s.assignedTutors || []).map(toIdStr).includes(String(tutor._id))
         )
         setAssignedStudents(assigned.map(s => s._id?.toString()))
       }
