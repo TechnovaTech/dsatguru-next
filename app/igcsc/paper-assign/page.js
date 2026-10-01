@@ -483,12 +483,15 @@ export default function PaperAssignPage() {
   const paperIds = Object.keys(pickedPapers)
   const offSale = Object.values(pickedPapers).filter((p) => !p.isPublished).length
 
-  const allStudentsShownPicked = shownStudents.length > 0 && shownStudents.every((s) => pickedStudents[s._id])
+  // A suspended student cannot be given work - select-all leaves them out,
+  // as the row button does.
+  const pickableStudents = shownStudents.filter((s) => s.isActive !== false)
+  const allStudentsShownPicked = pickableStudents.length > 0 && pickableStudents.every((s) => pickedStudents[s._id])
   const toggleAllStudents = () => {
     setPickedStudents((prev) => {
       const next = { ...prev }
-      if (allStudentsShownPicked) shownStudents.forEach((s) => { delete next[s._id] })
-      else shownStudents.forEach((s) => { next[s._id] = { name: s.name || s.email || 'Student', email: s.email || '' } })
+      if (allStudentsShownPicked) pickableStudents.forEach((s) => { delete next[s._id] })
+      else pickableStudents.forEach((s) => { next[s._id] = { name: s.name || s.email || 'Student', email: s.email || '' } })
       return next
     })
   }

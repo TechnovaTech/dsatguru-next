@@ -158,9 +158,22 @@ export default function WrittenSectionPage() {
 
   useEffect(() => {
     if (!busy) return undefined
+    const MESSAGE = 'Photos are still uploading. Leave now and the rest will not be sent?'
     const warn = (e) => { e.preventDefault(); e.returnValue = '' }
     window.addEventListener('beforeunload', warn)
-    return () => window.removeEventListener('beforeunload', warn)
+    // Next's <Link> navigates without unloading the page, so beforeunload never
+    // fires for it. Catch same-site link clicks first and ask.
+    const onClick = (e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const a = e.target?.closest?.('a[href]')
+      if (!a || a.target === '_blank' || a.origin !== window.location.origin) return
+      if (!window.confirm(MESSAGE)) { e.preventDefault(); e.stopPropagation() }
+    }
+    document.addEventListener('click', onClick, true)
+    return () => {
+      window.removeEventListener('beforeunload', warn)
+      document.removeEventListener('click', onClick, true)
+    }
   }, [busy])
 
   // ── Upload queue. The ref is the truth; state mirrors it for rendering. ──

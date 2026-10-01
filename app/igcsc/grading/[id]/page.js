@@ -687,9 +687,22 @@ export default function GradingReviewPage() {
   // Leaving with unsaved marks asks first.
   useEffect(() => {
     if (!dirty) return
+    const MESSAGE = 'You have unsaved marks. Leave without saving them?'
     const onBefore = (e) => { e.preventDefault(); e.returnValue = '' }
     window.addEventListener('beforeunload', onBefore)
-    return () => window.removeEventListener('beforeunload', onBefore)
+    // Next's <Link> navigates without unloading the page, so beforeunload never
+    // fires for it. Catch same-site link clicks first and ask.
+    const onClick = (e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const a = e.target?.closest?.('a[href]')
+      if (!a || a.target === '_blank' || a.origin !== window.location.origin) return
+      if (!window.confirm(MESSAGE)) { e.preventDefault(); e.stopPropagation() }
+    }
+    document.addEventListener('click', onClick, true)
+    return () => {
+      window.removeEventListener('beforeunload', onBefore)
+      document.removeEventListener('click', onClick, true)
+    }
   }, [dirty])
 
   const setDraft = useCallback((qid, patch) => {

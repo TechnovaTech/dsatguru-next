@@ -55,9 +55,14 @@ async function call(path, method = 'GET', body) {
   }
 }
 
-// The whole local state of one answer, so a save is always "make it this".
-function payloadFor(qid, answer, seconds) {
-  return { questionId: qid, selected: answer?.selected || '', flagged: !!answer?.flagged, timeSpent: seconds }
+// Only what THIS tab changed since its last save. A time-only save must not
+// carry the choice along: a second tab left open with an older choice would
+// otherwise overwrite the newer one. The server keeps what is not sent.
+function payloadFor(qid, answer, seconds, dirty) {
+  const body = { questionId: qid, timeSpent: seconds }
+  if (dirty?.selected) body.selected = answer?.selected || ''
+  if (dirty?.flagged) body.flagged = !!answer?.flagged
+  return body
 }
 
 function fmtClock(ms) {
@@ -107,6 +112,8 @@ export default function McqRunnerPage() {
   const retryTimerRef = useRef(null)
   const failsRef = useRef(0)
   const stoppedRef = useRef(false)
+  // qid -> { selected, flagged }: what this tab has changed and not yet saved.
+  const dirtyRef = useRef(new Map())
   const submittingRef = useRef(false)
   const expiredRef = useRef(false)
   const mountedRef = useRef(false)
@@ -211,10 +218,13 @@ export default function McqRunnerPage() {
       while (pendingRef.current.size && !stoppedRef.current) {
         const [qid, version] = pendingRef.current.entries().next().value
         setSaveState((s) => (s === 'retrying' ? s : 'saving'))
-        const r = await call(apiPath, 'PATCH', payloadFor(qid, answersRef.current[qid], liveSeconds(qid)))
+        const r = await call(apiPath, 'PATCH', payloadFor(qid, answersRef.current[qid], liveSeconds(qid), dirtyRef.current.get(qid)))
         if (stoppedRef.current) return
         if (r.ok) {
-          if (pendingRef.current.get(qid) === version) pendingRef.current.delete(qid)
+          if (pendingRef.current.get(qid) === version) {
+            pendingRef.current.delete(qid)
+            dirtyRef.current.delete(qid)
+          }
           failsRef.current = 0
           setSaveNote('')
           setSaveState('saving')
@@ -280,6 +290,7 @@ export default function McqRunnerPage() {
     const next = { ...answersRef.current, [qid]: { ...prev, selected: letter } }
     answersRef.current = next
     setAnswers(next)
+    dirtyRef.current.set(qid, { ...(dirtyRef.current.get(qid) || {}), selected: true })
     queueSave(qid)
   }, [queueSave])
 
@@ -289,6 +300,7 @@ export default function McqRunnerPage() {
     const next = { ...answersRef.current, [qid]: { ...prev, flagged: !prev.flagged } }
     answersRef.current = next
     setAnswers(next)
+    dirtyRef.current.set(qid, { ...(dirtyRef.current.get(qid) || {}), flagged: true })
     queueSave(qid)
   }, [queueSave])
 
@@ -447,7 +459,7 @@ export default function McqRunnerPage() {
             method: 'PATCH',
             keepalive: true,
             headers,
-            body: JSON.stringify(payloadFor(qid, answersRef.current[qid], liveSeconds(qid))),
+            body: JSON.stringify(payloadFor(qid, answersRef.current[qid], liveSeconds(qid), dirtyRef.current.get(qid))),
           }).catch(() => {})
         } catch { /* the page is going away */ }
       }
