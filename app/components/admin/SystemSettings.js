@@ -22,6 +22,14 @@ const toLocalInputValue = (val) => {
   return local.toISOString().slice(0, 16)
 }
 
+// An auto-off time only means anything while it is still ahead of us; a leftover
+// past time would end maintenance the moment it starts.
+const futureOrNull = (val) => {
+  if (!val) return null
+  const d = new Date(val)
+  return !isNaN(d.getTime()) && d.getTime() > Date.now() ? val : null
+}
+
 export default function SystemSettings() {
   const confirm = useConfirm()
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
@@ -65,8 +73,9 @@ export default function SystemSettings() {
       const payload = {
         siteName: settings.siteName,
         maintenanceMode: settings.maintenanceMode,
-        // Only keep an auto-off time while maintenance is on.
-        maintenanceEndsAt: settings.maintenanceMode ? (settings.maintenanceEndsAt || null) : null,
+        // Only keep an auto-off time while maintenance is on, and only if it is still
+        // in the future — a leftover past time would turn maintenance straight back off.
+        maintenanceEndsAt: settings.maintenanceMode ? futureOrNull(settings.maintenanceEndsAt) : null,
         registrationEnabled: settings.registrationEnabled
       }
       const res = await fetch('/api/admin/settings', {

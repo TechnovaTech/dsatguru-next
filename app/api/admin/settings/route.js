@@ -38,10 +38,16 @@ export async function PUT(request) {
     for (const field of STRING_FIELDS) {
       if (field in body) update[field] = String(body[field] ?? '')
     }
-    // Optional maintenance auto-off timer (Date or null to clear).
+    // Optional maintenance auto-off timer (Date or null to clear). A time that has
+    // already passed is a leftover from an earlier window — keeping it would switch
+    // maintenance straight back off, so treat it as "no timer" instead.
     if ('maintenanceEndsAt' in body) {
-      update.maintenanceEndsAt = body.maintenanceEndsAt ? new Date(body.maintenanceEndsAt) : null
+      const ends = body.maintenanceEndsAt ? new Date(body.maintenanceEndsAt) : null
+      const valid = ends && !isNaN(ends.getTime()) && ends.getTime() > Date.now()
+      update.maintenanceEndsAt = valid ? ends : null
     }
+    // Turning maintenance off also clears any pending auto-off timer.
+    if (update.maintenanceMode === false) update.maintenanceEndsAt = null
 
     // Ensure the global doc exists before applying the whitelisted update.
     await getSettings()

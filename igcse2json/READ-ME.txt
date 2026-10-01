@@ -1,0 +1,13 @@
+IGCSE  ->  UPLOAD-READY JSON
+============================
+Source: the IGCSE zips on E:\ (index.html + question/answer images).
+
+Pipeline:
+  1. extract zips  -> D:/igx/all
+  2. parse index.html -> manifest.json (id, topic path, tags, image lists)
+  3. stitch images -> one question sheet + one answer sheet per question
+  4. OCR (vision)  -> question text, options, correct answer, mark scheme
+  5. assemble      -> igcse2json/output/*.json
+  6. upload        -> IGCSC question bank (igcsc DB, Question collection)
+
+Images are served from /uploads/igcse/q_<id>.jpg and a_<id>.jpg

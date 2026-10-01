@@ -1,0 +1,78 @@
+RAW FINDINGS (18) — titles by severity
+
+[HIGH] lib/testCohort.js:23
+   Cohort Best/Average use an "answered-only" denominator while "You" uses "seen" — the Comparative charts compare two different metrics
+   trigger: Any student who leaves questions blank opens their result page: Comparative Analysis > Accuracy Comparison shows You below Best/Average by exactly the omission rate, even when the cohort is only that 
+
+[HIGH] D:/DsatGuru Rahul Shah/dsatguru-next/app/components/TestResultView.js:1301 (with app/components/SatScoreAnalysis.js:400-471, 455)
+   New ResponsesTable leaks the answer key on auto-submitted attempts, bypassing hideDetailedReview
+   trigger: Student opens the result of a test that was auto-submitted for a proctoring violation (session.autoSubmitted true, viewMode !== 'admin'). The "Question wise report" shows the amber "Answer review isn'
+
+[HIGH] D:/DsatGuru Rahul Shah/dsatguru-next/lib/testCohort.js:23 (also 30-34); compare lib/satAnalysis.js:121-134
+   Cohort Best/Average accuracy uses a different denominator than the "You" bar, so a student can rank below their own session
+   trigger: Any test where the student left questions blank. The module flow persists a response row for every module question with `selectedAnswer: null` when unanswered (app/dashboard/tests/[id]/start/page.js:1
+
+[HIGH] app/components/TestResultView.js:1301 (and app/components/SatScoreAnalysis.js:654, 514, 531)
+   New per-question responses table leaks the answer key to students whose attempt was auto-submitted, bypassing the hideDetailedReview gate
+   trigger: Student opens /dashboard/tests/<id>/results?sessionId=... (no viewMode) for a session with autoSubmitted/autoSubmitReason set, expands "Question-by-question responses" in the SAT Score Analysis panel.
+
+[MEDIUM] lib/testCohort.js:57
+   computePercentile ranks an arbitrary session of the user, and counts the user's own other attempts as peers
+   trigger: Student with two or more completed sessions on the same module test opens the newer result; the Percentile card quotes the older attempt's rank.
+
+[MEDIUM] app/api/tests/[id]/analytics/route.js:116
+   Cohort keys on the raw stored `domain`; the student's rows key on the skill-derived canonical domain, so Best/Average silently vanish
+   trigger: Any test containing questions whose `domain` is blank, a subject name, or a legacy slug while `skill` is canonical — the Comparative Analysis charts lose their Best/Average bars for those units.
+
+[MEDIUM] D:/DsatGuru Rahul Shah/dsatguru-next/app/components/SatScoreAnalysis.js:545 (with TestResultView.js:1310-1313)
+   hasScores gate ignores percentile/totalSeconds, so the non-module scores object renders nothing
+   trigger: Open any non-module test result (tutor test, practice test, adaptive, admin-assigned test) where `session.timeSpent > 0` and/or the analytics endpoint returned a percentile — showScaledScore is false,
+
+[MEDIUM] D:/DsatGuru Rahul Shah/dsatguru-next/app/components/SatScoreAnalysis.js:587 (root cause lib/satAnalysis.js:211)
+   Overall Performance renders a bare "%" when every question was unseen
+   trigger: A completed session with zero responses and zero visitedQuestions — e.g. an attempt auto-submitted on the first proctoring violation before any question was answered, or an abandoned attempt closed ou
+
+[MEDIUM] D:/DsatGuru Rahul Shah/dsatguru-next/app/components/SatScoreAnalysis.js:545 (consumer: app/components/TestResultView.js:1310-1313)
+   `hasScores` gate discards the percentile and total-time payload on every non-module test
+   trigger: A student opens the result page for any tutor/admin/practice/adaptive test (test.isModuleTest !== true, so showScaledScore is false at TestResultView.js:826). The API returns e.g. percentile: 72 and s
+
+[MEDIUM] D:/DsatGuru Rahul Shah/dsatguru-next/app/components/SatScoreAnalysis.js:521-522 (rendered at 454-455)
+   ResponsesTable prints the raw stored answer key instead of resolving it to an option letter
+   trigger: Any question whose stored correctAnswer is not a bare letter. A student who answered correctly sees Response "B" next to Correct "240" (or the whole option sentence) with a green "Correct" chip — read
+
+[LOW] lib/satAnalysis.js:206
+   `missed` folds never-seen questions into "Missed / blank", so unseen items are reported against the student after being excluded from accuracy
+   trigger: Adaptive or partially served test result: the Difficulty chart shows grey "Missed / blank" volume for questions the student was never shown, and unit-card counts do not add up to the accuracy denomina
+
+[LOW] app/components/SatScoreAnalysis.js:545
+   hasScores gate discards the totalSeconds/percentile-only scores object, so Total Time never renders outside module tests
+   trigger: Open any non-module test result: session.timeSpent is present and passed, but no Total Time card appears.
+
+[LOW] lib/satAnalysis.js:211
+   hasData now true for an all-unseen row set, rendering a bare "%" instead of the empty state
+   trigger: Result page for a completed session that has zero stored responses (e.g. an adaptive/practice session auto-submitted on timeout with nothing answered) — every question resolves to wasVisited=false.
+
+[LOW] D:/DsatGuru Rahul Shah/dsatguru-next/app/components/SatScoreAnalysis.js:646-651
+   "Comparative Analysis" heading renders with nothing under it
+   trigger: A single-content-domain test (e.g. an Algebra-only tutor test) that has cohort data: compare.length === 1, so the heading renders, but Comparative bails on acc.length < 2. Same result when unitCohort 
+
+[LOW] D:/DsatGuru Rahul Shah/dsatguru-next/app/components/SatScoreAnalysis.js:691
+   Focus Areas chips: duplicate React key and a blank label for untagged-skill buckets
+   trigger: A student whose attempted questions include, in the same subject, two content domains' worth of questions that carry a domain but whose `skill` string is not in DOMAIN_SKILLS for that domain (older/im
+
+[LOW] D:/DsatGuru Rahul Shah/dsatguru-next/app/components/SatScoreAnalysis.js:646-650
+   "Comparative Analysis" heading renders with an empty body when fewer than two units are comparable
+   trigger: A single-domain tutor test (e.g. 10 Algebra questions): unitRows yields one unit, `compare.length === 1`, the chart bails, the heading remains. Same result whenever the API returns `unitCohort: {}` — 
+
+[LOW] D:/DsatGuru Rahul Shah/dsatguru-next/lib/testCohort.js:19
+   computeUnitCohort double-counts duplicate responses that the calling route deduplicates for its own stats
+   trigger: A legacy module test that lists the same question in two modules: app/dashboard/tests/[id]/start/page.js:1167-1185 walks moduleAnswers per module and pushes one response row per module occurrence, so 
+
+[LOW] app/components/SatScoreAnalysis.js:545 (consumed at 569 and 572; producer at app/components/TestResultView.js:1310-1313)
+   Percentile and Total Time cards can never render for non-module tests, so the new percentile computation is dead on those screens
+   trigger: View the result of any non-module test (practice/tutor/admin/adaptive) as a student on a test with 2+ completed sessions: the API returns a percentile, the component never shows it.
+
+
+VERDICTS: 14 real / 2 refuted
+  REFUTED: The two resolution rules really are different — `app/api/tests/[id]/analytics/route.js:116` (and the tutor twin at :65/:130) keys `computeUnitCohort`'s `perDomain` on the
+  REFUTED: The arithmetic the reviewer quotes is real (`missed: st.omitted + st.unseen` at satAnalysis.js:206 and :270), but the asserted consequence does not follow. Grepping every
