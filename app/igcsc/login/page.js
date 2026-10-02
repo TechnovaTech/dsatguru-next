@@ -48,7 +48,7 @@ export default function IgcscLoginPage() {
           </div>
           <div>
             <h2 className="text-3xl font-bold leading-snug">The complete IGCSE assessment platform.</h2>
-            <p className="mt-3 text-sm text-indigo-100">Question banks, exams, oral tests and live student tracking — all in one place.</p>
+            <p className="mt-3 text-sm text-indigo-100">Exam papers, timed online tests, AI-marked written answers and live classes — all in one place.</p>
           </div>
           <div className="text-xs text-indigo-200/80">© IGCSC Assessment Suite</div>
         </div>
