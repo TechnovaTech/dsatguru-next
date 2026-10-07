@@ -9,6 +9,7 @@
 //   node scripts/igcsc-answer-keys.cjs calibrate-written 10  # official final answers hidden
 //   node scripts/igcsc-answer-keys.cjs run-mcq     [--curriculum IGCSE] [--limit 500]
 //   node scripts/igcsc-answer-keys.cjs run-written [--curriculum IGCSE] [--limit 500]
+//   node scripts/igcsc-answer-keys.cjs import <accepted.json>  # results from the Claude solver/verifier agents
 //   node scripts/igcsc-answer-keys.cjs apply       # writes accepted results into EMPTY fields only
 //   node scripts/igcsc-answer-keys.cjs report
 //
@@ -38,7 +39,7 @@ const isDefect = (q) => /^\s*\[?\s*SOURCE DEFECT/i.test(String(q?.questionText |
 const optionLetters = (q) => LETTERS.filter((L) => q?.options && String(q.options[L] ?? '').trim())
 // Options beyond the stored ones (a sixth choice, an "(E)" that never made it
 // into options): the right answer may not be storable, so the question is skipped.
-const optionsLost = (q) => /\(F\)|choice F\b|SIX lettered|\bF\s*\$/i.test(String(q.questionText || '')) ||
+const optionsLost = (q) => /\(F\)|choice F\b|six lettered|Additional answer option|Option F is|Fifth option, beyond/i.test(String(q.questionText || '')) ||
   (/\(E\)/.test(String(q.questionText || '')) && !String(q.options?.E || '').trim())
 
 // ── rate limit + Gemini ──────────────────────────────────────────────────────
@@ -234,6 +235,41 @@ function schemeText(r) {
   return [`Final answer: ${r.finalAnswer}`, '', 'Mark scheme:', ...r.markScheme.map((p) => `- ${p.point} [${p.marks} mark${p.marks === 1 ? '' : 's'}]`)].join('\n')
 }
 
+// The OCR pipeline appended an option it could not store as a note at the end
+// of the question text. Once the option is stored the note goes - but only a
+// note of a known shape, at the very end, that really carries that option.
+const squash = (s) => String(s || '').replace(/[\s$]/g, '').toLowerCase()
+const E_NOTES = [
+  /\s*\(Fifth option, beyond A.D:\s*\(E\)[^\n]*\)\s*$/,
+  /\s*\[Option \(E\):[^\]\n]*\]\s*$/,
+  /\s*Option \(E\):[^\n]*$/,
+  /\s*\(E\)\s*[^\n]*$/,
+]
+function stripOptionNote(text, optionE) {
+  for (const re of E_NOTES) {
+    const m = text.match(re)
+    if (!m) continue
+    if (!squash(m[0]).includes(squash(optionE))) return null
+    const out = text.slice(0, m.index).trimEnd()
+    return out.length >= 20 ? out : null
+  }
+  return null
+}
+const F_NOTES = [
+  /\s*\(This question has six lettered options[^\n]*\)\s*$/i,
+  /\s*\(Additional answer option:[^\n]*\)\s*$/i,
+  /\s*\[Note: this question is printed with SIX lettered choices[^\]\n]*\]\s*$/i,
+]
+function stripSixthOptionNote(text) {
+  for (const re of F_NOTES) {
+    const m = text.match(re)
+    if (!m) continue
+    const out = text.slice(0, m.index).trimEnd()
+    return out.length >= 20 ? out : null
+  }
+  return null
+}
+
 // ── selection ────────────────────────────────────────────────────────────────
 const ACTIVE = { isActive: { $ne: false } }
 const FIELDS = { questionText: 1, options: 1, correctAnswer: 1, answerText: 1, marks: 1, isMCQ: 1, questionImage: 1, curriculum: 1, subject: 1, sourceFolder: 1 }
@@ -261,26 +297,67 @@ async function main() {
     return
   }
 
+  // Results solved outside this script (the Claude solver/verifier agents) come in
+  // as a JSON array of accepted items and go through the same `apply` guards.
+  if (mode === 'import') {
+    const rows = JSON.parse(require('fs').readFileSync(process.argv[3], 'utf8'))
+    const model = arg('--model', 'claude-fable-5-1 + claude-opus-5-5, verified')
+    let n = 0
+    for (const r of rows) {
+      const _id = new mongoose.Types.ObjectId(r.id)
+      const q = await Q.findOne({ _id }, { projection: { curriculum: 1, subject: 1 } })
+      if (!q) continue
+      const set = { kind: r.kind, curriculum: q.curriculum, subject: q.subject, status: 'accepted', model, note: r.note || '', updatedAt: new Date() }
+      if (r.kind === 'mcq') Object.assign(set, { letter: r.answer, optionE: r.optionE || null })
+      else Object.assign(set, { finalAnswer: r.finalAnswer, markScheme: r.markScheme, max: r.total, setMarks: !!r.setMarks })
+      await JOBS.updateOne({ _id }, { $set: set, $setOnInsert: { createdAt: new Date(), appliedAt: null } }, { upsert: true })
+      n += 1
+    }
+    console.log(`imported ${n} accepted results`)
+    return
+  }
+
   if (mode === 'apply') {
-    let mcq = 0, written = 0, skipped = 0
+    let mcq = 0, written = 0, skipped = 0, eFixed = 0, marksSet = 0
     for await (const j of JOBS.find({ status: 'accepted', appliedAt: null })) {
       const now = new Date()
-      const prov = { keySource: 'ai-verified', keyCheckedAt: now, keyModel: MODEL }
+      const prov = { keySource: 'ai-verified', keyCheckedAt: now, keyModel: j.model || MODEL }
       let r
       if (j.kind === 'mcq') {
         // Only while it still has no key: a key added by hand since then wins.
-        r = await Q.updateOne({ _id: j._id, isMCQ: true, correctAnswer: { $nin: LETTERS } }, { $set: { correctAnswer: j.letter, ...prov } })
+        const filter = { _id: j._id, isMCQ: true, correctAnswer: { $nin: LETTERS } }
+        const set = { correctAnswer: j.letter, ...prov }
+        if (j.optionE) {
+          // An option (E) that only survived in the question text: store it, and
+          // drop the note that carried it (the original text is kept on the job).
+          const q = await Q.findOne({ _id: j._id }, { projection: { questionText: 1, options: 1 } })
+          if (!q || String(q.options?.E || '').trim()) { skipped += 1; await JOBS.updateOne({ _id: j._id }, { $set: { appliedAt: now, appliedChanged: false } }); continue }
+          set['options.E'] = j.optionE
+          const stripped = stripOptionNote(String(q.questionText || ''), j.optionE)
+          if (stripped !== null) { set.questionText = stripped; await JOBS.updateOne({ _id: j._id }, { $set: { textBefore: q.questionText } }) }
+          eFixed += 1
+        } else {
+          const q = await Q.findOne({ _id: j._id }, { projection: { questionText: 1 } })
+          const stripped = q ? stripSixthOptionNote(String(q.questionText || '')) : null
+          if (stripped !== null) { set.questionText = stripped; await JOBS.updateOne({ _id: j._id }, { $set: { textBefore: q.questionText } }) }
+        }
+        r = await Q.updateOne(filter, { $set: set })
         if (r.modifiedCount) mcq += 1; else skipped += 1
       } else {
+        const set = { answerText: schemeText(j), correctAnswer: j.finalAnswer, ...prov }
+        if (j.setMarks && j.max > 0) {
+          const q = await Q.findOne({ _id: j._id }, { projection: { marks: 1 } })
+          if (q && !(Number(q.marks) > 0)) { set.marks = j.max; marksSet += 1 }
+        }
         r = await Q.updateOne(
           { _id: j._id, $and: [{ $or: [{ answerText: null }, { answerText: '' }] }, { $or: [{ correctAnswer: null }, { correctAnswer: '' }] }] },
-          { $set: { answerText: schemeText(j), correctAnswer: j.finalAnswer, ...prov } },
+          { $set: set },
         )
         if (r.modifiedCount) written += 1; else skipped += 1
       }
       await JOBS.updateOne({ _id: j._id }, { $set: { appliedAt: now, appliedChanged: !!r.modifiedCount } })
     }
-    console.log(`applied: ${mcq} MCQ keys, ${written} mark schemes; ${skipped} skipped (already filled since)`)
+    console.log(`applied: ${mcq} MCQ keys (${eFixed} with option E restored), ${written} mark schemes (${marksSet} with marks set); ${skipped} skipped (already filled since)`)
     return
   }
 
