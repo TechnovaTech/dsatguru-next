@@ -13,6 +13,7 @@ import { apiGet, apiGetSafe, apiSend } from '../_components/api'
 import { igcscUser } from '../_components/auth'
 import { PageHeader, Loading, EmptyState, ErrorState, Badge } from '../_components/ui'
 import ExamPaper from '../_components/ExamPaper'
+import SheetWorkspace from '../_components/SheetWorkspace'
 // Same KaTeX renderer the bank browser uses, so $..$ math renders in the paper.
 import { renderContent as renderMath } from '../../components/admin/LatexRenderer'
 import { formatPrice } from '../../../lib/igcscStoreShared'
@@ -399,6 +400,11 @@ export default function QuestionBankPage() {
   const [assignOpen, setAssignOpen] = useState(false)
   const [currency, setCurrency] = useState('usd')       // the Store's, for prices
   const [isAdmin, setIsAdmin] = useState(false)         // admins get links into the Store
+  // The Miscellaneous workspace: which folder is open (and how deep it sits),
+  // and how many sheets each folder of this subject holds, for its row.
+  const [sheetFolder, setSheetFolder] = useState('')
+  const [sheetDepth, setSheetDepth] = useState(0)
+  const [sheetCounts, setSheetCounts] = useState({})
   // Guards against a slow earlier fetch overwriting a newer view's data.
   const reqSeq = useRef(0)
 
@@ -416,15 +422,15 @@ export default function QuestionBankPage() {
     return () => { document.title = prev }
   }, [view])
 
-  // Browser Back closes an open paper back to the column browser instead of
-  // leaving the page. Any popped/stale {ep:'paper'} entry (Forward, or a
-  // reload while a paper was open) is neutralized so it can never desync the
-  // view from history.
+  // Browser Back closes an open paper or Miscellaneous workspace back to the
+  // column browser instead of leaving the page. Any popped/stale {ep:'paper'}
+  // or {ep:'sheets'} entry (Forward, or a reload while one was open) is
+  // neutralized so it can never desync the view from history.
   useEffect(() => {
     const onPop = (e) => {
       ++reqSeq.current
       setError(''); setLoading(false); setAssignOpen(false)
-      if (e.state?.ep === 'paper') window.history.replaceState(null, '')
+      if (e.state?.ep === 'paper' || e.state?.ep === 'sheets') window.history.replaceState(null, '')
       setView('browse'); setItems([]); setPaperMeta(null)
     }
     window.addEventListener('popstate', onPop)
@@ -457,7 +463,13 @@ export default function QuestionBankPage() {
   const openSubject = async (s) => {
     const seq = ++reqSeq.current
     // Keep the subject-search text; clear only the folder-column searches.
-    setSel(s); setPath([]); setColQ((q) => ({ s: q.s || '' })); setDiff(''); setPapers([]); setLoadingPapers(true); setError('')
+    setSel(s); setPath([]); setColQ((q) => ({ s: q.s || '' })); setDiff(''); setPapers([]); setSheetCounts({}); setLoadingPapers(true); setError('')
+    // How many sheets each folder holds, for the Miscellaneous rows. Not worth
+    // an error on screen if it cannot be fetched.
+    const cp = new URLSearchParams({ mode: 'counts', curriculum: s.curriculum, subject: s.subject })
+    apiGetSafe(`/api/igcsc/sheets?${cp.toString()}`, null).then((r) => {
+      if (seq === reqSeq.current && r?.counts) setSheetCounts(r.counts)
+    })
     try {
       const p = new URLSearchParams({ mode: 'papers', curriculum: s.curriculum, subject: s.subject })
       const res = await apiGet(`/api/igcsc/exam-papers?${p.toString()}`)
@@ -481,6 +493,15 @@ export default function QuestionBankPage() {
   }
 
   const back = () => window.history.back()
+
+  // The Miscellaneous entry of the folder at `depth` (0 = the subject itself).
+  const openSheets = (depth) => {
+    window.history.pushState({ ep: 'sheets' }, '')
+    setSheetFolder(path.slice(0, depth).join('/')); setSheetDepth(depth)
+    setView('sheets'); setError(''); setAssignOpen(false)
+  }
+  // A breadcrumb click in the workspace: back to the browser, open at that folder.
+  const goCrumb = (depth) => { setPath(path.slice(0, depth)); window.history.back() }
 
   /* ---- Folder tree of the selected subject, built from the flat papers ---- */
   const tree = useMemo(() => {
@@ -627,6 +648,21 @@ export default function QuestionBankPage() {
     )
   }
 
+  /* ========================= Miscellaneous view ========================= */
+  if (view === 'sheets' && sel) {
+    const crumbs = [
+      { label: `${sel.curriculum} ${sel.subject}`, onClick: () => goCrumb(0) },
+      ...path.slice(0, sheetDepth).map((seg, i) => ({ label: pretty(seg), onClick: () => goCrumb(i + 1) })),
+    ]
+    return (
+      <SheetWorkspace
+        curriculum={sel.curriculum} subject={sel.subject} folder={sheetFolder} crumbs={crumbs}
+        onRoot={back}
+        onCount={(n) => setSheetCounts((c) => ({ ...c, [sheetFolder]: n }))}
+      />
+    )
+  }
+
   /* =========================== Column browser =========================== */
   // Column 0 = subjects. Columns 1..path.length+1 = the folder tree.
   const setSearch = (key, v) => setColQ((s) => ({ ...s, [key]: v }))
@@ -675,9 +711,13 @@ export default function QuestionBankPage() {
           for (const p of own) rows.push({ type: 'paper', p, name: pretty(name) })
         }
       }
+      // Every folder has a Miscellaneous entry: the practice sheets and period
+      // materials staff upload for it. The difficulty chip does not touch it.
+      const here = path.slice(0, depth).join('/')
+      rows.push({ type: 'misc', folder: here, count: sheetCounts[here] || 0 })
       const title = depth === 0 ? `${sel.curriculum} ${sel.subject}` : pretty(path[depth - 1])
       const visible = rows.filter((r) =>
-        !term(key) || (r.type === 'dir' ? pretty(r.name) : r.name).toLowerCase().includes(term(key)))
+        !term(key) || (r.type === 'dir' ? pretty(r.name) : r.type === 'misc' ? 'Miscellaneous' : r.name).toLowerCase().includes(term(key)))
       columns.push({ depth, key, title, rows: visible, total: rows.length })
       // Stop before rendering an orphaned column for a selected folder that a
       // filter has emptied (or that no longer exists after a data change).
@@ -692,7 +732,7 @@ export default function QuestionBankPage() {
     <div>
       <PageHeader
         title="Question Bank"
-        subtitle="Open a subject, then a folder, then a paper. Print it, or assign it to students."
+        subtitle="Open a subject, then a folder, then a paper. Print it, or assign it to students. Each folder's Miscellaneous entry holds its practice sheets and period materials."
       />
       {error && <div className="mb-4"><ErrorState message={error} /></div>}
 
@@ -760,6 +800,17 @@ export default function QuestionBankPage() {
                   <FaFolder size={16} className="flex-shrink-0 text-amber-400" />
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">{pretty(r.name)}</span>
                   <span className="flex-shrink-0 text-[11px] text-slate-400">{r.count}</span>
+                </button>
+              ) : r.type === 'misc' ? (
+                <button key="misc" onClick={() => openSheets(col.depth)}
+                  title="Practice sheets and period materials for this folder"
+                  className="flex w-full items-center gap-3 rounded-xl border border-sky-200 bg-sky-50/60 px-4 py-3.5 text-left transition hover:bg-sky-100/70">
+                  <FaFolder size={16} className="flex-shrink-0 text-sky-500" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-slate-800">Miscellaneous</span>
+                    <span className="block text-[11px] text-slate-400">Practice sheets &amp; periods</span>
+                  </span>
+                  {r.count > 0 && <span className="flex-shrink-0 text-[11px] text-slate-400">{plural(r.count, 'file')}</span>}
                 </button>
               ) : (
                 <button key={`p${r.p.n}`} onClick={() => openPaper(r.p)}

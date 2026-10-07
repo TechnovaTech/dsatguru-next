@@ -7,7 +7,7 @@ import { apiGetSafe } from './_components/api'
 import Watermark from '../components/Watermark'
 import {
   FiGrid, FiDatabase, FiSend, FiUsers, FiBarChart2, FiLogOut, FiMenu, FiX,
-  FiVideo, FiEdit3, FiUser, FiShoppingBag, FiBookOpen, FiCheckSquare, FiTag,
+  FiVideo, FiEdit3, FiUser, FiShoppingBag, FiBookOpen, FiCheckSquare, FiTag, FiFolder,
 } from 'react-icons/fi'
 
 // Staff run the centre; students sit exams. They share a shell and nothing else.
@@ -16,6 +16,7 @@ const STUDENT_LINKS = [
   { label: 'Test Papers', path: '/igcsc/store', icon: FiShoppingBag },
   { label: 'My Tests', path: '/igcsc/my-tests', icon: FiBookOpen },
   { label: 'Practice', path: '/igcsc/practice', icon: FiEdit3 },
+  { label: 'Practice Sheets', path: '/igcsc/sheets', icon: FiFolder },
   { label: 'My Results', path: '/igcsc/my-results', icon: FiBarChart2 },
   { label: 'Live Classes', path: '/igcsc/meetings', icon: FiVideo },
   { label: 'Profile', path: '/igcsc/profile', icon: FiUser },
