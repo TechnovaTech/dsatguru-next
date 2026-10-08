@@ -309,7 +309,7 @@ async function main() {
       if (!q) continue
       const set = { kind: r.kind, curriculum: q.curriculum, subject: q.subject, status: 'accepted', model, note: r.note || '', updatedAt: new Date() }
       if (r.kind === 'mcq') Object.assign(set, { letter: r.answer, optionE: r.optionE || null })
-      else Object.assign(set, { finalAnswer: r.finalAnswer, markScheme: r.markScheme, max: r.total, setMarks: !!r.setMarks })
+      else Object.assign(set, { finalAnswer: r.finalAnswer, markScheme: r.markScheme, max: r.total, setMarks: !!r.setMarks, overrideMarks: !!r.overrideMarks })
       await JOBS.updateOne({ _id }, { $set: set, $setOnInsert: { createdAt: new Date(), appliedAt: null } }, { upsert: true })
       n += 1
     }
@@ -347,7 +347,11 @@ async function main() {
         const set = { answerText: schemeText(j), correctAnswer: j.finalAnswer, ...prov }
         if (j.setMarks && j.max > 0) {
           const q = await Q.findOne({ _id: j._id }, { projection: { marks: 1 } })
+          // No stored total: take the scheme's. A stored total both examiners
+          // and the verifier found contradicted by the printed marks: replace
+          // it, keeping the old value on the job.
           if (q && !(Number(q.marks) > 0)) { set.marks = j.max; marksSet += 1 }
+          else if (q && j.overrideMarks && Number(q.marks) !== j.max) { set.marks = j.max; marksSet += 1; await JOBS.updateOne({ _id: j._id }, { $set: { marksBefore: q.marks } }) }
         }
         r = await Q.updateOne(
           { _id: j._id, $and: [{ $or: [{ answerText: null }, { answerText: '' }] }, { $or: [{ correctAnswer: null }, { correctAnswer: '' }] }] },
