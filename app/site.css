@@ -1,0 +1,239 @@
+/* Public-site redesign (serif headings, square edges, Dark and Light themes).
+   Everything here is scoped to the `.site` wrapper that PublicLayout puts around the public pages, so the student
+   dashboard, admin, tutor and IGCSC areas keep their own look. Animation names start with `site-` so they cannot
+   clash with the existing ones in globals.css. Dark is the default; <html class="site-light"> switches to Light. */
+
+.site {
+  --page: #15140f;
+  --surface: #1b1a14;
+  --canvas: #1f1d17;
+  --sunken: #27241b;
+  --ink: #eee9dd;
+  --ink-2: #d6d0c1;
+  --muted: #a49d8c;
+  --subtle: #6e6959;
+  --line: #35322a;
+  --line-strong: #4a463b;
+  --brand: #e5582f;
+  --brand-hover: #ef6b45;
+  --brand-press: #cf4a25;
+  --brand-soft: #e5582f24;
+  --brand-50: #e5582f14;
+  --marker: #e5582f59;
+  --on-brand: #15140f;
+  --cta: #eee9dd;
+  --cta-hover: #ffffff;
+  --on-cta: #15140f;
+  --positive: #8fcf9a;
+  --negative: #e8604a;
+  --star: #e2b159;
+  --calm: #8fb3b0;
+  --grid-dot: #eee9dd1f;
+  --glass: #15140fd1;
+  --panel: #1a2421;
+  --panel-ink: #eee9dd;
+  --panel-ink-2: #d6d0c1;
+  --panel-muted: #a49d8c;
+  --panel-subtle: #6e6959;
+  --panel-line: #ffffff1a;
+  --panel-soft: #ffffff0f;
+  --panel-accent: #ff8a5c;
+  --bar: #0f0e0b;
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font-site-sans), ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: dark;
+}
+
+html.site-light .site {
+  --page: #f4f0e6;
+  --surface: #faf7f0;
+  --canvas: #ede8db;
+  --sunken: #e4ded0;
+  --ink: #15140f;
+  --ink-2: #3a362d;
+  --muted: #6a6557;
+  --subtle: #a39d8e;
+  --line: #d8d1c0;
+  --line-strong: #bfb7a4;
+  --brand: #b83a19;
+  --brand-hover: #a33315;
+  --brand-press: #8f2c12;
+  --brand-soft: #b83a191a;
+  --brand-50: #b83a190f;
+  --marker: #b83a1938;
+  --on-brand: #ffffff;
+  --cta: #15140f;
+  --cta-hover: #2a2721;
+  --on-cta: #f4f0e6;
+  --positive: #2f7d45;
+  --negative: #b42318;
+  --star: #b7791f;
+  --calm: #3f6b64;
+  --grid-dot: #15140f24;
+  --glass: #f4f0e6d6;
+  --panel: #fbf8f1;
+  --panel-ink: #15140f;
+  --panel-ink-2: #3a362d;
+  --panel-muted: #6a6557;
+  --panel-subtle: #8d8778;
+  --panel-line: #15140f1f;
+  --panel-soft: #15140f0a;
+  --panel-accent: #b83a19;
+  --bar: #e4ded0;
+  color-scheme: light;
+}
+
+/* The page behind the public site follows the theme too (no white strip when scrolling past the end). */
+html.site-page,
+html.site-page body {
+  background: #15140f;
+}
+html.site-light.site-page,
+html.site-light.site-page body {
+  background: #f4f0e6;
+}
+
+.site ::selection {
+  background: var(--marker);
+  color: inherit;
+}
+.site :focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* Headings: serif, regular weight, slightly tight, one italic accent word. */
+.site .display {
+  font-family: var(--font-site-serif), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+}
+.site .accent {
+  font-style: italic;
+  color: inherit;
+}
+.site .text-balance {
+  text-wrap: balance;
+}
+
+.site .dot-grid {
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+/* Spotlight card: a 1px border and a soft glow follow the pointer on hover. */
+.site [data-spotlight] {
+  position: relative;
+  isolation: isolate;
+}
+.site [data-spotlight]::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: 2;
+  pointer-events: none;
+  padding: 1px;
+  background: radial-gradient(260px circle at var(--sx, 50%) var(--sy, 50%), var(--ink), color-mix(in srgb, var(--ink) 25%, transparent) 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.site [data-spotlight]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(420px circle at var(--sx, 50%) var(--sy, 50%), var(--brand-soft), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.site [data-spotlight]:hover::before,
+.site [data-spotlight]:hover::after {
+  opacity: 1;
+}
+
+.site .chip-hover {
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+.site .chip-hover:hover {
+  border-color: color-mix(in srgb, var(--brand) 40%, transparent);
+  background-color: var(--brand-50);
+  color: var(--brand);
+}
+
+/* Card that lifts on hover. */
+.site .lift {
+  transition: transform 0.3s var(--ease-expo), box-shadow 0.3s var(--ease-expo), border-color 0.2s;
+}
+.site .lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -20px #000000b3;
+}
+
+/* Link with a thin rule underneath that slides away on hover. */
+.site .link-rule {
+  background: linear-gradient(var(--brand), var(--brand)) 0 100% / 100% 1.5px no-repeat;
+  padding-bottom: 4px;
+  transition: background-size 0.4s var(--ease-expo);
+}
+.site .link-rule:hover {
+  background-size: 0% 1.5px;
+  background-position: 100% 100%;
+}
+
+@keyframes site-rise {
+  0% { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes site-pulse-dot {
+  0%, to { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.85); }
+}
+@keyframes site-pop {
+  0% { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes site-live {
+  0% { box-shadow: 0 0 #22c55e8c; }
+  70%, to { box-shadow: 0 0 0 6px #22c55e00; }
+}
+@keyframes site-marquee {
+  0% { transform: translate(0); }
+  to { transform: translate(-50%); }
+}
+@keyframes site-sheet {
+  0% { transform: translate(100%); }
+  to { transform: translate(0); }
+}
+.site .animate-rise { animation: site-rise 0.6s var(--ease-expo) both; }
+.site .animate-pulse-dot { animation: site-pulse-dot 2s ease-in-out infinite; }
+.site .animate-pop { animation: site-pop 0.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.site .animate-live { animation: site-live 2s ease-out infinite; }
+.site .animate-marquee { animation: site-marquee var(--marquee-duration, 40s) linear infinite; }
+.site .animate-sheet { animation: site-sheet 0.35s var(--ease-expo) both; }
+.site .group:hover .animate-marquee { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .site *,
+  .site *::before,
+  .site *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Text fields light up their own frame (focus-within), so the inner ring would draw a second outline. */
+.site input:not([type='range'], [type='checkbox'], [type='radio']):focus-visible,
+.site textarea:focus-visible,
+.site select:focus-visible {
+  outline: none;
+}

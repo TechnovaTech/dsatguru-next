@@ -1,7 +1,9 @@
 'use client'
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { FaCheck, FaTimes, FaCrown } from 'react-icons/fa'
+import { AnimatePresence, motion } from 'framer-motion'
+import { LuCheck, LuCrown, LuX } from 'react-icons/lu'
+import { Reveal } from './site/motion'
+import { Eyebrow, cn } from './site/ui'
 
 // DSATGURU offering
 const dsg = {
@@ -41,12 +43,12 @@ const rows = [
 
 function Mark({ ok }) {
   return ok ? (
-    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-      <FaCheck size={13} />
+    <span className="grid size-7 place-items-center bg-brand text-on-brand" aria-label="Yes">
+      <LuCheck className="size-4" />
     </span>
   ) : (
-    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-rose-100 text-rose-500">
-      <FaTimes size={13} />
+    <span className="grid size-7 place-items-center border border-line text-subtle" aria-label="No">
+      <LuX className="size-4" />
     </span>
   )
 }
@@ -54,7 +56,7 @@ function Mark({ ok }) {
 function Value({ value, kind, brand }) {
   if (kind === 'bool') return <Mark ok={value === true} />
   if (value === false || value == null) return <Mark ok={false} />
-  return <span className={brand ? 'font-extrabold text-indigo-600' : 'font-semibold text-slate-600'}>{value}</span>
+  return <span className={cn('font-code text-[15px]', brand ? 'font-medium text-brand' : 'text-ink-2')}>{value}</span>
 }
 
 export default function ComparisonSection() {
@@ -62,61 +64,46 @@ export default function ComparisonSection() {
   const comp = competitors[sel]
 
   return (
-    <section className="w-full px-4 py-12 text-slate-800 sm:px-6 lg:px-8">
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="mx-auto mb-8 max-w-3xl text-center"
-      >
-        <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-indigo-600">
-          Compare
-        </span>
-        <h3 className="mt-5 text-3xl font-extrabold text-slate-900 md:text-4xl">
-          DSATGURU <span className="dg-gradient-text">vs. the rest</span>
-        </h3>
-        <p className="mx-auto mt-4 max-w-2xl text-base text-slate-600">
+    <div className="mt-20 sm:mt-28">
+      <Reveal className="mx-auto max-w-[760px] text-center">
+        <Eyebrow center>Compare</Eyebrow>
+        <h2 className="display mt-6 text-balance text-[2.3rem] leading-[1.04] sm:text-[2.9rem] lg:text-[3.3rem]">
+          DSATGURU <em className="accent">vs. the rest.</em>
+        </h2>
+        <p className="mx-auto mt-4 max-w-[560px] text-[17px] leading-relaxed text-muted">
           Pick any prep service and see how DSATGURU stacks up — same elite resources, a fraction of the cost.
         </p>
-      </motion.div>
+      </Reveal>
 
       {/* Competitor selector */}
-      <div className="mx-auto mb-6 flex max-w-2xl flex-wrap items-center justify-center gap-2">
-        <span className="mr-1 text-sm font-semibold text-slate-500">Compare with:</span>
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-2" role="tablist" aria-label="Compare with">
+        <span className="mr-1 font-code text-[12px] uppercase tracking-[0.1em] text-muted">Compare with:</span>
         {competitors.map((c, i) => (
           <button
             key={c.name}
+            type="button"
+            role="tab"
+            aria-selected={sel === i}
             onClick={() => setSel(i)}
-            className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${
-              sel === i
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-indigo-300'
-            }`}
+            className={cn(
+              'h-10 border px-4 text-[14.5px] font-medium transition-colors',
+              sel === i ? 'border-ink bg-cta text-on-cta' : 'border-line text-ink-2 hover:border-line-strong hover:text-ink',
+            )}
           >
             {c.name}
           </button>
         ))}
       </div>
 
-      {/* Comparison card */}
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="mx-auto max-w-4xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl"
-      >
-        {/* Header */}
-        <div className="grid grid-cols-[1.5fr_1fr_1fr] items-stretch">
-          <div className="flex items-center px-5 py-4 text-sm font-bold uppercase tracking-wide text-slate-400">
-            Feature
+      {/* Comparison table */}
+      <Reveal className="mx-auto mt-8 max-w-[880px] border border-line bg-surface">
+        <div className="grid grid-cols-[1.4fr_1fr_1fr] items-center border-b border-line">
+          <div className="p-4 font-code text-[12px] uppercase tracking-[0.1em] text-muted sm:px-6">Feature</div>
+          <div className="flex items-center justify-center gap-2 bg-brand-soft p-4 text-center">
+            <LuCrown className="size-4 text-brand" />
+            <span className="text-[15px] font-semibold text-ink">DSATGURU</span>
           </div>
-          <div className="relative flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-indigo-600 to-violet-600 px-3 py-4 text-white">
-            <FaCrown className="text-amber-300" size={18} />
-            <span className="text-sm font-extrabold sm:text-base">DSATGURU</span>
-          </div>
-          <div className="flex items-center justify-center px-3 py-4">
+          <div className="p-4 text-center">
             <AnimatePresence mode="wait">
               <motion.span
                 key={comp.name}
@@ -124,7 +111,7 @@ export default function ComparisonSection() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 8 }}
                 transition={{ duration: 0.25 }}
-                className="text-sm font-extrabold text-slate-700 sm:text-base"
+                className="inline-block text-[15px] font-semibold text-ink-2"
               >
                 {comp.name}
               </motion.span>
@@ -132,23 +119,13 @@ export default function ComparisonSection() {
           </div>
         </div>
 
-        {/* Rows */}
-        {rows.map((r, i) => (
-          <motion.div
-            key={r.key}
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.04 }}
-            className={`grid grid-cols-[1.5fr_1fr_1fr] items-center border-t border-slate-100 ${
-              i % 2 ? 'bg-slate-50/40' : 'bg-white'
-            }`}
-          >
-            <div className="px-5 py-3.5 text-sm font-medium text-slate-700">{r.label}</div>
-            <div className="flex items-center justify-center bg-indigo-50/60 px-3 py-3.5">
+        {rows.map((r) => (
+          <div key={r.key} className="grid grid-cols-[1.4fr_1fr_1fr] items-center border-b border-line last:border-b-0">
+            <div className="p-3.5 text-[14.5px] text-ink-2 sm:px-6">{r.label}</div>
+            <div className="flex h-full items-center justify-center bg-brand-50 p-3.5">
               <Value value={dsg[r.key]} kind={r.kind} brand />
             </div>
-            <div className="flex items-center justify-center px-3 py-3.5">
+            <div className="flex justify-center p-3.5">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={comp.name + r.key}
@@ -161,15 +138,14 @@ export default function ComparisonSection() {
                 </motion.div>
               </AnimatePresence>
             </div>
-          </motion.div>
+          </div>
         ))}
 
-        {/* Winner footer */}
-        <div className="flex items-center justify-center gap-2 border-t border-slate-100 bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-4 text-center text-sm font-bold text-white">
-          <FaCrown className="text-amber-300" />
+        <div className="flex items-center justify-center gap-2 border-t border-line bg-canvas p-4 text-[14.5px] font-medium text-ink">
+          <LuCrown className="size-4 text-brand" />
           DSATGURU leads on every feature — for far less.
         </div>
-      </motion.div>
-    </section>
+      </Reveal>
+    </div>
   )
 }

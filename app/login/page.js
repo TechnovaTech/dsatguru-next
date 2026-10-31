@@ -1,12 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { FiArrowLeft, FiArrowRight, FiEye, FiEyeOff, FiMail, FiLock, FiCheck, FiAlertCircle } from 'react-icons/fi'
+import { FiArrowRight, FiEye, FiEyeOff, FiMail, FiLock } from 'react-icons/fi'
 import { useAuth, isTokenExpired, roleHome } from '../components/AuthContext'
 import axios from 'axios'
+import { Alert, AuthShell, EyeToggle, Field, FormTitle, fieldInput, primaryButton, textLink } from '../components/site/auth'
 
 const perks = [
   'Resume live classes and practice tests where you left off',
@@ -111,100 +110,55 @@ export default function Login() {
     }
   }
 
-  const inputCls = (f) =>
-    `w-full rounded-xl border bg-white py-2.5 pl-10 pr-10 text-sm text-slate-800 transition-all placeholder:text-slate-400 focus:outline-none focus:ring-4 ${
-      errors[f] && touched[f] ? 'border-rose-400 focus:ring-rose-100' : 'border-slate-200 focus:border-indigo-400 focus:ring-indigo-100'
-    }`
-
   return (
-    <section className="dg flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-blue-50 px-4 py-10">
-      <motion.div
-        initial={{ opacity: 1, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-        className="flex w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-2xl"
-      >
-        {/* Brand panel */}
-        <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-indigo-700 via-indigo-600 to-blue-700 p-10 text-white md:flex md:w-1/2">
-          <div className="dg-blob pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/15 blur-3xl" />
-          <div className="dg-blob-slow pointer-events-none absolute -left-16 bottom-0 h-64 w-64 rounded-full bg-cyan-300/20 blur-3xl" />
-          <div className="absolute inset-0 dg-grid-bg opacity-[0.12]" />
-          <div className="relative">
-            <Link href="/" className="inline-flex items-center gap-1 text-xs font-medium text-indigo-100 transition-colors hover:text-white">
-              <FiArrowLeft /> Back to home
+    <AuthShell
+      kicker="Welcome back"
+      title="Continue your DSAT prep journey"
+      subtitle="Sign in to unlock your personalized dashboard, adaptive practice tests, and detailed analytics."
+      perks={perks}
+      helpTitle="Need help logging in?"
+    >
+      <FormTitle title="Login to DSATGURU" subtitle="Access your dashboard, tests, and course progress in one place." />
+      {authError && <Alert>{authError}</Alert>}
+
+      <form onSubmit={handleSubmit} noValidate className="mt-7 grid gap-5">
+        <Field label="Email Address" htmlFor="email" icon={FiMail} error={touched.email && errors.email}>
+          <input type="email" id="email" name="email" placeholder="example@email.com" autoComplete="email" className={fieldInput} value={formData.email} onChange={handleChange} onBlur={handleBlur} />
+        </Field>
+        <div>
+          <Field
+            label="Password"
+            htmlFor="password"
+            icon={FiLock}
+            error={touched.password && errors.password}
+            after={<EyeToggle shown={showPassword} onToggle={() => setShowPassword((p) => !p)} Eye={FiEye} EyeOff={FiEyeOff} />}
+          >
+            <input type={showPassword ? 'text' : 'password'} id="password" name="password" placeholder="Enter your password" autoComplete="current-password" className={fieldInput} value={formData.password} onChange={handleChange} onBlur={handleBlur} />
+          </Field>
+          <div className="mt-2 text-right">
+            <Link href="/forgot-password" className={`text-[13.5px] ${textLink}`}>
+              Forgot Password?
             </Link>
-            <Image src="/logo-dsg-white.png" alt="DSATGURU" width={242} height={176} className="mt-8 h-14 w-auto object-contain" />
-            <span className="mt-8 inline-flex rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em]">Welcome back</span>
-            <h1 className="mt-4 text-3xl font-extrabold leading-tight">Continue your DSAT prep journey</h1>
-            <p className="mt-3 max-w-sm text-sm text-indigo-100/90">
-              Sign in to unlock your personalized dashboard, adaptive practice tests, and detailed analytics.
-            </p>
-            <ul className="mt-7 space-y-3">
-              {perks.map((p) => (
-                <li key={p} className="flex items-start gap-3 text-sm text-indigo-50/95">
-                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/20"><FiCheck size={11} /></span>
-                  {p}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="relative mt-8 text-xs text-indigo-100/80">
-            <p className="font-semibold text-white">Need help logging in?</p>
-            <p>Email <a className="underline" href="mailto:info@dsatguru.com">info@dsatguru.com</a> or call 1-329-239-8577.</p>
           </div>
         </div>
 
-        {/* Form panel */}
-        <div className="flex w-full flex-col justify-center p-8 md:w-1/2 md:p-10">
-          <div className="mb-5 md:hidden">
-            <Link href="/" className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600"><FiArrowLeft /> Back to home</Link>
-          </div>
+        <button type="submit" disabled={loading} className={primaryButton}>
+          {loading ? 'Logging in…' : 'Login'} {!loading && <FiArrowRight className="transition-transform group-hover:translate-x-1" />}
+        </button>
+        <p className="text-center text-[14.5px] text-muted">
+          Don&apos;t have an account?{' '}
+          <Link href={returnTo ? `/register?returnTo=${encodeURIComponent(returnTo)}` : '/register'} className={textLink}>
+            Create one
+          </Link>
+        </p>
+      </form>
 
-          <h2 className="text-2xl font-extrabold text-slate-900">Login to DSATGURU</h2>
-          <p className="mt-1 text-sm text-slate-500">Access your dashboard, tests, and course progress in one place.</p>
-
-          {authError && (
-            <div className="mt-5 flex items-center gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-              <FiAlertCircle className="flex-shrink-0" /> {authError}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-            <div>
-              <label htmlFor="email" className="mb-1.5 block text-sm font-semibold text-slate-700">Email Address</label>
-              <div className="relative">
-                <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input type="email" id="email" name="email" placeholder="example@email.com" className={inputCls('email')} value={formData.email} onChange={handleChange} onBlur={handleBlur} />
-              </div>
-              {errors.email && touched.email && <p className="mt-1 text-xs font-medium text-rose-500">{errors.email}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="mb-1.5 block text-sm font-semibold text-slate-700">Password</label>
-              <div className="relative">
-                <FiLock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input type={showPassword ? 'text' : 'password'} id="password" name="password" placeholder="Enter your password" className={inputCls('password')} value={formData.password} onChange={handleChange} onBlur={handleBlur} />
-                <button type="button" className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" onClick={() => setShowPassword((p) => !p)}>{showPassword ? <FiEyeOff /> : <FiEye />}</button>
-              </div>
-              {errors.password && touched.password && <p className="mt-1 text-xs font-medium text-rose-500">{errors.password}</p>}
-            </div>
-
-            <div className="text-right">
-              <Link href="/forgot-password" className="text-sm font-semibold text-indigo-600 hover:underline">Forgot Password?</Link>
-            </div>
-
-            <button type="submit" disabled={loading} className="dg-shine group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-indigo-600 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5 hover:bg-indigo-700 disabled:opacity-60">
-              {loading ? 'Logging in…' : 'Login'} {!loading && <FiArrowRight className="transition-transform group-hover:translate-x-1" />}
-            </button>
-
-            <p className="text-center text-sm text-slate-600">
-              Don&apos;t have an account? <Link href={returnTo ? `/register?returnTo=${encodeURIComponent(returnTo)}` : '/register'} className="font-semibold text-indigo-600 hover:underline">Create one</Link>
-            </p>
-          </form>
-
-          <p className="mt-6 text-center text-xs text-slate-500 md:hidden">
-            Trouble signing in? Email <a className="font-semibold text-indigo-600 hover:underline" href="mailto:info@dsatguru.com">info@dsatguru.com</a>
-          </p>
-        </div>
-      </motion.div>
-    </section>
+      <p className="mt-8 border-t border-line pt-5 text-center text-[13.5px] text-muted">
+        Trouble signing in? Email{' '}
+        <a className={textLink} href="mailto:info@dsatguru.com">
+          info@dsatguru.com
+        </a>
+      </p>
+    </AuthShell>
   )
 }

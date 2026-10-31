@@ -1,7 +1,8 @@
 'use client'
-import { motion } from 'framer-motion'
-import { MdFormatQuote } from 'react-icons/md'
 import { FaStar } from 'react-icons/fa'
+import { LuQuote } from 'react-icons/lu'
+import { Reveal, Stagger, StaggerItem } from './site/motion'
+import { Container, Eyebrow } from './site/ui'
 
 const testimonials = [
   {
@@ -32,49 +33,38 @@ const testimonials = [
 
 export default function TestimonialsSection() {
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-blue-50 px-4 py-24 text-slate-800 sm:px-6 lg:px-16">
-      <div className="pointer-events-none absolute -right-24 top-1/4 h-72 w-72 rounded-full bg-blue-200/40 blur-3xl" />
-      <div className="mx-auto mb-14 max-w-6xl text-center">
-        <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-indigo-600 shadow-sm">
-          Testimonials (Pilot Program)
-        </span>
-        <h3 className="mt-5 text-3xl font-extrabold text-slate-900 md:text-4xl">
-          Success Stories from <span className="dg-gradient-text">Our Students</span>
-        </h3>
-      </div>
+    <section className="border-b border-line bg-canvas">
+      <Container className="py-16 sm:py-24">
+        <Reveal className="max-w-[760px]">
+          <Eyebrow n="08">Testimonials (pilot program)</Eyebrow>
+          <h2 className="display mt-6 text-balance text-[2.3rem] leading-[1.04] sm:text-[2.9rem] lg:text-[3.3rem]">
+            Success stories from <em className="accent">our students.</em>
+          </h2>
+        </Reveal>
 
-      <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
-        {testimonials.map((t, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: idx * 0.15 }}
-            viewport={{ once: true }}
-            whileHover={{ y: -8 }}
-            className="dg-glass-card dg-hover-glow relative flex flex-col gap-4 rounded-3xl p-7 text-left"
-          >
-            <div className={`absolute -top-5 left-7 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${t.gradient} text-white shadow-lg`}>
-              <MdFormatQuote size={22} />
-            </div>
-            <div className="mt-4 flex gap-1 text-amber-400">
-              {[...Array(5)].map((_, i) => (
-                <FaStar key={i} size={14} />
-              ))}
-            </div>
-            <p className="text-sm italic leading-relaxed text-slate-700">&quot;{t.quote}&quot;</p>
-            <div className="mt-auto flex items-center gap-4 border-t border-slate-100 pt-4">
-              <div className={`flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br ${t.gradient} font-bold text-white`}>
-                {t.initials}
+        <Stagger className="mt-12 grid gap-5 lg:grid-cols-3">
+          {testimonials.map((t) => (
+            <StaggerItem key={t.name} data-spotlight className="lift flex flex-col border border-line bg-surface p-6 sm:p-7">
+              <div className="flex items-center justify-between">
+                <LuQuote className="size-6 text-brand" />
+                <span className="flex gap-0.5 text-star">
+                  {[...Array(5)].map((_, i) => (
+                    <FaStar key={i} size={12} />
+                  ))}
+                </span>
               </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900">{t.name}</p>
-                <p className="text-xs font-semibold text-emerald-600">{t.score}</p>
+              <p className="display mt-5 flex-1 text-[1.35rem] leading-snug text-ink">&ldquo;{t.quote}&rdquo;</p>
+              <div className="mt-6 flex items-center gap-3 border-t border-line pt-5">
+                <span className="grid size-10 place-items-center bg-sunken font-code text-[12px] text-ink-2">{t.initials}</span>
+                <div>
+                  <p className="text-[15px] font-semibold">{t.name}</p>
+                  <p className="font-code text-[12.5px] text-brand">{t.score}</p>
+                </div>
               </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+            </StaggerItem>
+          ))}
+        </Stagger>
+      </Container>
     </section>
   )
 }

@@ -1,7 +1,9 @@
 'use client'
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { FiPlus } from 'react-icons/fi'
+import { AnimatePresence, motion } from 'framer-motion'
+import { LuPlus } from 'react-icons/lu'
+import { Reveal } from './site/motion'
+import { Container, Eyebrow, cn } from './site/ui'
 
 const faqs = [
   {
@@ -46,60 +48,66 @@ export default function FAQSection() {
   const toggle = (index) => setOpenIndex(openIndex === index ? null : index)
 
   return (
-    <section className="w-full bg-white px-4 py-24 text-slate-800 sm:px-6 lg:px-16">
-      <div className="mx-auto mb-14 max-w-3xl text-center">
-        <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-indigo-600">
-          FAQ
-        </span>
-        <h3 className="mt-5 text-3xl font-extrabold text-slate-900 md:text-4xl">
-          Clear Answers to <span className="dg-gradient-text">Your Queries</span>
-        </h3>
-      </div>
+    <section className="border-b border-line">
+      <Container className="grid gap-10 py-16 sm:py-24 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
+        <Reveal>
+          <Eyebrow n="09">FAQ</Eyebrow>
+          <h2 className="display mt-6 text-balance text-[2.3rem] leading-[1.04] sm:text-[2.9rem] lg:text-[3.3rem]">
+            Clear answers to <em className="accent">your queries.</em>
+          </h2>
+          <p className="mt-4 max-w-[380px] text-[16px] leading-relaxed text-muted">
+            Still unsure? Call{' '}
+            <a href="tel:+13292398577" className="text-brand underline underline-offset-4">
+              1-329-239-8577
+            </a>{' '}
+            or write to us from the contact page.
+          </p>
+        </Reveal>
 
-      <div className="mx-auto max-w-3xl space-y-3">
-        {faqs.map((faq, index) => {
-          const isOpen = openIndex === index
-          return (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: index * 0.06 }}
-              viewport={{ once: true }}
-              className={`overflow-hidden rounded-2xl border transition-colors ${
-                isOpen ? 'border-indigo-200 bg-indigo-50/40 shadow-md' : 'border-slate-100 bg-white hover:border-slate-200'
-              }`}
-            >
-              <button
-                onClick={() => toggle(index)}
-                className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
-              >
-                <span className="text-base font-semibold text-slate-800">{faq.question}</span>
-                <span
-                  className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
-                    isOpen ? 'rotate-45 bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
-                  }`}
+        <div className="border-t border-line">
+          {faqs.map((faq, index) => {
+            const isOpen = openIndex === index
+            return (
+              <div key={index} className="border-b border-line">
+                <button
+                  type="button"
+                  onClick={() => toggle(index)}
+                  aria-expanded={isOpen}
+                  className="group flex w-full items-start justify-between gap-6 py-5 text-left"
                 >
-                  <FiPlus size={18} />
-                </span>
-              </button>
-              <AnimatePresence initial={false}>
-                {isOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    className="overflow-hidden"
+                  <span className="flex gap-4">
+                    <span className="mt-1 font-code text-[12px] text-brand">{String(index + 1).padStart(2, '0')}</span>
+                    <span className={cn('text-[17.5px] font-medium leading-snug transition-colors', isOpen ? 'text-ink' : 'text-ink-2 group-hover:text-ink')}>
+                      {faq.question}
+                    </span>
+                  </span>
+                  <span
+                    className={cn(
+                      'grid size-8 shrink-0 place-items-center border transition-all duration-300',
+                      isOpen ? 'rotate-45 border-brand bg-brand text-on-brand' : 'border-line text-ink-2',
+                    )}
                   >
-                    <p className="px-6 pb-5 text-sm leading-relaxed text-slate-600">{faq.answer}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          )
-        })}
-      </div>
+                    <LuPlus className="size-4" />
+                  </span>
+                </button>
+                <AnimatePresence initial={false}>
+                  {isOpen ? (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: 'easeInOut' }}
+                      className="overflow-hidden"
+                    >
+                      <p className="pb-6 pl-9 pr-12 text-[15.5px] leading-relaxed text-muted">{faq.answer}</p>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </div>
+            )
+          })}
+        </div>
+      </Container>
     </section>
   )
 }

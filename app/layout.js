@@ -1,4 +1,5 @@
 import './globals.css'
+import './site.css'
 import Script from 'next/script'
 import { AuthProvider } from './components/AuthContext'
 import { CourseProvider } from './components/CourseContext'
@@ -30,7 +31,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Public-site theme (Dark by default, or the saved Light), set before paint so there is no flash. */}
+        <script dangerouslySetInnerHTML={{ __html: "try{if(localStorage.getItem('site-theme')==='light')document.documentElement.classList.add('site-light')}catch(e){}" }} />
+      </head>
       <body className="font-[Poppins]">
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-2S6R8YEWQM"

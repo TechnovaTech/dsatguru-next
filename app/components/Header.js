@@ -1,15 +1,53 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { usePathname } from 'next/navigation'
+import { AnimatePresence, motion } from 'framer-motion'
+import { LuArrowRight, LuArrowUp, LuChevronDown, LuMenu, LuMoon, LuPhone, LuSun, LuX } from 'react-icons/lu'
 import { useAuth } from './AuthContext'
 import { useCourses } from './CourseContext'
-import {
-  FiMenu, FiX, FiHome, FiBookOpen, FiInfo, FiPhone, FiArrowUp,
-  FiChevronDown, FiArrowRight, FiLayers, FiEdit3,
-} from 'react-icons/fi'
-import { motion, AnimatePresence } from 'framer-motion'
-import { usePathname } from 'next/navigation'
+import { Button, Container, Logo, cn } from './site/ui'
+
+const PHONE = '1-329-239-8577'
+const PHONE_HREF = 'tel:+13292398577'
+
+const dsatLinks = [
+  { title: 'Digital SAT Live Bootcamp Course', href: '/sat-bootcamp-courses' },
+  { title: 'Digital SAT Live Prep Course', href: '/sat-live-prep-course' },
+  { title: 'Digital SAT Individual Tutoring', href: '/sat-individual-tutoring' },
+  { title: 'Reading and Writing Section', href: '/sat-reading-writing' },
+  { title: 'Diagnostic Test', href: '/free-sat-diagnostic-test' },
+  { title: 'Practice Test', href: '/free-sat-practice-test' },
+  { title: 'Mock Test', href: '/free-sat-mock-test' },
+  { title: 'Math Section', href: '/sat-math' },
+  { title: 'Study-Guide', href: '/sat-study-guide' },
+]
+
+// Dark (default) and Light. The choice is saved and applied before paint by the script in app/layout.js.
+export function ThemeToggle() {
+  const [light, setLight] = useState(false)
+  useEffect(() => setLight(document.documentElement.classList.contains('site-light')), [])
+  const toggle = () => {
+    const next = !light
+    document.documentElement.classList.toggle('site-light', next)
+    setLight(next)
+    try {
+      localStorage.setItem('site-theme', next ? 'light' : 'dark')
+    } catch {}
+  }
+  const Icon = light ? LuMoon : LuSun
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={`Switch to ${light ? 'dark' : 'light'} theme`}
+      title={`Switch to ${light ? 'dark' : 'light'} theme`}
+      className="grid size-10 place-items-center border border-line text-ink transition-colors hover:border-line-strong hover:bg-ink/5"
+    >
+      <Icon className="size-[18px]" />
+    </button>
+  )
+}
 
 export default function Header() {
   const { user } = useAuth()
@@ -19,33 +57,21 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [showDemoBanner, setShowDemoBanner] = useState(true)
-  const [navHidden, setNavHidden] = useState(false)
-  const lastScrollY = useRef(0)
-  const [dropdownHover, setDropdownHover] = useState(false)
-  const [questionBankHover, setQuestionBankHover] = useState(false)
-  const [dsatHover, setDsatHover] = useState(false)
+  const [openMenu, setOpenMenu] = useState(null)
+  const [mobileGroup, setMobileGroup] = useState(null)
   const [questionBanks, setQuestionBanks] = useState([])
-  const [mobileDsatOpen, setMobileDsatOpen] = useState(false)
-  const [mobileCoursesOpen, setMobileCoursesOpen] = useState(false)
-  const [mobileQbOpen, setMobileQbOpen] = useState(false)
+  const progress = useRef(null)
 
-  const toggleMenu = () => setIsOpen(!isOpen)
   const closeMenu = () => setIsOpen(false)
 
   useEffect(() => {
     const handleScroll = () => {
       const y = window.scrollY
-      const goingDown = y > lastScrollY.current
       setScrolled(y > 10)
       setShowScrollTop(y > 300)
-      if (y > 80) {
-        setShowDemoBanner(!goingDown)
-      } else {
-        setShowDemoBanner(true)
-      }
-      // Hide the whole nav when scrolling down; reveal on scroll up / near top
-      setNavHidden(goingDown && y > 160)
-      lastScrollY.current = y
+      setShowDemoBanner(y < 80)
+      const max = document.documentElement.scrollHeight - innerHeight
+      if (progress.current) progress.current.style.transform = `scaleX(${max > 0 ? Math.min(1, y / max) : 0})`
     }
 
     const fetchQuestionBanks = async () => {
@@ -54,407 +80,246 @@ export default function Header() {
         const data = await res.json()
         if (data.courses || data.data) {
           const allCourses = data.courses || data.data
-          const qBanks = allCourses.filter((course) => course.type === 'question_bank')
-          setQuestionBanks(qBanks)
+          setQuestionBanks(allCourses.filter((course) => course.type === 'question_bank'))
         }
       } catch (error) {
         console.error('Error fetching question banks:', error)
       }
     }
 
-    window.addEventListener('scroll', handleScroll)
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
     fetchQuestionBanks()
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  // Close menus when the page changes.
+  useEffect(() => {
+    setIsOpen(false)
+    setOpenMenu(null)
+  }, [pathname])
 
-  const dsatLinks = [
-    { title: 'Digital SAT Live Bootcamp Course', href: '/sat-bootcamp-courses' },
-    { title: 'Digital SAT Live Prep Course', href: '/sat-live-prep-course' },
-    { title: 'Digital SAT Individual Tutoring', href: '/sat-individual-tutoring' },
-    { title: 'Reading and Writing Section', href: '/sat-reading-writing' },
-    { title: 'Diagnostic Test', href: '/free-sat-diagnostic-test' },
-    { title: 'Practice Test', href: '/free-sat-practice-test' },
-    { title: 'Mock Test', href: '/free-sat-mock-test' },
-    { title: 'Math Section', href: '/sat-math' },
-    { title: 'Study-Guide', href: '/sat-study-guide' },
+  // Same rules as before: the course list leaves out individual tutoring (it has its own page and phone number).
+  const courseLinks = courses
+    .filter((course, idx) => course.slug && course.slug !== 'individual-tutoring' && idx !== courses.length - 1)
+    .map((course) => ({ key: course.id, title: course.title, href: `/enrollment/${course.courseId || course.id}` }))
+  const mobileCourseLinks = courses
+    .filter((course) => course.slug && course.slug !== 'individual-tutoring')
+    .map((course) => ({ key: course.id, title: course.title, href: `/enrollment/${course.courseId || course.id}` }))
+  const bankLinks = questionBanks.map((q) => ({ key: q.id, title: q.title, href: `/enrollment/${q.id}` }))
+
+  const menus = [
+    { id: 'dsat', label: 'DSAT', links: dsatLinks.map((l) => ({ key: l.href, ...l })) },
+    { id: 'courses', label: 'Courses', links: courseLinks, mobileLinks: mobileCourseLinks },
+    { id: 'banks', label: 'Question Banks', links: bankLinks, empty: 'No question banks yet' },
   ]
-
-  // Pill-style nav trigger
-  const navLinkClass =
-    'group relative flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold text-slate-700 transition-all duration-200 hover:bg-indigo-50 hover:text-indigo-700'
-
-  const DropdownPanel = ({ render }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 8 }}
-      transition={{ duration: 0.16 }}
-      className="absolute top-full left-1/2 z-50 w-[20rem] -translate-x-1/2 pt-2"
-    >
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-900/10">
-        <div className="grid gap-0.5">{render}</div>
-      </div>
-    </motion.div>
-  )
-
-  const linkRow = (key, href, title, idx, onClick) => (
-    <Link
-      key={key}
-      href={href}
-      onClick={onClick}
-      className="group/item flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-slate-50"
-    >
-      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 transition-colors group-hover/item:bg-indigo-600 group-hover/item:text-white">
-        <FiBookOpen size={15} />
-      </span>
-      <span className="truncate text-[13px] font-medium text-slate-700 group-hover/item:text-indigo-700" title={title}>
-        {title}
-      </span>
-    </Link>
-  )
-
+  const pages = [
+    { label: 'About', href: '/about' },
+    { label: 'Blog', href: '/blog' },
+    { label: 'Contact', href: '/contact' },
+  ]
   const onHome = pathname === '/'
+  const dashboardHref = user?.role === 'Admin' ? '/admin' : '/dashboard'
+  const navLink = (active) =>
+    cn('relative flex h-10 items-center gap-1 px-3 text-[15px] font-medium transition-colors hover:bg-ink/5', active ? 'bg-ink/5 text-ink' : 'text-ink-2 hover:text-ink')
 
   return (
-    <div className="dg">
-      {/* ===== Floating island header (overlays the hero) ===== */}
-      <header className="fixed inset-x-0 top-0 z-50">
-        <div
-          className={`transition-transform duration-500 ease-out will-change-transform ${
-            navHidden ? '-translate-y-[140%]' : 'translate-y-0'
-          }`}
-        >
-        {/* Demo Test sub-banner — home page (shown to everyone) */}
-        {onHome && (
-          <AnimatePresence>
-            {showDemoBanner && (
-              <motion.div
-                key="demo-banner"
-                initial={{ y: -44, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -44, opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className="bg-indigo-700 text-white"
-              >
-                <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2">
-                  <p className="hidden text-[13px] font-medium sm:block">
-                    🎯 Experience the real DSAT interface — free, no signup needed. Two modules, instant scoring.
-                  </p>
-                  <p className="text-[13px] font-medium sm:hidden">🎯 Free DSAT Demo Test — no signup!</p>
-                  <a
-                    href="/demo-test"
-                    className="flex-shrink-0 rounded-full bg-white px-4 py-1.5 text-[13px] font-bold text-indigo-600 shadow transition-transform hover:-translate-y-0.5"
-                  >
-                    Start Free Demo Test →
-                  </a>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        )}
+    <div className="sticky top-0 z-50">
+      {/* Free demo test strip (home page), as before */}
+      {onHome && showDemoBanner ? (
+        <div className="border-b border-line bg-[var(--bar)] text-[13px] text-panel-ink-2">
+          <Container className="flex h-9 items-center justify-center gap-3">
+            <span className="animate-pulse-dot size-1.5 shrink-0 bg-brand" aria-hidden="true" />
+            <p className="truncate">
+              <strong className="font-semibold text-panel-ink">Free DSAT demo test.</strong>
+              <span className="hidden sm:inline"> Experience the real interface, no signup needed. Two modules, instant scoring.</span>
+            </p>
+            <Link href="/demo-test" className="group hidden shrink-0 items-center gap-1 font-semibold text-brand sm:inline-flex">
+              Start free demo test <LuArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </Container>
+        </div>
+      ) : null}
 
-        {/* The pill */}
-        <div className="px-3 sm:px-4">
-          <div
-            className={`mx-auto mt-3 max-w-7xl rounded-full border transition-all duration-300 ${
-              scrolled
-                ? 'border-slate-200 bg-white shadow-lg shadow-slate-900/5'
-                : 'border-white/60 bg-white/85 shadow-md shadow-slate-900/5 backdrop-blur-xl'
-            }`}
-          >
-            <nav className="relative flex items-center justify-between gap-2 rounded-full px-3 py-2">
-              {/* Logo */}
-              <Link
-                href="/"
-                onClick={scrollToTop}
-                className="flex flex-shrink-0 items-center pl-1 transition-transform duration-300 hover:scale-[1.04]"
-                aria-label="DSATGURU home"
-              >
-                <Image
-                  src="/logo-dsg-trans.png"
-                  alt="DSG — Score Higher, Dream Bigger"
-                  width={242}
-                  height={176}
-                  priority
-                  className="h-9 w-auto object-contain sm:h-10 lg:h-11"
-                />
-              </Link>
+      <header className={cn('relative border-b border-line backdrop-blur-md transition-colors', scrolled ? 'bg-[var(--glass)]' : 'bg-page')}>
+        <div ref={progress} aria-hidden="true" className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-brand" />
+        <Container className="flex h-16 items-center justify-between gap-4">
+          <Logo />
 
-              {/* Center links */}
-              <div className="mx-auto hidden items-center gap-0.5 lg:flex">
-                <Link href="/" className={navLinkClass}>
-                  <FiHome size={15} /> Home
-                </Link>
-
-                <div className="relative" onMouseEnter={() => setDsatHover(true)} onMouseLeave={() => setDsatHover(false)}>
-                  <button className={navLinkClass}>
-                    <FiBookOpen size={15} /> DSAT <FiChevronDown className={`transition-transform ${dsatHover ? 'rotate-180' : ''}`} size={13} />
-                  </button>
-                  <AnimatePresence>
-                    {dsatHover && <DropdownPanel render={dsatLinks.map((item, idx) => linkRow(item.href, item.href, item.title, idx))} />}
-                  </AnimatePresence>
-                </div>
-
-                <div className="relative" onMouseEnter={() => setDropdownHover(true)} onMouseLeave={() => setDropdownHover(false)}>
-                  <button className={navLinkClass}>
-                    <FiLayers size={15} /> Courses <FiChevronDown className={`transition-transform ${dropdownHover ? 'rotate-180' : ''}`} size={13} />
-                  </button>
-                  <AnimatePresence>
-                    {dropdownHover && (
-                      <DropdownPanel
-                        render={courses.map((course, idx) =>
-                          idx !== courses.length - 1 && course.slug && course.slug !== 'individual-tutoring'
-                            ? linkRow(course.id, `/enrollment/${course.courseId || course.id}`, course.title, idx)
-                            : null
-                        )}
-                      />
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                <div className="relative" onMouseEnter={() => setQuestionBankHover(true)} onMouseLeave={() => setQuestionBankHover(false)}>
-                  <button className={navLinkClass}>
-                    <FiEdit3 size={15} /> Question Banks <FiChevronDown className={`transition-transform ${questionBankHover ? 'rotate-180' : ''}`} size={13} />
-                  </button>
-                  <AnimatePresence>
-                    {questionBankHover && (
-                      <DropdownPanel
-                        render={
-                          questionBanks.length > 0
-                            ? questionBanks.map((qBank, idx) => linkRow(qBank.id, `/enrollment/${qBank.id}`, qBank.title, idx))
-                            : <div className="p-4 text-center text-sm text-slate-400">No question banks available</div>
-                        }
-                      />
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                <a href="/about" className={navLinkClass}>
-                  <FiInfo size={15} /> About
-                </a>
-                <Link href="/blog" className={navLinkClass}>
-                  Blog
-                </Link>
-                <a href="/contact" className={navLinkClass}>
-                  <FiPhone size={15} /> Contact
-                </a>
-              </div>
-
-              {/* Right CTAs */}
-              <div className="hidden flex-shrink-0 items-center gap-2 lg:flex">
-                {/* Separate IGCSC (IGCSE) platform entry */}
-                <a
-                  href="/igcsc/login"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2 text-[13px] font-bold text-indigo-700 transition-colors hover:bg-indigo-100"
-                  title="IGCSC — IGCSE Assessment Platform"
+          <nav className="hidden items-center gap-0.5 xl:flex" aria-label="Main">
+            {menus.map((m) => (
+              <div key={m.id} className="relative" onMouseEnter={() => setOpenMenu(m.id)} onMouseLeave={() => setOpenMenu(null)}>
+                <button
+                  type="button"
+                  className={navLink(openMenu === m.id)}
+                  aria-expanded={openMenu === m.id}
+                  onClick={() => setOpenMenu(openMenu === m.id ? null : m.id)}
                 >
-                  <span className="flex h-4 w-4 items-center justify-center rounded bg-gradient-to-br from-indigo-600 to-blue-600 text-[8px] font-black text-white">iG</span>
-                  IGCSC
-                </a>
-                {user ? (
-                  <a
-                    href={user?.role === 'Admin' ? '/admin' : '/dashboard'}
-                    className="dg-shine relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 text-[13px] font-bold text-white shadow-lg shadow-indigo-500/30 transition-transform hover:-translate-y-0.5"
-                  >
-                    Dashboard <FiArrowRight size={15} />
-                  </a>
-                ) : (
-                  <>
-                    <a href="/login" className="rounded-full px-4 py-2 text-[13px] font-semibold text-slate-700 transition-colors hover:bg-slate-900/5">
-                      Login
-                    </a>
-                    <a
-                      href="/register"
-                      className="dg-shine relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 text-[13px] font-bold text-white shadow-lg shadow-indigo-500/30 transition-transform hover:-translate-y-0.5"
-                    >
-                      Sign up <FiArrowRight size={15} />
-                    </a>
-                  </>
-                )}
+                  {m.label}
+                  <LuChevronDown className={cn('size-4 transition-transform', openMenu === m.id && 'rotate-180')} />
+                </button>
+                {openMenu === m.id ? (
+                  <div className="absolute left-0 top-full z-50 w-[340px] pt-2">
+                    <div className="animate-pop border border-line bg-surface p-2 shadow-[0_30px_60px_-24px_#00000080]">
+                      {m.links.length ? (
+                        m.links.map((l) => (
+                          <Link
+                            key={l.key}
+                            href={l.href}
+                            onClick={() => setOpenMenu(null)}
+                            className="group flex items-center justify-between gap-3 px-3 py-2.5 text-[14.5px] text-ink-2 transition-colors hover:bg-brand-50 hover:text-brand"
+                          >
+                            <span className="truncate" title={l.title}>
+                              {l.title}
+                            </span>
+                            <LuArrowRight className="size-4 shrink-0 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
+                          </Link>
+                        ))
+                      ) : (
+                        <p className="px-3 py-2.5 text-[14px] text-muted">{m.empty || 'Nothing here yet'}</p>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
               </div>
+            ))}
+            {pages.map((p) => (
+              <Link key={p.href} href={p.href} className={navLink(pathname === p.href)}>
+                {p.label}
+              </Link>
+            ))}
+          </nav>
 
-              {/* Mobile hamburger */}
-              <button
-                onClick={toggleMenu}
-                aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
-                aria-expanded={isOpen}
-                aria-controls="mobile-menu"
-                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white shadow-md lg:hidden"
-              >
-                {isOpen ? <FiX size={20} /> : <FiMenu size={20} />}
-              </button>
-            </nav>
+          <div className="flex items-center gap-2">
+            <a href={PHONE_HREF} className="hidden h-10 items-center gap-2 border border-line px-3 text-[14px] text-ink-2 transition-colors hover:border-line-strong hover:text-ink 2xl:flex">
+              <LuPhone className="size-4" /> {PHONE}
+            </a>
+            <Link
+              href="/igcsc/login"
+              title="IGCSC — IGCSE Assessment Platform"
+              className="hidden h-10 items-center border border-line px-3 font-code text-[12.5px] uppercase tracking-[0.08em] text-ink-2 transition-colors hover:border-brand hover:text-brand lg:flex"
+            >
+              IGCSC
+            </Link>
+            <ThemeToggle />
+            {user ? (
+              <Button href={dashboardHref} size="sm" arrow className="hidden h-10 sm:inline-flex">
+                Dashboard
+              </Button>
+            ) : (
+              <>
+                <Button href="/login" variant="outline" size="sm" className="hidden h-10 sm:inline-flex">
+                  Log in
+                </Button>
+                <Button href="/register" size="sm" className="hidden h-10 sm:inline-flex">
+                  Sign up
+                </Button>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => setIsOpen(true)}
+              aria-label="Open menu"
+              className="grid size-10 place-items-center border border-line text-ink xl:hidden"
+            >
+              <LuMenu className="size-5" />
+            </button>
           </div>
-        </div>
-        </div>
-
-        {/* Mobile drawer */}
-        <AnimatePresence>
-          {isOpen && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.5 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-40 bg-slate-900"
-                onClick={closeMenu}
-              />
-              <motion.div
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                className="fixed top-0 right-0 z-50 flex h-full w-4/5 max-w-sm flex-col justify-between overflow-y-auto bg-white px-7 py-8 shadow-2xl"
-              >
-                <div id="mobile-menu">
-                  <div className="mb-6 flex items-center justify-between">
-                    <Image src="/logo-dsg-trans.png" alt="DSG" width={242} height={176} className="h-9 w-auto object-contain" />
-                    <button
-                      onClick={toggleMenu}
-                      aria-label="Close navigation menu"
-                      className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700"
-                    >
-                      <FiX size={22} />
-                    </button>
-                  </div>
-                  <div className="space-y-1">
-                    <Link href="/" onClick={closeMenu} className="flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">
-                      <FiHome /> Home
-                    </Link>
-
-                    {[
-                      { label: 'DSAT', open: mobileDsatOpen, set: setMobileDsatOpen, links: dsatLinks },
-                    ].map((grp) => (
-                      <div key={grp.label} className="border-t border-slate-100 pt-1">
-                        <button
-                          type="button"
-                          onClick={() => grp.set(!grp.open)}
-                          className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-indigo-50"
-                        >
-                          <span className="flex items-center gap-2"><FiBookOpen /> {grp.label}</span>
-                          <FiChevronDown className={`transition-transform ${grp.open ? 'rotate-180' : ''}`} />
-                        </button>
-                        <AnimatePresence>
-                          {grp.open && (
-                            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                              <div className="space-y-0.5 pb-2">
-                                {grp.links.map((item) => (
-                                  <Link key={item.href} href={item.href} onClick={closeMenu} className="block rounded-lg py-2 pl-10 text-sm text-slate-600 hover:text-indigo-600">
-                                    {item.title}
-                                  </Link>
-                                ))}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    ))}
-
-                    <div className="border-t border-slate-100 pt-1">
-                      <button type="button" onClick={() => setMobileCoursesOpen(!mobileCoursesOpen)} className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-indigo-50">
-                        <span className="flex items-center gap-2"><FiLayers /> Courses</span>
-                        <FiChevronDown className={`transition-transform ${mobileCoursesOpen ? 'rotate-180' : ''}`} />
-                      </button>
-                      <AnimatePresence>
-                        {mobileCoursesOpen && (
-                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                            <div className="space-y-0.5 pb-2">
-                              {courses.map((course) => {
-                                if (!course.slug || course.slug === 'individual-tutoring') return null
-                                const id = course.courseId || course.id
-                                return (
-                                  <Link key={course.id} href={`/enrollment/${id}`} onClick={closeMenu} className="block rounded-lg py-2 pl-10 text-sm text-slate-600 hover:text-indigo-600">
-                                    {course.title}
-                                  </Link>
-                                )
-                              })}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-
-                    <div className="border-t border-slate-100 pt-1">
-                      <button type="button" onClick={() => setMobileQbOpen(!mobileQbOpen)} className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-indigo-50">
-                        <span className="flex items-center gap-2"><FiEdit3 /> Question Banks</span>
-                        <FiChevronDown className={`transition-transform ${mobileQbOpen ? 'rotate-180' : ''}`} />
-                      </button>
-                      <AnimatePresence>
-                        {mobileQbOpen && (
-                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                            <div className="space-y-0.5 pb-2">
-                              {questionBanks.length > 0 ? (
-                                questionBanks.map((qBank) => (
-                                  <Link key={qBank.id} href={`/enrollment/${qBank.id}`} onClick={closeMenu} className="block rounded-lg py-2 pl-10 text-sm text-slate-600 hover:text-indigo-600">
-                                    {qBank.title}
-                                  </Link>
-                                ))
-                              ) : (
-                                <p className="py-2 pl-10 text-xs text-slate-400">No question banks available</p>
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-
-                    <div className="space-y-1 border-t border-slate-100 pt-1">
-                      <Link href="/about" onClick={closeMenu} className="flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">
-                        <FiInfo /> About Us
-                      </Link>
-                      <Link href="/blog" onClick={closeMenu} className="flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">
-                        <FiBookOpen /> Blog
-                      </Link>
-                      <Link href="/contact" onClick={closeMenu} className="flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">
-                        <FiPhone /> Contact Us
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex flex-col gap-3">
-                  {user ? (
-                    <a href={user?.role === 'Admin' ? '/admin' : '/dashboard'} onClick={closeMenu} className="w-full rounded-full bg-indigo-600 hover:bg-indigo-700 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-indigo-500/30">
-                      Dashboard
-                    </a>
-                  ) : (
-                    <>
-                      <a href="/login" onClick={closeMenu} className="w-full rounded-full border border-slate-200 py-3 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                        Login
-                      </a>
-                      <a href="/register" onClick={closeMenu} className="w-full rounded-full bg-indigo-600 hover:bg-indigo-700 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-indigo-500/30">
-                        Sign up
-                      </a>
-                    </>
-                  )}
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
+        </Container>
       </header>
 
-      {/* Scroll to top */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            key="scroll-top"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            transition={{ duration: 0.3 }}
-            onClick={scrollToTop}
-            className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-white shadow-xl shadow-indigo-500/40 transition-transform hover:-translate-y-1"
-            aria-label="Scroll to top"
-          >
-            <FiArrowUp size={20} />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {/* Phone / tablet menu: a sheet from the right */}
+      {isOpen ? (
+        <div className="fixed inset-0 z-[60] xl:hidden" role="dialog" aria-modal="true" aria-label="Menu">
+          <button type="button" aria-label="Close menu" onClick={closeMenu} className="absolute inset-0 bg-black/50" />
+          <div className="animate-sheet absolute inset-y-0 right-0 flex w-full max-w-[380px] flex-col border-l border-line bg-page">
+            <div className="flex h-16 items-center justify-between border-b border-line px-5">
+              <Logo />
+              <button type="button" onClick={closeMenu} aria-label="Close menu" className="grid size-10 place-items-center border border-line text-ink">
+                <LuX className="size-5" />
+              </button>
+            </div>
+            <nav className="flex-1 overflow-y-auto px-5 py-4" aria-label="Mobile">
+              <Link href="/" onClick={closeMenu} className="block border-b border-line py-3.5 text-[17px] font-medium text-ink">
+                Home
+              </Link>
+              {menus.map((m) => {
+                const list = m.mobileLinks || m.links
+                const open = mobileGroup === m.id
+                return (
+                  <div key={m.id} className="border-b border-line">
+                    <button
+                      type="button"
+                      onClick={() => setMobileGroup(open ? null : m.id)}
+                      aria-expanded={open}
+                      className="flex w-full items-center justify-between py-3.5 text-[17px] font-medium text-ink"
+                    >
+                      {m.label}
+                      <LuChevronDown className={cn('size-5 transition-transform', open && 'rotate-180')} />
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {open ? (
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                          <div className="pb-3">
+                            {list.length ? (
+                              list.map((l) => (
+                                <Link key={l.key} href={l.href} onClick={closeMenu} className="block py-2 pl-3 text-[15px] text-ink-2 hover:text-brand">
+                                  {l.title}
+                                </Link>
+                              ))
+                            ) : (
+                              <p className="py-2 pl-3 text-[15px] text-muted">{m.empty || 'Nothing here yet'}</p>
+                            )}
+                          </div>
+                        </motion.div>
+                      ) : null}
+                    </AnimatePresence>
+                  </div>
+                )
+              })}
+              {pages.map((p) => (
+                <Link key={p.href} href={p.href} onClick={closeMenu} className="block border-b border-line py-3.5 text-[17px] font-medium text-ink">
+                  {p.label}
+                </Link>
+              ))}
+              <Link href="/igcsc/login" onClick={closeMenu} className="block border-b border-line py-3.5 text-[17px] font-medium text-ink">
+                IGCSC <span className="text-[14px] font-normal text-muted">· IGCSE platform</span>
+              </Link>
+              <a href={PHONE_HREF} className="mt-4 flex items-center gap-2 text-[15px] text-ink-2">
+                <LuPhone className="size-4 text-brand" /> {PHONE}
+              </a>
+            </nav>
+            <div className="grid gap-2 border-t border-line p-5">
+              {user ? (
+                <Button href={dashboardHref} arrow onClick={closeMenu}>
+                  Dashboard
+                </Button>
+              ) : (
+                <>
+                  <Button href="/register" arrow onClick={closeMenu}>
+                    Sign up
+                  </Button>
+                  <Button href="/login" variant="outline" onClick={closeMenu}>
+                    Log in
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Back to top */}
+      {showScrollTop ? (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Scroll to top"
+          className="animate-pop fixed bottom-6 right-6 z-50 grid size-12 place-items-center bg-cta text-on-cta shadow-[0_20px_40px_-16px_#000000b3] transition-colors hover:bg-cta-hover"
+        >
+          <LuArrowUp className="size-5" />
+        </button>
+      ) : null}
     </div>
   )
 }

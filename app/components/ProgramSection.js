@@ -1,21 +1,13 @@
 'use client'
 import { useMemo, useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { useCourses } from './CourseContext'
 import { useRouter } from 'next/navigation'
-import { FiCheck, FiArrowRight, FiPhone } from 'react-icons/fi'
+import { LuArrowRight, LuCheck, LuPhone } from 'react-icons/lu'
+import { useCourses } from './CourseContext'
+import { Reveal, Stagger, StaggerItem } from './site/motion'
+import { Container, Eyebrow, cn } from './site/ui'
 
-const accents = [
-  { grad: 'from-indigo-600 to-indigo-800', soft: 'bg-indigo-50', text: 'text-indigo-600' },
-  { grad: 'from-blue-600 to-blue-800', soft: 'bg-blue-50', text: 'text-blue-600' },
-  { grad: 'from-teal-600 to-teal-800', soft: 'bg-teal-50', text: 'text-teal-600' },
-  { grad: 'from-violet-600 to-violet-800', soft: 'bg-violet-50', text: 'text-violet-600' },
-  { grad: 'from-sky-600 to-sky-800', soft: 'bg-sky-50', text: 'text-sky-600' },
-]
-
-const ProgramCard = ({ data, index, isEnrolled, featured }) => {
+const ProgramCard = ({ data, isEnrolled, featured }) => {
   const router = useRouter()
-  const a = accents[index % accents.length]
 
   const discountPercentage = useMemo(() => {
     if (data.originalPrice && data.discountedPrice) {
@@ -26,110 +18,90 @@ const ProgramCard = ({ data, index, isEnrolled, featured }) => {
 
   const IconComponent = data.icon
   const isTutoring = data?.slug === 'individual-tutoring' || !data.originalPrice
+
   const enroll = () => {
     const id = data.courseId || data.id || data._id
     router.push(isEnrolled ? `/dashboard/courses/${id}` : `/enrollment/${id}`)
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 1, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: 'easeOut', delay: index * 0.08 }}
-      viewport={{ once: true, amount: 0.15 }}
-      whileHover={{ y: -10 }}
-      className={`relative h-full w-full ${featured ? 'lg:-my-3' : ''}`}
+    <StaggerItem
+      data-spotlight
+      className={cn('lift flex h-full flex-col border bg-surface', featured ? 'border-brand shadow-[0_30px_60px_-30px_var(--brand)]' : 'border-line')}
     >
-      {/* glow ring for featured */}
-      {featured && (
-        <div className="dg-animate-gradient absolute -inset-[2px] rounded-[2rem] bg-gradient-to-r from-indigo-500 via-violet-500 to-blue-500 opacity-70 blur-[5px]" />
-      )}
+      {/* header */}
+      <div className={cn('relative border-b p-6 sm:p-7', featured ? 'border-brand bg-brand-soft' : 'border-line bg-canvas')}>
+        <div className="flex items-start justify-between gap-3">
+          <span className={cn('grid size-11 place-items-center', featured ? 'bg-brand text-on-brand' : 'bg-sunken text-brand')}>
+            {IconComponent ? <IconComponent size={20} /> : <span>📚</span>}
+          </span>
+          <span className="flex flex-col items-end gap-1.5">
+            {featured ? <span className="bg-brand px-2 py-0.5 font-code text-[11px] uppercase tracking-[0.08em] text-on-brand">★ Most popular</span> : null}
+            {discountPercentage ? (
+              <span className="bg-brand-soft px-2 py-0.5 font-code text-[11px] uppercase tracking-[0.08em] text-brand">{discountPercentage}% off</span>
+            ) : null}
+          </span>
+        </div>
+        <h3 className="display mt-6 text-[1.7rem] uppercase leading-[1.05] tracking-[-0.005em]">{data.title}</h3>
+        <p className="mt-2 text-[14.5px] text-muted">{data.subtitle}</p>
+        {data.batch ? (
+          <p className="mt-4 whitespace-pre-line border-l-2 border-brand pl-3 font-code text-[12.5px] leading-relaxed text-ink-2">
+            {Array.isArray(data.batch) ? data.batch.join('\n') : data.batch}
+          </p>
+        ) : null}
+      </div>
 
-      <div className="dg-hover-glow group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-lg duration-500">
-        {/* ===== gradient header ===== */}
-        <div className={`relative bg-gradient-to-br ${a.grad} px-6 pb-14 pt-8 text-center text-white`}>
-          <div className="dg-blob pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/15 blur-2xl" />
-          <div className="pointer-events-none absolute inset-0 dg-grid-bg opacity-[0.12]" />
+      {/* body */}
+      <div className="flex flex-1 flex-col p-6 sm:p-7">
+        <p className="font-code text-[12px] uppercase tracking-[0.1em] text-muted">Price</p>
+        {isTutoring ? (
+          <p className="mt-1">
+            <span className="display block text-[2.4rem] leading-none">Call us</span>
+            <a href="tel:+13292398577" className="mt-2 block font-code text-[14px] text-brand">
+              1-329-239-8577
+            </a>
+          </p>
+        ) : (
+          <p className="mt-1 flex items-baseline gap-3">
+            <span className="display text-[3rem] leading-none">${data.discountedPrice}</span>
+            <s className="font-code text-[15px] text-muted decoration-brand decoration-2">${data.originalPrice}</s>
+          </p>
+        )}
 
-          {discountPercentage ? (
-            <span className="absolute -right-10 top-5 rotate-45 bg-amber-400 px-10 py-1 text-[11px] font-extrabold text-slate-900 shadow">
-              {discountPercentage}% OFF
-            </span>
-          ) : null}
-          {featured ? (
-            <span className="relative mb-3 inline-flex items-center gap-1 rounded-full bg-amber-400 px-4 py-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-900 shadow">
-              ★ Most Popular
-            </span>
-          ) : null}
+        <ul className="mt-6 flex-1 space-y-3 border-t border-line pt-6">
+          {data.included?.map((f, idx) => (
+            <li key={idx} className="flex gap-3 text-[14.5px] leading-snug text-ink-2">
+              <LuCheck className="mt-0.5 size-4 shrink-0 text-brand" />
+              <span>{f}</span>
+            </li>
+          ))}
+        </ul>
 
-          <h4 className="relative text-lg font-extrabold uppercase leading-tight">{data.title}</h4>
-          <p className="relative mt-1 text-sm font-medium text-white/85">{data.subtitle}</p>
-          {data.batch && (
-            <span className="relative mt-3 inline-block whitespace-pre-line rounded-full bg-white/15 px-4 py-1 text-xs font-bold ring-1 ring-white/25">
-              {Array.isArray(data.batch) ? data.batch.join('\n') : data.batch}
-            </span>
+        <div className="mt-7">
+          {isTutoring ? (
+            <button
+              type="button"
+              onClick={() => router.push('/contact')}
+              className="group inline-flex h-12 w-full items-center justify-center gap-2 border border-line-strong text-[15px] font-medium text-ink transition-colors hover:border-ink hover:bg-ink/5"
+            >
+              Contact Us <LuPhone className="size-4" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={enroll}
+              className={cn(
+                'group inline-flex h-12 w-full items-center justify-center gap-2 text-[15px] font-medium transition-colors active:translate-y-px',
+                featured ? 'bg-brand text-on-brand hover:bg-brand-hover' : 'bg-cta text-on-cta hover:bg-cta-hover',
+              )}
+            >
+              {isEnrolled ? 'Access Course' : 'Enroll Now'}
+              <LuArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+            </button>
           )}
         </div>
-
-        {/* ===== body ===== */}
-        <div className="relative flex flex-1 flex-col px-6 pb-6">
-          {/* floating icon overlapping the seam */}
-          <div className="mx-auto -mt-9 mb-3 flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-2xl bg-white shadow-xl ring-4 ring-white">
-            <span className={`flex h-full w-full items-center justify-center rounded-2xl bg-gradient-to-br ${a.grad} text-white transition-transform duration-300 group-hover:scale-110`}>
-              {IconComponent ? <IconComponent size={28} /> : <span className="text-2xl font-bold">📚</span>}
-            </span>
-          </div>
-
-          {/* price */}
-          <div className="mb-4 text-center">
-            {isTutoring ? (
-              <>
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Call us</div>
-                <div className="text-xl font-extrabold text-slate-900">1-329-239-8577</div>
-              </>
-            ) : (
-              <div className="flex items-end justify-center gap-2">
-                <span className="pb-1.5 text-sm text-slate-400 line-through">${data.originalPrice}</span>
-                <span className="text-4xl font-extrabold tracking-tight text-slate-900">${data.discountedPrice}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="mb-5 h-px bg-slate-100" />
-
-          {/* features */}
-          <ul className="flex-1 space-y-3 text-left text-sm text-slate-700">
-            {data.included?.map((f, idx) => (
-              <li key={idx} className="flex items-start gap-2.5">
-                <span className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${a.soft} ${a.text}`}>
-                  <FiCheck size={12} />
-                </span>
-                <span className="leading-snug">{f}</span>
-              </li>
-            ))}
-          </ul>
-
-          {/* CTA */}
-          <div className="pt-6">
-            {isTutoring ? (
-              <button
-                onClick={() => router.push('/contact')}
-                className={`dg-shine group/btn relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r ${a.grad} py-3.5 text-sm font-bold text-white shadow-lg transition-transform hover:-translate-y-0.5`}
-              >
-                Contact Us <FiPhone size={15} />
-              </button>
-            ) : (
-              <button
-                onClick={enroll}
-                className={`dg-shine group/btn relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r ${a.grad} py-3.5 text-sm font-bold text-white shadow-lg transition-transform hover:-translate-y-0.5`}
-              >
-                {isEnrolled ? 'Access Course' : 'Enroll Now'} <FiArrowRight className="transition-transform group-hover/btn:translate-x-1" />
-              </button>
-            )}
-          </div>
-        </div>
       </div>
-    </motion.div>
+    </StaggerItem>
   )
 }
 
@@ -145,48 +117,38 @@ export default function ProgramSection({ landingPlanRef }) {
   }, [courses.length])
 
   return (
-    <section id="programs" ref={landingPlanRef} className="relative w-full overflow-hidden bg-white px-4 pb-14 pt-14 sm:px-6 lg:px-8">
-      <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-blue-200/30 blur-3xl" />
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-        className="relative mx-auto mb-14 max-w-2xl text-center"
-      >
-        <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-indigo-600">
-          Our Programs
-        </span>
-        <h2 className="mt-5 text-4xl font-extrabold text-slate-900 md:text-5xl">
-          Choose Your <span className="dg-gradient-text">Path to Success</span>
-        </h2>
-        <p className="mt-4 text-lg text-slate-500">
-          Select the sat preparation course that best fits your needs and learning style. All options are designed to
-          maximize your score improvement.
+    <section id="programs" ref={landingPlanRef} className="scroll-mt-20 border-b border-line">
+      <Container className="py-16 sm:py-24">
+        <Reveal className="mx-auto max-w-[760px] text-center">
+          <Eyebrow n="04" center>
+            Our programs
+          </Eyebrow>
+          <h2 className="display mt-6 text-balance text-[2.3rem] leading-[1.04] sm:text-[2.9rem] lg:text-[3.3rem]">
+            Choose your <em className="accent">path to success.</em>
+          </h2>
+          <p className="mx-auto mt-4 max-w-[600px] text-[17px] leading-relaxed text-muted">
+            Select the SAT preparation course that best fits your needs and learning style. All options are designed to
+            maximize your score improvement.
+          </p>
+        </Reveal>
+
+        <Stagger className="mt-12 grid items-stretch gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {courses.map((course, i) => (
+            <ProgramCard
+              key={i}
+              data={course}
+              featured={i === 1}
+              isEnrolled={enrolledIds.includes(course.id) || enrolledIds.includes(course.courseId) || enrolledIds.includes(course._id)}
+            />
+          ))}
+        </Stagger>
+
+        <p className="mx-auto mt-10 max-w-[640px] text-center text-[13.5px] leading-relaxed text-muted">
+          Score increase guarantee applies to students who complete all course requirements and practice tests.
+          <br />
+          Concept videos provide comprehensive review of core DSAT/PSAT topics.
         </p>
-      </motion.div>
-
-      <div className="mx-auto grid max-w-6xl items-stretch gap-7 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-        {courses.map((course, i) => (
-          <ProgramCard
-            key={i}
-            data={course}
-            index={i}
-            featured={i === 1}
-            isEnrolled={
-              enrolledIds.includes(course.id) ||
-              enrolledIds.includes(course.courseId) ||
-              enrolledIds.includes(course._id)
-            }
-          />
-        ))}
-      </div>
-
-      <p className="mx-auto mt-12 max-w-3xl text-center text-sm text-slate-500">
-        Score increase guarantee applies to students who complete all course requirements and practice tests.
-        <br />
-        Concept videos provide comprehensive review of core DSAT/PSAT topics.
-      </p>
+      </Container>
     </section>
   )
 }

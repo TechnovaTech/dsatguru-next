@@ -1,11 +1,12 @@
 'use client'
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import {
   FiPhone, FiMail, FiMapPin, FiClock, FiUser, FiTag, FiMessageSquare, FiSend, FiCheckCircle, FiAlertCircle,
 } from 'react-icons/fi'
 import { FaWhatsapp } from 'react-icons/fa'
 import axios from 'axios'
+import { Reveal, Stagger, StaggerItem, WordReveal } from '../components/site/motion'
+import { Container, Eyebrow, cn } from '../components/site/ui'
 
 const MAPS_URL = 'https://maps.app.goo.gl/1u9TRFga5tZzcW276'
 
@@ -94,172 +95,162 @@ export default function Contact() {
     }
   }
 
-  const inputClass = (field) =>
-    `w-full rounded-xl border bg-white py-3 pl-11 pr-4 text-sm text-slate-800 transition-all placeholder:text-slate-400 focus:outline-none focus:ring-4 ${
-      errors[field] && touched[field]
-        ? 'border-rose-400 focus:ring-rose-100'
-        : 'border-slate-200 focus:border-indigo-400 focus:ring-indigo-100'
-    }`
+  // Field frame: lights up on focus, turns red when the field has an error.
+  const frame = (field) =>
+    cn(
+      'flex items-center gap-3 border bg-page px-3.5 transition-colors focus-within:border-brand',
+      errors[field] && touched[field] ? 'border-negative' : 'border-line-strong',
+    )
 
   return (
-    <section className="dg w-full bg-white text-slate-900">
+    <>
       {/* ===== HERO ===== */}
-      <div className="relative -mt-28 overflow-hidden">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-indigo-50/80 via-white to-white" />
-          <div className="dg-blob absolute -right-24 -top-24 h-[30rem] w-[30rem] rounded-full bg-indigo-200/40 blur-3xl" />
-          <div className="dg-blob-slow absolute -left-20 top-1/3 h-72 w-72 rounded-full bg-blue-200/30 blur-3xl" />
-          <div className="absolute inset-0 dg-grid-bg opacity-[0.5] [mask-image:radial-gradient(ellipse_at_center,black,transparent_72%)]" />
-        </div>
-        <div className="relative z-10 mx-auto max-w-3xl px-6 pb-8 pt-40 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-wider text-indigo-600 shadow-sm backdrop-blur">
-            Contact Us
-          </span>
-          <h1 className="mt-6 text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-900 md:text-5xl">
-            We&apos;re Here to <span className="dg-gradient-text">Help</span>
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-600 md:text-lg">
+      <section className="relative border-b border-line">
+        <div className="dot-grid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_50%_0%,#000,transparent_70%)]" />
+        <Container className="relative py-16 text-center sm:py-20">
+          <Eyebrow n="01" center>
+            Contact us
+          </Eyebrow>
+          <WordReveal text="We're here to help" accent={2} className="mt-6 text-[2.8rem] leading-[1.02] sm:text-[3.8rem]" />
+          <p className="animate-rise mx-auto mt-5 max-w-[620px] text-[17.5px] leading-relaxed text-ink-2">
             Have questions about courses, enrollment, or your prep plan? Reach out and our team will happily guide you on
             your DSAT/PSAT journey.
           </p>
-        </div>
-      </div>
+        </Container>
+      </section>
 
-      <div className="mx-auto max-w-7xl px-6 pb-20 lg:px-12">
-        <div className="grid items-start gap-8 lg:grid-cols-[1fr_1.15fr]">
+      <section className="border-b border-line">
+        <Container className="grid gap-10 py-16 lg:grid-cols-[1fr_1.35fr] lg:gap-14 lg:py-20">
           {/* ===== LEFT: contact methods ===== */}
-          <motion.div
-            initial={{ opacity: 1, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
-            className="space-y-4"
-          >
-            <h2 className="text-2xl font-extrabold text-slate-900">Get in touch</h2>
-            <p className="text-sm text-slate-600">Pick whatever&apos;s easiest — we usually reply within a few hours.</p>
-
-            <div className="space-y-3 pt-2">
+          <Reveal>
+            <h2 className="display text-[2.2rem] leading-tight">Get in touch</h2>
+            <p className="mt-2 text-[15.5px] text-muted">Pick whatever&apos;s easiest — we usually reply within a few hours.</p>
+            <div className="mt-6 grid gap-3">
               {methods.map((m) => (
                 <a
                   key={m.label}
                   href={m.href}
                   target={m.external ? '_blank' : undefined}
                   rel={m.external ? 'noopener noreferrer' : undefined}
-                  className="group flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+                  data-spotlight
+                  className="lift group flex items-center gap-5 border border-line bg-surface p-5"
                 >
-                  <span className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${m.grad} text-white shadow-lg transition-transform group-hover:scale-110`}>
-                    {m.icon}
+                  <span className="grid size-12 shrink-0 place-items-center bg-brand text-on-brand transition-transform duration-500 group-hover:-rotate-6">{m.icon}</span>
+                  <span className="min-w-0">
+                    <span className="block font-code text-[12px] uppercase tracking-[0.1em] text-muted">{m.label}</span>
+                    <span className="display block truncate text-[1.6rem] leading-tight group-hover:text-brand">{m.value}</span>
                   </span>
-                  <div>
-                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">{m.label}</div>
-                    <div className="text-sm font-bold text-slate-800 group-hover:text-indigo-700">{m.value}</div>
-                  </div>
                 </a>
               ))}
+              {/* WhatsApp + hours */}
+              <a
+                href="https://wa.me/13292398577"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-12 items-center justify-center gap-2 bg-[#25D366] text-[15px] font-semibold text-[#0b2a17] transition-transform hover:-translate-y-0.5"
+              >
+                <FaWhatsapp size={18} /> Chat on WhatsApp
+              </a>
+              <p className="flex items-center gap-3 border border-line bg-surface p-4 text-[15px] text-ink-2">
+                <FiClock className="shrink-0 text-brand" size={18} />
+                <span>
+                  <b className="font-semibold text-ink">Mon – Sat:</b> 9:00 AM – 8:00 PM
+                </span>
+              </p>
             </div>
-
-            {/* WhatsApp + hours */}
-            <a
-              href="https://wa.me/13292398577"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-2xl bg-[#25D366] py-3.5 text-sm font-bold text-white shadow-lg shadow-green-500/30 transition-transform hover:-translate-y-0.5"
-            >
-              <FaWhatsapp size={18} /> Chat on WhatsApp
-            </a>
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
-              <FiClock className="flex-shrink-0 text-indigo-600" size={18} />
-              <span><b className="text-slate-800">Mon – Sat:</b> 9:00 AM – 8:00 PM</span>
-            </div>
-          </motion.div>
+          </Reveal>
 
           {/* ===== RIGHT: form ===== */}
-          <motion.div
-            initial={{ opacity: 1, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }}
-            className="rounded-3xl border border-slate-100 bg-white p-7 shadow-xl sm:p-9"
-          >
-            <h2 className="text-2xl font-extrabold text-slate-900">Send us a message</h2>
-            <p className="mt-1 text-sm text-slate-500">Fill out the form and we&apos;ll get back to you shortly.</p>
+          <Reveal delay={0.1} className="border border-line bg-surface p-6 sm:p-8">
+            <h2 className="display text-[2.2rem] leading-tight">Send us a message</h2>
+            <p className="mt-2 text-[15.5px] text-muted">Fill out the form and we&apos;ll get back to you shortly.</p>
 
             {status === 'success' && (
-              <div className="mt-5 flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-                <FiCheckCircle className="flex-shrink-0" /> Your message has been sent — we&apos;ll be in touch soon!
-              </div>
+              <p role="status" className="mt-5 flex items-center gap-2 border border-positive bg-positive/10 p-3.5 text-[15px] text-ink">
+                <FiCheckCircle className="shrink-0 text-positive" /> Your message has been sent — we&apos;ll be in touch soon!
+              </p>
             )}
             {status === 'error' && (
-              <div className="mt-5 flex items-center gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-                <FiAlertCircle className="flex-shrink-0" /> Something went wrong. Please try again later.
-              </div>
+              <p role="alert" className="mt-5 flex items-center gap-2 border border-negative bg-negative/10 p-3.5 text-[15px] text-ink">
+                <FiAlertCircle className="shrink-0 text-negative" /> Something went wrong. Please try again later.
+              </p>
             )}
 
-            <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-              <input type="text" name="honeypot" value={formData.honeypot} onChange={handleChange} className="hidden" autoComplete="off" tabIndex={-1} />
-
+            <form onSubmit={handleSubmit} noValidate className="mt-6 grid gap-5">
+              <input type="text" name="honeypot" value={formData.honeypot} onChange={handleChange} className="hidden" aria-hidden="true" autoComplete="off" tabIndex={-1} />
               <div className="grid gap-5 sm:grid-cols-2">
                 {fields.map((f) => (
                   <div key={f.name}>
-                    <label htmlFor={f.name} className="mb-1.5 block text-sm font-semibold text-slate-700">{f.label}</label>
-                    <div className="relative">
-                      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">{f.icon}</span>
+                    <label htmlFor={f.name} className="mb-1.5 block text-[14px] font-medium text-ink">
+                      {f.label}
+                    </label>
+                    <div className={frame(f.name)}>
+                      <span className="text-muted">{f.icon}</span>
                       <input
                         type={f.type}
                         id={f.name}
                         name={f.name}
                         placeholder={f.placeholder}
-                        className={inputClass(f.name)}
+                        className="h-12 w-full min-w-0 bg-transparent text-[15px] text-ink outline-none placeholder:text-subtle"
                         value={formData[f.name]}
                         onChange={handleChange}
                         onBlur={handleBlur}
+                        aria-invalid={!!(errors[f.name] && touched[f.name])}
                       />
                     </div>
-                    {errors[f.name] && touched[f.name] && <p className="mt-1 text-xs font-medium text-rose-500">{errors[f.name]}</p>}
+                    {errors[f.name] && touched[f.name] && <p className="mt-1.5 text-[13px] text-negative">{errors[f.name]}</p>}
                   </div>
                 ))}
               </div>
-
               <div>
-                <label htmlFor="message" className="mb-1.5 block text-sm font-semibold text-slate-700">Message</label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3.5 top-4 text-slate-400"><FiMessageSquare /></span>
+                <label htmlFor="message" className="mb-1.5 block text-[14px] font-medium text-ink">
+                  Message
+                </label>
+                <div className={frame('message').replace('items-center', 'items-start')}>
+                  <span className="pt-3.5 text-muted">
+                    <FiMessageSquare />
+                  </span>
                   <textarea
                     id="message"
                     name="message"
                     rows={5}
                     placeholder="Tell us a bit about what you need…"
-                    className={`w-full rounded-xl border bg-white py-3 pl-11 pr-4 text-sm text-slate-800 transition-all placeholder:text-slate-400 focus:outline-none focus:ring-4 ${
-                      errors.message && touched.message ? 'border-rose-400 focus:ring-rose-100' : 'border-slate-200 focus:border-indigo-400 focus:ring-indigo-100'
-                    }`}
+                    className="w-full min-w-0 resize-y bg-transparent py-3 text-[15px] text-ink outline-none placeholder:text-subtle"
                     value={formData.message}
                     onChange={handleChange}
                     onBlur={handleBlur}
+                    aria-invalid={!!(errors.message && touched.message)}
                   />
                 </div>
-                {errors.message && touched.message && <p className="mt-1 text-xs font-medium text-rose-500">{errors.message}</p>}
+                {errors.message && touched.message && <p className="mt-1.5 text-[13px] text-negative">{errors.message}</p>}
               </div>
-
               <button
                 type="submit"
                 disabled={loading}
-                className="dg-shine group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-indigo-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="group inline-flex h-[52px] items-center justify-center gap-2 bg-brand px-7 text-[15.5px] font-medium text-on-brand transition-colors hover:bg-brand-hover active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? 'Sending…' : 'Send Message'}
-                {!loading && <FiSend className="transition-transform group-hover:translate-x-1" />}
+                {!loading && <FiSend className="transition-transform group-hover:translate-x-0.5" />}
               </button>
             </form>
-          </motion.div>
-        </div>
+          </Reveal>
+        </Container>
+      </section>
 
-        {/* ===== Info cards ===== */}
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {infoCards.map((c, i) => (
-            <motion.div
-              key={c.title}
-              initial={{ opacity: 1, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-lg"
-            >
-              <h3 className="font-bold text-slate-900">{c.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">{c.body}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
+      {/* ===== Info cards ===== */}
+      <section>
+        <Container className="py-16 lg:py-20">
+          <Stagger className="grid gap-5 md:grid-cols-3">
+            {infoCards.map((c, i) => (
+              <StaggerItem key={c.title} className="border-t-2 border-brand pt-5">
+                <span className="font-code text-[12px] text-brand">0{i + 1}</span>
+                <h3 className="mt-2 text-[18px] font-semibold">{c.title}</h3>
+                <p className="mt-2 text-[15px] leading-relaxed text-muted">{c.body}</p>
+              </StaggerItem>
+            ))}
+          </Stagger>
+        </Container>
+      </section>
+    </>
   )
 }

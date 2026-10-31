@@ -2,9 +2,11 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
-import { FiArrowRight, FiPlay } from 'react-icons/fi'
 import { FaStar } from 'react-icons/fa'
-import FloatingContactButtons from './FloatingContactButtons'
+import { LuArrowRight, LuPlay } from 'react-icons/lu'
+import FloatingContact from './site/FloatingContact'
+import { CountUp } from './site/motion'
+import { Container, Eyebrow, cn } from './site/ui'
 
 /*
  * Carousel of branded ad posters. Each slide has its own left-side copy + SEO alt.
@@ -16,7 +18,6 @@ const slides = [
     alt: 'Maximize your Digital SAT score with DSATGURU — 200+ point score guarantee and 4,000+ practice questions',
     pre: 'Boost Your',
     highlight: 'Digital SAT Score',
-    post: '',
     sub: 'Personalized study plans, 4,000+ realistic Digital SAT practice questions, and proven strategies to raise your score by 200+ points.',
   },
   {
@@ -24,7 +25,6 @@ const slides = [
     alt: 'Affordable premium Digital SAT preparation from $20 per month with live classes and adaptive tests — DSATGURU',
     pre: 'Premium SAT Prep,',
     highlight: 'Affordable Price',
-    post: '',
     sub: 'Elite Digital SAT preparation, live online classes, and 25+ adaptive practice tests — without the premium price tag.',
   },
   {
@@ -32,7 +32,6 @@ const slides = [
     alt: 'Experience a real Digital SAT practice test with DSATGURU adaptive engine, timed sections and instant scoring',
     pre: 'Experience the',
     highlight: 'Real Digital SAT',
-    post: '',
     sub: 'Practice on an exact replica of test day with our adaptive engine, timed sections, and instant Digital SAT scoring.',
   },
 ]
@@ -43,12 +42,7 @@ const stats = [
   { value: '10+', label: 'Years Experience' },
 ]
 
-const avatars = [
-  { i: 'JD', c: 'bg-indigo-600' },
-  { i: 'MR', c: 'bg-blue-600' },
-  { i: 'AT', c: 'bg-teal-600' },
-  { i: 'SK', c: 'bg-slate-700' },
-]
+const avatars = ['JD', 'MR', 'AT', 'SK']
 
 // Live student counter — real value from the backend (base 150 + registered students).
 const COUNT_START = 150
@@ -88,25 +82,19 @@ export default function HeroSection({ landingPlanRef }) {
   const scrollToPlans = () => landingPlanRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
   return (
-    <section className="relative w-full overflow-hidden bg-white">
-      <FloatingContactButtons />
+    <section className="relative border-b border-line">
+      <FloatingContact />
+      <div className="dot-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(ellipse_at_70%_30%,#000,transparent_70%)]" />
 
-      {/* Background decor */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-indigo-50/70 via-white to-white" />
-        <div className="absolute -right-24 -top-24 h-[32rem] w-[32rem] rounded-full bg-indigo-200/40 blur-3xl" />
-        <div className="absolute -left-20 top-1/3 h-80 w-80 rounded-full bg-blue-200/30 blur-3xl" />
-        <div className="absolute inset-0 dg-grid-bg opacity-[0.5] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
-      </div>
-
-      <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-12 px-6 pb-28 pt-32 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:pb-36 lg:pt-40">
+      <Container className="relative grid items-center gap-12 py-14 sm:py-16 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:py-20">
         {/* ===== LEFT ===== */}
-        <div className="text-center lg:text-left">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white/80 px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur">
-              <span className="flex text-amber-400">
+        <div>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+            <Eyebrow n="01">Digital SAT & PSAT prep · online</Eyebrow>
+            <span className="inline-flex items-center gap-2 text-[13.5px] text-ink-2">
+              <span className="flex gap-0.5 text-star">
                 {[...Array(5)].map((_, i) => (
-                  <FaStar key={i} size={12} />
+                  <FaStar key={i} size={11} />
                 ))}
               </span>
               Rated 4.9/5 by our students
@@ -119,58 +107,43 @@ export default function HeroSection({ landingPlanRef }) {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             >
-              <h1 className="mt-6 text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-900 md:text-5xl xl:text-[3.4rem]">
-                {slide.pre}{' '}
-                <span className="relative">
-                  <span className="dg-gradient-text">{slide.highlight}</span>
-                  <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none">
-                    <path d="M2 9C75 3 225 3 298 9" stroke="#6366f1" strokeWidth="3" strokeLinecap="round" />
-                  </svg>
-                </span>
-                {slide.post ? <> {slide.post}</> : null}
+              <h1 className="display mt-7 text-balance text-[2.9rem] leading-[0.98] sm:text-[4rem] lg:text-[4.6rem]">
+                {slide.pre} <em className="accent text-brand">{slide.highlight}</em>
               </h1>
-
-              <p className="mx-auto mt-6 max-w-md text-base leading-relaxed text-slate-600 lg:mx-0 lg:text-lg">
-                {slide.sub}
-              </p>
+              <p className="mt-6 max-w-[540px] text-[17.5px] leading-relaxed text-ink-2">{slide.sub}</p>
             </motion.div>
           </AnimatePresence>
 
-          <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row lg:justify-start">
+          <div className="mt-8 flex flex-wrap gap-3">
             <button
+              type="button"
               onClick={scrollToPlans}
-              className="dg-shine group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-indigo-600 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5 hover:bg-indigo-700"
+              className="group inline-flex h-[52px] items-center gap-2 bg-brand px-7 text-[15.5px] font-medium text-on-brand transition-colors hover:bg-brand-hover active:translate-y-px"
             >
               Start your DSAT journey
-              <FiArrowRight className="transition-transform group-hover:translate-x-1" />
+              <LuArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
             </button>
             <a
               href="/demo-test"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-7 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:text-indigo-700"
+              className="inline-flex h-[52px] items-center gap-2 border border-line-strong px-7 text-[15.5px] font-medium text-ink transition-colors hover:border-ink hover:bg-ink/5"
             >
-              <FiPlay size={14} className="text-indigo-600" /> Try Free Demo Test
+              <LuPlay className="size-4 text-brand" /> Try Free Demo Test
             </a>
           </div>
 
-          <div className="mt-8 flex flex-col items-center gap-5 sm:flex-row sm:justify-between lg:justify-start lg:gap-10">
+          <div className="mt-9 flex flex-wrap items-center justify-between gap-5 border-t border-line pt-6">
             <div className="flex items-center gap-4">
-              <div className="flex -space-x-2.5">
+              <div className="flex -space-x-2">
                 {avatars.map((a) => (
-                  <span
-                    key={a.i}
-                    className={`flex h-9 w-9 items-center justify-center rounded-full border-2 border-white text-[11px] font-bold text-white shadow ${a.c}`}
-                  >
-                    {a.i}
+                  <span key={a} className="grid size-9 place-items-center border-2 border-page bg-sunken font-code text-[11px] text-ink-2">
+                    {a}
                   </span>
                 ))}
               </div>
-              <p className="flex items-center gap-2 text-sm text-slate-600">
-                <span className="relative flex h-2 w-2" aria-hidden>
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                </span>
+              <p className="flex items-center gap-2 text-[14.5px] text-muted">
+                <span className="animate-live size-2 rounded-full bg-[#22c55e]" aria-hidden />
                 <AnimatePresence mode="popLayout" initial={false}>
                   <motion.span
                     key={liveCount}
@@ -178,7 +151,7 @@ export default function HeroSection({ landingPlanRef }) {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 8, opacity: 0 }}
                     transition={{ duration: 0.25 }}
-                    className="font-bold text-slate-900 tabular-nums"
+                    className="display text-[22px] leading-none text-ink"
                   >
                     {liveCount.toLocaleString()}
                   </motion.span>
@@ -186,16 +159,14 @@ export default function HeroSection({ landingPlanRef }) {
                 students improved
               </p>
             </div>
-
-            <div className="flex items-center gap-2">
+            <div className="flex gap-1.5">
               {slides.map((_, i) => (
                 <button
                   key={i}
+                  type="button"
                   onClick={() => setCurrent(i)}
                   aria-label={`Go to slide ${i + 1}`}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    i === current ? 'w-8 bg-indigo-600' : 'w-2 bg-slate-300 hover:bg-slate-400'
-                  }`}
+                  className={cn('h-1.5 transition-all duration-300', i === current ? 'w-8 bg-brand' : 'w-3 bg-line-strong hover:bg-muted')}
                 />
               ))}
             </div>
@@ -203,12 +174,9 @@ export default function HeroSection({ landingPlanRef }) {
         </div>
 
         {/* ===== RIGHT (branded ad poster — photo is swappable) ===== */}
-        <div className="relative mx-auto w-full max-w-md lg:max-w-none">
-          <div className="absolute -right-4 top-6 hidden h-[88%] w-[85%] rotate-3 rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-blue-600 lg:block" />
-          <div className="absolute -left-6 bottom-2 h-40 w-40 rounded-full bg-indigo-100 blur-2xl" />
-
-          <div className="relative overflow-hidden rounded-[2rem] border-4 border-white bg-white shadow-2xl shadow-indigo-900/15">
-            <div className="relative aspect-[5/4] w-full">
+        <div className="relative">
+          <div className="relative border border-line bg-surface p-2.5 shadow-[0_40px_80px_-40px_#000000cc]">
+            <div className="relative aspect-[4/3] overflow-hidden bg-sunken">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={current}
@@ -218,40 +186,29 @@ export default function HeroSection({ landingPlanRef }) {
                   transition={{ duration: 0.5, ease: 'easeOut' }}
                   className="absolute inset-0"
                 >
-                  <Image
-                    src={slide.photo}
-                    alt={slide.alt}
-                    fill
-                    priority
-                    sizes="(min-width:1024px) 45vw, 90vw"
-                    className="object-contain"
-                  />
+                  <Image src={slide.photo} alt={slide.alt} fill priority sizes="(min-width:1024px) 45vw, 90vw" className="object-cover" />
                 </motion.div>
               </AnimatePresence>
             </div>
           </div>
-
-          {/* live status pill */}
-          <div className="absolute -bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full border border-slate-100 bg-white/95 px-4 py-2 shadow-xl backdrop-blur">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
-            </span>
-            <span className="text-xs font-semibold text-slate-700">Live classes running now</span>
+          {/* live status badge */}
+          <div className="absolute -bottom-4 left-6 flex items-center gap-2 border border-line bg-surface px-3.5 py-2 font-code text-[12px] uppercase tracking-[0.08em] text-ink-2 shadow-[0_16px_32px_-16px_#000000b3]">
+            <span className="animate-live size-2 rounded-full bg-[#22c55e]" />
+            Live classes running now
           </div>
         </div>
-      </div>
+      </Container>
 
       {/* Stats strip */}
-      <div className="relative z-10 border-t border-slate-100 bg-white/60 backdrop-blur">
-        <div className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-slate-100 px-6">
+      <div className="border-t border-line">
+        <Container className="grid grid-cols-3 divide-x divide-line">
           {stats.map((s) => (
-            <div key={s.label} className="px-2 py-6 text-center">
-              <div className="text-2xl font-extrabold text-slate-900 md:text-3xl">{s.value}</div>
-              <div className="mt-1 text-xs text-slate-500 md:text-sm">{s.label}</div>
+            <div key={s.label} className="px-2 py-7 text-center sm:py-9">
+              <CountUp value={s.value} className="display block text-[2.4rem] leading-none sm:text-[3.4rem]" />
+              <span className="mt-2 block font-code text-[11px] uppercase tracking-[0.12em] text-muted sm:text-[12px]">{s.label}</span>
             </div>
           ))}
-        </div>
+        </Container>
       </div>
     </section>
   )
