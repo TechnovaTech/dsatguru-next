@@ -48,6 +48,11 @@ export default function TakeTestPage() {
   const [showHighlights, setShowHighlights] = useState(false)
   const [flagNote, setFlagNote] = useState('')
   const [completedSessionId, setCompletedSessionId] = useState(null)
+  // Why the test could not be opened (shown with a Retry instead of a dead Start button),
+  // and how long the initial load has been running (the question pool is several MB, so a
+  // slow connection needs a word of reassurance rather than a bare spinner).
+  const [loadError, setLoadError] = useState('')
+  const [loadSeconds, setLoadSeconds] = useState(0)
   const testContainerRef = useRef(null)
 
   // New Features State
@@ -211,6 +216,20 @@ export default function TakeTestPage() {
   useEffect(() => {
     fetchTestData()
   }, [testId])
+
+  useEffect(() => {
+    if (!(loading || checkingHistory)) return
+    setLoadSeconds(0)
+    const t = setInterval(() => setLoadSeconds((s) => s + 1), 1000)
+    return () => clearInterval(t)
+  }, [loading, checkingHistory])
+
+  const retryLoad = () => {
+    setLoadError('')
+    setLoading(true)
+    setCheckingHistory(true)
+    fetchTestData()
+  }
 
   // Reset show answer when question changes
   useEffect(() => {
@@ -525,12 +544,26 @@ export default function TakeTestPage() {
           
           console.log(`Fetching questions with isTutor=${isTutor} for test mode: ${testData.practiceMode}, configType: ${testData.configType}`)
           
-          const questionsRes = await fetch(questionsUrl, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
-          })
+          // The pool is the whole bank (~3 MB compressed). A connection that stalls
+          // mid-download must end in a Retry, not an endless spinner.
+          // (AbortController + setTimeout, not AbortSignal.timeout: older iPad Safari lacks it.)
+          // The timer covers the body too: headers arrive in seconds, the download is the slow part.
+          const stall = new AbortController()
+          const stallTimer = setTimeout(() => stall.abort(), 240000)
+          let questionsRes, questions
+          try {
+            questionsRes = await fetch(questionsUrl, {
+              headers: token ? { Authorization: `Bearer ${token}` } : {},
+              signal: stall.signal,
+            })
+            if (questionsRes.ok) questions = await questionsRes.json()
+          } finally {
+            clearTimeout(stallTimer)
+          }
 
-          if (questionsRes.ok) {
-            const questions = await questionsRes.json()
+          if (!questionsRes.ok) {
+            setLoadError(`The questions for this test could not be loaded (error ${questionsRes.status}). Please try again.`)
+          } else {
             console.log(`Fetched ${questions.length} questions from API`)
             finalQuestions = questions
 
@@ -680,9 +713,16 @@ export default function TakeTestPage() {
         } else if (testData.sections?.math) {
           setCurrentSection('math')
         }
+    } else {
+      setLoadError(testRes.status === 404
+        ? 'This test could not be found. It may have been removed by your tutor.'
+        : `This test could not be opened (error ${testRes.status}). Please try again.`)
     } // End of testRes.ok check
     } catch (error) {
       console.error('Error fetching test:', error)
+      setLoadError(error?.name === 'AbortError' || error?.name === 'TimeoutError'
+        ? 'Loading the test took too long - your internet connection seems slow or unstable. Please check it and try again.'
+        : 'The test could not load - the connection dropped while downloading it. Please check your internet and try again.')
     } finally {
       setCheckingHistory(false)
       setLoading(false)
@@ -1302,8 +1342,42 @@ export default function TakeTestPage() {
   // Start test confirmation screen
   if (loading || checkingHistory) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <p className="text-gray-700 font-medium">Loading your test…</p>
+        {loadSeconds >= 8 && (
+          <p className="text-sm text-gray-500 max-w-sm">
+            Still loading ({loadSeconds}s). On a slow connection this can take up to a minute — please keep this page open.
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full text-center">
+          <div className="bg-amber-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5">
+            <FiAlertTriangle className="text-amber-600" size={32} />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">The test didn&apos;t load</h2>
+          <p className="text-gray-600 mb-6">{loadError}</p>
+          <div className="space-y-3">
+            <button
+              onClick={retryLoad}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Try again
+            </button>
+            <button
+              onClick={() => router.push(returnUrl)}
+              className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+            >
+              Back to tests
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
