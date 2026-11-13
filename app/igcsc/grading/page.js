@@ -16,19 +16,19 @@ const REFRESH_MS = 10000
 
 const TABS = [
   {
-    id: 'needs_review', label: 'Needs review', icon: FiFlag, ring: 'ring-violet-300', iconCls: 'from-violet-500 to-purple-600',
+    id: 'needs_review', label: 'Needs review', icon: FiFlag, iconCls: 'bg-brand text-on-brand',
     empty: 'Nothing is waiting for a tutor', hint: 'Answers the AI was unsure about land here for you to check and confirm.',
   },
   {
-    id: 'grading', label: 'Being marked', icon: FiLoader, ring: 'ring-blue-300', iconCls: 'from-blue-500 to-blue-600',
+    id: 'grading', label: 'Being marked', icon: FiLoader, iconCls: 'bg-calm text-white',
     empty: 'Nothing is being marked right now', hint: 'A paper sits here for a minute or two after a student sends their photos.',
   },
   {
-    id: 'error', label: 'Failed', icon: FiXCircle, ring: 'ring-rose-300', iconCls: 'from-rose-500 to-pink-600',
+    id: 'error', label: 'Failed', icon: FiXCircle, iconCls: 'bg-negative text-white',
     empty: 'No failed marking', hint: 'If the AI cannot mark a paper it shows up here, and you can run it again.',
   },
   {
-    id: 'graded', label: 'Marked', icon: FiCheckCircle, ring: 'ring-emerald-300', iconCls: 'from-emerald-500 to-emerald-600',
+    id: 'graded', label: 'Marked', icon: FiCheckCircle, iconCls: 'bg-positive text-white',
     empty: 'Nothing marked yet', hint: 'Papers the AI marked with confidence, and those a tutor confirmed, end up here.',
   },
 ]
@@ -69,9 +69,9 @@ function StateBadge({ state }) {
 }
 
 function FlagCount({ n }) {
-  if (!n) return <span className="text-xs text-slate-300">—</span>
+  if (!n) return <span className="text-xs text-subtle">—</span>
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">
+    <span className="inline-flex items-center gap-1 rounded-full border border-line bg-[#b7791f1a] px-2 py-0.5 font-code text-[11px] text-[#8a5a12]">
       <FiFlag size={10} /> {n}
     </span>
   )
@@ -84,14 +84,14 @@ function TabCard({ tab, count, active, onPick }) {
       type="button"
       onClick={() => onPick(tab.id)}
       aria-pressed={active}
-      className={`flex items-center gap-3 rounded-2xl border bg-white p-3 text-left shadow-sm transition sm:p-4 ${active ? `border-transparent ring-2 ${tab.ring}` : 'border-slate-200 hover:border-slate-300 hover:shadow-md'}`}
+      className={`flex items-center gap-3 border bg-surface p-3 text-left transition-colors sm:p-4 ${active ? 'border-ink' : 'border-line hover:border-line-strong'}`}
     >
-      <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${tab.iconCls} text-white shadow-sm`}>
+      <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center ${tab.iconCls}`}>
         <Icon size={18} className={tab.id === 'grading' && count ? 'animate-spin' : ''} />
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-[11px] font-semibold uppercase tracking-wide text-slate-500">{tab.label}</span>
-        <span className="block text-2xl font-extrabold leading-tight text-slate-900">{count ?? '—'}</span>
+        <span className="block truncate font-code text-[11px] uppercase tracking-[0.08em] text-muted">{tab.label}</span>
+        <span className="block font-code text-2xl font-medium leading-tight tabular-nums text-ink">{count ?? '—'}</span>
       </span>
     </button>
   )
@@ -100,30 +100,30 @@ function TabCard({ tab, count, active, onPick }) {
 function QueueRow({ a, onOpen }) {
   const href = `/igcsc/grading/${a._id}`
   return (
-    <tr onClick={() => onOpen(href)} className="cursor-pointer transition-colors hover:bg-indigo-50/40">
+    <tr onClick={() => onOpen(href)} className="cursor-pointer transition-colors hover:bg-brand-50">
       <td className="px-4 py-3 align-top">
-        <div className="max-w-[220px] truncate font-semibold text-slate-800">{a.userName || 'Student'}</div>
-        <div className="max-w-[220px] truncate text-xs text-slate-400">{a.userEmail}</div>
+        <div className="max-w-[220px] truncate font-semibold text-ink">{a.userName || 'Student'}</div>
+        <div className="max-w-[220px] truncate font-code text-xs text-subtle">{a.userEmail}</div>
       </td>
       <td className="px-4 py-3 align-top">
-        <div className="max-w-[280px] truncate font-semibold text-slate-800">{a.paperTitle || 'Paper'}</div>
-        <div className="max-w-[280px] truncate text-xs text-slate-500">{a.paperUnit}</div>
+        <div className="max-w-[280px] truncate font-semibold text-ink">{a.paperTitle || 'Paper'}</div>
+        <div className="max-w-[280px] truncate text-xs text-muted">{a.paperUnit}</div>
       </td>
       <td className="px-4 py-3 align-top">
         <StateBadge state={a.writtenState} />
-        {a.model && <div className="mt-1 max-w-[160px] truncate text-[11px] text-slate-400">{a.model}</div>}
+        {a.model && <div className="mt-1 max-w-[160px] truncate text-[11px] text-subtle">{a.model}</div>}
       </td>
-      <td className="whitespace-nowrap px-4 py-3 align-top text-xs text-slate-600">
+      <td className="whitespace-nowrap px-4 py-3 align-top font-code text-xs text-ink-2">
         {fmtWhen(a.submittedAt)}
-        {a.gradedAt && <div className="text-[11px] text-slate-400">marked {fmtWhen(a.gradedAt)}</div>}
+        {a.gradedAt && <div className="text-[11px] text-subtle">marked {fmtWhen(a.gradedAt)}</div>}
       </td>
-      <td className="whitespace-nowrap px-4 py-3 align-top font-semibold text-slate-800">{marksText(a)}</td>
+      <td className="whitespace-nowrap px-4 py-3 align-top font-code font-semibold tabular-nums text-ink">{marksText(a)}</td>
       <td className="px-4 py-3 align-top"><FlagCount n={a.flagged} /></td>
       <td className="px-4 py-3 text-right align-top">
         <Link
           href={href}
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-50"
+          className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold text-brand transition hover:bg-brand-50"
         >
           {a.writtenState === 'needs_review' ? 'Review' : 'Open'} <FiArrowRight size={13} />
         </Link>
@@ -134,21 +134,21 @@ function QueueRow({ a, onOpen }) {
 
 function QueueCard({ a }) {
   return (
-    <Link href={`/igcsc/grading/${a._id}`} className="block px-4 py-4 transition-colors hover:bg-indigo-50/40">
+    <Link href={`/igcsc/grading/${a._id}`} className="block px-4 py-4 transition-colors hover:bg-brand-50">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold text-slate-800">{a.userName || 'Student'}</div>
-          <div className="truncate text-xs text-slate-400">{a.userEmail}</div>
+          <div className="truncate text-sm font-semibold text-ink">{a.userName || 'Student'}</div>
+          <div className="truncate text-xs text-subtle">{a.userEmail}</div>
         </div>
         <StateBadge state={a.writtenState} />
       </div>
-      <div className="mt-2 break-words text-sm font-semibold text-slate-700">{a.paperTitle || 'Paper'}</div>
-      {a.paperUnit && <div className="break-words text-xs text-slate-500">{a.paperUnit}</div>}
-      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+      <div className="mt-2 break-words text-sm font-semibold text-ink-2">{a.paperTitle || 'Paper'}</div>
+      {a.paperUnit && <div className="break-words text-xs text-muted">{a.paperUnit}</div>}
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
         <span>Sent {fmtWhen(a.submittedAt)}</span>
-        <span className="font-semibold text-slate-700">Written {marksText(a)}</span>
+        <span className="font-semibold text-ink-2">Written {marksText(a)}</span>
         {a.flagged > 0 && <FlagCount n={a.flagged} />}
-        <span className="ml-auto inline-flex items-center gap-1 font-semibold text-indigo-600">
+        <span className="ml-auto inline-flex items-center gap-1 font-semibold text-brand">
           {a.writtenState === 'needs_review' ? 'Review' : 'Open'} <FiArrowRight size={12} />
         </span>
       </div>
@@ -242,13 +242,14 @@ export default function GradingQueuePage() {
   return (
     <div>
       <PageHeader
-        title="Marking"
+        eyebrow="Staff · Marking queue"
+        title={<>The marking <em className="accent">queue</em></>}
         subtitle="The AI marks every photographed answer sheet. Check anything it flagged, then release the marks to the student."
         actions={(
           <>
             <Link
               href="/igcsc/paper-assign"
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              className="inline-flex h-10 items-center gap-2 border border-line-strong px-4 text-sm font-medium text-ink transition-colors hover:border-ink hover:bg-ink/5"
             >
               <FiSend size={15} /> Assign papers
             </Link>
@@ -256,7 +257,7 @@ export default function GradingQueuePage() {
               type="button"
               onClick={() => load()}
               disabled={loading}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+              className="inline-flex h-10 items-center gap-2 border border-line-strong px-4 text-sm font-medium text-ink transition-colors hover:border-ink hover:bg-ink/5 disabled:opacity-50"
             >
               <FiRefreshCw size={15} className={loading && data ? 'animate-spin' : ''} /> Refresh
             </button>
@@ -270,25 +271,25 @@ export default function GradingQueuePage() {
         ))}
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="border border-line bg-surface">
+        <div className="flex flex-col gap-3 border-b border-line p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold text-slate-800">{current.label}</h3>
-            {data && <span className="text-xs text-slate-400">{total} paper{total === 1 ? '' : 's'}</span>}
+            <h3 className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">{current.label}</h3>
+            {data && <span className="font-code text-xs tabular-nums text-subtle">{total} paper{total === 1 ? '' : 's'}</span>}
             {anyGrading && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-calm">
                 <FiLoader size={11} className="animate-spin" /> updating every 10s
               </span>
             )}
           </div>
           <div className="relative sm:w-72">
-            <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+            <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle" size={15} />
             <input
               type="search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search student or paper"
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-xl border border-line bg-surface py-2.5 pl-9 pr-3 text-sm text-ink placeholder:text-subtle focus:border-ink focus:outline-none"
             />
           </div>
         </div>
@@ -309,7 +310,7 @@ export default function GradingQueuePage() {
         ) : (
           <div className={loading ? 'opacity-60 transition-opacity' : 'transition-opacity'}>
             {error && <div className="px-4 pt-4"><ErrorState message={error} /></div>}
-            <div className="divide-y divide-slate-100 md:hidden">
+            <div className="divide-y divide-line md:hidden">
               {attempts.map((a) => <QueueCard key={a._id} a={a} />)}
             </div>
             <div className="hidden md:block">
@@ -331,21 +332,21 @@ export default function GradingQueuePage() {
         )}
 
         {data && pages > 1 && (
-          <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-3">
+          <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-3">
             <button
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1 || loading}
-              className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 disabled:opacity-40"
+              className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-semibold text-ink-2 transition hover:bg-ink/5 disabled:opacity-40"
             >
               <FiChevronLeft size={15} /> Previous
             </button>
-            <span className="text-xs font-medium text-slate-500">Page {page} of {pages}</span>
+            <span className="font-code text-xs tabular-nums text-muted">Page {page} of {pages}</span>
             <button
               type="button"
               onClick={() => setPage((p) => Math.min(pages, p + 1))}
               disabled={page >= pages || loading}
-              className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 disabled:opacity-40"
+              className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-semibold text-ink-2 transition hover:bg-ink/5 disabled:opacity-40"
             >
               Next <FiChevronRight size={15} />
             </button>

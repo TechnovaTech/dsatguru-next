@@ -7,9 +7,9 @@ import {
   FiArrowRight, FiKey, FiCheckCircle, FiCreditCard,
 } from 'react-icons/fi'
 import { apiGet } from '../_components/api'
-import { PageHeader, Loading, ErrorState, EmptyState, Badge } from '../_components/ui'
+import { Loading, ErrorState, EmptyState } from '../_components/ui'
 import {
-  PaperCard, AttemptRow, fmtDate, fmtDue, isOverdue, byDueDate, BTN_PRIMARY, BTN_SECONDARY,
+  PaperCard, AttemptRow, Chip, fmtDate, fmtDue, isOverdue, byDueDate, BTN_PRIMARY, BTN_SECONDARY,
 } from '../_components/PaperCard'
 import { ATTEMPT_STATUS, formatPrice, scopeLabel } from '../../../lib/igcscStoreShared'
 
@@ -35,8 +35,21 @@ function planLabel(pl) {
   return pl.scope === 'all' ? 'Every paper' : `All ${scopeLabel(pl)} papers`
 }
 
+function Header({ actions }) {
+  return (
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-line pb-5">
+      <div>
+        <p className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">My tests</p>
+        <h1 className="display mt-1 text-[clamp(1.7rem,3vw,2.4rem)] leading-tight text-ink">Your <em className="accent">tests</em></h1>
+        <p className="mt-1 text-sm text-muted">Everything you are sitting, have been set, or own.</p>
+      </div>
+      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+    </div>
+  )
+}
+
 function Panel({ children }) {
-  return <div className="rounded-2xl border border-slate-200 bg-white p-2 shadow-sm sm:p-3">{children}</div>
+  return <div className="border border-line bg-surface p-2 sm:p-3">{children}</div>
 }
 
 function StoreCta({ label = 'Browse test papers' }) {
@@ -62,36 +75,36 @@ function AssignmentCard({ a }) {
   const tags = [p.curriculum, p.subject].filter(Boolean).join(' · ')
 
   return (
-    <div className={`rounded-2xl border bg-white p-4 shadow-sm sm:p-5 ${overdue ? 'border-rose-200' : 'border-slate-200'}`}>
+    <div className={`border bg-surface p-4 sm:p-5 ${overdue ? 'border-negative/50' : 'border-line'}`}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            {tags && <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold text-indigo-700">{tags}</span>}
-            {st && <Badge tone={st.tone}>{st.label}</Badge>}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            {tags && <span className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">{tags}</span>}
+            {st && <Chip tone={st.tone}>{st.label}</Chip>}
             {la?.percentage != null && (
-              <span className="text-xs font-bold text-slate-700">{la.percentage}%{la.grade ? ` · ${la.grade}` : ''}</span>
+              <span className="font-code text-xs tabular-nums text-ink">{la.percentage}%{la.grade ? ` · ${la.grade}` : ''}</span>
             )}
           </div>
-          <Link href={`/igcsc/papers/${p._id}`} className="mt-2 block break-words text-base font-bold text-slate-900 hover:text-indigo-700">
+          <Link href={`/igcsc/papers/${p._id}`} className="display mt-2 block break-words text-lg leading-snug text-ink transition-colors hover:text-brand">
             {p.title || 'Test paper'}
           </Link>
-          {p.unit && <p className="text-sm text-slate-500">{p.unit}</p>}
-          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs">
+          {p.unit && <p className="text-sm text-muted">{p.unit}</p>}
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 font-code text-[11px]">
             {a.dueAt ? (
-              <span className={`inline-flex items-center gap-1.5 ${overdue ? 'font-bold text-rose-600' : 'font-semibold text-slate-700'}`}>
+              <span className={`inline-flex items-center gap-1.5 ${overdue ? 'font-medium text-negative' : 'text-ink-2'}`}>
                 <FiCalendar size={13} /> {overdue ? 'Overdue, was due' : 'Due'} {fmtDue(a.dueAt)}
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 text-slate-400"><FiCalendar size={13} /> No due date</span>
+              <span className="inline-flex items-center gap-1.5 text-subtle"><FiCalendar size={13} /> No due date</span>
             )}
             {a.assignedByName && (
-              <span className="inline-flex items-center gap-1.5 text-slate-500"><FiUser size={13} /> From {a.assignedByName}</span>
+              <span className="inline-flex items-center gap-1.5 text-muted"><FiUser size={13} /> From {a.assignedByName}</span>
             )}
-            {a.createdAt && <span className="text-slate-400">Assigned {fmtDate(a.createdAt)}</span>}
+            {a.createdAt && <span className="text-subtle">Assigned {fmtDate(a.createdAt)}</span>}
           </div>
           {a.note && (
-            <div className="mt-3 flex items-start gap-2 rounded-xl bg-slate-50 px-3 py-2.5 text-sm text-slate-600">
-              <FiMessageSquare size={14} className="mt-0.5 flex-shrink-0 text-slate-400" />
+            <div className="mt-3 flex items-start gap-2 border border-line bg-canvas px-3 py-2.5 text-sm text-ink-2">
+              <FiMessageSquare size={14} className="mt-0.5 flex-shrink-0 text-subtle" />
               <p className="min-w-0 whitespace-pre-line break-words">{a.note}</p>
             </div>
           )}
@@ -138,7 +151,7 @@ export default function IgcscMyTestsPage() {
   if (error && !data) {
     return (
       <div>
-        <PageHeader title="My tests" subtitle="Everything you are sitting, have been set, or own." />
+        <Header />
         <ErrorState message={error} />
         <button type="button" onClick={load} className={`${BTN_SECONDARY} mt-3`}>Try again</button>
       </div>
@@ -160,9 +173,7 @@ export default function IgcscMyTestsPage() {
 
   return (
     <div>
-      <PageHeader
-        title="My tests"
-        subtitle="Everything you are sitting, have been set, or own."
+      <Header
         actions={(
           <Link href="/igcsc/store" className={BTN_PRIMARY}>
             <FiShoppingBag size={14} /> Browse test papers
@@ -170,7 +181,7 @@ export default function IgcscMyTestsPage() {
         )}
       />
 
-      <div className="mb-6 flex gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+      <div className="mb-6 flex gap-1 overflow-x-auto border border-line bg-surface p-1.5">
         {TABS.map((t) => {
           const on = active === t.id
           return (
@@ -178,12 +189,12 @@ export default function IgcscMyTestsPage() {
               key={t.id}
               type="button"
               onClick={() => pickTab(t.id)}
-              className={`inline-flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition ${on
-                ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-sm'
-                : 'text-slate-600 hover:bg-slate-100'}`}
+              className={`inline-flex flex-shrink-0 items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium transition ${on
+                ? 'bg-cta text-on-cta'
+                : 'text-muted hover:bg-ink/5 hover:text-ink'}`}
             >
               <t.icon size={15} /> {t.label}
-              <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${on ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+              <span className={`rounded-full px-2 py-0.5 font-code text-[11px] tabular-nums ${on ? 'bg-on-cta/20 text-on-cta' : 'bg-sunken text-muted'}`}>
                 {counts[t.id]}
               </span>
             </button>
@@ -193,13 +204,13 @@ export default function IgcscMyTestsPage() {
 
       {active === 'progress' && (
         progress.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white">
+          <div className="border border-dashed border-line-strong bg-surface">
             <EmptyState icon={FiPlayCircle} title="Nothing in progress" hint="Open a paper you own or one your tutor set, and it will wait for you here." />
             <StoreCta />
           </div>
         ) : (
           <Panel>
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-line">
               {progress.map((a) => <AttemptRow key={a._id} attempt={a} />)}
             </div>
           </Panel>
@@ -208,7 +219,7 @@ export default function IgcscMyTestsPage() {
 
       {active === 'assigned' && (
         assignments.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white">
+          <div className="border border-dashed border-line-strong bg-surface">
             <EmptyState icon={FiSend} title="No papers assigned yet" hint="When your tutor sets you a paper it shows here, with its due date and any note." />
           </div>
         ) : (
@@ -223,27 +234,27 @@ export default function IgcscMyTestsPage() {
           {(plans.length > 0 || credits > 0) && (
             <div className="grid gap-4 md:grid-cols-2">
               {plans.length > 0 && (
-                <div className="rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-blue-50 p-5">
-                  <p className="flex items-center gap-2 text-sm font-bold text-indigo-900"><FiCheckCircle size={16} /> Your plans</p>
+                <div className="border border-line bg-surface p-5">
+                  <p className="flex items-center gap-2 text-sm font-medium text-ink"><FiCheckCircle size={16} className="text-positive" /> Your plans</p>
                   <ul className="mt-3 space-y-2">
                     {plans.map((pl) => (
                       <li key={pl._id} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-sm">
-                        <span className="min-w-0 font-semibold text-slate-800">{planLabel(pl)}</span>
-                        <span className="text-xs text-slate-500">{pl.expiresAt ? `until ${fmtDate(pl.expiresAt)}` : 'no expiry'}</span>
+                        <span className="min-w-0 font-medium text-ink">{planLabel(pl)}</span>
+                        <span className="font-code text-xs text-muted">{pl.expiresAt ? `until ${fmtDate(pl.expiresAt)}` : 'no expiry'}</span>
                       </li>
                     ))}
                   </ul>
-                  <Link href="/igcsc/store?owned=1" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-indigo-700 hover:underline">
-                    Browse the papers in your plans <FiArrowRight size={14} />
+                  <Link href="/igcsc/store?owned=1" className="group mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand">
+                    Browse the papers in your plans <FiArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
                   </Link>
                 </div>
               )}
               {credits > 0 && (
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="flex items-center gap-2 text-sm font-bold text-slate-900"><FiKey size={16} className="text-indigo-500" /> {credits} credit{credits === 1 ? '' : 's'} to spend</p>
-                  <p className="mt-1 text-sm text-slate-500">Each credit unlocks any one paper in the store.</p>
-                  <Link href="/igcsc/store" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-indigo-700 hover:underline">
-                    Choose a paper <FiArrowRight size={14} />
+                <div className="border border-line bg-surface p-5">
+                  <p className="flex items-center gap-2 text-sm font-medium text-ink"><FiKey size={16} className="text-brand" /> <span className="font-code tabular-nums">{credits}</span> credit{credits === 1 ? '' : 's'} to spend</p>
+                  <p className="mt-1 text-sm text-muted">Each credit unlocks any one paper in the store.</p>
+                  <Link href="/igcsc/store" className="group mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand">
+                    Choose a paper <FiArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
                   </Link>
                 </div>
               )}
@@ -251,7 +262,7 @@ export default function IgcscMyTestsPage() {
           )}
 
           {papers.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white">
+            <div className="border border-dashed border-line-strong bg-surface">
               <EmptyState
                 icon={FiBookOpen}
                 title="No papers of your own yet"
@@ -274,25 +285,25 @@ export default function IgcscMyTestsPage() {
           )}
 
           {orders.length > 0 && (
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-4">
-                <FiCreditCard size={15} className="text-slate-400" />
-                <h3 className="text-sm font-bold text-slate-800">Purchase history</h3>
+            <div className="border border-line bg-surface">
+              <div className="flex items-center gap-2 border-b border-line px-5 py-4">
+                <FiCreditCard size={15} className="text-subtle" />
+                <h3 className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">Purchase history</h3>
               </div>
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-line">
                 {orders.map((o) => {
                   const st = ORDER_STATUS[o.status] || { label: o.status, tone: 'slate' }
                   return (
                     <div key={o._id} className="flex items-center justify-between gap-3 px-5 py-3">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-slate-800">{o.title || 'Order'}</p>
-                        <p className="text-xs text-slate-400">
+                        <p className="truncate text-sm font-medium text-ink">{o.title || 'Order'}</p>
+                        <p className="font-code text-[11px] text-subtle">
                           {fmtDate(o.paidAt || o.createdAt)}{o.kind === 'grant' ? ' · given by your centre' : ''}
                         </p>
                       </div>
                       <div className="flex flex-shrink-0 items-center gap-2">
-                        <span className="text-sm font-bold text-slate-800">{formatPrice(o.amount, o.currency || currency)}</span>
-                        <Badge tone={st.tone}>{st.label}</Badge>
+                        <span className="font-code text-sm tabular-nums text-ink">{formatPrice(o.amount, o.currency || currency)}</span>
+                        <Chip tone={st.tone}>{st.label}</Chip>
                       </div>
                     </div>
                   )
@@ -305,12 +316,12 @@ export default function IgcscMyTestsPage() {
 
       {active === 'completed' && (
         completed.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white">
+          <div className="border border-dashed border-line-strong bg-surface">
             <EmptyState icon={FiAward} title="No marked papers yet" hint="Finish a paper and your mark, grade and feedback will be here." />
           </div>
         ) : (
           <Panel>
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-line">
               {completed.map((a) => <AttemptRow key={a._id} attempt={a} />)}
             </div>
           </Panel>

@@ -34,7 +34,7 @@ function Row({ m, isStaff, busyId, copied, patch, remove, copy, onJoin, onTitleI
   const ti = typeInfo(m)
   const st = m._s
   return (
-    <div className={`rounded-xl border p-4 ${st.canJoin ? 'border-emerald-200 bg-emerald-50/40' : 'border-slate-200 bg-white'}`}>
+    <div className={`border p-4 ${st.canJoin ? 'border-positive/40 bg-positive/5' : 'border-line bg-surface'}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           {isStaff ? (
@@ -42,12 +42,12 @@ function Row({ m, isStaff, busyId, copied, patch, remove, copy, onJoin, onTitleI
               value={m.title || ''}
               onChange={(e) => onTitleInput(m._id, e.target.value)}
               onBlur={(e) => patch(m._id, { title: e.target.value })}
-              className="w-full rounded-lg border border-transparent bg-transparent px-1 py-0.5 text-base font-bold text-slate-900 hover:border-slate-200 focus:border-indigo-400 focus:bg-white focus:outline-none"
+              className="w-full border border-transparent bg-transparent px-1 py-0.5 text-base font-semibold text-ink outline-none hover:border-line focus:border-ink focus:bg-surface"
             />
           ) : (
-            <p className="text-base font-bold text-slate-900">{m.title}</p>
+            <p className="text-base font-semibold text-ink">{m.title}</p>
           )}
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <div className="mt-1 flex flex-wrap items-center gap-2 font-code text-[11px] text-muted">
             <span>{ti.icon} {ti.label}</span>
             {m.subject && <span>· {m.subject}</span>}
             {m.curriculum && <span>· {m.curriculum}</span>}
@@ -59,19 +59,19 @@ function Row({ m, isStaff, busyId, copied, patch, remove, copy, onJoin, onTitleI
           <Badge tone={DIFF_TONE[st.state] || 'slate'}>{st.label}</Badge>
           {st.canJoin ? (
             <button onClick={() => onJoin(m)}
-              className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+              className="flex items-center gap-1.5 bg-brand px-3 py-2 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover">
               <FiVideo size={15} /> Join
             </button>
           ) : isStaff ? (
             <button onClick={() => onJoin(m)}
-              className="flex items-center gap-1.5 rounded-lg border border-indigo-200 px-3 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50"
+              className="flex items-center gap-1.5 border border-line-strong px-3 py-2 text-sm font-medium text-ink transition-colors hover:border-ink hover:bg-ink/5"
               title="Starting the session opens it for students">
               <FiVideo size={15} /> Start
             </button>
           ) : null}
           {isStaff && (
             <button onClick={() => remove(m._id)} disabled={busyId === m._id}
-              className="rounded-lg border border-slate-200 p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50"
+              className="border border-line p-2 text-subtle transition-colors hover:bg-negative/10 hover:text-negative disabled:opacity-50"
               title="Delete session">
               <FiTrash2 size={15} />
             </button>
@@ -80,63 +80,63 @@ function Row({ m, isStaff, busyId, copied, patch, remove, copy, onJoin, onTitleI
       </div>
 
       {isStaff && (
-        <div className="mt-3 grid grid-cols-1 gap-2 border-t border-slate-200/70 pt-3 sm:grid-cols-4">
+        <div className="mt-3 grid grid-cols-1 gap-2 border-t border-line pt-3 sm:grid-cols-4">
           <select value={m.type || 'live-class'} onChange={(e) => patch(m._id, { type: e.target.value })}
-            className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+            className="border border-line bg-surface px-2 py-1.5 text-sm text-ink outline-none focus:border-ink">
             {Object.entries(MEETING_TYPES).map(([k, t]) => <option key={k} value={k}>{t.icon} {t.label}</option>)}
           </select>
           <select value={m.curriculum || ''} onChange={(e) => patch(m._id, { curriculum: e.target.value })}
-            className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+            className="border border-line bg-surface px-2 py-1.5 text-sm text-ink outline-none focus:border-ink">
             <option value="">Curriculum…</option>
             {CURRICULA.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
           <input type="datetime-local" defaultValue={toLocalInput(m.scheduledAt)}
             onChange={(e) => patch(m._id, { scheduledAt: e.target.value ? new Date(e.target.value).toISOString() : null })}
-            className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+            className="border border-line bg-surface px-2 py-1.5 text-sm text-ink outline-none focus:border-ink" />
           <div className="flex items-center gap-1.5">
             <input type="number" min="5" step="5" defaultValue={m.durationMinutes}
               onBlur={(e) => patch(m._id, { durationMinutes: Number(e.target.value) || 60 })}
-              className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
-            <span className="text-xs text-slate-500">min</span>
+              className="w-full border border-line bg-surface px-2 py-1.5 text-sm tabular-nums text-ink outline-none focus:border-ink" />
+            <span className="font-code text-xs text-muted">min</span>
           </div>
         </div>
       )}
 
       {isStaff && m.roomName && (
-        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <div className="mt-3 border border-line bg-sunken/40 p-3">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
+            <span className="flex items-center gap-1.5 font-code text-[11px] uppercase tracking-[0.12em] text-muted">
               <FiLink size={12} /> Student link
             </span>
             <button onClick={() => copy(studentLink(m), `s-${m._id}`)}
-              className="flex items-center gap-1 rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-indigo-700">
+              className="flex items-center gap-1 bg-cta px-2.5 py-1 font-code text-[11px] font-medium text-on-cta transition-colors hover:bg-cta-hover">
               {copied === `s-${m._id}` ? <><FiCheck size={12} /> Copied</> : <><FiCopy size={12} /> Copy</>}
             </button>
           </div>
-          <code className="block truncate rounded bg-white px-2 py-1 text-[11px] text-slate-500">{studentLink(m)}</code>
+          <code className="block truncate bg-surface px-2 py-1 font-code text-[11px] text-muted">{studentLink(m)}</code>
 
-          <label className="mt-3 flex items-center gap-2 border-t border-slate-200 pt-3 text-xs font-semibold text-slate-600">
+          <label className="mt-3 flex items-center gap-2 border-t border-line pt-3 text-xs font-semibold text-ink-2">
             <input type="checkbox" checked={!!m.guestAccess?.enabled}
               onChange={(e) => patch(m._id, { guestAccess: { enabled: e.target.checked } })}
-              className="h-3.5 w-3.5 rounded border-slate-300" />
+              className="h-3.5 w-3.5 border-line-strong accent-brand" />
             Allow guests (no account) — demo / trial / parents
           </label>
           {m.guestAccess?.enabled && m.guestAccess?.code && (
             <div className="mt-2">
               <div className="mb-1.5 flex items-center justify-between gap-2">
-                <span className="text-xs font-bold uppercase tracking-wide text-amber-600">Guest link</span>
+                <span className="font-code text-[11px] uppercase tracking-[0.12em] text-star">Guest link</span>
                 <div className="flex items-center gap-1.5">
                   <button onClick={() => patch(m._id, { guestAccess: { enabled: true, code: '' } })}
-                    className="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-white"
+                    className="border border-line-strong px-2 py-1 font-code text-[11px] font-medium text-muted transition-colors hover:border-ink hover:text-ink"
                     title="Invalidates the previous guest link">New code</button>
                   <button onClick={() => copy(guestLink(m), `g-${m._id}`)}
-                    className="rounded-md bg-amber-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-amber-600">
+                    className="bg-cta px-2.5 py-1 font-code text-[11px] font-medium text-on-cta transition-colors hover:bg-cta-hover">
                     {copied === `g-${m._id}` ? 'Copied' : 'Copy guest link'}
                   </button>
                 </div>
               </div>
-              <code className="block truncate rounded bg-white px-2 py-1 text-[11px] text-slate-500">{guestLink(m)}</code>
-              <p className="mt-1 text-[11px] text-amber-600">Guests wait in the lobby until you admit them.</p>
+              <code className="block truncate bg-surface px-2 py-1 font-code text-[11px] text-muted">{guestLink(m)}</code>
+              <p className="mt-1 text-[11px] text-star">Guests wait in the lobby until you admit them.</p>
             </div>
           )}
         </div>
@@ -252,11 +252,12 @@ export default function IgcscMeetingsPage() {
   return (
     <div>
       <PageHeader
+        eyebrow="Live classes"
         title="Live Sessions"
         subtitle="Schedule IGCSC classes, doubt sessions and 1-on-1s — then share the link."
         actions={isStaff && (
           <button onClick={addMeeting} disabled={busyId === 'new'}
-            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
+            className="flex items-center gap-1.5 bg-cta px-4 py-2 text-sm font-medium text-on-cta transition-colors hover:bg-cta-hover disabled:opacity-60">
             <FiPlus size={15} /> New session
           </button>
         )}
@@ -269,28 +270,28 @@ export default function IgcscMeetingsPage() {
         <div className="space-y-8">
           {live.length > 0 && (
             <div>
-              <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-slate-900">
+              <h2 className="display mb-3 flex items-center gap-2.5 text-[20px] text-ink">
                 <span className="relative flex h-2.5 w-2.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-positive" />
                 </span>
-                Happening now
+                Happening <em className="accent">now</em>
               </h2>
               <div className="space-y-3">{live.map((m) => <Row key={m._id} m={m} {...rowProps} />)}</div>
             </div>
           )}
           {upcoming.length > 0 && (
             <div>
-              <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-slate-900">
-                <FiClock className="h-5 w-5 text-amber-500" /> Upcoming
+              <h2 className="display mb-3 flex items-center gap-2.5 text-[20px] text-ink">
+                <FiClock className="h-5 w-5 text-star" /> Upcoming
               </h2>
               <div className="space-y-3">{upcoming.map((m) => <Row key={m._id} m={m} {...rowProps} />)}</div>
             </div>
           )}
           {past.length > 0 && (
             <div>
-              <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-slate-900">
-                <FiUsers className="h-5 w-5 text-slate-400" /> Past sessions
+              <h2 className="display mb-3 flex items-center gap-2.5 text-[20px] text-ink">
+                <FiUsers className="h-5 w-5 text-subtle" /> Past sessions
               </h2>
               <div className="space-y-3">{past.map((m) => <Row key={m._id} m={m} {...rowProps} />)}</div>
             </div>

@@ -3,16 +3,20 @@
 // details, instructions, then each question with ruled space under it. The
 // layout drops the portal header on this route, and html.print-mode lifts the
 // site-wide print block for as long as the page is open.
+//
+// On screen the page wears the `.ig` paper theme (it renders outside the portal
+// shell); the sheet itself stays WHITE with near-black ink so the printed paper
+// is always black on white.
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { FiArrowLeft, FiPrinter, FiRefreshCw } from 'react-icons/fi'
 import { apiGet } from '../../../_components/api'
 import { Loading, ErrorState } from '../../../_components/ui'
 import { renderContent } from '../../../../components/admin/LatexRenderer'
+import { siteFontVars } from '../../../../components/siteFonts'
 
 // The browser puts the document title in the PDF header and file name.
 const PDF_BRAND = 'Best SAT Preparation Online | Digital SAT Exam Prep | IGCSE'
-const UI_FONT = { fontFamily: 'system-ui, sans-serif' }
 const PAPER_FONT = { fontFamily: 'Georgia, "Times New Roman", serif' }
 
 const INSTRUCTIONS = [
@@ -77,7 +81,7 @@ export default function WrittenPrintPage() {
   const ready = !loading && !error && questions.length > 0
 
   return (
-    <div className="min-h-screen bg-slate-100 px-3 pb-28 pt-6 sm:px-6 sm:pt-10 print:min-h-0 print:bg-white print:!p-0">
+    <div className={`${siteFontVars} ig min-h-screen px-3 pb-28 pt-6 sm:px-6 sm:pt-10 print:min-h-0 print:bg-white print:!p-0`}>
       {loading ? (
         <div className="no-print"><Loading label="Preparing your paper…" /></div>
       ) : error ? (
@@ -86,67 +90,64 @@ export default function WrittenPrintPage() {
           <button
             type="button"
             onClick={load}
-            className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-white px-5 py-2.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-50"
+            className="inline-flex items-center gap-2 border border-line-strong px-5 py-2.5 text-sm font-medium text-ink transition hover:border-ink hover:bg-ink/5"
           >
             <FiRefreshCw size={15} /> Try again
           </button>
         </div>
       ) : !questions.length ? (
-        <div className="no-print mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white px-6 py-12 text-center shadow-sm">
-          <p className="text-sm font-semibold text-slate-700">This section has no questions to print.</p>
+        <div className="no-print mx-auto max-w-xl border border-line bg-surface px-6 py-12 text-center">
+          <p className="text-sm font-semibold text-ink">This section has no questions to print.</p>
         </div>
       ) : (
         <div className="exam-print-root">
           <div
-            className="mx-auto max-w-[820px] rounded-lg bg-white p-5 shadow-lg ring-1 ring-slate-200 sm:p-10 print:max-w-none print:!p-0"
+            className="mx-auto max-w-[820px] border border-line bg-white p-5 sm:p-10 print:max-w-none print:border-0 print:!p-0"
             style={PAPER_FONT}
           >
             {/* Brand + section */}
-            <div className="flex flex-wrap items-start justify-between gap-4 border-b-2 border-slate-800 pb-4">
+            <div className="flex flex-wrap items-start justify-between gap-4 border-b-2 border-ink pb-4">
               <div className="flex items-center gap-2.5">
-                <span
-                  className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-blue-600 text-lg font-black text-white"
-                  style={UI_FONT}
-                >
+                <span className="flex h-11 w-11 items-center justify-center bg-cta font-display text-lg text-on-cta">
                   iG
                 </span>
                 <div>
-                  <div className="text-lg font-extrabold text-slate-900" style={UI_FONT}>IGCSC</div>
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-indigo-600" style={UI_FONT}>Assessment Suite</div>
+                  <div className="display text-xl leading-tight text-ink">IGCSC</div>
+                  <div className="font-code text-[10px] uppercase tracking-[0.16em] text-ink-2">Assessment Suite</div>
                 </div>
               </div>
-              <div className="text-right text-xs text-slate-600" style={UI_FONT}>
-                <div className="text-sm font-bold text-slate-900">Section B — Written</div>
+              <div className="text-right font-code text-xs text-ink-2">
+                <div className="text-sm font-bold text-ink">Section B — Written</div>
                 <div>Ref. {reference}</div>
               </div>
             </div>
 
             {/* Title */}
             <div className="mt-5 text-center">
-              <div className="break-words text-xl font-extrabold tracking-tight text-slate-900">{paper.title || 'Test paper'}</div>
-              {paper.unit && <div className="mt-0.5 break-words text-sm font-semibold text-slate-600">{paper.unit}</div>}
+              <div className="break-words text-xl font-bold tracking-tight text-ink">{paper.title || 'Test paper'}</div>
+              {paper.unit && <div className="mt-0.5 break-words text-sm font-semibold text-ink-2">{paper.unit}</div>}
             </div>
 
             {/* Candidate */}
-            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3" style={UI_FONT}>
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="sm:col-span-2">
-                <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Candidate name</div>
-                <div className="h-9 truncate rounded border border-slate-300 bg-slate-50/60 px-3 text-sm font-semibold leading-9 text-slate-900">
+                <div className="mb-1 font-code text-[11px] uppercase tracking-[0.08em] text-ink-2">Candidate name</div>
+                <div className="h-9 truncate border border-line-strong bg-white px-3 text-sm font-semibold leading-9 text-ink">
                   {candidate}
                 </div>
               </div>
               <div>
-                <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Attempt reference</div>
-                <div className="h-9 rounded border border-slate-300 bg-slate-50/60 px-3 font-mono leading-9 text-sm font-semibold tracking-wider text-slate-900">
+                <div className="mb-1 font-code text-[11px] uppercase tracking-[0.08em] text-ink-2">Attempt reference</div>
+                <div className="h-9 border border-line-strong bg-white px-3 font-code leading-9 text-sm font-semibold tracking-wider text-ink">
                   {reference}
                 </div>
               </div>
             </div>
 
             {/* Instructions */}
-            <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <div className="text-[11px] font-extrabold uppercase tracking-wide text-slate-700" style={UI_FONT}>Instructions to candidates</div>
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
+            <div className="mt-6 border border-line-strong bg-white p-4">
+              <div className="font-code text-[11px] font-bold uppercase tracking-[0.08em] text-ink">Instructions to candidates</div>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink-2">
                 {INSTRUCTIONS.map((line) => <li key={line}>{line}</li>)}
               </ul>
             </div>
@@ -154,23 +155,23 @@ export default function WrittenPrintPage() {
             {/* Questions */}
             <div className="mt-8 space-y-9">
               {questions.map((q) => (
-                <div key={q._id || q.n} className="exam-q text-[15px] leading-relaxed text-slate-900">
+                <div key={q._id || q.n} className="exam-q text-[15px] leading-relaxed text-ink">
                   <div className="flex items-start gap-3">
                     <span className="flex-shrink-0 font-bold">{q.n}</span>
                     <div className="min-w-0 flex-1 overflow-x-auto break-words print:overflow-visible">{renderContent(String(q.text || ''))}</div>
                     {q.marks ? (
-                      <span className="flex-shrink-0 whitespace-nowrap text-sm text-slate-500" style={UI_FONT}>[{q.marks}]</span>
+                      <span className="flex-shrink-0 whitespace-nowrap font-code text-sm text-ink-2">[{q.marks}]</span>
                     ) : null}
                   </div>
                   {q.image ? (
                     <div className="mt-3 pl-6">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={q.image} alt="" className="max-h-[420px] max-w-full rounded border border-slate-200" />
+                      <img src={q.image} alt="" className="max-h-[420px] max-w-full border border-line-strong" />
                     </div>
                   ) : null}
                   <div className="mt-4 pl-6" aria-hidden="true">
                     {Array.from({ length: answerLines(q.marks) }).map((_, i) => (
-                      <div key={i} className="h-8 border-b border-slate-300" />
+                      <div key={i} className="h-8 border-b border-line-strong" />
                     ))}
                   </div>
                 </div>
@@ -178,9 +179,9 @@ export default function WrittenPrintPage() {
             </div>
 
             {/* Footer */}
-            <div className="mt-10 border-t border-slate-200 pt-4 text-center text-[11px] text-slate-400" style={UI_FONT}>
+            <div className="mt-10 border-t border-line pt-4 text-center font-code text-[10px] uppercase tracking-[0.08em] text-muted">
               <div>END OF SECTION · IGCSC Assessment Suite</div>
-              <div className="mt-1">{PDF_BRAND}</div>
+              <div className="mt-1 normal-case tracking-normal">{PDF_BRAND}</div>
             </div>
           </div>
         </div>
@@ -188,11 +189,11 @@ export default function WrittenPrintPage() {
 
       {/* Floating toolbar - never printed */}
       <div className="no-print fixed inset-x-0 bottom-4 z-[60] flex justify-center px-4">
-        <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-xl backdrop-blur" style={UI_FONT}>
+        <div className="flex items-center gap-2 border border-line-strong bg-surface p-1.5">
           <button
             type="button"
             onClick={back}
-            className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-ink-2 transition hover:bg-ink/5 hover:text-ink"
           >
             <FiArrowLeft size={15} /> Back
           </button>
@@ -200,7 +201,7 @@ export default function WrittenPrintPage() {
             type="button"
             onClick={() => window.print()}
             disabled={!ready}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 bg-cta px-5 py-2.5 text-sm font-medium text-on-cta transition hover:bg-cta-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             <FiPrinter size={15} /> Print
           </button>

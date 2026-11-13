@@ -18,9 +18,9 @@ import {
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
 
 const ICON_BTN =
-  'flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-40'
+  'flex h-8 w-8 items-center justify-center text-subtle transition-colors hover:bg-ink/5 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40'
 const INPUT =
-  'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none'
+  'w-full border border-line bg-surface px-3 py-2 text-sm text-ink outline-none placeholder:text-subtle focus:border-ink'
 
 const UPLOAD_ERRORS = {
   401: 'Your session has ended. Sign in again.',
@@ -93,8 +93,8 @@ export function SheetRow({ s, readOnly, busy, onRename, onToggle, onDelete }) {
   }
 
   return (
-    <div className={`flex items-start gap-3 rounded-xl border px-3 py-2.5 ${hidden ? 'border-dashed border-slate-300 bg-slate-50/70' : 'border-slate-200 bg-white'}`}>
-      <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+    <div className={`flex items-start gap-3 border px-3 py-2.5 ${hidden ? 'border-dashed border-line-strong bg-sunken/50' : 'border-line bg-surface'}`}>
+      <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center bg-brand-50 text-brand">
         <FileIcon mime={s.mime} />
       </span>
       <div className="min-w-0 flex-1">
@@ -109,20 +109,20 @@ export function SheetRow({ s, readOnly, busy, onRename, onToggle, onDelete }) {
               className={INPUT}
               aria-label="Sheet name"
             />
-            <button type="submit" disabled={busy} className={`${ICON_BTN} text-emerald-600`} title="Save"><FiCheck size={16} /></button>
+            <button type="submit" disabled={busy} className={`${ICON_BTN} text-positive`} title="Save"><FiCheck size={16} /></button>
             <button type="button" onClick={cancel} className={ICON_BTN} title="Cancel"><FiX size={16} /></button>
           </form>
         ) : (
           <a href={s.url} target="_blank" rel="noopener noreferrer" title={s.title}
-            className="block truncate text-sm font-semibold text-slate-800 hover:text-indigo-700">
+            className="block truncate text-sm font-semibold text-ink hover:text-brand">
             {s.title}
           </a>
         )}
-        <p className="mt-0.5 truncate text-[11px] text-slate-400">
+        <p className="mt-0.5 truncate font-code text-[11px] text-subtle">
           {typeLabel(s.mime)} · {fmtSize(s.size)}
           {s.uploadedByName ? ` · ${s.uploadedByName}` : ''}
           {s.createdAt ? ` · ${fmtDate(s.createdAt)}` : ''}
-          {!readOnly && hidden && <span className="ml-1 font-semibold text-amber-600">· Hidden from students</span>}
+          {!readOnly && hidden && <span className="ml-1 font-semibold text-star">· Hidden from students</span>}
         </p>
       </div>
       <div className="flex flex-shrink-0 items-center gap-0.5">
@@ -137,7 +137,7 @@ export function SheetRow({ s, readOnly, busy, onRename, onToggle, onDelete }) {
             <button type="button" onClick={() => setEditing(true)} disabled={busy || editing} className={ICON_BTN} title="Rename">
               <FiEdit2 size={15} />
             </button>
-            <button type="button" onClick={() => onDelete(s)} disabled={busy} className={`${ICON_BTN} hover:bg-rose-50 hover:text-rose-600`} title="Delete">
+            <button type="button" onClick={() => onDelete(s)} disabled={busy} className={`${ICON_BTN} hover:bg-negative/10 hover:text-negative`} title="Delete">
               <FiTrash2 size={15} />
             </button>
           </>
@@ -150,20 +150,20 @@ export function SheetRow({ s, readOnly, busy, onRename, onToggle, onDelete }) {
 function SlotCard({ label, sheets, readOnly, busyId, onPick, onRename, onToggle, onDelete }) {
   const empty = sheets.length === 0
   return (
-    <div className={`flex flex-col rounded-2xl border p-4 ${empty ? 'border-dashed border-slate-300 bg-slate-50/50' : 'border-slate-200 bg-white'}`}>
+    <div className={`flex flex-col border p-4 ${empty ? 'border-dashed border-line-strong bg-sunken/40' : 'border-line bg-surface'}`}>
       <div className="flex items-center justify-between gap-2">
-        <h4 className="text-sm font-bold text-slate-800">{label}</h4>
-        <span className="text-[11px] text-slate-400">{empty ? 'Empty' : plural(sheets.length, 'file')}</span>
+        <h4 className="font-code text-[11px] uppercase tracking-[0.12em] text-ink">{label}</h4>
+        <span className="font-code text-[11px] text-subtle">{empty ? 'Empty' : plural(sheets.length, 'file')}</span>
       </div>
       <div className="mt-3 flex-1 space-y-2">
         {sheets.map((s) => (
           <SheetRow key={s._id} s={s} readOnly={readOnly} busy={busyId === s._id}
             onRename={onRename} onToggle={onToggle} onDelete={onDelete} />
         ))}
-        {empty && <p className="py-2 text-center text-xs text-slate-400">Nothing here yet.</p>}
+        {empty && <p className="py-2 text-center text-xs text-subtle">Nothing here yet.</p>}
       </div>
       {!readOnly && (
-        <label className="mt-3 inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+        <label className="mt-3 inline-flex cursor-pointer items-center justify-center gap-1.5 border border-line-strong px-3 py-2 text-sm font-medium text-ink transition-colors hover:border-ink hover:bg-ink/5">
           <FiPlus size={14} /> Upload {label}
           <input type="file" multiple accept={SHEET_ACCEPT} className="sr-only"
             onChange={(e) => { onPick(Array.from(e.target.files || [])); e.target.value = '' }} />
@@ -206,7 +206,7 @@ export function SheetSlots({ sheets, readOnly = false, extraPeriods = [], onAddP
       ))}
       {canAdd && (
         <button type="button" onClick={onAddPeriod}
-          className="flex min-h-[9rem] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 bg-white p-4 text-sm font-semibold text-slate-500 transition hover:border-indigo-300 hover:bg-indigo-50/40 hover:text-indigo-700">
+          className="flex min-h-[9rem] flex-col items-center justify-center gap-2 border-2 border-dashed border-line-strong bg-surface p-4 text-sm font-medium text-muted transition-colors hover:border-brand hover:bg-brand-50 hover:text-brand">
           <FiPlus size={20} /> Add Period {Math.max(0, ...periods) + 1}
         </button>
       )}
@@ -221,22 +221,22 @@ export function SheetSlots({ sheets, readOnly = false, extraPeriods = [], onAddP
 
 function UploadRow({ u, onDismiss }) {
   return (
-    <div className={`rounded-xl border px-3 py-2.5 ${u.error ? 'border-rose-200 bg-rose-50' : 'border-indigo-200 bg-indigo-50/60'}`}>
+    <div className={`border px-3 py-2.5 ${u.error ? 'border-negative/30 bg-negative/10' : 'border-line bg-brand-50'}`}>
       <div className="flex items-center gap-2">
-        {u.error ? <FiAlertTriangle size={15} className="flex-shrink-0 text-rose-500" /> : <FiLoader size={15} className="flex-shrink-0 animate-spin text-indigo-500" />}
-        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800" title={u.name}>{u.name}</span>
-        <span className="flex-shrink-0 text-[11px] text-slate-500">{slotLabel(parseSlot(u.slot).kind, parseSlot(u.slot).period)}</span>
+        {u.error ? <FiAlertTriangle size={15} className="flex-shrink-0 text-negative" /> : <FiLoader size={15} className="flex-shrink-0 animate-spin text-brand" />}
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink" title={u.name}>{u.name}</span>
+        <span className="flex-shrink-0 font-code text-[11px] text-muted">{slotLabel(parseSlot(u.slot).kind, parseSlot(u.slot).period)}</span>
         {u.error ? (
           <button type="button" onClick={() => onDismiss(u.id)} className={ICON_BTN} title="Dismiss"><FiX size={15} /></button>
         ) : (
-          <span className="w-10 text-right text-[11px] font-semibold text-indigo-700">{u.pct}%</span>
+          <span className="w-10 text-right font-code text-[11px] font-semibold tabular-nums text-brand">{u.pct}%</span>
         )}
       </div>
       {u.error ? (
-        <p className="mt-1 text-xs text-rose-700">{u.error}</p>
+        <p className="mt-1 text-xs text-negative">{u.error}</p>
       ) : (
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-indigo-100">
-          <div className="h-full rounded-full bg-indigo-600 transition-all" style={{ width: `${u.pct}%` }} />
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-sunken">
+          <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${u.pct}%` }} />
         </div>
       )}
     </div>
@@ -377,47 +377,47 @@ export default function SheetWorkspace({ curriculum, subject, folder, crumbs = [
 
   return (
     <div>
-      <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center gap-1 text-sm text-slate-500">
-        <button type="button" onClick={onRoot} className="rounded px-1 hover:text-indigo-700 hover:underline">Question Bank</button>
+      <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center gap-1 text-sm text-muted">
+        <button type="button" onClick={onRoot} className="px-1 transition-colors hover:text-brand hover:underline">Question Bank</button>
         {crumbs.map((c, i) => (
           <span key={i} className="flex items-center gap-1">
-            <FiChevronRight size={14} className="text-slate-300" />
-            <button type="button" onClick={c.onClick} className="rounded px-1 text-left hover:text-indigo-700 hover:underline">{c.label}</button>
+            <FiChevronRight size={14} className="text-subtle" />
+            <button type="button" onClick={c.onClick} className="px-1 text-left transition-colors hover:text-brand hover:underline">{c.label}</button>
           </span>
         ))}
         <span className="flex items-center gap-1">
-          <FiChevronRight size={14} className="text-slate-300" />
-          <span className="px-1 font-bold text-slate-900">Miscellaneous</span>
+          <FiChevronRight size={14} className="text-subtle" />
+          <span className="px-1 font-semibold text-ink">Miscellaneous</span>
         </span>
       </nav>
 
-      <div className="mb-5 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-5 text-white shadow-sm">
-        <h2 className="flex items-center gap-2 text-xl font-extrabold">Self Improvement <FiTrendingUp size={20} /></h2>
-        <p className="mt-1 text-sm text-indigo-100">
+      <div className="mb-5 bg-cta px-6 py-5 text-on-cta">
+        <h2 className="display flex items-center gap-2 text-[22px]">Self <em className="accent">improvement</em> <FiTrendingUp size={20} className="text-star" /></h2>
+        <p className="mt-1 text-sm text-on-cta/70">
           Practice sheets and period materials for this topic. Students find them under Practice Sheets.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-        <h3 className="text-xl font-extrabold text-slate-900">{leaf} - Practice Sheets &amp; Periods Upload</h3>
-        <p className="mt-1 text-sm text-slate-500">Upload your practice sheets, PDFs, and period materials below.</p>
+      <div className="border border-line bg-surface p-5 sm:p-7">
+        <h3 className="display text-[22px] text-ink">{leaf} - Practice Sheets &amp; Periods Upload</h3>
+        <p className="mt-1 text-sm text-muted">Upload your practice sheets, PDFs, and period materials below.</p>
 
         <label
           onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDragOver={onDragOver} onDrop={onDrop}
-          className={`mt-5 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-12 text-center transition ${
-            dragging ? 'border-indigo-400 bg-indigo-50' : 'border-slate-300 bg-slate-50/50 hover:bg-slate-50'
+          className={`mt-5 flex cursor-pointer flex-col items-center justify-center border-2 border-dashed px-6 py-12 text-center transition-colors ${
+            dragging ? 'border-brand bg-brand-50' : 'border-line-strong bg-sunken/40 hover:bg-sunken/60'
           }`}
         >
-          <FiUploadCloud size={44} className={dragging ? 'text-indigo-500' : 'text-slate-400'} />
-          <span className="mt-3 text-base font-bold text-slate-800">Drag &amp; drop files here, or click to browse</span>
-          <span className="mt-1 text-xs text-slate-500">Supported formats: PDF, DOCX, JPG, PNG (Max {MAX_SHEET_MB}MB)</span>
+          <FiUploadCloud size={44} className={dragging ? 'text-brand' : 'text-subtle'} />
+          <span className="mt-3 text-base font-semibold text-ink">Drag &amp; drop files here, or click to browse</span>
+          <span className="mt-1 font-code text-[11px] uppercase tracking-[0.08em] text-muted">PDF, DOCX, JPG, PNG · Max {MAX_SHEET_MB}MB</span>
           <input type="file" multiple accept={SHEET_ACCEPT} className="sr-only"
             onChange={(e) => { upload(Array.from(e.target.files || []), target); e.target.value = '' }} />
         </label>
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-ink-2">
           <span>Files dropped above go to</span>
           <select value={target} onChange={(e) => setTarget(e.target.value)}
-            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-700 focus:border-indigo-400 focus:outline-none">
+            className="border border-line bg-surface px-2.5 py-1.5 text-sm font-medium text-ink outline-none focus:border-ink">
             <option value="practice">{slotLabel('practice')}</option>
             {periodsInUse.map((n) => <option key={n} value={`period-${n}`}>{slotLabel('period', n)}</option>)}
           </select>
@@ -431,7 +431,7 @@ export default function SheetWorkspace({ curriculum, subject, folder, crumbs = [
         {notice && <div className="mt-4"><ErrorState message={notice} /></div>}
         {error && <div className="mt-4"><ErrorState message={error} /></div>}
 
-        <h4 className="mt-8 text-sm font-bold text-slate-800">Help organize &ldquo;Periods&rdquo; &amp; Sheets:</h4>
+        <h4 className="mt-8 font-code text-[11px] uppercase tracking-[0.12em] text-muted">Help organize &ldquo;Periods&rdquo; &amp; Sheets</h4>
         {sheets === null ? (
           <Loading label="Loading sheets…" />
         ) : (
@@ -445,7 +445,7 @@ export default function SheetWorkspace({ curriculum, subject, folder, crumbs = [
       {toDelete && (
         <ConfirmDialog title="Delete this sheet?" confirmLabel="Delete" busy={busyId === toDelete._id}
           onConfirm={remove} onCancel={() => setToDelete(null)}>
-          <p><span className="font-semibold text-slate-800">{toDelete.title}</span> will be removed for staff and students. This cannot be undone.</p>
+          <p><span className="font-semibold text-ink">{toDelete.title}</span> will be removed for staff and students. This cannot be undone.</p>
         </ConfirmDialog>
       )}
     </div>

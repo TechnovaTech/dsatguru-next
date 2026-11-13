@@ -12,20 +12,16 @@ import {
   FiMessageSquare,
 } from 'react-icons/fi'
 import { apiGet, apiSend } from '../../../_components/api'
-import { Loading, ErrorState, Badge } from '../../../_components/ui'
+import { Loading, ErrorState } from '../../../_components/ui'
+import { Chip, BTN_PRIMARY, BTN_SECONDARY } from '../../../_components/PaperCard'
 import { igcscUser } from '../../../_components/auth'
 import { ATTEMPT_STATUS } from '../../../../../lib/igcscStoreShared'
 import { renderContent } from '../../../../components/admin/LatexRenderer'
 
-const BTN_PRIMARY =
-  'inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50'
-const BTN_SECONDARY =
-  'inline-flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white px-5 py-2.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50'
-
 const POLL_MS = 5000
 const GRADE_TEXT = {
-  'A*': 'text-emerald-600', A: 'text-emerald-600', B: 'text-blue-600', C: 'text-amber-600',
-  D: 'text-amber-600', E: 'text-rose-600', U: 'text-rose-600',
+  'A*': 'text-positive', A: 'text-positive', B: 'text-calm', C: 'text-star',
+  D: 'text-star', E: 'text-negative', U: 'text-negative',
 }
 const MCQ_STATE = { not_started: 'Not started', in_progress: 'In progress', submitted: 'Marked' }
 const WRITTEN_STATE = {
@@ -36,10 +32,10 @@ const WRITTEN_STATE = {
   error: 'Marking failed',
 }
 const MARK_CLS = {
-  green: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-  amber: 'bg-amber-50 text-amber-700 ring-amber-200',
-  red: 'bg-rose-50 text-rose-700 ring-rose-200',
-  slate: 'bg-slate-50 text-slate-500 ring-slate-200',
+  green: 'border-positive/30 bg-[#2f7d4514] text-positive',
+  amber: 'border-star/30 bg-[#b7791f14] text-star',
+  red: 'border-negative/30 bg-[#b4231814] text-negative',
+  slate: 'border-line bg-sunken text-muted',
 }
 
 function fmtNum(n) {
@@ -68,9 +64,9 @@ function markTone(awarded, max) {
 }
 
 function barColor(pct) {
-  if (pct >= 70) return 'bg-emerald-500'
-  if (pct >= 40) return 'bg-amber-500'
-  return 'bg-rose-500'
+  if (pct >= 70) return 'bg-positive'
+  if (pct >= 40) return 'bg-star'
+  return 'bg-negative'
 }
 
 // Questions joined to their results. A result whose question has since left
@@ -199,82 +195,80 @@ export default function AttemptResultPage() {
     <div className="mx-auto max-w-4xl">
       <BackLink href={hub} label="Back to test" />
 
-      {/* Hero */}
-      <div className="relative mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-blue-600 p-6 text-white shadow-lg sm:p-8">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
-        <div className="pointer-events-none absolute -bottom-20 right-24 h-40 w-40 rounded-full bg-white/5" />
-        <div className="relative">
-          <div className="flex flex-wrap items-center gap-2">
-            {(att.curriculum || att.subject) && (
-              <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white/90">
-                {[att.curriculum, att.subject].filter(Boolean).join(' · ')}
-              </span>
-            )}
-            <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold text-indigo-700">{status.label}</span>
-          </div>
-          <h1 className="mt-3 break-words text-2xl font-extrabold tracking-tight sm:text-3xl">{att.paperTitle || 'Test paper'}</h1>
-          {att.paperUnit && <p className="mt-1 break-words text-sm text-indigo-100 sm:text-base">{att.paperUnit}</p>}
-          {staffViewer && att.userName && <p className="mt-2 text-xs text-indigo-100/90">{att.userName}&apos;s result</p>}
-
-          {finished ? (
-            <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row">
-              <Ring pct={Number(att.percentage) || 0} />
-              <div className="min-w-0 flex-1 text-center sm:text-left">
-                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-100">
-                  {att.provisional ? 'Provisional result' : 'Final result'}
-                </p>
-                <p className="mt-1 text-4xl font-extrabold tabular-nums sm:text-5xl">
-                  {fmtNum(att.score)}<span className="text-2xl font-bold text-indigo-200 sm:text-3xl"> / {fmtNum(att.maxScore)}</span>
-                </p>
-                <p className="mt-1 text-sm text-indigo-100">
-                  marks{att.completedAt ? ` · marked ${fmtDate(att.completedAt)}` : ''}
-                </p>
-              </div>
-              {att.grade && (
-                <div className="flex-shrink-0 rounded-2xl bg-white px-7 py-4 text-center shadow-md">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">IGCSE grade</p>
-                  <p className={`mt-1 text-5xl font-black leading-none ${GRADE_TEXT[att.grade] || 'text-indigo-600'}`}>{att.grade}</p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="mt-6 rounded-2xl bg-white/10 p-4 ring-1 ring-white/20 sm:p-5">
-              <div className="flex items-start gap-3">
-                {att.status === 'grading'
-                  ? <FiLoader size={20} className="mt-0.5 flex-shrink-0 animate-spin" />
-                  : <FiClock size={20} className="mt-0.5 flex-shrink-0" />}
-                <div className="min-w-0">
-                  <p className="text-base font-bold">{staffViewer ? 'This result is not ready yet' : 'Your result is not ready yet'}</p>
-                  <p className="mt-0.5 text-sm text-indigo-100">
-                    {att.status === 'grading'
-                      ? 'The written answers are being marked. This usually takes under two minutes.'
-                      : staffViewer
-                        ? 'Not every section is finished yet. Here is what is done so far.'
-                        : 'Finish every section to get your final mark and grade. Here is what is done so far.'}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4">
-                <Link href={hub} className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50">
-                  Go to the test <FiArrowRight size={15} />
-                </Link>
-              </div>
-            </div>
+      {/* Header */}
+      <header className="mb-6 border-b border-line pb-5">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          {(att.curriculum || att.subject) && (
+            <span className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">
+              {[att.curriculum, att.subject].filter(Boolean).join(' · ')}
+            </span>
           )}
+          <Chip tone={status.tone}>{status.label}</Chip>
         </div>
-      </div>
+        <h1 className="display mt-2 break-words text-[clamp(1.7rem,3vw,2.4rem)] leading-tight text-ink">{att.paperTitle || 'Test paper'}</h1>
+        {att.paperUnit && <p className="mt-1 break-words text-sm text-muted">{att.paperUnit}</p>}
+        {staffViewer && att.userName && <p className="mt-2 text-xs text-muted">{att.userName}&apos;s result</p>}
+      </header>
+
+      {finished ? (
+        <div className="mb-6 border border-line bg-surface p-5 sm:p-6">
+          <div className="flex flex-col items-center gap-6 sm:flex-row">
+            <Ring pct={Number(att.percentage) || 0} />
+            <div className="min-w-0 flex-1 text-center sm:text-left">
+              <p className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">
+                {att.provisional ? 'Provisional result' : 'Final result'}
+              </p>
+              <p className="mt-1 font-code text-4xl font-bold tabular-nums text-ink sm:text-5xl">
+                {fmtNum(att.score)}<span className="text-2xl font-medium text-muted sm:text-3xl"> / {fmtNum(att.maxScore)}</span>
+              </p>
+              <p className="mt-1 text-sm text-muted">
+                marks{att.completedAt ? ` · marked ${fmtDate(att.completedAt)}` : ''}
+              </p>
+            </div>
+            {att.grade && (
+              <div className="flex-shrink-0 border border-line bg-canvas px-7 py-4 text-center">
+                <p className="font-code text-[10px] uppercase tracking-[0.16em] text-subtle">IGCSE grade</p>
+                <p className={`display mt-1 text-5xl leading-none ${GRADE_TEXT[att.grade] || 'text-brand'}`}>{att.grade}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="mb-6 border border-line bg-canvas p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            {att.status === 'grading'
+              ? <FiLoader size={20} className="mt-0.5 flex-shrink-0 animate-spin text-brand" />
+              : <FiClock size={20} className="mt-0.5 flex-shrink-0 text-brand" />}
+            <div className="min-w-0">
+              <p className="text-base font-semibold text-ink">{staffViewer ? 'This result is not ready yet' : 'Your result is not ready yet'}</p>
+              <p className="mt-0.5 text-sm text-ink-2">
+                {att.status === 'grading'
+                  ? 'The written answers are being marked. This usually takes under two minutes.'
+                  : staffViewer
+                    ? 'Not every section is finished yet. Here is what is done so far.'
+                    : 'Finish every section to get your final mark and grade. Here is what is done so far.'}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4">
+            <Link href={hub} className={`group ${BTN_PRIMARY}`}>
+              Go to the test <FiArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {pollError && (
-        <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-medium text-amber-800">
-          <FiAlertTriangle size={14} /> Could not refresh just now. Retrying…
+        <div className="mb-4 flex items-center gap-2 border border-line bg-canvas px-4 py-2.5 text-xs text-ink-2">
+          <FiAlertTriangle size={14} className="text-star" /> Could not refresh just now. Retrying…
         </div>
       )}
 
       {att.provisional && (
-        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3.5 text-sm text-violet-900">
-          <FiUserCheck size={18} className="mt-0.5 flex-shrink-0 text-violet-600" />
+        <div className="mb-6 flex items-start gap-3 border-l-2 border-calm bg-[#3f6b6414] px-4 py-3.5 text-sm text-ink-2">
+          <FiUserCheck size={18} className="mt-0.5 flex-shrink-0 text-calm" />
           <span>
-            <span className="font-semibold">
+            <span className="font-semibold text-ink">
               {flaggedCount
                 ? `A tutor is checking ${flaggedCount} answer${flaggedCount === 1 ? '' : 's'}`
                 : 'A tutor is checking some answers'}
@@ -322,24 +316,24 @@ export default function AttemptResultPage() {
 
       {/* Topics */}
       {showTopics && (
-        <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <section className="mb-6 border border-line bg-surface p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-              <FiPieChart size={16} className="text-indigo-500" /> Marks by topic
+            <h2 className="flex items-center gap-2 display text-lg text-ink">
+              <FiPieChart size={16} className="text-brand" /> Marks by topic
             </h2>
-            <span className="text-xs text-slate-400">Weakest first</span>
+            <span className="font-code text-[11px] uppercase tracking-[0.08em] text-subtle">Weakest first</span>
           </div>
           <div className="mt-4 space-y-3.5">
             {topics.map((t) => (
               <div key={t.topic}>
                 <div className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="min-w-0 truncate font-semibold text-slate-700">{t.topic}</span>
-                  <span className="flex-shrink-0 tabular-nums text-slate-500">
-                    {fmtNum(t.marks)} / {fmtNum(t.max)} <span className="font-semibold text-slate-700">· {t.pct}%</span>
+                  <span className="min-w-0 truncate font-medium text-ink">{t.topic}</span>
+                  <span className="flex-shrink-0 font-code tabular-nums text-muted">
+                    {fmtNum(t.marks)} / {fmtNum(t.max)} <span className="font-semibold text-ink-2">· {t.pct}%</span>
                   </span>
                 </div>
-                <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-slate-100">
-                  <div className={`h-full rounded-full ${barColor(t.pct)}`} style={{ width: `${Math.max(2, Math.min(100, t.pct))}%` }} />
+                <div className="mt-1.5 h-2 overflow-hidden bg-sunken">
+                  <div className={`h-full ${barColor(t.pct)}`} style={{ width: `${Math.max(2, Math.min(100, t.pct))}%` }} />
                 </div>
               </div>
             ))}
@@ -350,8 +344,8 @@ export default function AttemptResultPage() {
       {/* Questions */}
       <section className="mb-6">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-            <FiList size={16} className="text-indigo-500" /> Question by question
+          <h2 className="flex items-center gap-2 display text-lg text-ink">
+            <FiList size={16} className="text-brand" /> Question by question
           </h2>
           {listed.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
@@ -368,19 +362,19 @@ export default function AttemptResultPage() {
         </div>
 
         {schemesHidden && (
-          <p className="mb-3 flex items-start gap-2 rounded-xl bg-slate-100 px-3.5 py-2.5 text-xs text-slate-600">
-            <FiInfo size={14} className="mt-0.5 flex-shrink-0" />
+          <p className="mb-3 flex items-start gap-2 border border-line bg-canvas px-3.5 py-2.5 text-xs text-ink-2">
+            <FiInfo size={14} className="mt-0.5 flex-shrink-0 text-subtle" />
             Mark schemes appear here once your result is final.
           </p>
         )}
 
         {listed.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
-            <p className="text-sm font-semibold text-slate-700">Nothing marked yet</p>
-            <p className="mt-1 text-xs text-slate-400">Your answers appear here as soon as a section is marked.</p>
+          <div className="border border-dashed border-line-strong bg-surface px-6 py-12 text-center">
+            <p className="text-sm font-semibold text-ink">Nothing marked yet</p>
+            <p className="mt-1 text-xs text-muted">Your answers appear here as soon as a section is marked.</p>
           </div>
         ) : shown.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-500">
+          <div className="border border-dashed border-line-strong bg-surface px-6 py-10 text-center text-sm text-muted">
             {activeFilter === 'lost' ? 'Full marks on every question here. Well done!' : 'Nothing to show for this filter.'}
           </div>
         ) : (
@@ -393,17 +387,17 @@ export default function AttemptResultPage() {
       </section>
 
       {notice && (
-        <div className="mb-4 flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+        <div className="mb-4 flex items-start gap-3 border-l-2 border-negative bg-[#b4231814] px-4 py-3 text-sm text-negative">
           <FiAlertTriangle size={17} className="mt-0.5 flex-shrink-0" />
           <span className="min-w-0 flex-1">{notice}</span>
-          <button type="button" onClick={() => setNotice('')} className="flex-shrink-0 rounded-lg p-1 opacity-60 hover:opacity-100" aria-label="Dismiss">
+          <button type="button" onClick={() => setNotice('')} className="flex-shrink-0 p-1 opacity-60 transition-opacity hover:opacity-100" aria-label="Dismiss">
             <FiX size={16} />
           </button>
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex flex-col-reverse gap-2 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
+      <div className="flex flex-col-reverse gap-2 border-t border-line pt-5 sm:flex-row sm:justify-end">
         {staffViewer ? (
           <>
             <Link href="/igcsc/grading" className={BTN_SECONDARY}><FiArrowLeft size={15} /> Back to marking</Link>
@@ -432,8 +426,8 @@ export default function AttemptResultPage() {
 
 function BackLink({ href, label }) {
   return (
-    <Link href={href} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition hover:text-indigo-700">
-      <FiArrowLeft size={15} /> {label}
+    <Link href={href} className="mb-4 inline-flex items-center gap-1.5 font-code text-[11px] uppercase tracking-[0.12em] text-muted transition-colors hover:text-brand">
+      <FiArrowLeft size={13} /> {label}
     </Link>
   )
 }
@@ -445,22 +439,22 @@ function Ring({ pct }) {
   return (
     <div className="relative h-32 w-32 flex-shrink-0">
       <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
-        <circle cx="60" cy="60" r={r} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="10" />
+        <circle cx="60" cy="60" r={r} fill="none" stroke="#15140f1f" strokeWidth="10" />
         <circle
           cx="60"
           cy="60"
           r={r}
           fill="none"
-          stroke="#ffffff"
+          stroke="#b83a19"
           strokeWidth="10"
-          strokeLinecap="round"
+          strokeLinecap="butt"
           strokeDasharray={c}
           strokeDashoffset={c * (1 - p / 100)}
           style={{ transition: 'stroke-dashoffset 0.8s ease' }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-extrabold tabular-nums">{p}%</span>
+        <span className="font-code text-2xl font-bold tabular-nums text-ink">{p}%</span>
       </div>
     </div>
   )
@@ -470,30 +464,30 @@ function SectionScore({ letter, title, icon: Icon, score, max, statusLabel, note
   const marked = score != null
   const pct = marked ? pctOf(score, max) : 0
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="border border-line bg-surface p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-sm">
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center bg-sunken text-brand">
             <Icon size={18} />
           </span>
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-indigo-500">Section {letter}</p>
-            <p className="text-sm font-bold text-slate-900">{title}</p>
+            <p className="font-code text-[11px] uppercase tracking-[0.14em] text-brand">Section {letter}</p>
+            <p className="text-sm font-semibold text-ink">{title}</p>
           </div>
         </div>
-        <Badge tone={warn ? 'red' : busy ? 'blue' : marked ? 'green' : 'slate'}>{statusLabel}</Badge>
+        <Chip tone={warn ? 'red' : busy ? 'blue' : marked ? 'green' : 'slate'}>{statusLabel}</Chip>
       </div>
       <div className="mt-4 flex items-end justify-between gap-3">
-        <p className="text-3xl font-extrabold tabular-nums text-slate-900">
-          {marked ? fmtNum(score) : '—'}<span className="text-lg font-bold text-slate-400"> / {fmtNum(max)}</span>
+        <p className="font-code text-3xl font-bold tabular-nums text-ink">
+          {marked ? fmtNum(score) : '—'}<span className="text-lg font-medium text-muted"> / {fmtNum(max)}</span>
         </p>
-        {marked && <span className="text-sm font-bold text-slate-500">{pct}%</span>}
-        {busy && <FiLoader size={18} className="animate-spin text-blue-500" />}
+        {marked && <span className="font-code text-sm font-bold text-ink-2">{pct}%</span>}
+        {busy && <FiLoader size={18} className="animate-spin text-calm" />}
       </div>
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-        {marked && <div className={`h-full rounded-full ${barColor(pct)}`} style={{ width: `${Math.max(2, Math.min(100, pct))}%` }} />}
+      <div className="mt-3 h-2 overflow-hidden bg-sunken">
+        {marked && <div className={`h-full ${barColor(pct)}`} style={{ width: `${Math.max(2, Math.min(100, pct))}%` }} />}
       </div>
-      {note && <p className={`mt-2 text-xs ${warn ? 'text-rose-600' : 'text-slate-500'}`}>{note}</p>}
+      {note && <p className={`mt-2 text-xs ${warn ? 'text-negative' : 'text-muted'}`}>{note}</p>}
     </div>
   )
 }
@@ -503,11 +497,11 @@ function FilterChip({ active, onClick, label, count }) {
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${active
-        ? 'bg-indigo-600 text-white shadow-sm'
-        : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+      className={`rounded-full px-3 py-1.5 font-code text-[11px] uppercase tracking-[0.08em] transition ${active
+        ? 'bg-cta text-on-cta'
+        : 'border border-line bg-surface text-muted chip-hover'}`}
     >
-      {label} <span className={active ? 'text-indigo-200' : 'text-slate-400'}>{count}</span>
+      {label} <span className="opacity-60">{count}</span>
     </button>
   )
 }
@@ -525,32 +519,32 @@ function QuestionCard({ row, writtenState }) {
   const hasScheme = !!(row.markScheme || row.finalAnswer)
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <article className="border border-line bg-surface p-4 sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <span className="flex h-9 min-w-[2.25rem] items-center justify-center rounded-xl bg-slate-900 px-2 text-sm font-bold text-white">
+          <span className="flex h-9 min-w-[2.25rem] items-center justify-center bg-cta px-2 font-code text-sm font-bold text-on-cta">
             {row.n ?? '?'}
           </span>
-          <Badge tone={isMcq ? 'indigo' : 'blue'}>{isMcq ? 'MCQ' : 'Written'}</Badge>
-          {r?.overridden && <Badge tone="violet">Adjusted by tutor</Badge>}
+          <Chip tone={isMcq ? 'brand' : 'blue'}>{isMcq ? 'MCQ' : 'Written'}</Chip>
+          {r?.overridden && <Chip tone="violet">Adjusted by tutor</Chip>}
         </div>
-        <span className={`flex-shrink-0 rounded-xl px-3 py-1 text-sm font-bold tabular-nums ring-1 ${MARK_CLS[tone]}`}>
+        <span className={`flex-shrink-0 border px-3 py-1 font-code text-sm font-bold tabular-nums ${MARK_CLS[tone]}`}>
           {r ? fmtNum(awarded) : '—'} / {fmtNum(max)}
         </span>
       </div>
 
       {row.missing ? (
-        <p className="mt-3 text-sm italic text-slate-400">This question has since been removed from the bank. Its mark still counts.</p>
+        <p className="mt-3 text-sm italic text-subtle">This question has since been removed from the bank. Its mark still counts.</p>
       ) : row.text ? (
-        <div className="mt-3 overflow-x-auto break-words text-[15px] leading-relaxed text-slate-800">{renderContent(String(row.text))}</div>
+        <div className="mt-3 overflow-x-auto break-words text-[15px] leading-relaxed text-ink">{renderContent(String(row.text))}</div>
       ) : null}
 
       {isMcq && (
         <div className="mt-4">
           {r && (
-            <p className="mb-2.5 text-xs font-semibold text-slate-500">
-              {selected ? <>You chose <span className="text-slate-800">{selected}</span></> : 'Not answered'}
-              {answerKey ? <> · Correct answer <span className="text-emerald-700">{answerKey}</span></> : null}
+            <p className="mb-2.5 font-code text-xs text-muted">
+              {selected ? <>You chose <span className="font-bold text-ink">{selected}</span></> : 'Not answered'}
+              {answerKey ? <> · Correct answer <span className="font-bold text-positive">{answerKey}</span></> : null}
             </p>
           )}
           {options.length > 0 && (
@@ -559,23 +553,23 @@ function QuestionCard({ row, writtenState }) {
                 const isKey = !!r && o.letter === answerKey
                 const isMine = !!r && o.letter === selected
                 const cls = isKey
-                  ? 'border-emerald-300 bg-emerald-50'
-                  : isMine ? 'border-rose-300 bg-rose-50' : 'border-slate-200 bg-white'
+                  ? 'border-positive/40 bg-[#2f7d4514]'
+                  : isMine ? 'border-negative/40 bg-[#b4231814]' : 'border-line bg-surface'
                 const dot = isKey
-                  ? 'border-emerald-500 bg-emerald-500 text-white'
-                  : isMine ? 'border-rose-500 bg-rose-500 text-white' : 'border-slate-300 text-slate-600'
+                  ? 'border-positive bg-positive text-on-brand'
+                  : isMine ? 'border-negative bg-negative text-on-brand' : 'border-line-strong text-ink-2'
                 return (
-                  <div key={o.letter} className={`flex items-start gap-3 rounded-xl border px-3 py-2.5 ${cls}`}>
-                    <span className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border text-xs font-bold ${dot}`}>
+                  <div key={o.letter} className={`flex items-start gap-3 border px-3 py-2.5 ${cls}`}>
+                    <span className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border font-code text-xs font-bold ${dot}`}>
                       {o.letter}
                     </span>
-                    <div className="min-w-0 flex-1 overflow-x-auto break-words pt-0.5 text-sm text-slate-800">{renderContent(String(o.text || ''))}</div>
+                    <div className="min-w-0 flex-1 overflow-x-auto break-words pt-0.5 text-sm text-ink">{renderContent(String(o.text || ''))}</div>
                     {isKey ? (
-                      <span className="inline-flex flex-shrink-0 items-center gap-1 pt-1 text-[11px] font-bold text-emerald-700">
+                      <span className="inline-flex flex-shrink-0 items-center gap-1 pt-1 font-code text-[11px] font-bold uppercase tracking-[0.06em] text-positive">
                         <FiCheck size={13} /> {isMine ? 'Your answer' : 'Correct'}
                       </span>
                     ) : isMine ? (
-                      <span className="inline-flex flex-shrink-0 items-center gap-1 pt-1 text-[11px] font-bold text-rose-700">
+                      <span className="inline-flex flex-shrink-0 items-center gap-1 pt-1 font-code text-[11px] font-bold uppercase tracking-[0.06em] text-negative">
                         <FiX size={13} /> Your answer
                       </span>
                     ) : null}
@@ -590,63 +584,63 @@ function QuestionCard({ row, writtenState }) {
       {!isMcq && (
         r ? (
           <div className="mt-4 space-y-3">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
-              <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+            <div className="border border-line bg-canvas p-3.5">
+              <p className="mb-1.5 flex items-center gap-1.5 font-code text-[11px] uppercase tracking-[0.12em] text-muted">
                 <FiEye size={12} /> What we read
               </p>
               {r.transcription
-                ? <div className="overflow-x-auto break-words text-sm text-slate-800">{renderContent(String(r.transcription))}</div>
-                : <p className="text-sm italic text-slate-400">No answer to this question was found on your pages.</p>}
+                ? <div className="overflow-x-auto break-words text-sm text-ink">{renderContent(String(r.transcription))}</div>
+                : <p className="text-sm italic text-subtle">No answer to this question was found on your pages.</p>}
             </div>
             {r.feedback && (
-              <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-3.5">
-                <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-indigo-600">
+              <div className="border border-line bg-brand-50 p-3.5">
+                <p className="mb-1.5 flex items-center gap-1.5 font-code text-[11px] uppercase tracking-[0.12em] text-brand">
                   <FiMessageSquare size={12} /> Feedback
                 </p>
-                <div className="overflow-x-auto break-words text-sm text-slate-700">{renderContent(String(r.feedback))}</div>
+                <div className="overflow-x-auto break-words text-sm text-ink-2">{renderContent(String(r.feedback))}</div>
               </div>
             )}
             {r.flagged && (
-              <div className="flex items-start gap-2 rounded-xl border border-violet-200 bg-violet-50 px-3.5 py-2.5 text-sm text-violet-800">
-                <FiUserCheck size={15} className="mt-0.5 flex-shrink-0" />
+              <div className="flex items-start gap-2 border-l-2 border-calm bg-[#3f6b6414] px-3.5 py-2.5 text-sm text-ink-2">
+                <FiUserCheck size={15} className="mt-0.5 flex-shrink-0 text-calm" />
                 <span>
-                  <span className="font-semibold">A tutor is checking this answer.</span>
+                  <span className="font-semibold text-ink">A tutor is checking this answer.</span>
                   {r.flagReason ? ` ${r.flagReason}` : ''}
                 </span>
               </div>
             )}
           </div>
         ) : (
-          <p className="mt-4 flex items-center gap-2 text-sm text-slate-500">
+          <p className="mt-4 flex items-center gap-2 text-sm text-muted">
             {writtenState === 'grading'
-              ? <><FiLoader className="animate-spin text-blue-500" size={14} /> Being marked…</>
+              ? <><FiLoader className="animate-spin text-calm" size={14} /> Being marked…</>
               : 'Not marked yet.'}
           </p>
         )
       )}
 
       {hasScheme && (
-        <div className="mt-4 overflow-hidden rounded-xl border border-emerald-200">
+        <div className="mt-4 overflow-hidden border border-positive/30">
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
             aria-expanded={open}
-            className="flex w-full items-center justify-between gap-2 bg-emerald-50/60 px-3.5 py-2.5 text-left text-sm font-semibold text-emerald-800 transition hover:bg-emerald-50"
+            className="flex w-full items-center justify-between gap-2 bg-[#2f7d450d] px-3.5 py-2.5 text-left text-sm font-semibold text-positive transition hover:bg-[#2f7d4514]"
           >
             <span className="flex items-center gap-2"><FiBookOpen size={15} /> {isMcq ? 'Explanation' : 'Mark scheme'}</span>
             <FiChevronDown size={16} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
           </button>
           {open && (
-            <div className="space-y-3 border-t border-emerald-100 px-3.5 py-3 text-sm text-slate-800">
+            <div className="space-y-3 border-t border-positive/20 px-3.5 py-3 text-sm text-ink">
               {row.finalAnswer && (
                 <div>
-                  <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-emerald-700">Final answer</p>
+                  <p className="mb-1 font-code text-[11px] uppercase tracking-[0.12em] text-positive">Final answer</p>
                   <div className="overflow-x-auto break-words">{renderContent(String(row.finalAnswer))}</div>
                 </div>
               )}
               {row.markScheme && (
                 <div>
-                  {row.finalAnswer && <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-emerald-700">Mark scheme</p>}
+                  {row.finalAnswer && <p className="mb-1 font-code text-[11px] uppercase tracking-[0.12em] text-positive">Mark scheme</p>}
                   <div className="overflow-x-auto break-words">{renderContent(String(row.markScheme))}</div>
                 </div>
               )}

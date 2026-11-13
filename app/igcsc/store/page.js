@@ -43,9 +43,9 @@ function TabButton({ active, onClick, children }) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex-shrink-0 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition ${active
-        ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-sm'
-        : 'text-slate-600 hover:bg-slate-100'}`}
+      className={`flex-shrink-0 whitespace-nowrap px-4 py-2 text-sm font-medium transition ${active
+        ? 'bg-cta text-on-cta'
+        : 'text-muted hover:bg-ink/5 hover:text-ink'}`}
     >
       {children}
     </button>
@@ -57,9 +57,9 @@ function Chip({ active, onClick, children }) {
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${active
-        ? 'border-indigo-600 bg-indigo-600 text-white'
-        : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:text-indigo-700'}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-code text-xs transition ${active
+        ? 'border-brand bg-brand text-on-brand'
+        : 'chip-hover border-line bg-surface text-muted'}`}
     >
       {children}
     </button>
@@ -68,17 +68,17 @@ function Chip({ active, onClick, children }) {
 
 function Banner({ tone, icon: Icon, children, onClose }) {
   const tones = {
-    amber: 'border-amber-200 bg-amber-50 text-amber-900',
-    green: 'border-emerald-200 bg-emerald-50 text-emerald-900',
-    red: 'border-rose-200 bg-rose-50 text-rose-800',
-    slate: 'border-slate-200 bg-slate-100 text-slate-700',
+    amber: 'border-star/40 bg-[#b7791f14] text-star',
+    green: 'border-positive/40 bg-[#2f7d4514] text-positive',
+    red: 'border-negative/40 bg-[#b4231814] text-negative',
+    slate: 'border-line bg-sunken text-ink-2',
   }
   return (
-    <div className={`mb-4 flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm ${tones[tone] || tones.slate}`}>
+    <div className={`mb-4 flex items-start gap-3 border px-4 py-3 text-sm ${tones[tone] || tones.slate}`}>
       <Icon size={18} className="mt-0.5 flex-shrink-0" />
       <div className="min-w-0 flex-1">{children}</div>
       {onClose && (
-        <button type="button" onClick={onClose} className="flex-shrink-0 rounded-lg p-1 opacity-60 hover:bg-black/5 hover:opacity-100" aria-label="Dismiss">
+        <button type="button" onClick={onClose} className="flex-shrink-0 p-1 opacity-60 transition hover:bg-ink/5 hover:opacity-100" aria-label="Dismiss">
           <FiX size={16} />
         </button>
       )}
@@ -90,12 +90,12 @@ function SkeletonGrid() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-56 animate-pulse rounded-2xl border border-slate-200 bg-white p-5">
-          <div className="h-5 w-32 rounded-full bg-slate-100" />
-          <div className="mt-4 h-5 w-3/4 rounded bg-slate-100" />
-          <div className="mt-2 h-4 w-1/2 rounded bg-slate-100" />
-          <div className="mt-4 h-3 w-2/3 rounded bg-slate-100" />
-          <div className="mt-10 h-9 w-full rounded-xl bg-slate-100" />
+        <div key={i} className="h-56 animate-pulse border border-line bg-surface p-5">
+          <div className="h-5 w-32 rounded-full bg-sunken" />
+          <div className="mt-4 h-5 w-3/4 bg-sunken" />
+          <div className="mt-2 h-4 w-1/2 bg-sunken" />
+          <div className="mt-4 h-3 w-2/3 bg-sunken" />
+          <div className="mt-10 h-9 w-full bg-sunken" />
         </div>
       ))}
     </div>
@@ -306,21 +306,21 @@ export default function IgcscStorePage() {
 
   return (
     <div>
-      <section className="relative mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 to-blue-600 px-5 py-7 text-white shadow-lg sm:px-8 sm:py-9">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
-        <div className="pointer-events-none absolute -bottom-24 right-32 h-48 w-48 rounded-full bg-white/5" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+      <section className="mb-8 border-b border-line pb-6">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-100">IGCSC test papers</p>
-            <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">Real exam papers, marked for you.</h1>
-            <p className="mt-2 text-sm leading-relaxed text-indigo-100 sm:text-base">
-              {totalPapers ? `${totalPapers.toLocaleString()} papers` : 'Papers'} across every subject. Multiple choice is marked the
+            <p className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">Store · IGCSC test papers</p>
+            <h1 className="display mt-2 text-[clamp(1.7rem,3vw,2.4rem)] leading-tight text-ink">
+              Real exam papers, <em className="accent">marked</em> for you.
+            </h1>
+            <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">
+              {totalPapers ? <><span className="font-code tabular-nums text-ink">{totalPapers.toLocaleString()}</span> papers</> : 'Papers'} across every subject. Multiple choice is marked the
               moment you finish. Written answers are marked by AI and checked by a tutor.
             </p>
             {activePlans.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-2">
                 {activePlans.map((pl) => (
-                  <span key={pl._id} className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold ring-1 ring-white/25">
+                  <span key={pl._id} className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-line bg-[#2f7d4514] px-3 py-1 font-code text-[11px] text-positive">
                     <FiCheckCircle size={12} className="flex-shrink-0" />
                     <span className="truncate">{planLabel(pl)} · {pl.expiresAt ? `until ${fmtDate(pl.expiresAt)}` : 'no expiry'}</span>
                   </span>
@@ -329,14 +329,14 @@ export default function IgcscStorePage() {
             )}
           </div>
           <div className="flex flex-shrink-0 flex-wrap items-stretch gap-3">
-            <div className="rounded-2xl bg-white/15 px-5 py-3 ring-1 ring-white/25">
-              <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-100">
-                <FiKey size={12} /> Your credits
+            <div className="border border-line bg-surface px-5 py-3">
+              <p className="flex items-center gap-1.5 font-code text-[11px] uppercase tracking-[0.12em] text-muted">
+                <FiKey size={12} className="text-brand" /> Your credits
               </p>
-              <p className="mt-0.5 text-2xl font-extrabold">{credits == null ? '—' : credits}</p>
-              <p className="text-[11px] text-indigo-100">1 credit unlocks any 1 paper</p>
+              <p className="mt-0.5 font-code text-2xl tabular-nums text-ink">{credits == null ? '—' : credits}</p>
+              <p className="font-code text-[11px] text-subtle">1 credit unlocks any 1 paper</p>
             </div>
-            <Link href="/igcsc/my-tests" className="inline-flex items-center gap-2 self-center rounded-xl bg-white px-4 py-3 text-sm font-bold text-indigo-700 shadow-sm transition hover:bg-indigo-50">
+            <Link href="/igcsc/my-tests" className="inline-flex items-center gap-2 self-center border border-line-strong px-4 py-3 text-sm font-medium text-ink transition hover:border-ink hover:bg-ink/5">
               <FiBookOpen size={15} /> My tests
             </Link>
           </div>
@@ -368,8 +368,8 @@ export default function IgcscStorePage() {
       {plans.length > 0 && (
         <section className="mb-8">
           <div className="mb-4">
-            <h2 className="text-lg font-extrabold tracking-tight text-slate-900">Plans & credit packs</h2>
-            <p className="text-sm text-slate-500">Buying more than one paper? These cost less per paper.</p>
+            <h2 className="display text-xl text-ink">Plans & <em className="accent">credit</em> packs</h2>
+            <p className="mt-1 text-sm text-muted">Buying more than one paper? These cost less per paper.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {plans.map((pl) => (
@@ -388,11 +388,11 @@ export default function IgcscStorePage() {
 
       <section>
         <div className="mb-4">
-          <h2 className="text-lg font-extrabold tracking-tight text-slate-900">Browse papers</h2>
-          <p className="text-sm text-slate-500">Pick a curriculum and subject, or search for a topic.</p>
+          <h2 className="display text-xl text-ink">Browse <em className="accent">papers</em></h2>
+          <p className="mt-1 text-sm text-muted">Pick a curriculum and subject, or search for a topic.</p>
         </div>
 
-        <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+        <div className="mb-5 border border-line bg-surface p-3 sm:p-4">
           <div className="flex gap-1 overflow-x-auto pb-1">
             <TabButton active={!curriculum} onClick={() => pickCurriculum('')}>All</TabButton>
             {facets.map((f) => (
@@ -408,30 +408,30 @@ export default function IgcscStorePage() {
               {shownSubjects.map((s) => (
                 <Chip key={s.subject} active={subject === s.subject} onClick={() => setSubject(s.subject)}>
                   {s.subject}
-                  <span className={subject === s.subject ? 'text-indigo-200' : 'text-slate-400'}>{s.papers}</span>
+                  <span className={subject === s.subject ? 'text-on-brand/70' : 'text-subtle'}>{s.papers}</span>
                 </Chip>
               ))}
               {subjects.length > SUBJECTS_SHOWN && (
-                <button type="button" onClick={() => setAllSubjects((v) => !v)} className="px-2 text-xs font-semibold text-indigo-600 hover:underline">
+                <button type="button" onClick={() => setAllSubjects((v) => !v)} className="px-2 font-code text-xs text-brand hover:text-brand-hover">
                   {allSubjects ? 'Show fewer' : `Show all ${subjects.length}`}
                 </button>
               )}
             </div>
           )}
 
-          <div className="mt-3 flex flex-col gap-3 border-t border-slate-100 px-1 pt-3 lg:flex-row lg:items-center">
+          <div className="mt-3 flex flex-col gap-3 border-t border-line px-1 pt-3 lg:flex-row lg:items-center">
             <div className="relative min-w-0 flex-1">
-              <FiSearch size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <FiSearch size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-subtle" />
               <input
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search by paper, unit or topic"
                 maxLength={100}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-9 text-sm text-slate-800 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100"
+                className="w-full border border-line bg-surface py-2.5 pl-10 pr-9 text-sm text-ink outline-none transition placeholder:text-subtle focus:border-ink"
               />
               {query && (
-                <button type="button" onClick={() => setQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 hover:text-slate-600" aria-label="Clear search">
+                <button type="button" onClick={() => setQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-subtle transition hover:text-ink" aria-label="Clear search">
                   <FiX size={15} />
                 </button>
               )}
@@ -440,7 +440,7 @@ export default function IgcscStorePage() {
               <select
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value)}
-                className="min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                className="min-w-0 border border-line bg-surface px-3 py-2.5 text-sm font-medium text-ink-2 outline-none transition focus:border-ink"
                 aria-label="Difficulty"
               >
                 <option value="">Any difficulty</option>
@@ -449,7 +449,7 @@ export default function IgcscStorePage() {
               <select
                 value={format}
                 onChange={(e) => setFormat(e.target.value)}
-                className="min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                className="min-w-0 border border-line bg-surface px-3 py-2.5 text-sm font-medium text-ink-2 outline-none transition focus:border-ink"
                 aria-label="Format"
               >
                 {FORMATS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
@@ -459,12 +459,12 @@ export default function IgcscStorePage() {
                 role="switch"
                 aria-checked={owned}
                 onClick={() => setOwned((v) => !v)}
-                className={`col-span-2 inline-flex items-center justify-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-sm font-semibold transition ${owned
-                  ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
-                  : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+                className={`col-span-2 inline-flex items-center justify-center gap-2.5 border px-3.5 py-2.5 text-sm font-medium transition ${owned
+                  ? 'border-brand/40 bg-brand-50 text-brand'
+                  : 'border-line bg-surface text-muted hover:border-line-strong hover:text-ink'}`}
               >
-                <span className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full transition-colors ${owned ? 'bg-indigo-600' : 'bg-slate-300'}`}>
-                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${owned ? 'left-[18px]' : 'left-0.5'}`} />
+                <span className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full transition-colors ${owned ? 'bg-brand' : 'bg-line-strong'}`}>
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-page transition-all ${owned ? 'left-[18px]' : 'left-0.5'}`} />
                 </span>
                 Only mine
               </button>
@@ -473,16 +473,16 @@ export default function IgcscStorePage() {
         </div>
 
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-1">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted">
             {loading ? 'Finding papers…' : (
               <>
-                <span className="font-bold text-slate-800">{total.toLocaleString()}</span> paper{total === 1 ? '' : 's'}
+                <span className="font-code font-medium tabular-nums text-ink">{total.toLocaleString()}</span> paper{total === 1 ? '' : 's'}
                 {owned ? ' you can open' : ''}
               </>
             )}
           </p>
           {filtered && (
-            <button type="button" onClick={clearFilters} className="text-xs font-semibold text-indigo-600 hover:underline">
+            <button type="button" onClick={clearFilters} className="font-code text-xs uppercase tracking-[0.08em] text-brand hover:text-brand-hover">
               Clear filters
             </button>
           )}
@@ -496,7 +496,7 @@ export default function IgcscStorePage() {
         ) : loading ? (
           <SkeletonGrid />
         ) : papers.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white">
+          <div className="border border-dashed border-line-strong bg-surface">
             <EmptyState
               icon={owned ? FiBookOpen : FiSearch}
               title={owned && !filtered ? 'You have no papers yet' : 'No papers match'}
@@ -533,7 +533,7 @@ export default function IgcscStorePage() {
                   {loadingMore ? <FiLoader className="animate-spin" size={14} /> : null}
                   {loadingMore ? 'Loading…' : 'Load more papers'}
                 </button>
-                <p className="text-xs text-slate-400">Showing {papers.length.toLocaleString()} of {total.toLocaleString()}</p>
+                <p className="font-code text-xs tabular-nums text-subtle">Showing {papers.length.toLocaleString()} of {total.toLocaleString()}</p>
               </div>
             )}
           </>
@@ -549,10 +549,10 @@ export default function IgcscStorePage() {
           onCancel={() => setRedeemFor(null)}
         >
           <p>
-            Unlock <span className="font-semibold text-slate-900">{redeemFor.title}</span>
+            Unlock <span className="font-medium text-ink">{redeemFor.title}</span>
             {redeemFor.unit ? ` — ${redeemFor.unit}` : ''}. It stays yours, and you can sit it as often as you like.
           </p>
-          <p className="mt-2 text-slate-500">
+          <p className="mt-2 text-muted">
             You have {creditCount} credit{creditCount === 1 ? '' : 's'}. {Math.max(0, creditCount - 1)} left after this.
           </p>
         </ConfirmDialog>

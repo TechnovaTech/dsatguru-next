@@ -13,25 +13,25 @@ import { formatPrice } from '../../../../lib/igcscStoreShared'
 const AUTO_TRIES = 12
 const AUTO_EVERY = 5000
 
-const GHOST = 'inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-700'
+const GHOST = 'inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-medium text-muted transition hover:bg-ink/5 hover:text-ink'
 
 function Shell({ icon: Icon, tone, title, children }) {
   const tones = {
-    indigo: 'bg-indigo-50 text-indigo-600',
-    green: 'bg-emerald-50 text-emerald-600',
-    amber: 'bg-amber-50 text-amber-600',
-    red: 'bg-rose-50 text-rose-600',
-    slate: 'bg-slate-100 text-slate-500',
+    indigo: 'bg-brand-50 text-brand',
+    green: 'bg-[#2f7d4514] text-positive',
+    amber: 'bg-[#b7791f14] text-star',
+    red: 'bg-[#b4231814] text-negative',
+    slate: 'bg-sunken text-muted',
   }
   return (
     <div className="mx-auto max-w-lg py-4 sm:py-10">
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="h-1.5 bg-gradient-to-r from-indigo-600 to-blue-600" />
+      <div className="overflow-hidden border border-line bg-surface">
+        <div className="h-1 bg-brand" />
         <div className="px-6 py-8 text-center sm:px-10 sm:py-10">
           <span className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${tones[tone] || tones.slate}`}>
             <Icon size={30} className={tone === 'indigo' ? 'animate-spin' : ''} />
           </span>
-          <h1 className="mt-5 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
+          <h1 className="display mt-5 text-2xl text-ink sm:text-3xl">{title}</h1>
           {children}
         </div>
       </div>
@@ -109,7 +109,7 @@ export default function IgcscStoreReturnPage() {
   if (state === 'confirming') {
     return (
       <Shell icon={FiLoader} tone="indigo" title="Confirming your payment…">
-        <p className="mt-2 text-sm text-slate-500">This takes a few seconds. Please keep this page open.</p>
+        <p className="mt-2 text-sm text-muted">This takes a few seconds. Please keep this page open.</p>
       </Shell>
     )
   }
@@ -118,15 +118,15 @@ export default function IgcscStoreReturnPage() {
     const isPaper = order?.kind === 'paper' && order?.paperId
     return (
       <Shell icon={FiCheckCircle} tone="green" title="Payment received">
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-muted">
           {isPaper ? 'Your paper is unlocked. Start it whenever you are ready.' : 'It is on your account now.'}
         </p>
         {order && (
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-left">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{isPaper ? 'Test paper' : 'Plan'}</p>
+          <div className="mt-6 border border-line bg-canvas px-5 py-4 text-left">
+            <p className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">{isPaper ? 'Test paper' : 'Plan'}</p>
             <div className="mt-1 flex items-start justify-between gap-3">
-              <p className="min-w-0 break-words text-sm font-bold text-slate-900">{order.title || 'Your purchase'}</p>
-              <p className="flex-shrink-0 text-sm font-extrabold text-slate-900">{formatPrice(order.amount, order.currency)}</p>
+              <p className="min-w-0 break-words text-sm font-medium text-ink">{order.title || 'Your purchase'}</p>
+              <p className="flex-shrink-0 font-code text-sm tabular-nums text-ink">{formatPrice(order.amount, order.currency)}</p>
             </div>
           </div>
         )}
@@ -150,12 +150,12 @@ export default function IgcscStoreReturnPage() {
   if (state === 'pending') {
     return (
       <Shell icon={FiClock} tone="amber" title="Waiting for confirmation">
-        <p className="mt-2 text-sm leading-relaxed text-slate-500">
+        <p className="mt-2 text-sm leading-relaxed text-muted">
           We have not heard back from the payment provider yet. If you were charged, this page updates within a minute.
         </p>
         {order?.title && (
-          <p className="mt-4 text-sm font-semibold text-slate-700">
-            {order.title} · {formatPrice(order.amount, order.currency)}
+          <p className="mt-4 text-sm font-medium text-ink-2">
+            {order.title} · <span className="font-code tabular-nums">{formatPrice(order.amount, order.currency)}</span>
           </p>
         )}
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
@@ -174,7 +174,7 @@ export default function IgcscStoreReturnPage() {
   if (state === 'refunded') {
     return (
       <Shell icon={FiXCircle} tone="slate" title="This order was refunded">
-        <p className="mt-2 text-sm text-slate-500">The payment for this order was refunded, so it no longer unlocks anything.</p>
+        <p className="mt-2 text-sm text-muted">The payment for this order was refunded, so it no longer unlocks anything.</p>
         <div className="mt-6 flex justify-center">
           <Link href="/igcsc/store" className={`${BTN_PRIMARY} py-2.5`}>
             <FiShoppingBag size={14} /> Back to store
@@ -187,7 +187,7 @@ export default function IgcscStoreReturnPage() {
   if (state === 'cancelled') {
     return (
       <Shell icon={FiXCircle} tone="slate" title="Payment not completed">
-        <p className="mt-2 text-sm text-slate-500">This checkout was cancelled or has expired. Nothing was charged.</p>
+        <p className="mt-2 text-sm text-muted">This checkout was cancelled or has expired. Nothing was charged.</p>
         <div className="mt-6 flex justify-center">
           <Link href="/igcsc/store" className={`${BTN_PRIMARY} py-2.5`}>
             <FiShoppingBag size={14} /> Back to store
@@ -199,8 +199,8 @@ export default function IgcscStoreReturnPage() {
 
   return (
     <Shell icon={FiAlertCircle} tone="red" title="We could not confirm this payment">
-      <p className="mt-2 text-sm font-medium text-rose-700">{error || 'Something went wrong.'}</p>
-      <p className="mt-3 text-sm leading-relaxed text-slate-500">
+      <p className="mt-2 text-sm font-medium text-negative">{error || 'Something went wrong.'}</p>
+      <p className="mt-3 text-sm leading-relaxed text-muted">
         If you were charged, your purchase still arrives: payments are checked again every time you open the store.
       </p>
       <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">

@@ -14,26 +14,26 @@ export default function ProfilePage() {
 
   return (
     <div>
-      <PageHeader title="Profile" subtitle="Your IGCSC account." />
+      <PageHeader eyebrow="Account · Profile" title="Profile" subtitle="Your IGCSC account." />
       <div className="max-w-2xl">
         <Card>
-          <div className="flex items-center gap-4 border-b border-slate-100 p-6">
-            <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-600 text-xl font-black text-white">{initials}</span>
+          <div className="flex items-center gap-4 border-b border-line p-6">
+            <span className="flex h-16 w-16 items-center justify-center bg-cta font-display text-2xl text-on-cta">{initials}</span>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">{user.name || 'Administrator'}</h2>
-              <p className="text-sm text-slate-500">{user.email}</p>
+              <h2 className="display text-[22px] text-ink">{user.name || 'Administrator'}</h2>
+              <p className="font-code text-[12px] text-muted">{user.email}</p>
             </div>
           </div>
-          <div className="divide-y divide-slate-50">
+          <div className="divide-y divide-line">
             {[
               { icon: FiUser, label: 'Name', value: user.name || '—' },
               { icon: FiMail, label: 'Email', value: user.email },
               { icon: FiShield, label: 'Role', value: roleLabel },
             ].map((row) => (
               <div key={row.label} className="flex items-center gap-3 px-6 py-4">
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"><row.icon size={16} /></span>
-                <span className="w-24 text-xs font-semibold uppercase tracking-wide text-slate-400">{row.label}</span>
-                <span className="text-sm font-medium text-slate-800">{row.value}</span>
+                <span className="flex h-9 w-9 items-center justify-center bg-brand-50 text-brand"><row.icon size={16} /></span>
+                <span className="w-24 font-code text-[11px] uppercase tracking-[0.12em] text-muted">{row.label}</span>
+                <span className="text-sm font-medium text-ink">{row.value}</span>
               </div>
             ))}
           </div>

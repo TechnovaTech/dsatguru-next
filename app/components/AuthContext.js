@@ -37,7 +37,41 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     checkAuth()
+    // Once per mount, ask the server whether the restored token is actually
+    // usable. Local exp-decoding cannot catch a token the server rejects — a
+    // bad signature, a revoked account, or an IGCSC-scoped token left under the
+    // DSAT key by the old shared login — which otherwise renders the whole app
+    // as logged-in while every API call 401s ("logging into one logs you into
+    // the other"). Uses fetch (not axios) so the global 401 interceptor below
+    // never double-handles it, and only a definite 401 clears the session:
+    // network errors and 5xx keep the user signed in.
+    verifySession()
   }, [])
+
+  const verifySession = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return
+      const res = await fetch('/api/auth/login', {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: 'no-store',
+      })
+      if (res.status !== 401) return
+      // The user may have logged in again (this tab or another) while the
+      // probe was in flight — never wipe a token other than the one verified.
+      if (localStorage.getItem('token') !== token) return
+      logout()
+      const path = window.location.pathname
+      // Only the signed-in areas bounce to the login form. On a public page
+      // (home, about, enrollment…) and in the IGCSC portal — which runs its own
+      // separate session — the dead token is cleared silently and the visitor
+      // stays exactly where they are.
+      const protectedArea = ['/dashboard', '/admin', '/tutor'].some((p) => path === p || path.startsWith(p + '/'))
+      if (protectedArea) {
+        window.location.href = '/login?expired=1'
+      }
+    } catch { /* offline / aborted: never log out on a network failure */ }
+  }
 
   // Keep this tab in sync with the token/user if they change in ANOTHER tab.
   // Without this, logging in as a different role (e.g. a student) in one tab

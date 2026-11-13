@@ -19,9 +19,18 @@ export function igcscUser() {
   if (typeof window === 'undefined') return null
   try { return JSON.parse(localStorage.getItem(IG_USER)) } catch { return null }
 }
+// Also REMOVES the stored igcsc_token/igcsc_user keys whenever it finds the
+// token expired (or unreadable): every caller treats "expired" as "logged out"
+// and routes to /igcsc/login, so leaving the dead keys behind only left a stale
+// session lying around for other pages/tabs to trip over.
 export function igcscTokenExpired(token) {
+  let expired
   try {
     const p = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
-    return p.exp ? p.exp * 1000 <= Date.now() : false
-  } catch { return true }
+    expired = p.exp ? p.exp * 1000 <= Date.now() : false
+  } catch { expired = true }
+  if (expired && typeof window !== 'undefined') {
+    try { igcscLogout() } catch { /* storage unavailable: nothing to clear */ }
+  }
+  return expired
 }

@@ -15,19 +15,24 @@ import {
 } from 'react-icons/fi'
 import { authToken } from '../../../_components/api'
 import { renderContent } from '../../../../components/admin/LatexRenderer'
+import { siteFontVars } from '../../../../components/siteFonts'
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E']
 const FIVE_MIN = 5 * 60 * 1000
 const ONE_MIN = 60 * 1000
 
+// This route renders outside the portal layout, so each full-screen surface
+// wears the `.ig` paper theme (and the editorial fonts) itself.
+const SHELL = `${siteFontVars} ig`
+
 const BTN_PRIMARY =
-  'inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-2 bg-cta px-5 py-2.5 text-sm font-medium text-on-cta transition hover:bg-cta-hover disabled:cursor-not-allowed disabled:opacity-50'
 const BTN_SECONDARY =
-  'inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-2 border border-line-strong px-5 py-2.5 text-sm font-medium text-ink transition hover:border-ink hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-50'
 const NAV_BTN =
-  'inline-flex flex-shrink-0 items-center justify-center gap-1 rounded-full bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-blue-700 disabled:cursor-not-allowed disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none sm:px-7'
+  'inline-flex flex-shrink-0 items-center justify-center gap-1 bg-cta px-4 py-2.5 text-sm font-medium text-on-cta transition hover:bg-cta-hover disabled:cursor-not-allowed disabled:bg-sunken disabled:text-subtle sm:px-7'
 const SUBMIT_BTN =
-  'inline-flex flex-shrink-0 items-center justify-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 sm:px-7'
+  'inline-flex flex-shrink-0 items-center justify-center gap-1.5 bg-cta px-4 py-2.5 text-sm font-medium text-on-cta transition hover:bg-cta-hover disabled:cursor-not-allowed disabled:opacity-50 sm:px-7'
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -502,22 +507,22 @@ export default function McqRunnerPage() {
 
   if (phase === 'loading') {
     return (
-      <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-3 bg-white text-slate-500">
-        <FiLoader className="animate-spin text-indigo-600" size={30} />
-        <p className="text-sm font-medium">Preparing your test…</p>
+      <div className={`${SHELL} fixed inset-0 z-[200] flex flex-col items-center justify-center gap-3 text-muted`}>
+        <FiLoader className="animate-spin text-brand" size={30} />
+        <p className="font-code text-sm">Preparing your test…</p>
       </div>
     )
   }
 
   if (phase === 'error') {
     return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-50 p-4">
-        <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+      <div className={`${SHELL} fixed inset-0 z-[200] flex items-center justify-center p-4`}>
+        <div className="w-full max-w-md border border-line bg-surface p-6 text-center">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center bg-[#b4231814] text-negative">
             <FiAlertTriangle size={22} />
           </span>
-          <h1 className="mt-4 text-lg font-extrabold text-slate-900">Could not open the test</h1>
-          <p className="mt-1 text-sm text-slate-600">{loadError.message}</p>
+          <h1 className="display mt-4 text-[1.4rem] leading-snug text-ink">Could not open the test</h1>
+          <p className="mt-1 text-sm text-ink-2">{loadError.message}</p>
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
             {loadError.retry && (
               <button type="button" onClick={() => setReloadKey((k) => k + 1)} className={BTN_PRIMARY}>
@@ -539,15 +544,15 @@ export default function McqRunnerPage() {
   const onLast = idx >= total - 1
 
   return (
-    <div className="fixed inset-0 z-[200] flex flex-col bg-white">
+    <div className={`${SHELL} fixed inset-0 z-[200] flex flex-col`}>
       {/* Top bar */}
-      <div className="flex-shrink-0 border-b border-slate-200 bg-white">
+      <div className="flex-shrink-0 border-b border-line bg-surface">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-2.5 sm:gap-4 sm:px-6">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-slate-900 sm:text-base" title={[paper.title, paper.unit].filter(Boolean).join(' — ')}>
+            <p className="truncate text-sm font-semibold text-ink sm:text-base" title={[paper.title, paper.unit].filter(Boolean).join(' — ')}>
               {paper.title}
             </p>
-            <p className="truncate text-[11px] font-medium text-slate-500 sm:text-xs">
+            <p className="truncate font-code text-[10px] uppercase tracking-[0.08em] text-muted sm:text-[11px]">
               {view === 'review' ? 'Review your answers' : `Question ${idx + 1} of ${total}`}
               <span className="hidden sm:inline"> · Section A · Online MCQ</span>
             </p>
@@ -559,7 +564,7 @@ export default function McqRunnerPage() {
               type="button"
               onClick={() => setConfirmExit(true)}
               disabled={locked}
-              className="inline-flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40 sm:px-3"
+              className="inline-flex items-center gap-1.5 px-2 py-2 text-sm font-medium text-muted transition hover:bg-ink/5 hover:text-ink disabled:opacity-40 sm:px-3"
               title="Save and leave"
             >
               <FiLogOut size={16} /> <span className="hidden sm:inline">Exit</span>
@@ -567,14 +572,14 @@ export default function McqRunnerPage() {
           </div>
         </div>
         {saveState === 'retrying' && (
-          <div className="border-t border-amber-200 bg-amber-50 px-3 py-1.5 text-center text-[11px] font-medium text-amber-800 sm:text-xs" role="status">
+          <div className="border-t border-line bg-[#b7791f14] px-3 py-1.5 text-center text-[11px] font-medium text-star sm:text-xs" role="status">
             {saveNote || 'Your latest answers are kept on this screen and will save as soon as the server answers.'}
           </div>
         )}
       </div>
 
       {/* Question or review */}
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-slate-50">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <div className="mx-auto w-full max-w-3xl px-3 py-4 sm:px-6 sm:py-8">
           {view === 'question' && q ? (
             <QuestionCard
@@ -600,7 +605,7 @@ export default function McqRunnerPage() {
       </div>
 
       {/* Bottom bar */}
-      <div className="flex-shrink-0 border-t border-slate-200 bg-white" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="flex-shrink-0 border-t border-line bg-surface" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-3 sm:px-6">
           <button
             type="button"
@@ -615,7 +620,7 @@ export default function McqRunnerPage() {
             type="button"
             onClick={() => setNavOpen(true)}
             disabled={locked}
-            className="flex min-w-0 items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 sm:px-4 sm:text-sm"
+            className="flex min-w-0 items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-2 font-code text-xs text-ink-2 transition chip-hover disabled:opacity-50 sm:px-4"
             aria-label="Show all questions"
           >
             <FiGrid size={14} className="flex-shrink-0" />
@@ -623,8 +628,8 @@ export default function McqRunnerPage() {
               <span className="truncate">All questions</span>
             ) : (
               <>
-                <span className="truncate sm:hidden">{idx + 1} / {total}</span>
-                <span className="hidden truncate sm:inline">Question {idx + 1} of {total}</span>
+                <span className="truncate tabular-nums sm:hidden">{idx + 1} / {total}</span>
+                <span className="hidden truncate tabular-nums sm:inline">Question {idx + 1} of {total}</span>
               </>
             )}
             <FiChevronUp size={14} className="flex-shrink-0" />
@@ -667,7 +672,7 @@ export default function McqRunnerPage() {
           onConfirm={() => submit({ auto: false })}
         >
           <p>
-            You answered <span className="font-semibold text-slate-900">{counts.answered} of {total}</span>.
+            You answered <span className="font-semibold text-ink">{counts.answered} of {total}</span>.
             {counts.unanswered > 0 && <> {counts.unanswered} unanswered — they score zero.</>}
             {counts.flagged > 0 && <> {counts.flagged} still marked for review.</>}
           </p>
@@ -694,10 +699,10 @@ export default function McqRunnerPage() {
 
       {notice && (
         <div className="pointer-events-none fixed inset-x-0 top-16 z-[230] flex justify-center px-3">
-          <div className="pointer-events-auto flex max-w-md items-start gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-xl" role="alert">
-            <FiAlertTriangle className="mt-0.5 flex-shrink-0 text-amber-300" size={16} />
+          <div className="pointer-events-auto flex max-w-md items-start gap-2 border border-line-strong bg-cta px-4 py-3 text-sm font-medium text-on-cta" role="alert">
+            <FiAlertTriangle className="mt-0.5 flex-shrink-0 text-star" size={16} />
             <span>{notice}</span>
-            <button type="button" onClick={() => setNotice('')} className="ml-1 text-slate-400 hover:text-white" aria-label="Dismiss">
+            <button type="button" onClick={() => setNotice('')} className="ml-1 text-on-cta/60 transition-colors hover:text-on-cta" aria-label="Dismiss">
               <FiX size={16} />
             </button>
           </div>
@@ -734,8 +739,8 @@ function Countdown({ deadlineMs, offset, onExpire }) {
     <div
       role="timer"
       aria-label="Time left"
-      className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-sm font-bold tabular-nums sm:text-base ${
-        low ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-200' : 'bg-slate-100 text-slate-800'
+      className={`flex flex-shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 font-code text-sm font-bold tabular-nums sm:text-base ${
+        low ? 'border-negative/40 bg-[#b4231814] text-negative' : 'border-line bg-canvas text-ink'
       } ${low && left < ONE_MIN && !expired ? 'animate-pulse' : ''}`}
     >
       <FiClock size={15} className="flex-shrink-0" />
@@ -747,21 +752,21 @@ function Countdown({ deadlineMs, offset, onExpire }) {
 function SaveIndicator({ state }) {
   if (state === 'saving') {
     return (
-      <span className="flex items-center gap-1 text-xs font-medium text-slate-500" role="status">
+      <span className="flex items-center gap-1 font-code text-xs text-muted" role="status">
         <FiLoader className="animate-spin" size={13} /> <span className="hidden sm:inline">Saving…</span>
       </span>
     )
   }
   if (state === 'saved') {
     return (
-      <span className="flex items-center gap-1 text-xs font-medium text-emerald-600" role="status">
+      <span className="flex items-center gap-1 font-code text-xs text-positive" role="status">
         <FiCheck size={14} /> <span className="hidden sm:inline">Saved</span>
       </span>
     )
   }
   if (state === 'retrying') {
     return (
-      <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800" role="status">
+      <span className="flex items-center gap-1 rounded-full bg-[#b7791f14] px-2 py-1 font-code text-[11px] font-semibold text-star" role="status">
         <FiCloudOff size={13} /> Not saved<span className="hidden sm:inline"> — retrying</span>
       </span>
     )
@@ -775,13 +780,13 @@ const QuestionCard = memo(function QuestionCard({ q, pos, answer, onChoose, onFl
   const flagged = !!answer?.flagged
   const marks = Number(q.marks) || 1
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-6">
+    <div className="border border-line bg-surface">
+      <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-slate-900 text-base font-bold text-white">{pos}</span>
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center bg-cta font-code text-base font-bold text-on-cta">{pos}</span>
           <div className="min-w-0">
-            <p className="text-xs font-bold text-slate-700">[{marks} mark{marks === 1 ? '' : 's'}]</p>
-            {q.n && q.n !== pos ? <p className="truncate text-[11px] text-slate-400">Question {q.n} on the paper</p> : null}
+            <p className="font-code text-xs text-ink-2">[{marks} mark{marks === 1 ? '' : 's'}]</p>
+            {q.n && q.n !== pos ? <p className="truncate font-code text-[11px] text-subtle">Question {q.n} on the paper</p> : null}
           </div>
         </div>
         <button
@@ -789,8 +794,8 @@ const QuestionCard = memo(function QuestionCard({ q, pos, answer, onChoose, onFl
           onClick={() => onFlag(q._id)}
           disabled={locked}
           aria-pressed={flagged}
-          className={`inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition disabled:opacity-50 ${
-            flagged ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200 hover:bg-amber-100' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+          className={`inline-flex flex-shrink-0 items-center gap-1.5 border px-3 py-1.5 text-sm font-medium transition disabled:opacity-50 ${
+            flagged ? 'border-star/40 bg-[#b7791f14] text-star' : 'border-transparent text-muted hover:bg-ink/5 hover:text-ink'
           }`}
         >
           <FiFlag size={15} className={flagged ? 'fill-current' : ''} />
@@ -800,16 +805,16 @@ const QuestionCard = memo(function QuestionCard({ q, pos, answer, onChoose, onFl
       </div>
 
       <div className="px-4 py-5 sm:px-6 sm:py-6">
-        <div className="overflow-x-auto break-words text-[15px] leading-relaxed text-slate-900 sm:text-base [&_img]:max-w-full">
+        <div className="overflow-x-auto break-words text-[15px] leading-relaxed text-ink sm:text-base [&_img]:max-w-full">
           {renderContent(String(q.text || ''))}
         </div>
         {q.image ? (
-          <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white p-2">
+          <div className="mt-4 overflow-hidden border border-line bg-surface p-2">
             <img src={q.image} alt={`Figure for question ${pos}`} className="mx-auto max-h-[420px] max-w-full object-contain" />
           </div>
         ) : null}
 
-        <p className="mb-3 mt-6 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Choose an answer</p>
+        <p className="mb-3 mt-6 font-code text-[11px] uppercase tracking-[0.12em] text-muted">Choose an answer</p>
         <div className="space-y-2.5 sm:space-y-3" role="radiogroup" aria-label={`Answer for question ${pos}`}>
           {(q.options || []).map((o) => {
             const on = selected === o.letter
@@ -821,26 +826,26 @@ const QuestionCard = memo(function QuestionCard({ q, pos, answer, onChoose, onFl
                 aria-checked={on}
                 disabled={locked}
                 onClick={() => onChoose(q._id, o.letter)}
-                className={`group flex w-full items-start gap-3 rounded-xl border-2 p-3 text-left transition disabled:cursor-not-allowed sm:gap-4 sm:p-4 ${
-                  on ? 'border-indigo-600 bg-indigo-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                className={`group flex w-full items-start gap-3 border p-3 text-left transition disabled:cursor-not-allowed sm:gap-4 sm:p-4 ${
+                  on ? 'border-brand bg-brand-50' : 'border-line bg-surface hover:border-line-strong hover:bg-canvas'
                 }`}
               >
                 <span
-                  className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold transition ${
-                    on ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 text-slate-600 group-hover:border-slate-500'
+                  className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border font-code text-sm font-bold transition ${
+                    on ? 'border-brand bg-brand text-on-brand' : 'border-line-strong text-ink-2 group-hover:border-ink'
                   }`}
                 >
                   {o.letter}
                 </span>
-                <div className="min-w-0 flex-1 overflow-x-auto break-words pt-1 text-[15px] leading-relaxed text-slate-900 [&_img]:max-h-40 [&_img]:max-w-full">
+                <div className="min-w-0 flex-1 overflow-x-auto break-words pt-1 text-[15px] leading-relaxed text-ink [&_img]:max-h-40 [&_img]:max-w-full">
                   {renderContent(String(o.text ?? ''))}
                 </div>
-                {on && <FiCheck className="mt-1.5 flex-shrink-0 text-indigo-600" size={18} />}
+                {on && <FiCheck className="mt-1.5 flex-shrink-0 text-brand" size={18} />}
               </button>
             )
           })}
         </div>
-        <p className="mt-5 hidden text-[11px] text-slate-400 sm:block">Tip: press a letter key to choose, and ← → to move between questions.</p>
+        <p className="mt-5 hidden font-code text-[11px] text-subtle sm:block">Tip: press a letter key to choose, and ← → to move between questions.</p>
       </div>
     </div>
   )
@@ -848,14 +853,14 @@ const QuestionCard = memo(function QuestionCard({ q, pos, answer, onChoose, onFl
 
 function Legend({ showCurrent = true }) {
   return (
-    <div className="mb-4 flex flex-wrap gap-x-4 gap-y-2 text-xs font-medium text-slate-600">
-      <span className="flex items-center gap-1.5"><span className="h-3.5 w-3.5 rounded bg-indigo-600" /> Answered</span>
-      <span className="flex items-center gap-1.5"><span className="h-3.5 w-3.5 rounded border-2 border-dashed border-slate-300" /> Unanswered</span>
+    <div className="mb-4 flex flex-wrap gap-x-4 gap-y-2 font-code text-[11px] text-muted">
+      <span className="flex items-center gap-1.5"><span className="h-3.5 w-3.5 bg-cta" /> Answered</span>
+      <span className="flex items-center gap-1.5"><span className="h-3.5 w-3.5 border border-dashed border-line-strong" /> Unanswered</span>
       <span className="flex items-center gap-1.5">
-        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-white"><FiFlag size={8} /></span> For review
+        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-star text-on-brand"><FiFlag size={8} /></span> For review
       </span>
       {showCurrent && (
-        <span className="flex items-center gap-1.5"><span className="h-3.5 w-3.5 rounded ring-2 ring-slate-900 ring-offset-1" /> Current</span>
+        <span className="flex items-center gap-1.5"><span className="h-3.5 w-3.5 ring-2 ring-ink ring-offset-1 ring-offset-[#faf7f0]" /> Current</span>
       )}
     </div>
   )
@@ -875,13 +880,13 @@ function QuestionGrid({ questions, answers, current, onGo }) {
             type="button"
             onClick={() => onGo(i)}
             title={`Question ${i + 1}${done ? ' · answered' : ' · unanswered'}${flag ? ' · for review' : ''}`}
-            className={`relative flex h-11 items-center justify-center rounded-xl text-sm font-bold transition ${
-              done ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'border-2 border-dashed border-slate-300 bg-white text-slate-600 hover:border-slate-400'
-            } ${here ? 'ring-2 ring-slate-900 ring-offset-2' : ''}`}
+            className={`relative flex h-11 items-center justify-center font-code text-sm font-bold transition ${
+              done ? 'bg-cta text-on-cta hover:bg-cta-hover' : 'border border-dashed border-line-strong bg-surface text-ink-2 hover:border-ink'
+            } ${here ? 'ring-2 ring-ink ring-offset-2 ring-offset-[#faf7f0]' : ''}`}
           >
             {i + 1}
             {flag && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-white shadow ring-2 ring-white">
+              <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-star text-on-brand ring-2 ring-[#faf7f0]">
                 <FiFlag size={10} className="fill-current" />
               </span>
             )}
@@ -893,17 +898,17 @@ function QuestionGrid({ questions, answers, current, onGo }) {
 }
 
 const TILE_TONES = {
-  indigo: 'bg-indigo-50 text-indigo-700',
-  rose: 'bg-rose-50 text-rose-700',
-  amber: 'bg-amber-50 text-amber-700',
-  slate: 'bg-slate-50 text-slate-600',
+  indigo: 'border-line bg-canvas text-ink',
+  rose: 'border-negative/30 bg-[#b4231814] text-negative',
+  amber: 'border-star/30 bg-[#b7791f14] text-star',
+  slate: 'border-line bg-canvas text-muted',
 }
 
 function CountTile({ label, value, tone }) {
   return (
-    <div className={`rounded-xl px-2 py-3 text-center sm:px-4 ${TILE_TONES[tone] || TILE_TONES.slate}`}>
-      <p className="text-2xl font-extrabold tabular-nums sm:text-3xl">{value}</p>
-      <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide opacity-80">{label}</p>
+    <div className={`border px-2 py-3 text-center sm:px-4 ${TILE_TONES[tone] || TILE_TONES.slate}`}>
+      <p className="font-code text-2xl font-bold tabular-nums sm:text-3xl">{value}</p>
+      <p className="mt-0.5 font-code text-[10px] uppercase tracking-[0.12em] opacity-80">{label}</p>
     </div>
   )
 }
@@ -911,9 +916,9 @@ function CountTile({ label, value, tone }) {
 function ReviewPanel({ questions, answers, counts, onGo, onSubmit, error, locked }) {
   return (
     <div className="space-y-4 sm:space-y-5">
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <h2 className="text-lg font-extrabold text-slate-900 sm:text-xl">Check your work</h2>
-        <p className="mt-1 text-sm text-slate-500">
+      <div className="border border-line bg-surface p-5 sm:p-6">
+        <h2 className="display text-[1.4rem] leading-snug text-ink sm:text-[1.6rem]">Check your <em className="accent">work</em></h2>
+        <p className="mt-1 text-sm text-muted">
           Tap a number to go back to that question. Once you submit, you can&apos;t change your answers.
         </p>
         <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3">
@@ -923,13 +928,13 @@ function ReviewPanel({ questions, answers, counts, onGo, onSubmit, error, locked
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="border border-line bg-surface p-5 sm:p-6">
         <Legend showCurrent={false} />
         <QuestionGrid questions={questions} answers={answers} current={-1} onGo={onGo} />
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700" role="alert">
+        <div className="flex items-start gap-2 border-l-2 border-negative bg-[#b4231814] px-4 py-3 text-sm font-medium text-negative" role="alert">
           <FiAlertTriangle className="mt-0.5 flex-shrink-0" size={16} />
           <span>{error}</span>
         </div>
@@ -940,7 +945,7 @@ function ReviewPanel({ questions, answers, counts, onGo, onSubmit, error, locked
           type="button"
           onClick={onSubmit}
           disabled={locked}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="inline-flex w-full items-center justify-center gap-2 bg-brand px-6 py-3 text-sm font-medium text-on-brand transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           <FiSend size={16} /> Submit section
         </button>
@@ -958,18 +963,18 @@ function NavigatorSheet({ questions, answers, current, counts, onGo, onReview, o
 
   return (
     <div className="fixed inset-0 z-[210] flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="All questions">
-      <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 cursor-default bg-slate-900/40" />
-      <div className="relative flex max-h-[85vh] w-full flex-col rounded-t-3xl bg-white shadow-2xl sm:max-w-xl sm:rounded-3xl">
+      <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 cursor-default bg-ink/40" />
+      <div className="relative flex max-h-[85vh] w-full flex-col border border-line bg-surface sm:max-w-xl">
         <div className="flex-shrink-0 px-5 pt-3 sm:pt-5">
-          <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-slate-200 sm:hidden" />
+          <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-sunken sm:hidden" />
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <h3 className="text-base font-extrabold text-slate-900">All questions</h3>
-              <p className="text-xs text-slate-500">
+              <h3 className="display text-lg leading-snug text-ink">All questions</h3>
+              <p className="font-code text-[11px] text-muted">
                 {counts.answered} of {questions.length} answered{counts.flagged ? ` · ${counts.flagged} for review` : ''}
               </p>
             </div>
-            <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Close">
+            <button type="button" onClick={onClose} className="p-1.5 text-subtle transition-colors hover:bg-ink/5 hover:text-ink" aria-label="Close">
               <FiX size={18} />
             </button>
           </div>
@@ -978,7 +983,7 @@ function NavigatorSheet({ questions, answers, current, counts, onGo, onReview, o
           <Legend showCurrent={current >= 0} />
           <QuestionGrid questions={questions} answers={answers} current={current} onGo={onGo} />
         </div>
-        <div className="flex-shrink-0 border-t border-slate-100 px-5 pt-3" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+        <div className="flex-shrink-0 border-t border-line px-5 pt-3" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
           <button type="button" onClick={onReview} className={`${BTN_PRIMARY} w-full`}>
             Go to review page <FiChevronRight size={15} />
           </button>
@@ -996,13 +1001,13 @@ function ConfirmDialog({ icon: Icon = FiAlertTriangle, title, children, confirmL
   }, [busy, onCancel])
 
   return (
-    <div className="fixed inset-0 z-[215] flex items-end justify-center bg-slate-900/50 sm:items-center sm:p-4" role="dialog" aria-modal="true">
-      <div className="w-full max-w-md rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
-        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+    <div className="fixed inset-0 z-[215] flex items-end justify-center bg-ink/60 sm:items-center sm:p-4" role="dialog" aria-modal="true">
+      <div className="w-full max-w-md border border-line bg-surface p-6 animate-rise" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+        <span className="flex h-12 w-12 items-center justify-center bg-brand-50 text-brand">
           <Icon size={22} />
         </span>
-        <h3 className="mt-4 text-lg font-extrabold text-slate-900">{title}</h3>
-        <div className="mt-2 text-sm text-slate-600">{children}</div>
+        <h3 className="display mt-4 text-[1.4rem] leading-snug text-ink">{title}</h3>
+        <div className="mt-2 text-sm text-ink-2">{children}</div>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button type="button" onClick={onCancel} disabled={busy} className={BTN_SECONDARY}>{cancelLabel}</button>
           <button type="button" onClick={onConfirm} disabled={busy} className={BTN_PRIMARY}>
@@ -1017,11 +1022,11 @@ function ConfirmDialog({ icon: Icon = FiAlertTriangle, title, children, confirmL
 
 function SubmittingOverlay({ auto }) {
   return (
-    <div className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-950/90 p-6 text-center" role="alertdialog" aria-live="assertive">
+    <div className="fixed inset-0 z-[220] flex items-center justify-center bg-ink/95 p-6 text-center" role="alertdialog" aria-live="assertive">
       <div>
-        <div className="mx-auto mb-5 h-14 w-14 animate-spin rounded-full border-4 border-indigo-400 border-t-transparent" />
-        <p className="text-lg font-bold text-white">{auto ? 'Time is up' : 'Submitting your answers…'}</p>
-        <p className="mt-1 text-sm text-slate-300">
+        <div className="mx-auto mb-5 h-14 w-14 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+        <p className="display text-xl text-on-cta">{auto ? 'Time is up' : 'Submitting your answers…'}</p>
+        <p className="mt-1 text-sm text-on-cta/70">
           {auto ? 'Saving and submitting your answers. Please stay on this page.' : 'This takes a moment. Please stay on this page.'}
         </p>
       </div>

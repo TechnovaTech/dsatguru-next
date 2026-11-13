@@ -161,16 +161,16 @@ export default function AdminLayout({ children }) {
   const navBtn = 'flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors'
 
   return (
-    <div className={`min-h-screen bg-slate-50 ${dark ? 'admin-dark' : ''}`}>
+    <div className={`min-h-screen bg-[#f4f0e6] ${dark ? 'admin-dark' : ''}`}>
       {/* ===== Top navbar ===== */}
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 shadow-sm backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-[#d8d1c0] bg-[#15140f]">
         <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 lg:px-6">
           {/* Brand */}
           <Link href="/admin/dashboard" className="flex flex-shrink-0 items-center gap-2">
-            <span className="text-lg font-extrabold text-slate-900">
-              DSAT<span className="dg-gradient-text">GURU</span>
+            <span className="text-lg font-extrabold tracking-tight text-[#f4f0e6]">
+              DSAT<span className="text-[#b83a19]">GURU</span>
             </span>
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${user.role === 'Admin' ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] ${user.role === 'Admin' ? 'bg-[#b83a19] text-[#f4f0e6]' : 'border border-[#d8d1c0]/30 text-[#f4f0e6]/80'}`}>
               {user.role === 'TutorAdmin' ? 'Tutor Admin' : user.role}
             </span>
           </Link>
@@ -181,7 +181,7 @@ export default function AdminLayout({ children }) {
               const active = isActive(sec)
               if (sec.path) {
                 return (
-                  <Link key={sec.id} href={sec.path} className={`${navBtn} ${active ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`}>
+                  <Link key={sec.id} href={sec.path} className={`${navBtn} ${active ? 'bg-[#f4f0e6] text-[#b83a19]' : 'text-[#f4f0e6]/70 hover:bg-[#f4f0e6]/10 hover:text-[#f4f0e6]'}`}>
                     <sec.icon size={15} /> {sec.label}
                   </Link>
                 )
@@ -190,24 +190,24 @@ export default function AdminLayout({ children }) {
                 <div key={sec.id} className="relative">
                   <button
                     onClick={() => setOpenMenu((m) => (m === sec.id ? null : sec.id))}
-                    className={`${navBtn} ${active || openMenu === sec.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`}
+                    className={`${navBtn} ${active || openMenu === sec.id ? 'bg-[#f4f0e6] text-[#b83a19]' : 'text-[#f4f0e6]/70 hover:bg-[#f4f0e6]/10 hover:text-[#f4f0e6]'}`}
                   >
                     <sec.icon size={15} /> {sec.label}
                     <FiChevronDown size={13} className={`transition-transform ${openMenu === sec.id ? 'rotate-180' : ''}`} />
-                    {sec.id === 'more' && bugUnread > 0 && <span className="ml-0.5 h-2 w-2 rounded-full bg-rose-500" />}
+                    {sec.id === 'more' && bugUnread > 0 && <span className="ml-0.5 h-2 w-2 rounded-full bg-[#b83a19]" />}
                   </button>
                   {openMenu === sec.id && (
-                    <div className={`absolute top-full ${sec.align === 'right' ? 'right-0' : 'left-0'} z-[60] mt-2 w-60 overflow-hidden rounded-xl border border-slate-100 bg-white py-1.5 shadow-xl`}>
+                    <div className={`absolute top-full ${sec.align === 'right' ? 'right-0' : 'left-0'} z-[60] mt-2 w-60 overflow-hidden rounded-xl border border-[#d8d1c0]/20 bg-[#15140f] py-1.5 shadow-[0_30px_60px_-24px_#00000080]`}>
                       {sec.items.map((it) => (
                         <Link
                           key={it.path}
                           href={it.path}
                           onClick={() => setOpenMenu(null)}
-                          className={`block px-4 py-2 text-sm transition-colors ${pathname === it.path ? 'bg-indigo-50 font-semibold text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600'}`}
+                          className={`block px-4 py-2 text-sm transition-colors ${pathname === it.path ? 'bg-[#f4f0e6] font-semibold text-[#b83a19]' : 'text-[#f4f0e6]/70 hover:bg-[#f4f0e6]/10 hover:text-[#f4f0e6]'}`}
                         >
                           {it.label}
                           {it.path === '/admin/bug-reports' && bugUnread > 0 && (
-                            <span className="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">{bugUnread > 99 ? '99+' : bugUnread}</span>
+                            <span className="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#b83a19] px-1 text-[10px] font-bold text-[#f4f0e6]">{bugUnread > 99 ? '99+' : bugUnread}</span>
                           )}
                         </Link>
                       ))}
@@ -220,19 +220,19 @@ export default function AdminLayout({ children }) {
 
           {/* Right */}
           <div className="flex flex-shrink-0 items-center gap-3">
-            <span className="hidden text-sm text-slate-500 sm:block">Hi, <span className="font-semibold text-slate-800">{user.name?.split(' ')[0]}</span></span>
+            <span className="hidden text-sm text-[#f4f0e6]/60 sm:block">Hi, <span className="font-semibold text-[#f4f0e6]">{user.name?.split(' ')[0]}</span></span>
             <button
               onClick={toggleTheme}
               title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
               aria-label="Toggle theme"
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:bg-slate-100"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#d8d1c0]/25 text-[#f4f0e6]/80 transition-colors hover:bg-[#f4f0e6]/10 hover:text-[#f4f0e6]"
             >
               {dark ? <FiSun size={18} /> : <FiMoon size={18} />}
             </button>
-            <button onClick={handleLogout} className="hidden items-center gap-1.5 rounded-lg bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100 sm:flex">
+            <button onClick={handleLogout} className="hidden items-center gap-1.5 rounded-lg border border-[#d8d1c0]/25 px-3 py-2 text-sm font-semibold text-[#f4f0e6]/80 transition-colors hover:bg-[#b83a19] hover:text-[#f4f0e6] sm:flex">
               <FiLogOut size={15} /> Logout
             </button>
-            <button onClick={() => setMobileOpen((o) => !o)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 xl:hidden">
+            <button onClick={() => setMobileOpen((o) => !o)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#d8d1c0]/25 text-[#f4f0e6]/80 xl:hidden">
               {mobileOpen ? <FiX size={20} /> : <FiMenu size={20} />}
             </button>
           </div>
@@ -240,21 +240,21 @@ export default function AdminLayout({ children }) {
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="max-h-[80vh] overflow-y-auto border-t border-slate-100 bg-white px-4 py-4 xl:hidden">
+          <div className="max-h-[80vh] overflow-y-auto border-t border-[#d8d1c0]/20 bg-[#15140f] px-4 py-4 xl:hidden">
             {sections.map((sec) => (
               <div key={sec.id} className="mb-3">
                 {sec.path ? (
-                  <Link href={sec.path} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold ${isActive(sec) ? 'bg-indigo-50 text-indigo-700' : 'text-slate-800'}`}>
+                  <Link href={sec.path} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold ${isActive(sec) ? 'bg-[#f4f0e6] text-[#b83a19]' : 'text-[#f4f0e6]/85'}`}>
                     <sec.icon size={15} /> {sec.label}
                   </Link>
                 ) : (
                   <>
-                    <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-[#f4f0e6]/50">
                       <sec.icon size={13} /> {sec.label}
                     </div>
                     <div className="space-y-0.5">
                       {sec.items.map((it) => (
-                        <Link key={it.path} href={it.path} className={`block rounded-lg py-2 pl-9 pr-3 text-sm ${pathname === it.path ? 'bg-indigo-50 font-semibold text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>
+                        <Link key={it.path} href={it.path} className={`block rounded-lg py-2 pl-9 pr-3 text-sm ${pathname === it.path ? 'bg-[#f4f0e6] font-semibold text-[#b83a19]' : 'text-[#f4f0e6]/70 hover:bg-[#f4f0e6]/10'}`}>
                           {it.label}
                         </Link>
                       ))}
@@ -263,7 +263,7 @@ export default function AdminLayout({ children }) {
                 )}
               </div>
             ))}
-            <button onClick={handleLogout} className="mt-2 flex w-full items-center gap-2 rounded-lg bg-rose-50 px-3 py-2.5 text-sm font-semibold text-rose-600">
+            <button onClick={handleLogout} className="mt-2 flex w-full items-center gap-2 rounded-lg border border-[#d8d1c0]/25 px-3 py-2.5 text-sm font-semibold text-[#f4f0e6]/80">
               <FiLogOut size={15} /> Logout
             </button>
           </div>

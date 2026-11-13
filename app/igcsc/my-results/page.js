@@ -31,12 +31,12 @@ export default function IgcscMyResultsPage() {
   if (!sessions.length) {
     return (
       <div>
-        <PageHeader title="My Results" subtitle="Everything you have attempted, and what to work on next." />
+        <PageHeader eyebrow="Results" title="My Results" subtitle="Everything you have attempted, and what to work on next." />
         <EmptyState icon={FiBarChart2} title="No attempts yet"
           hint="Finish a practice set and your results and mistake analysis will appear here." />
         <div className="mt-4 text-center">
           <button onClick={() => router.push('/igcsc/practice')}
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
+            className="inline-flex h-11 items-center gap-2 bg-cta px-5 text-sm font-medium text-on-cta transition-colors hover:bg-cta-hover">
             <FiEdit3 size={15} /> Start practising
           </button>
         </div>
@@ -46,13 +46,13 @@ export default function IgcscMyResultsPage() {
 
   return (
     <div>
-      <PageHeader title="My Results" subtitle="Everything you have attempted, and what to work on next." />
+      <PageHeader eyebrow="Results" title="My Results" subtitle="Everything you have attempted, and what to work on next." />
 
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat label="Attempts" value={s.attempts} icon={FiEdit3} tone="bg-indigo-500" />
-        <Stat label="Questions" value={s.questions} icon={FiTarget} tone="bg-violet-500" />
-        <Stat label="Accuracy" value={s.accuracy != null ? `${s.accuracy}%` : '—'} icon={FiTrendingUp} tone="bg-emerald-500" />
-        <Stat label="Last grade" value={s.lastGrade || '—'} icon={FiBarChart2} tone="bg-amber-500" />
+        <Stat label="Attempts" value={s.attempts} icon={FiEdit3} tone="text-brand" />
+        <Stat label="Questions" value={s.questions} icon={FiTarget} tone="text-calm" />
+        <Stat label="Accuracy" value={s.accuracy != null ? `${s.accuracy}%` : '—'} icon={FiTrendingUp} tone="text-positive" />
+        <Stat label="Last grade" value={s.lastGrade || '—'} icon={FiBarChart2} tone="text-star" />
       </div>
 
       {/* The same diagnosis the DSAT side gives its students. */}
@@ -61,18 +61,18 @@ export default function IgcscMyResultsPage() {
       </div>
 
       {(data.topics || []).length > 0 && (
-        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5">
-          <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Accuracy by topic</p>
+        <div className="mb-6 border border-line bg-surface p-5">
+          <p className="mb-3 font-code text-[11px] uppercase tracking-[0.12em] text-muted">Accuracy by topic</p>
           <div className="space-y-2">
             {data.topics.slice(0, 10).map((t) => (
               <div key={t.topic} className="flex items-center gap-3">
-                <span className="w-44 flex-shrink-0 truncate text-sm text-slate-700" title={t.topic}>{t.topic}</span>
-                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100">
-                  <div className={`h-full rounded-full ${t.accuracy >= 70 ? 'bg-emerald-500' : t.accuracy >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                <span className="w-44 flex-shrink-0 truncate text-sm text-ink-2" title={t.topic}>{t.topic}</span>
+                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-sunken">
+                  <div className={`h-full rounded-full ${t.accuracy >= 70 ? 'bg-positive' : t.accuracy >= 50 ? 'bg-star' : 'bg-negative'}`}
                     style={{ width: `${t.accuracy ?? 0}%` }} />
                 </div>
-                <span className="w-20 flex-shrink-0 text-right text-xs text-slate-500">
-                  <span className="font-bold text-slate-700">{t.accuracy ?? '—'}%</span> of {t.seen}
+                <span className="w-20 flex-shrink-0 text-right font-code text-xs tabular-nums text-muted">
+                  <span className="font-semibold text-ink">{t.accuracy ?? '—'}%</span> of {t.seen}
                 </span>
               </div>
             ))}
@@ -80,21 +80,21 @@ export default function IgcscMyResultsPage() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
-        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Your attempts</p>
-        <div className="divide-y divide-slate-100">
+      <div className="border border-line bg-surface p-5">
+        <p className="mb-3 font-code text-[11px] uppercase tracking-[0.12em] text-muted">Your attempts</p>
+        <div className="divide-y divide-line">
           {sessions.map((x) => (
             <div key={x._id} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-slate-800">{x.testTitle || 'Practice'}</p>
-                <p className="text-xs text-slate-500">
+                <p className="truncate text-sm font-semibold text-ink">{x.testTitle || 'Practice'}</p>
+                <p className="font-code text-[11px] text-muted">
                   {x.completedAt ? new Date(x.completedAt).toLocaleString() : ''}
                   {x.mode === 'practice' ? ' · Practice' : ' · Test'}
                 </p>
               </div>
               <div className="flex flex-shrink-0 items-center gap-3">
-                <span className="text-sm text-slate-600">{x.correct}/{x.total}</span>
-                <span className="text-sm font-bold text-slate-900">{x.percentage}%</span>
+                <span className="font-code text-sm tabular-nums text-muted">{x.correct}/{x.total}</span>
+                <span className="font-code text-sm font-semibold tabular-nums text-ink">{x.percentage}%</span>
                 <Badge tone={GRADE_TONE[x.grade] || 'slate'}>{x.grade}</Badge>
               </div>
             </div>
@@ -107,13 +107,13 @@ export default function IgcscMyResultsPage() {
 
 function Stat({ label, value, icon: Icon, tone }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4">
-      <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-white ${tone}`}>
+    <div className="flex items-center gap-4 border border-line bg-surface p-4">
+      <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center bg-sunken ${tone}`}>
         <Icon size={18} />
       </span>
       <div className="min-w-0">
-        <p className="text-xl font-extrabold text-slate-900">{value ?? '—'}</p>
-        <p className="truncate text-xs text-slate-500">{label}</p>
+        <p className="font-code text-xl font-medium tabular-nums text-ink">{value ?? '—'}</p>
+        <p className="truncate font-code text-[11px] uppercase tracking-[0.08em] text-muted">{label}</p>
       </div>
     </div>
   )

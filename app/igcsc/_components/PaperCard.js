@@ -9,16 +9,34 @@ import {
   FiCheck, FiLoader, FiLayers, FiKey, FiChevronRight,
 } from 'react-icons/fi'
 import { apiSend } from './api'
-import { Badge } from './ui'
 import { formatPrice, planSummary, VIA_LABEL, ATTEMPT_STATUS } from '../../../lib/igcscStoreShared'
 
 export const BTN_PRIMARY =
-  'inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-1.5 bg-cta px-4 py-2 text-sm font-medium text-on-cta transition hover:bg-cta-hover disabled:cursor-not-allowed disabled:opacity-50'
 export const BTN_SECONDARY =
-  'inline-flex items-center justify-center gap-1.5 rounded-xl border border-indigo-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-1.5 border border-line-strong px-4 py-2 text-sm font-medium text-ink transition hover:border-ink hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-50'
 
 export const DIFFICULTY_TONE = { Easy: 'green', Medium: 'blue', Hard: 'amber', 'Very Hard': 'rose' }
 export const GRADE_TONE = { 'A*': 'green', A: 'green', B: 'blue', C: 'amber', D: 'amber', E: 'red', U: 'red' }
+
+// Editorial status chips. Same tone names the old badges used, so the maps
+// above keep working, drawn in the portal's paper-and-ink palette.
+const CHIP_BASE =
+  'inline-flex max-w-full items-center gap-1 rounded-full border border-line px-2.5 py-0.5 font-code text-[11px] uppercase tracking-[0.08em]'
+const CHIP_TONES = {
+  green: 'bg-[#2f7d4514] text-positive',
+  red: 'bg-[#b4231814] text-negative',
+  rose: 'bg-[#b4231814] text-negative',
+  amber: 'bg-[#b7791f14] text-star',
+  blue: 'bg-[#3f6b6414] text-calm',
+  violet: 'bg-[#3f6b6414] text-calm',
+  indigo: 'bg-brand-50 text-brand',
+  brand: 'bg-brand-50 text-brand',
+  slate: 'bg-sunken text-muted',
+}
+export function Chip({ tone = 'slate', children }) {
+  return <span className={`${CHIP_BASE} ${CHIP_TONES[tone] || CHIP_TONES.slate}`}>{children}</span>
+}
 
 const DAY_MS = 86400000
 
@@ -131,21 +149,21 @@ export function PaperCard({ paper, currency = 'usd', credits = 0, busy, onBuy, o
 
   let side
   if (allowed && free) {
-    side = <span className="text-xs font-medium text-slate-400">No payment needed</span>
+    side = <Chip tone="green"><FiCheck size={12} /> Free</Chip>
   } else if (allowed) {
     side = (
       <div className="min-w-0">
-        <Badge tone="green">{VIA_LABEL[access.via] || 'Unlocked'}</Badge>
-        {access.expiresAt && <p className="mt-1 text-[11px] text-slate-400">until {fmtDate(access.expiresAt)}</p>}
+        <Chip tone="green"><FiCheck size={12} /> {VIA_LABEL[access.via] || 'Unlocked'}</Chip>
+        {access.expiresAt && <p className="mt-1 font-code text-[11px] text-subtle">until {fmtDate(access.expiresAt)}</p>}
       </div>
     )
   } else if (p.isPublished === false) {
-    side = <span className="text-xs font-semibold text-slate-400">Not on sale</span>
+    side = <Chip tone="slate">Not on sale</Chip>
   } else {
     side = (
       <div>
-        <p className="text-lg font-extrabold leading-none text-slate-900">{formatPrice(p.price, currency)}</p>
-        <p className="mt-1 text-[11px] text-slate-400">one paper</p>
+        <p className="font-code text-lg tabular-nums leading-none text-ink">{formatPrice(p.price, currency)}</p>
+        <p className="mt-1 font-code text-[11px] text-subtle">one paper</p>
       </div>
     )
   }
@@ -175,38 +193,38 @@ export function PaperCard({ paper, currency = 'usd', credits = 0, busy, onBuy, o
           title={storeOpen ? undefined : 'The store is closed right now'}
           onClick={() => onBuy && onBuy(p)}
         >
-          {busy === 'buy' ? <Spinner /> : <FiShoppingCart size={14} />} Buy {formatPrice(p.price, currency)}
+          {busy === 'buy' ? <Spinner /> : <FiShoppingCart size={14} />} Buy <span className="font-code tabular-nums">{formatPrice(p.price, currency)}</span>
         </button>
       </>
     )
   }
 
   return (
-    <div className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md">
+    <div className="group lift flex h-full flex-col border border-line bg-surface p-5">
       <div className="flex items-start justify-between gap-2">
         {tags ? (
-          <span className="min-w-0 truncate rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold text-indigo-700">{tags}</span>
+          <span className="min-w-0 truncate font-code text-[11px] uppercase tracking-[0.12em] text-muted">{tags}</span>
         ) : <span />}
-        {p.difficulty && <Badge tone={DIFFICULTY_TONE[p.difficulty] || 'slate'}>{p.difficulty}</Badge>}
+        {p.difficulty && <Chip tone={DIFFICULTY_TONE[p.difficulty] || 'slate'}>{p.difficulty}</Chip>}
       </div>
 
       <Link href={href} className="mt-3 block">
-        <h3 className="text-base font-bold leading-snug text-slate-900 transition-colors group-hover:text-indigo-700">{p.title || 'Test paper'}</h3>
-        {p.unit && <p className="mt-1 line-clamp-2 text-sm text-slate-500">{p.unit}</p>}
+        <h3 className="display text-lg leading-snug text-ink transition-colors group-hover:text-brand">{p.title || 'Test paper'}</h3>
+        {p.unit && <p className="mt-1 line-clamp-2 text-sm text-muted">{p.unit}</p>}
       </Link>
 
       {meta.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium text-slate-500">
+        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 font-code text-[11px] text-muted">
           {meta.map((m) => (
             <span key={m.text} className="inline-flex items-center gap-1">
-              <m.icon size={12} className="text-slate-400" /> {m.text}
+              <m.icon size={12} className="text-subtle" /> {m.text}
             </span>
           ))}
         </div>
       )}
 
       <div className="mt-auto pt-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
           {side}
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </div>
@@ -224,38 +242,38 @@ export function PlanCard({ plan, currency = 'usd', busy, onBuy, storeOpen = true
   const features = Array.isArray(p.features) ? p.features.filter(Boolean) : []
 
   return (
-    <div className={`relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md ${p.highlight ? 'border-indigo-300 ring-2 ring-indigo-500/20' : 'border-slate-200'}`}>
+    <div className={`relative flex h-full flex-col overflow-hidden border bg-surface p-5 ${p.highlight ? 'border-brand' : 'border-line'}`}>
       {p.highlight && (
-        <span className="absolute right-0 top-0 rounded-bl-2xl bg-gradient-to-r from-indigo-600 to-blue-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+        <span className="absolute right-0 top-0 bg-brand px-3 py-1 font-code text-[10px] uppercase tracking-[0.1em] text-on-brand">
           Best value
         </span>
       )}
       <div className={`flex items-center gap-3 ${p.highlight ? 'pr-20' : ''}`}>
-        <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${p.highlight ? 'bg-gradient-to-br from-indigo-600 to-blue-600 text-white' : 'bg-indigo-50 text-indigo-600'}`}>
+        <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center border ${p.highlight ? 'border-brand bg-brand text-on-brand' : 'border-line bg-brand-50 text-brand'}`}>
           <Icon size={18} />
         </span>
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{isCredits ? 'Credit pack' : 'Access pass'}</p>
-          <h3 className="truncate text-base font-bold text-slate-900">{p.name}</h3>
+          <p className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">{isCredits ? 'Credit pack' : 'Access pass'}</p>
+          <h3 className="display truncate text-lg text-ink">{p.name}</h3>
         </div>
       </div>
 
-      <p className="mt-3 text-sm font-semibold text-slate-700">{p.summary || planSummary(p)}</p>
-      {p.description && <p className="mt-1 text-xs leading-relaxed text-slate-500">{p.description}</p>}
+      <p className="mt-3 text-sm font-medium text-ink-2">{p.summary || planSummary(p)}</p>
+      {p.description && <p className="mt-1 text-xs leading-relaxed text-muted">{p.description}</p>}
 
       <div className="mt-4 flex items-baseline gap-1.5">
-        <span className="text-3xl font-extrabold tracking-tight text-slate-900">{formatPrice(price, currency)}</span>
-        {price > 0 && <span className="text-xs text-slate-400">one-time</span>}
+        <span className="font-code text-3xl tabular-nums tracking-tight text-ink">{formatPrice(price, currency)}</span>
+        {price > 0 && <span className="font-code text-xs text-subtle">one-time</span>}
       </div>
       {perPaper > 0 && (
-        <p className="mt-0.5 text-xs font-semibold text-emerald-600">{formatPrice(perPaper, currency)} a paper</p>
+        <p className="mt-0.5 font-code text-xs text-positive">{formatPrice(perPaper, currency)} a paper</p>
       )}
 
       {features.length > 0 && (
         <ul className="mt-4 space-y-2">
           {features.map((f, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
-              <FiCheck size={15} className="mt-0.5 flex-shrink-0 text-emerald-500" />
+            <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+              <FiCheck size={15} className="mt-0.5 flex-shrink-0 text-positive" />
               <span className="min-w-0 break-words">{f}</span>
             </li>
           ))}
@@ -287,25 +305,25 @@ export function AttemptRow({ attempt, showPaper = true }) {
   const when = done ? a.completedAt || a.createdAt : a.createdAt
 
   return (
-    <Link href={attemptHref(a)} className="flex items-center gap-3 rounded-xl px-2 py-3 transition hover:bg-slate-50 sm:px-3">
+    <Link href={attemptHref(a)} className="flex items-center gap-3 px-2 py-3 transition hover:bg-ink/5 sm:px-3">
       <div className="min-w-0 flex-1">
-        {showPaper && <p className="truncate text-sm font-semibold text-slate-900">{a.paperTitle || 'Test paper'}</p>}
-        {showPaper && a.paperUnit && <p className="truncate text-xs text-slate-500">{a.paperUnit}</p>}
+        {showPaper && <p className="truncate text-sm font-medium text-ink">{a.paperTitle || 'Test paper'}</p>}
+        {showPaper && a.paperUnit && <p className="truncate text-xs text-muted">{a.paperUnit}</p>}
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <Badge tone={st.tone}>{st.label}</Badge>
-          {when && <span className="text-[11px] text-slate-400">{done ? '' : 'Started '}{fmtDate(when)}</span>}
+          <Chip tone={st.tone}>{st.label}</Chip>
+          {when && <span className="font-code text-[11px] text-subtle">{done ? '' : 'Started '}{fmtDate(when)}</span>}
         </div>
-        {notes.length > 0 && <p className="mt-1 text-[11px] text-slate-500">{notes.join(' · ')}</p>}
+        {notes.length > 0 && <p className="mt-1 text-[11px] text-muted">{notes.join(' · ')}</p>}
       </div>
       {a.percentage != null ? (
         <div className="flex flex-shrink-0 flex-col items-end gap-1">
-          <span className="text-lg font-extrabold leading-none text-slate-900">{a.percentage}%</span>
-          {a.grade && <Badge tone={GRADE_TONE[a.grade] || 'slate'}>{a.grade}</Badge>}
+          <span className="font-code text-lg tabular-nums leading-none text-ink">{a.percentage}%</span>
+          {a.grade && <Chip tone={GRADE_TONE[a.grade] || 'slate'}>{a.grade}</Chip>}
         </div>
       ) : (
-        <span className="flex-shrink-0 text-xs font-semibold text-indigo-600">{a.status === 'in_progress' ? 'Continue' : 'View'}</span>
+        <span className="flex-shrink-0 font-code text-xs uppercase tracking-[0.08em] text-brand">{a.status === 'in_progress' ? 'Continue' : 'View'}</span>
       )}
-      <FiChevronRight size={16} className="flex-shrink-0 text-slate-300" />
+      <FiChevronRight size={16} className="flex-shrink-0 text-subtle" />
     </Link>
   )
 }
@@ -319,20 +337,20 @@ export function ConfirmDialog({ title, children, confirmLabel = 'Confirm', cance
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-900/50 p-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-ink/40 p-4 backdrop-blur-sm sm:items-center"
       role="dialog"
       aria-modal="true"
       onClick={() => { if (!busy && onCancel) onCancel() }}
     >
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-bold text-slate-900">{title}</h2>
-        <div className="mt-2 text-sm leading-relaxed text-slate-600">{children}</div>
+      <div className="animate-pop w-full max-w-md border border-line-strong bg-surface p-6" onClick={(e) => e.stopPropagation()}>
+        <h2 className="display text-xl text-ink">{title}</h2>
+        <div className="mt-2 text-sm leading-relaxed text-ink-2">{children}</div>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
             type="button"
             onClick={onCancel}
             disabled={busy}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
+            className="border border-line-strong px-4 py-2.5 text-sm font-medium text-ink transition hover:border-ink hover:bg-ink/5 disabled:opacity-50"
           >
             {cancelLabel}
           </button>

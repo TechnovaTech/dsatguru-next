@@ -7,9 +7,9 @@ import {
   FiLoader, FiLock, FiAlertTriangle, FiCheckCircle, FiMonitor, FiX, FiShield, FiLayers,
 } from 'react-icons/fi'
 import { apiGet, apiSend } from '../../_components/api'
-import { Badge, Loading, ErrorState } from '../../_components/ui'
+import { Loading, ErrorState } from '../../_components/ui'
 import {
-  ConfirmDialog, AttemptRow, checkout, fmtDate, paperMinutes, DIFFICULTY_TONE, BTN_PRIMARY, BTN_SECONDARY,
+  ConfirmDialog, AttemptRow, Chip, checkout, fmtDate, paperMinutes, DIFFICULTY_TONE, BTN_PRIMARY, BTN_SECONDARY,
 } from '../../_components/PaperCard'
 import { formatPrice, VIA_LABEL } from '../../../../lib/igcscStoreShared'
 
@@ -40,27 +40,27 @@ function stepsFor(p) {
 
 function Fact({ label, value }) {
   return (
-    <div className="rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/20">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-indigo-100">{label}</p>
-      <p className="mt-0.5 text-lg font-extrabold leading-tight">{value}</p>
+    <div className="bg-surface px-4 py-3">
+      <p className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">{label}</p>
+      <p className="mt-0.5 font-code text-lg tabular-nums leading-tight text-ink">{value}</p>
     </div>
   )
 }
 
 function SectionTile({ icon: Icon, label, tone, children }) {
   const tones = {
-    indigo: 'border-indigo-100 bg-indigo-50/60 text-indigo-600',
-    blue: 'border-blue-100 bg-blue-50/60 text-blue-600',
+    indigo: 'text-brand',
+    blue: 'text-calm',
   }
   return (
-    <div className={`rounded-2xl border p-5 ${tones[tone] || tones.indigo}`}>
+    <div className="border border-line bg-canvas p-5">
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+        <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center border border-line bg-surface ${tones[tone] || tones.indigo}`}>
           <Icon size={18} />
         </span>
-        <p className="text-sm font-bold text-slate-900">{label}</p>
+        <p className="text-sm font-medium text-ink">{label}</p>
       </div>
-      <ul className="mt-4 space-y-2 text-sm text-slate-600">{children}</ul>
+      <ul className="mt-4 space-y-2 text-sm text-ink-2">{children}</ul>
     </div>
   )
 }
@@ -68,7 +68,7 @@ function SectionTile({ icon: Icon, label, tone, children }) {
 function Line({ children }) {
   return (
     <li className="flex items-start gap-2">
-      <FiCheckCircle size={15} className="mt-0.5 flex-shrink-0 text-emerald-500" />
+      <FiCheckCircle size={15} className="mt-0.5 flex-shrink-0 text-positive" />
       <span className="min-w-0">{children}</span>
     </li>
   )
@@ -167,7 +167,7 @@ export default function IgcscPaperPage() {
   if (error || !data?.paper) {
     return (
       <div className="mx-auto max-w-xl">
-        <Link href="/igcsc/store" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-indigo-600">
+        <Link href="/igcsc/store" className="mb-4 inline-flex items-center gap-1.5 font-code text-xs uppercase tracking-[0.08em] text-muted transition hover:text-brand">
           <FiArrowLeft size={15} /> All test papers
         </Link>
         <ErrorState message={error || 'That paper was not found.'} />
@@ -192,48 +192,42 @@ export default function IgcscPaperPage() {
 
   return (
     <div>
-      <Link href="/igcsc/store" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-indigo-600">
+      <Link href="/igcsc/store" className="mb-4 inline-flex items-center gap-1.5 font-code text-xs uppercase tracking-[0.08em] text-muted transition hover:text-brand">
         <FiArrowLeft size={15} /> All test papers
       </Link>
 
-      <section className="relative mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 to-blue-600 px-5 py-7 text-white shadow-lg sm:px-8 sm:py-9">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
-        <div className="pointer-events-none absolute -bottom-24 right-40 h-48 w-48 rounded-full bg-white/5" />
-        <div className="relative">
-          <div className="flex flex-wrap items-center gap-2">
-            {tags && <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold ring-1 ring-white/25">{tags}</span>}
-            {p.difficulty && <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold ring-1 ring-white/25">{p.difficulty}</span>}
-            {allowed && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/20 px-3 py-1 text-xs font-semibold text-white ring-1 ring-emerald-200/40">
-                <FiCheckCircle size={12} /> {VIA_LABEL[access.via] || 'Unlocked'}
-              </span>
-            )}
-          </div>
-          <h1 className="mt-3 break-words text-2xl font-extrabold tracking-tight sm:text-3xl">{p.title || 'Test paper'}</h1>
-          {p.unit && <p className="mt-1 text-base text-indigo-100">{p.unit}</p>}
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Fact label="Questions" value={(p.mcqCount || 0) + (p.writtenCount || 0) || p.questionCount || 0} />
-            <Fact label="Marks" value={p.totalMarks || '—'} />
-            <Fact label="Minutes" value={minutes || '—'} />
-            <Fact label="Format" value={formatLabel} />
-          </div>
+      <section className="mb-6 border-b border-line pb-6">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          {tags && <span className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">{tags}</span>}
+          {p.difficulty && <Chip tone={DIFFICULTY_TONE[p.difficulty] || 'slate'}>{p.difficulty}</Chip>}
+          {allowed && (
+            <Chip tone="green"><FiCheckCircle size={12} /> {VIA_LABEL[access.via] || 'Unlocked'}</Chip>
+          )}
+        </div>
+        <h1 className="display mt-3 break-words text-[clamp(1.7rem,3vw,2.4rem)] leading-tight text-ink">{p.title || 'Test paper'}</h1>
+        {p.unit && <p className="mt-1 text-base text-ink-2">{p.unit}</p>}
+        <div className="mt-6 grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-4">
+          <Fact label="Questions" value={(p.mcqCount || 0) + (p.writtenCount || 0) || p.questionCount || 0} />
+          <Fact label="Marks" value={p.totalMarks || '—'} />
+          <Fact label="Minutes" value={minutes || '—'} />
+          <Fact label="Format" value={formatLabel} />
         </div>
       </section>
 
       {notice && (
-        <div className={`mb-5 flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm ${notice.tone === 'green'
-          ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-          : 'border-rose-200 bg-rose-50 text-rose-800'}`}>
+        <div className={`mb-5 flex items-start gap-3 border px-4 py-3 text-sm ${notice.tone === 'green'
+          ? 'border-positive/40 bg-[#2f7d4514] text-positive'
+          : 'border-negative/40 bg-[#b4231814] text-negative'}`}>
           {notice.tone === 'green' ? <FiCheckCircle size={18} className="mt-0.5 flex-shrink-0" /> : <FiAlertTriangle size={18} className="mt-0.5 flex-shrink-0" />}
           <span className="min-w-0 flex-1">{notice.text}</span>
-          <button type="button" onClick={() => setNotice(null)} className="flex-shrink-0 rounded-lg p-1 opacity-60 hover:opacity-100" aria-label="Dismiss">
+          <button type="button" onClick={() => setNotice(null)} className="flex-shrink-0 p-1 opacity-60 transition hover:opacity-100" aria-label="Dismiss">
             <FiX size={16} />
           </button>
         </div>
       )}
 
       {p.holdReason && (
-        <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="mb-5 border border-star/40 bg-[#b7791f14] px-4 py-3 text-sm text-star">
           <span className="font-semibold">Held back from sale (staff only):</span> {p.holdReason}
         </div>
       )}
@@ -241,18 +235,18 @@ export default function IgcscPaperPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <aside className="lg:order-2">
           <div className="space-y-4 lg:sticky lg:top-24">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="border border-line bg-surface p-5 sm:p-6">
               {allowed ? (
                 <>
-                  <div className="flex items-center gap-2 text-emerald-700">
+                  <div className="flex items-center gap-2 text-positive">
                     <FiCheckCircle size={18} />
-                    <span className="text-sm font-bold">{access.via === 'free' ? 'Free to sit' : 'You have this paper'}</span>
+                    <span className="text-sm font-medium">{access.via === 'free' ? 'Free to sit' : 'You have this paper'}</span>
                   </div>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 font-code text-[11px] text-muted">
                     {access.via && access.via !== 'free' ? VIA_LABEL[access.via] : 'No payment needed'}
                     {access.expiresAt ? ` · until ${fmtDate(access.expiresAt)}` : ''}
                   </p>
-                  <p className="mt-4 text-sm leading-relaxed text-slate-600">
+                  <p className="mt-4 text-sm leading-relaxed text-ink-2">
                     {open
                       ? 'You have an attempt in progress. Pick up where you left off.'
                       : mcq
@@ -265,11 +259,11 @@ export default function IgcscPaperPage() {
                 </>
               ) : p.isPublished ? (
                 <>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Price</p>
-                  <p className="mt-1 text-4xl font-extrabold tracking-tight text-slate-900">{formatPrice(p.price, currency)}</p>
-                  <p className="mt-1 text-xs text-slate-500">One payment. Yours to keep, and sit as often as you like.</p>
+                  <p className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">Price</p>
+                  <p className="mt-1 font-code text-4xl tabular-nums tracking-tight text-ink">{formatPrice(p.price, currency)}</p>
+                  <p className="mt-1 text-xs text-muted">One payment. Yours to keep, and sit as often as you like.</p>
                   {!storeOpen && (
-                    <div className="mt-4 flex items-start gap-2 rounded-xl bg-slate-100 px-3 py-2.5 text-xs font-medium text-slate-600">
+                    <div className="mt-4 flex items-start gap-2 bg-sunken px-3 py-2.5 text-xs font-medium text-ink-2">
                       <FiLock size={14} className="mt-0.5 flex-shrink-0" /> The store is closed right now. Check back soon.
                     </div>
                   )}
@@ -277,7 +271,7 @@ export default function IgcscPaperPage() {
                     {credits > 0 && (
                       <button type="button" onClick={() => setConfirmRedeem(true)} disabled={!!busy} className={`${BTN_PRIMARY} w-full py-3`}>
                         {busy === 'redeem' ? <FiLoader className="animate-spin" size={15} /> : <FiKey size={15} />}
-                        Use 1 credit <span className="font-normal text-indigo-100">({credits} left)</span>
+                        Use 1 credit <span className="font-code font-normal text-on-cta/70">({credits} left)</span>
                       </button>
                     )}
                     <button
@@ -287,39 +281,39 @@ export default function IgcscPaperPage() {
                       className={`${credits > 0 ? BTN_SECONDARY : BTN_PRIMARY} w-full py-3`}
                     >
                       {busy === 'buy' ? <FiLoader className="animate-spin" size={15} /> : <FiShoppingCart size={15} />}
-                      Buy {formatPrice(p.price, currency)}
+                      Buy <span className="font-code tabular-nums">{formatPrice(p.price, currency)}</span>
                     </button>
                   </div>
-                  <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-400">
+                  <p className="mt-3 flex items-center justify-center gap-1.5 font-code text-[11px] text-subtle">
                     <FiShield size={12} /> Secure card payment by Stripe
                   </p>
-                  <div className="mt-4 border-t border-slate-100 pt-4 text-xs leading-relaxed text-slate-500">
+                  <div className="mt-4 border-t border-line pt-4 text-xs leading-relaxed text-muted">
                     Buying several?{' '}
-                    <Link href="/igcsc/store" className="font-semibold text-indigo-600 hover:underline">Plans and credit packs</Link>{' '}
+                    <Link href="/igcsc/store" className="link-rule font-medium text-brand">Plans and credit packs</Link>{' '}
                     cost less per paper. Your tutor can also assign it to you.
                   </div>
                 </>
               ) : (
                 <div className="text-center">
-                  <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400"><FiLock size={22} /></span>
-                  <p className="mt-3 text-sm font-bold text-slate-800">Not on sale right now</p>
-                  <p className="mt-1 text-xs text-slate-500">Ask your tutor if you need this paper.</p>
+                  <span className="mx-auto flex h-12 w-12 items-center justify-center bg-sunken text-muted"><FiLock size={22} /></span>
+                  <p className="mt-3 text-sm font-medium text-ink">Not on sale right now</p>
+                  <p className="mt-1 text-xs text-muted">Ask your tutor if you need this paper.</p>
                 </div>
               )}
             </div>
 
             {!allowed && credits > 0 && (
-              <div className="flex items-center gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/60 px-4 py-3 text-xs text-indigo-800">
-                <FiLayers size={16} className="flex-shrink-0" />
-                You have {credits} credit{credits === 1 ? '' : 's'}. One credit unlocks this paper.
+              <div className="flex items-center gap-3 border border-line bg-brand-50 px-4 py-3 text-xs text-ink-2">
+                <FiLayers size={16} className="flex-shrink-0 text-brand" />
+                You have <span className="font-code tabular-nums">{credits}</span> credit{credits === 1 ? '' : 's'}. One credit unlocks this paper.
               </div>
             )}
           </div>
         </aside>
 
         <div className="space-y-6 lg:order-1 lg:col-span-2">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-            <h2 className="text-base font-extrabold text-slate-900">What&apos;s inside</h2>
+          <section className="border border-line bg-surface p-5 sm:p-6">
+            <h2 className="display text-xl text-ink">What&apos;s <em className="accent">inside</em></h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               {mcq && (
                 <SectionTile icon={FiMonitor} label="Section A · Online MCQ" tone="indigo">
@@ -337,39 +331,39 @@ export default function IgcscPaperPage() {
               )}
             </div>
             {!mcq && !written && (
-              <p className="mt-2 text-sm text-slate-500">This paper has no questions that can be marked yet.</p>
+              <p className="mt-2 text-sm text-muted">This paper has no questions that can be marked yet.</p>
             )}
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-            <h2 className="text-base font-extrabold text-slate-900">How it works</h2>
+          <section className="border border-line bg-surface p-5 sm:p-6">
+            <h2 className="display text-xl text-ink">How it <em className="accent">works</em></h2>
             <ol className="mt-4 grid gap-4 sm:grid-cols-3">
               {stepsFor(p).map((s, i) => (
-                <li key={s.title} className="relative rounded-2xl bg-slate-50 p-4">
+                <li key={s.title} className="relative border border-line bg-canvas p-4">
                   <div className="flex items-center gap-2">
-                    <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-blue-600 text-xs font-bold text-white">
+                    <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-cta font-code text-xs text-on-cta">
                       {i + 1}
                     </span>
-                    <s.icon size={16} className="text-indigo-500" />
+                    <s.icon size={16} className="text-brand" />
                   </div>
-                  <p className="mt-3 text-sm font-bold text-slate-900">{s.title}</p>
-                  <p className="mt-1 text-xs leading-relaxed text-slate-500">{s.text}</p>
+                  <p className="mt-3 text-sm font-medium text-ink">{s.title}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted">{s.text}</p>
                 </li>
               ))}
             </ol>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <section className="border border-line bg-surface p-5 sm:p-6">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-base font-extrabold text-slate-900">My attempts</h2>
-              {attempts.length > 0 && <Badge tone="slate">{attempts.length}</Badge>}
+              <h2 className="display text-xl text-ink">My attempts</h2>
+              {attempts.length > 0 && <Chip tone="slate">{attempts.length}</Chip>}
             </div>
             {attempts.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-400">
+              <p className="py-8 text-center text-sm text-subtle">
                 No attempts yet.{allowed ? ' Press Start when you are ready.' : ''}
               </p>
             ) : (
-              <div className="mt-2 divide-y divide-slate-100">
+              <div className="mt-2 divide-y divide-line">
                 {attempts.map((a) => <AttemptRow key={a._id} attempt={a} showPaper={false} />)}
               </div>
             )}
@@ -386,10 +380,10 @@ export default function IgcscPaperPage() {
           onCancel={() => setConfirmRedeem(false)}
         >
           <p>
-            Unlock <span className="font-semibold text-slate-900">{p.title}</span>{p.unit ? ` — ${p.unit}` : ''}.
+            Unlock <span className="font-medium text-ink">{p.title}</span>{p.unit ? ` — ${p.unit}` : ''}.
             It stays yours, and you can sit it as often as you like.
           </p>
-          <p className="mt-2 text-slate-500">
+          <p className="mt-2 text-muted">
             You have {credits} credit{credits === 1 ? '' : 's'}. {Math.max(0, credits - 1)} left after this.
           </p>
         </ConfirmDialog>

@@ -114,11 +114,12 @@ function StaffDashboard({ isAdmin }) {
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
   const header = (
     <PageHeader
-      title={`${greeting()}${first ? `, ${first}` : ''}`}
+      eyebrow="Staff · Overview"
+      title={first ? <>{greeting()}, <em className="accent">{first}</em></> : greeting()}
       subtitle="Here is what needs you today."
       actions={(
-        <span className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500">
-          <FiCalendar size={13} /> {today}
+        <span className="inline-flex items-center gap-2 border border-line bg-surface px-3 py-2 font-code text-[11px] uppercase tracking-[0.08em] text-muted">
+          <FiCalendar size={13} className="text-brand" /> {today}
         </span>
       )}
     />
@@ -226,7 +227,7 @@ function StaffDashboard({ isAdmin }) {
         >
           <CardNote>Written answers the AI was not sure about. Open one, fix any marks, then release it.</CardNote>
           {c.grading > 0 && (
-            <p className="mx-5 mt-3 flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700">
+            <p className="mx-5 mt-3 flex items-center gap-2 rounded-lg bg-[#3f6b6414] px-3 py-2 text-xs font-medium text-calm">
               <FiClock size={13} className="flex-shrink-0" />
               {plural(c.grading, 'answer sheet')} being marked by the AI right now
             </p>
@@ -234,7 +235,7 @@ function StaffDashboard({ isAdmin }) {
           {needsReview.length === 0 ? (
             <EmptyState icon={FiCheckCircle} title="Nothing to check" hint="When the AI is unsure about a mark, the answer sheet comes here for you." />
           ) : (
-            <div className="mt-2 divide-y divide-slate-100">
+            <div className="mt-2 divide-y divide-line">
               {needsReview.map((a) => <ReviewRow key={a._id} a={a} />)}
             </div>
           )}
@@ -245,7 +246,7 @@ function StaffDashboard({ isAdmin }) {
           {recent.length === 0 ? (
             <EmptyState icon={FiInbox} title="No results yet" hint="Results appear here as soon as a student hands in a paper and it is marked." />
           ) : (
-            <div className="mt-2 divide-y divide-slate-100">
+            <div className="mt-2 divide-y divide-line">
               {recent.map((r) => <ResultRow key={r._id} r={r} />)}
             </div>
           )}
@@ -275,12 +276,13 @@ const QUICK = [
   { href: '/igcsc/store-admin', icon: FiShoppingBag, title: 'Prices & plans', hint: 'Set paper prices and credit packs, and open or close the store.', only: 'admin' },
 ]
 
-// Whole Tailwind class strings, so the compiler keeps every one of them.
+// Whole Tailwind class strings, so the compiler keeps every one of them. One
+// paper card per chore; a 2px rule on top carries the tone.
 const ACTION_TONES = {
-  violet: { card: 'border-violet-200 bg-violet-50 hover:border-violet-300', icon: 'bg-violet-600', title: 'text-violet-950', text: 'text-violet-800', link: 'text-violet-700' },
-  rose: { card: 'border-rose-200 bg-rose-50 hover:border-rose-300', icon: 'bg-rose-600', title: 'text-rose-950', text: 'text-rose-800', link: 'text-rose-700' },
-  amber: { card: 'border-amber-200 bg-amber-50 hover:border-amber-300', icon: 'bg-amber-500', title: 'text-amber-950', text: 'text-amber-800', link: 'text-amber-700' },
-  indigo: { card: 'border-indigo-200 bg-indigo-50 hover:border-indigo-300', icon: 'bg-indigo-600', title: 'text-indigo-950', text: 'text-indigo-800', link: 'text-indigo-700' },
+  violet: { top: 'border-t-brand', icon: 'bg-brand text-on-brand', link: 'text-brand' },
+  rose: { top: 'border-t-negative', icon: 'bg-negative text-white', link: 'text-negative' },
+  amber: { top: 'border-t-star', icon: 'bg-star text-white', link: 'text-[#8a5a12]' },
+  indigo: { top: 'border-t-calm', icon: 'bg-calm text-white', link: 'text-calm' },
 }
 
 function ActionCard({ href, tone, icon: Icon, title, hint, cta, list, more }) {
@@ -288,32 +290,32 @@ function ActionCard({ href, tone, icon: Icon, title, hint, cta, list, more }) {
   const rows = Array.isArray(list) ? list.slice(0, 3) : []
   const rest = Math.max(0, Number(more || 0) - rows.length)
   return (
-    <Link href={href} className={`group flex flex-col rounded-2xl border p-5 shadow-sm transition-colors ${t.card}`}>
+    <Link href={href} className={`group flex flex-col border border-line border-t-2 bg-surface p-5 transition-colors hover:border-line-strong ${t.top}`}>
       <div className="flex items-start gap-3">
-        <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-white ${t.icon}`}>
+        <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center ${t.icon}`}>
           <Icon size={18} />
         </span>
         <div className="min-w-0">
-          <p className={`text-base font-bold leading-snug ${t.title}`}>{title}</p>
-          <p className={`mt-1 text-sm leading-relaxed ${t.text}`}>{hint}</p>
+          <p className="text-base font-semibold leading-snug text-ink">{title}</p>
+          <p className="mt-1 text-sm leading-relaxed text-muted">{hint}</p>
         </div>
       </div>
       {rows.length > 0 && (
-        <ul className="mt-4 space-y-1.5">
+        <ul className="mt-4 divide-y divide-line border border-line bg-canvas/60">
           {rows.map((o) => (
-            <li key={o._id} className="flex items-center justify-between gap-3 rounded-lg bg-white/80 px-3 py-2 text-xs">
+            <li key={o._id} className="flex items-center justify-between gap-3 px-3 py-2 text-xs">
               <span className="min-w-0 truncate">
-                <span className="font-semibold text-slate-800">{o.student?.name || 'A student'}</span>
-                <span className="text-slate-500"> · {paperName(o.paper?.title, o.paper?.unit)}</span>
+                <span className="font-semibold text-ink">{o.student?.name || 'A student'}</span>
+                <span className="text-muted"> · {paperName(o.paper?.title, o.paper?.unit)}</span>
               </span>
-              {o.dueAt && <span className="flex-shrink-0 font-semibold text-amber-700">due {shortDate(o.dueAt)}</span>}
+              {o.dueAt && <span className="flex-shrink-0 font-code text-[11px] text-[#8a5a12]">due {shortDate(o.dueAt)}</span>}
             </li>
           ))}
-          {rest > 0 && <li className={`px-1 text-xs font-medium ${t.text}`}>and {rest.toLocaleString()} more</li>}
+          {rest > 0 && <li className="px-3 py-2 text-xs font-medium text-muted">and {rest.toLocaleString()} more</li>}
         </ul>
       )}
-      <span className={`mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-semibold ${t.link}`}>
-        {cta} <FiArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+      <span className={`mt-auto inline-flex items-center gap-1.5 pt-4 font-code text-[11px] uppercase tracking-[0.08em] ${t.link}`}>
+        {cta} <FiArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
       </span>
     </Link>
   )
@@ -321,13 +323,13 @@ function ActionCard({ href, tone, icon: Icon, title, hint, cta, list, more }) {
 
 function AllCaughtUp() {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
-      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
+    <div className="flex items-start gap-3 border border-line border-t-2 border-t-positive bg-surface p-5">
+      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center bg-positive text-white">
         <FiCheckCircle size={18} />
       </span>
       <div>
-        <p className="text-base font-bold text-emerald-950">All caught up</p>
-        <p className="mt-1 text-sm leading-relaxed text-emerald-800">
+        <p className="text-base font-semibold text-ink">All caught up</p>
+        <p className="mt-1 text-sm leading-relaxed text-muted">
           Nothing is waiting for you. Answers to check and overdue work will show up here.
         </p>
       </div>
@@ -336,17 +338,17 @@ function AllCaughtUp() {
 }
 
 function SectionLabel({ children, className = '' }) {
-  return <h2 className={`mb-3 text-xs font-bold uppercase tracking-wide text-slate-500 ${className}`}>{children}</h2>
+  return <h2 className={`mb-3 font-code text-[11px] uppercase tracking-[0.12em] text-muted ${className}`}>{children}</h2>
 }
 
 function CardNote({ children }) {
-  return <p className="px-5 pt-3 text-xs leading-relaxed text-slate-500">{children}</p>
+  return <p className="px-5 pt-3 text-xs leading-relaxed text-muted">{children}</p>
 }
 
 function CardLink({ href, children }) {
   return (
-    <Link href={href} className="flex flex-shrink-0 items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
-      {children} <FiArrowRight size={13} />
+    <Link href={href} className="group flex flex-shrink-0 items-center gap-1 font-code text-[11px] uppercase tracking-[0.08em] text-brand">
+      {children} <FiArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
     </Link>
   )
 }
@@ -354,7 +356,7 @@ function CardLink({ href, children }) {
 function Initials({ name }) {
   const letters = String(name || '').trim().split(/\s+/).slice(0, 2).map((w) => w[0] || '').join('').toUpperCase()
   return (
-    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-sunken font-code text-xs font-medium text-ink-2">
       {letters || '?'}
     </span>
   )
@@ -362,15 +364,15 @@ function Initials({ name }) {
 
 function ReviewRow({ a }) {
   return (
-    <Link href={`/igcsc/grading/${a._id}`} className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-slate-50">
+    <Link href={`/igcsc/grading/${a._id}`} className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-ink/5">
       <Initials name={a.userName} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-slate-800">{a.userName || 'Student'}</p>
-        <p className="truncate text-xs text-slate-500">{paperName(a.paperTitle, a.paperUnit)}</p>
+        <p className="truncate text-sm font-semibold text-ink">{a.userName || 'Student'}</p>
+        <p className="truncate text-xs text-muted">{paperName(a.paperTitle, a.paperUnit)}</p>
       </div>
       <div className="flex flex-shrink-0 flex-col items-end gap-1">
         {a.flagged > 0 && <Badge tone="violet">{a.flagged} to check</Badge>}
-        <span className="text-[11px] text-slate-400">{ago(a.submittedAt)}</span>
+        <span className="font-code text-[11px] text-subtle">{ago(a.submittedAt)}</span>
       </div>
     </Link>
   )
@@ -379,20 +381,20 @@ function ReviewRow({ a }) {
 function ResultRow({ r }) {
   const pct = r.percentage != null && Number.isFinite(Number(r.percentage)) ? `${Math.round(Number(r.percentage))}%` : '—'
   return (
-    <Link href={`/igcsc/attempt/${r._id}/result`} className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-slate-50">
+    <Link href={`/igcsc/attempt/${r._id}/result`} className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-ink/5">
       <Initials name={r.userName} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-slate-800">{r.userName || 'Student'}</p>
-        <p className="truncate text-xs text-slate-500">{paperName(r.paperTitle, r.paperUnit)}</p>
+        <p className="truncate text-sm font-semibold text-ink">{r.userName || 'Student'}</p>
+        <p className="truncate text-xs text-muted">{paperName(r.paperTitle, r.paperUnit)}</p>
       </div>
       <div className="flex flex-shrink-0 flex-col items-end gap-1">
         <span className="flex items-center gap-2">
           {r.grade && <Badge tone={gradeTone(r.grade)}>{r.grade}</Badge>}
-          <span className="text-sm font-bold text-slate-900">{pct}</span>
+          <span className="font-code text-sm font-semibold tabular-nums text-ink">{pct}</span>
         </span>
         {r.status === 'needs_review'
           ? <Badge tone="violet">Provisional</Badge>
-          : <span className="text-[11px] text-slate-400">{ago(r.completedAt)}</span>}
+          : <span className="font-code text-[11px] text-subtle">{ago(r.completedAt)}</span>}
       </div>
     </Link>
   )
@@ -400,16 +402,16 @@ function ResultRow({ r }) {
 
 function QuickAction({ href, icon: Icon, title, hint }) {
   return (
-    <Link href={href} className="group flex items-start gap-3 rounded-xl border border-slate-200 p-4 transition-colors hover:border-indigo-200 hover:bg-indigo-50/40">
-      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition-colors group-hover:bg-indigo-100">
+    <Link href={href} className="group flex items-start gap-3 border border-line p-4 transition-colors hover:border-ink hover:bg-brand-50">
+      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center bg-sunken text-brand transition-colors group-hover:bg-brand-soft">
         <Icon size={18} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-1 text-sm font-bold text-slate-800">
+        <span className="flex items-center gap-1 text-sm font-semibold text-ink">
           {title}
-          <FiArrowRight size={13} className="text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-indigo-500" />
+          <FiArrowRight size={13} className="text-subtle transition-transform group-hover:translate-x-1 group-hover:text-brand" />
         </span>
-        <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">{hint}</span>
+        <span className="mt-0.5 block text-xs leading-relaxed text-muted">{hint}</span>
       </span>
     </Link>
   )
@@ -422,7 +424,7 @@ function LoadError({ message, onRetry }) {
       <button
         type="button"
         onClick={onRetry}
-        className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
+        className="inline-flex items-center gap-2 bg-cta px-4 py-2.5 text-sm font-medium text-on-cta transition-colors hover:bg-cta-hover"
       >
         <FiRefreshCw size={14} /> Try again
       </button>
@@ -434,30 +436,30 @@ function LoadError({ message, onRetry }) {
 function DashboardSkeleton() {
   return (
     <div className="animate-pulse" aria-busy="true" aria-label="Loading dashboard">
-      <div className="mb-3 h-3 w-20 rounded bg-slate-200" />
+      <div className="mb-3 h-3 w-20 rounded bg-sunken" />
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {[0, 1].map((i) => <div key={i} className="h-36 rounded-2xl border border-slate-200 bg-white" />)}
+        {[0, 1].map((i) => <div key={i} className="h-36 rounded-2xl border border-line bg-surface" />)}
       </div>
-      <div className="mb-3 mt-6 h-3 w-24 rounded bg-slate-200" />
+      <div className="mb-3 mt-6 h-3 w-24 rounded bg-sunken" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="h-3 w-20 rounded bg-slate-200" />
-            <div className="mt-3 h-7 w-14 rounded bg-slate-200" />
-            <div className="mt-2 h-3 w-28 rounded bg-slate-100" />
+          <div key={i} className="rounded-2xl border border-line bg-surface p-5">
+            <div className="h-3 w-20 rounded bg-sunken" />
+            <div className="mt-3 h-7 w-14 rounded bg-sunken" />
+            <div className="mt-2 h-3 w-28 rounded bg-sunken" />
           </div>
         ))}
       </div>
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {[0, 1].map((i) => (
-          <div key={i} className="rounded-2xl border border-slate-200 bg-white">
-            <div className="border-b border-slate-100 px-5 py-4"><div className="h-4 w-40 rounded bg-slate-200" /></div>
+          <div key={i} className="rounded-2xl border border-line bg-surface">
+            <div className="border-b border-line px-5 py-4"><div className="h-4 w-40 rounded bg-sunken" /></div>
             {[0, 1, 2, 3].map((j) => (
               <div key={j} className="flex items-center gap-3 px-5 py-3.5">
-                <div className="h-9 w-9 rounded-full bg-slate-100" />
+                <div className="h-9 w-9 rounded-full bg-sunken" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3 w-1/3 rounded bg-slate-200" />
-                  <div className="h-3 w-2/3 rounded bg-slate-100" />
+                  <div className="h-3 w-1/3 rounded bg-sunken" />
+                  <div className="h-3 w-2/3 rounded bg-sunken" />
                 </div>
               </div>
             ))}

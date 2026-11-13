@@ -12,14 +12,10 @@ import {
   FiLock, FiPenTool, FiInfo, FiCheckSquare,
 } from 'react-icons/fi'
 import { apiGet, apiSend, authToken } from '../../../_components/api'
-import { Loading, ErrorState, EmptyState, Badge } from '../../../_components/ui'
+import { Loading, ErrorState, EmptyState } from '../../../_components/ui'
+import { Chip, BTN_PRIMARY, BTN_SECONDARY } from '../../../_components/PaperCard'
 import { igcscUser } from '../../../_components/auth'
 import { compressImage } from '../../../_components/imageCompress'
-
-const BTN_PRIMARY =
-  'inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50'
-const BTN_SECONDARY =
-  'inline-flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white px-5 py-2.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50'
 
 // Same limit as MAX_PAGES in lib/igcscFiles.js, which is server-only.
 const MAX_PAGES = 20
@@ -357,7 +353,7 @@ export default function WrittenSectionPage() {
     return (
       <div className="mx-auto max-w-3xl">
         <BackLink href={hub} label="Back to test" />
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border border-line bg-surface">
           <EmptyState icon={FiFileText} title="This paper has no written section" hint="Everything in it is answered online." />
         </div>
       </div>
@@ -381,35 +377,29 @@ export default function WrittenSectionPage() {
     <div className="mx-auto max-w-3xl">
       <BackLink href={hub} label="Back to test" />
 
-      <div className="relative mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-blue-600 p-6 text-white shadow-lg sm:p-8">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
-        <div className="pointer-events-none absolute -bottom-20 right-24 h-40 w-40 rounded-full bg-white/5" />
-        <div className="relative">
-          <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white/90">
-            Section B · Written
-          </span>
-          <h1 className="mt-3 break-words text-2xl font-extrabold tracking-tight sm:text-3xl">{att.paperTitle || 'Test paper'}</h1>
-          {att.paperUnit && <p className="mt-1 break-words text-sm text-indigo-100 sm:text-base">{att.paperUnit}</p>}
-          <p className="mt-4 text-xs text-indigo-100/90">
-            {att.written.count} question{att.written.count === 1 ? '' : 's'} · {fmtNum(att.written.max)} marks · answered on paper, marked by AI
-            {staffViewer && att.userName ? ` · ${att.userName}'s pages` : ''}
-          </p>
-        </div>
-      </div>
+      <header className="mb-6 border-b border-line pb-5">
+        <p className="font-code text-[11px] uppercase tracking-[0.14em] text-brand">Section B · Written</p>
+        <h1 className="display mt-2 break-words text-[clamp(1.7rem,3vw,2.4rem)] leading-tight text-ink">{att.paperTitle || 'Test paper'}</h1>
+        {att.paperUnit && <p className="mt-1 break-words text-sm text-muted">{att.paperUnit}</p>}
+        <p className="mt-3 text-xs text-muted">
+          {att.written.count} question{att.written.count === 1 ? '' : 's'} · {fmtNum(att.written.max)} marks · answered on paper, marked by AI
+          {staffViewer && att.userName ? ` · ${att.userName}'s pages` : ''}
+        </p>
+      </header>
 
       {pollError && (
-        <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-medium text-amber-800">
-          <FiAlertTriangle size={14} /> Could not refresh just now. Retrying…
+        <div className="mb-4 flex items-center gap-2 border border-line bg-canvas px-4 py-2.5 text-xs text-ink-2">
+          <FiAlertTriangle size={14} className="text-star" /> Could not refresh just now. Retrying…
         </div>
       )}
 
       {notice && (
-        <div className={`mb-4 flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm ${notice.tone === 'red'
-          ? 'border-rose-200 bg-rose-50 text-rose-800'
-          : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
-          <FiAlertTriangle size={17} className="mt-0.5 flex-shrink-0" />
+        <div className={`mb-4 flex items-start gap-3 border-l-2 px-4 py-3 text-sm ${notice.tone === 'red'
+          ? 'border-negative bg-[#b4231814] text-negative'
+          : 'border-star bg-[#b7791f14] text-ink-2'}`}>
+          <FiAlertTriangle size={17} className={`mt-0.5 flex-shrink-0 ${notice.tone === 'red' ? '' : 'text-star'}`} />
           <span className="min-w-0 flex-1">{notice.text}</span>
-          <button type="button" onClick={() => setNotice(null)} className="flex-shrink-0 rounded-lg p-1 opacity-60 hover:opacity-100" aria-label="Dismiss">
+          <button type="button" onClick={() => setNotice(null)} className="flex-shrink-0 p-1 opacity-60 transition-opacity hover:opacity-100" aria-label="Dismiss">
             <FiX size={16} />
           </button>
         </div>
@@ -418,13 +408,13 @@ export default function WrittenSectionPage() {
       {editable && isOwner ? (
         <div className="space-y-5">
           {wState === 'error' && (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 sm:p-5">
+            <div className="border border-negative/40 bg-[#b4231808] p-4 sm:p-5">
               <div className="flex items-start gap-3">
-                <FiAlertTriangle size={18} className="mt-0.5 flex-shrink-0 text-rose-600" />
+                <FiAlertTriangle size={18} className="mt-0.5 flex-shrink-0 text-negative" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-rose-800">We could not mark your answers</p>
-                  <p className="mt-0.5 text-sm text-rose-700">{att.written.error || 'Marking failed.'}</p>
-                  <p className="mt-1 text-xs text-rose-600">Your pages are still here. Change them if you need to, then try again.</p>
+                  <p className="text-sm font-bold text-negative">We could not mark your answers</p>
+                  <p className="mt-0.5 text-sm text-ink-2">{att.written.error || 'Marking failed.'}</p>
+                  <p className="mt-1 text-xs text-muted">Your pages are still here. Change them if you need to, then try again.</p>
                 </div>
               </div>
               <div className="mt-4 flex justify-end">
@@ -464,11 +454,11 @@ export default function WrittenSectionPage() {
               </label>
             </div>
             <div className="mt-4 flex items-center justify-between gap-3 text-xs">
-              <span className="font-semibold text-slate-600">
+              <span className="font-code text-ink-2">
                 {uploads.length} of {MAX_PAGES} pages uploaded
               </span>
               {busy && (
-                <span className="inline-flex items-center gap-1.5 font-medium text-indigo-600">
+                <span className="inline-flex items-center gap-1.5 font-code text-brand">
                   <FiLoader className="animate-spin" size={13} /> Uploading…
                 </span>
               )}
@@ -493,23 +483,23 @@ export default function WrittenSectionPage() {
                 ))}
               </div>
             ) : (
-              <div className="mt-3 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 px-6 py-10 text-center">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500"><FiCamera size={22} /></span>
-                <p className="text-sm font-semibold text-slate-700">No pages yet</p>
-                <p className="max-w-xs text-xs text-slate-400">Take a photo of each answer page, or choose them from your gallery.</p>
+              <div className="mt-3 flex flex-col items-center justify-center gap-2 border border-dashed border-line-strong px-6 py-10 text-center">
+                <span className="flex h-12 w-12 items-center justify-center bg-sunken text-brand"><FiCamera size={22} /></span>
+                <p className="text-sm font-semibold text-ink">No pages yet</p>
+                <p className="max-w-xs text-xs text-muted">Take a photo of each answer page, or choose them from your gallery.</p>
               </div>
             )}
           </StepCard>
 
           <StepCard n={3} title="Send for marking" subtitle="Once sent, your pages are locked. Marking usually takes under two minutes.">
             {failed.length > 0 && (
-              <p className="mb-3 flex items-start gap-2 rounded-xl bg-rose-50 px-3 py-2.5 text-xs font-medium text-rose-700">
+              <p className="mb-3 flex items-start gap-2 border-l-2 border-negative bg-[#b4231814] px-3 py-2.5 text-xs text-negative">
                 <FiAlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
                 {failed.length} photo{failed.length === 1 ? '' : 's'} did not upload. Retry or remove {failed.length === 1 ? 'it' : 'them'} first.
               </p>
             )}
             {!uploads.length && !busy && (
-              <p className="mb-3 text-xs text-slate-500">Upload at least one page to continue.</p>
+              <p className="mb-3 text-xs text-muted">Upload at least one page to continue.</p>
             )}
             <button type="button" onClick={() => setConfirmOpen(true)} disabled={!canSubmit} className={`${BTN_PRIMARY} w-full py-3 text-base sm:w-auto`}>
               <FiSend size={16} /> {submitLabel}
@@ -521,23 +511,21 @@ export default function WrittenSectionPage() {
           {wState === 'grading' && <GradingCard />}
 
           {done && (
-            <div className={`rounded-2xl border p-5 shadow-sm sm:p-6 ${wState === 'needs_review'
-              ? 'border-violet-200 bg-gradient-to-br from-violet-50 to-white'
-              : 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-white'}`}>
+            <div className={`border p-5 sm:p-6 ${wState === 'needs_review' ? 'border-calm/40 bg-surface' : 'border-positive/40 bg-surface'}`}>
               <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
-                  <span className={`flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-sm ${wState === 'needs_review' ? 'bg-violet-600' : 'bg-emerald-600'}`}>
+                  <span className={`flex h-14 w-14 flex-shrink-0 items-center justify-center text-on-brand ${wState === 'needs_review' ? 'bg-calm' : 'bg-positive'}`}>
                     {wState === 'needs_review' ? <FiUserCheck size={24} /> : <FiCheckCircle size={24} />}
                   </span>
                   <div className="min-w-0">
-                    <p className={`text-xs font-semibold uppercase tracking-wide ${wState === 'needs_review' ? 'text-violet-700' : 'text-emerald-700'}`}>
+                    <p className={`font-code text-[11px] uppercase tracking-[0.12em] ${wState === 'needs_review' ? 'text-calm' : 'text-positive'}`}>
                       {wState === 'needs_review' ? 'Marked · tutor checking' : 'Marked'}
                     </p>
-                    <p className="mt-0.5 text-2xl font-extrabold text-slate-900 tabular-nums">
+                    <p className="mt-0.5 font-code text-2xl font-bold tabular-nums text-ink">
                       {att.written.score == null ? '—' : fmtNum(att.written.score)}
-                      <span className="text-base font-bold text-slate-400"> / {fmtNum(att.written.max)}</span>
+                      <span className="text-base font-medium text-muted"> / {fmtNum(att.written.max)}</span>
                     </p>
-                    <p className="mt-0.5 text-xs text-slate-500">
+                    <p className="mt-0.5 text-xs text-muted">
                       {wState === 'needs_review'
                         ? 'The AI was unsure about some answers. A tutor will confirm them, so your mark may change.'
                         : att.written.reviewedBy ? `Checked by ${att.written.reviewedBy}.` : 'Marked against the mark scheme.'}
@@ -545,7 +533,7 @@ export default function WrittenSectionPage() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row">
-                  <Link href={`${hub}/result`} className={BTN_PRIMARY}>See results <FiArrowRight size={15} /></Link>
+                  <Link href={`${hub}/result`} className={`group ${BTN_PRIMARY}`}>See results <FiArrowRight size={15} className="transition-transform group-hover:translate-x-1" /></Link>
                   <Link href={hub} className={BTN_SECONDARY}>Back to test</Link>
                 </div>
               </div>
@@ -553,12 +541,12 @@ export default function WrittenSectionPage() {
           )}
 
           {staffViewer && editable && (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="border border-line bg-surface p-5">
               <div className="flex items-start gap-3">
-                <FiInfo size={18} className="mt-0.5 flex-shrink-0 text-slate-400" />
+                <FiInfo size={18} className="mt-0.5 flex-shrink-0 text-subtle" />
                 <div>
-                  <p className="text-sm font-semibold text-slate-800">Not sent for marking yet</p>
-                  <p className="mt-0.5 text-xs text-slate-500">
+                  <p className="text-sm font-semibold text-ink">Not sent for marking yet</p>
+                  <p className="mt-0.5 text-xs text-muted">
                     {wState === 'error' ? att.written.error || 'The last marking run failed.' : 'The student has not submitted their pages.'}
                   </p>
                 </div>
@@ -566,12 +554,12 @@ export default function WrittenSectionPage() {
             </div>
           )}
 
-          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
-              <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800">
-                <FiLock size={14} className="text-slate-400" /> {staffViewer ? 'Pages' : 'Your pages'}
+          <div className="border border-line bg-surface">
+            <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
+              <h2 className="flex items-center gap-2 font-code text-[11px] uppercase tracking-[0.12em] text-ink-2">
+                <FiLock size={14} className="text-subtle" /> {staffViewer ? 'Pages' : 'Your pages'}
               </h2>
-              <Badge tone="slate">{uploads.length} page{uploads.length === 1 ? '' : 's'}</Badge>
+              <Chip tone="slate">{uploads.length} page{uploads.length === 1 ? '' : 's'}</Chip>
             </div>
             {uploads.length ? (
               <div className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-3 md:grid-cols-4">
@@ -587,11 +575,11 @@ export default function WrittenSectionPage() {
       )}
 
       {isOwner && (mState === 'not_started' || mState === 'in_progress') && (
-        <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-5 flex flex-col gap-3 border border-line bg-brand-50 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <FiCheckSquare size={18} className="mt-0.5 flex-shrink-0 text-indigo-600" />
-            <p className="text-sm text-indigo-900">
-              <span className="font-semibold">Section A (online MCQ) is still open.</span>{' '}
+            <FiCheckSquare size={18} className="mt-0.5 flex-shrink-0 text-brand" />
+            <p className="text-sm text-ink-2">
+              <span className="font-semibold text-ink">Section A (online MCQ) is still open.</span>{' '}
               Your full result appears once both sections are done.
             </p>
           </div>
@@ -617,24 +605,24 @@ export default function WrittenSectionPage() {
 
 function BackLink({ href, label }) {
   return (
-    <Link href={href} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition hover:text-indigo-700">
-      <FiArrowLeft size={15} /> {label}
+    <Link href={href} className="mb-4 inline-flex items-center gap-1.5 font-code text-[11px] uppercase tracking-[0.12em] text-muted transition-colors hover:text-brand">
+      <FiArrowLeft size={13} /> {label}
     </Link>
   )
 }
 
 function StepCard({ n, title, subtitle, done = false, children }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="border border-line bg-surface p-5 sm:p-6">
       <div className="mb-4 flex items-start gap-3">
-        <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm ${done
-          ? 'bg-emerald-500'
-          : 'bg-gradient-to-br from-indigo-600 to-blue-600'}`}>
+        <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full font-code text-sm font-bold ${done
+          ? 'bg-positive text-on-brand'
+          : 'bg-cta text-on-cta'}`}>
           {done ? <FiCheckCircle size={17} /> : n}
         </span>
         <div className="min-w-0">
-          <h2 className="text-base font-bold text-slate-900">{title}</h2>
-          {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
+          <h2 className="display text-lg leading-snug text-ink">{title}</h2>
+          {subtitle && <p className="mt-0.5 text-xs text-muted">{subtitle}</p>}
         </div>
       </div>
       {children}
@@ -644,8 +632,8 @@ function StepCard({ n, title, subtitle, done = false, children }) {
 
 function Tip({ icon: Icon, children }) {
   return (
-    <li className="flex items-start gap-2.5 rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-600">
-      <Icon size={14} className="mt-0.5 flex-shrink-0 text-indigo-500" />
+    <li className="flex items-start gap-2.5 border border-line bg-canvas px-3 py-2.5 text-xs text-ink-2">
+      <Icon size={14} className="mt-0.5 flex-shrink-0 text-brand" />
       <span className="min-w-0">{children}</span>
     </li>
   )
@@ -654,12 +642,12 @@ function Tip({ icon: Icon, children }) {
 function PageThumb({ upload, index, canDelete, deleting = false, onDelete, onZoom, onError }) {
   const label = `Page ${index + 1}`
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+    <div className="group relative overflow-hidden border border-line bg-sunken">
       <button type="button" onClick={() => onZoom({ src: upload.url, label })} className="block w-full" aria-label={`View ${label}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={upload.url} alt={label} loading="lazy" onError={onError} className="aspect-[3/4] w-full object-cover" />
       </button>
-      <span className="pointer-events-none absolute bottom-2 left-2 rounded-md bg-slate-900/75 px-2 py-0.5 text-[11px] font-semibold text-white">
+      <span className="pointer-events-none absolute bottom-2 left-2 bg-cta/80 px-2 py-0.5 font-code text-[11px] text-on-cta">
         {label}
       </span>
       {canDelete && (
@@ -667,7 +655,7 @@ function PageThumb({ upload, index, canDelete, deleting = false, onDelete, onZoo
           type="button"
           onClick={() => onDelete(upload, index)}
           disabled={deleting}
-          className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-rose-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-rose-50 disabled:opacity-60"
+          className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full border border-line bg-surface text-negative transition-colors hover:border-negative/40 disabled:opacity-60"
           aria-label={`Remove ${label}`}
         >
           {deleting ? <FiLoader className="animate-spin" size={14} /> : <FiTrash2 size={14} />}
@@ -685,34 +673,34 @@ function PendingThumb({ item, onRetry, onRemove }) {
       ? `Uploading ${item.progress || 0}%`
       : item.status === 'queued' ? 'Waiting…' : 'Not uploaded'
   return (
-    <div className={`relative flex aspect-[3/4] flex-col overflow-hidden rounded-xl border ${failed ? 'border-rose-200 bg-rose-50' : 'border-indigo-100 bg-indigo-50/50'}`}>
+    <div className={`relative flex aspect-[3/4] flex-col overflow-hidden border ${failed ? 'border-negative/40 bg-[#b4231808]' : 'border-line bg-canvas'}`}>
       {item.preview ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={item.preview} alt="" className={`absolute inset-0 h-full w-full object-cover ${failed ? 'opacity-30' : 'opacity-50'}`} />
       ) : null}
       <div className="relative flex flex-1 flex-col items-center justify-center gap-2 p-3 text-center">
         {failed ? (
-          <FiAlertTriangle size={20} className="text-rose-500" />
+          <FiAlertTriangle size={20} className="text-negative" />
         ) : (
-          <FiLoader size={20} className="animate-spin text-indigo-600" />
+          <FiLoader size={20} className="animate-spin text-brand" />
         )}
-        <p className={`text-xs font-semibold ${failed ? 'text-rose-700' : 'text-indigo-800'}`}>{label}</p>
-        {failed && item.error && <p className="line-clamp-4 text-[11px] leading-snug text-rose-700">{item.error}</p>}
-        {!failed && <p className="max-w-full truncate text-[10px] text-slate-500">{item.name}</p>}
+        <p className={`font-code text-xs ${failed ? 'text-negative' : 'text-ink-2'}`}>{label}</p>
+        {failed && item.error && <p className="line-clamp-4 text-[11px] leading-snug text-negative">{item.error}</p>}
+        {!failed && <p className="max-w-full truncate text-[10px] text-muted">{item.name}</p>}
       </div>
       {item.status === 'uploading' && (
-        <div className="relative h-1.5 w-full bg-indigo-100">
-          <div className="h-full bg-gradient-to-r from-indigo-600 to-blue-600 transition-all" style={{ width: `${item.progress || 0}%` }} />
+        <div className="relative h-1.5 w-full bg-sunken">
+          <div className="h-full bg-brand transition-all" style={{ width: `${item.progress || 0}%` }} />
         </div>
       )}
       {(failed || item.status === 'queued') && (
         <div className="relative flex gap-1.5 p-2">
           {failed && item.retryable && (
-            <button type="button" onClick={() => onRetry(item.key)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-white px-2 py-1.5 text-[11px] font-semibold text-indigo-700 ring-1 ring-indigo-200 hover:bg-indigo-50">
+            <button type="button" onClick={() => onRetry(item.key)} className="flex flex-1 items-center justify-center gap-1 border border-line bg-surface px-2 py-1.5 font-code text-[11px] text-brand transition-colors hover:border-brand/40 hover:bg-brand-50">
               <FiRefreshCw size={12} /> Retry
             </button>
           )}
-          <button type="button" onClick={() => onRemove(item.key)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-white px-2 py-1.5 text-[11px] font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50">
+          <button type="button" onClick={() => onRemove(item.key)} className="flex flex-1 items-center justify-center gap-1 border border-line bg-surface px-2 py-1.5 font-code text-[11px] text-ink-2 transition-colors hover:border-ink hover:bg-ink/5">
             <FiX size={12} /> Remove
           </button>
         </div>
@@ -723,20 +711,20 @@ function PendingThumb({ item, onRetry, onRemove }) {
 
 function GradingCard() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6 shadow-sm sm:p-8">
+    <div className="border border-line bg-surface p-6 sm:p-8">
       <div className="flex flex-col items-center text-center">
         <div className="relative flex h-20 w-20 items-center justify-center">
-          <span className="absolute inset-0 animate-ping rounded-full bg-indigo-200/60" />
-          <span className="absolute inset-2 rounded-full bg-indigo-100" />
-          <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-blue-600 text-white shadow-md">
+          <span className="absolute inset-0 animate-ping rounded-full bg-brand-soft" />
+          <span className="absolute inset-2 rounded-full bg-brand-50" />
+          <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-brand text-on-brand">
             <FiCpu size={24} />
           </span>
         </div>
-        <h2 className="mt-5 text-lg font-extrabold text-slate-900">Marking your answers…</h2>
-        <p className="mt-1 max-w-sm text-sm text-slate-600">
+        <h2 className="display mt-5 text-xl leading-snug text-ink">Marking your <em className="accent">answers</em>…</h2>
+        <p className="mt-1 max-w-sm text-sm text-ink-2">
           The AI is reading your pages and marking them against the mark scheme. This usually takes under two minutes.
         </p>
-        <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-slate-400">
+        <p className="mt-3 inline-flex items-center gap-1.5 font-code text-xs text-muted">
           <FiLoader className="animate-spin" size={12} /> You can leave this page. Your result will be waiting.
         </p>
       </div>
@@ -752,20 +740,20 @@ function SubmitDialog({ pages, busy, onCancel, onConfirm }) {
   }, [onCancel])
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-900/50 p-0 backdrop-blur-sm sm:items-center sm:p-4" role="dialog" aria-modal="true">
-      <div className="w-full max-w-md rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-ink/60 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true">
+      <div className="w-full max-w-md border border-line bg-surface p-6 animate-rise">
         <div className="flex items-start justify-between gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600"><FiSend size={22} /></span>
-          <button type="button" onClick={onCancel} disabled={busy} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50" aria-label="Close">
+          <span className="flex h-12 w-12 items-center justify-center bg-brand-50 text-brand"><FiSend size={22} /></span>
+          <button type="button" onClick={onCancel} disabled={busy} className="p-1.5 text-subtle transition-colors hover:bg-ink/5 hover:text-ink disabled:opacity-50" aria-label="Close">
             <FiX size={18} />
           </button>
         </div>
-        <h3 className="mt-4 text-lg font-extrabold text-slate-900">Send {pages} page{pages === 1 ? '' : 's'} for marking?</h3>
-        <p className="mt-1 text-sm text-slate-600">You cannot add or change pages after this. Check that:</p>
-        <ul className="mt-4 space-y-2 text-sm text-slate-600">
-          <li className="flex gap-2"><FiCheckCircle className="mt-0.5 flex-shrink-0 text-indigo-500" size={15} /> Every answer page is uploaded.</li>
-          <li className="flex gap-2"><FiCheckCircle className="mt-0.5 flex-shrink-0 text-indigo-500" size={15} /> Question numbers are visible next to your answers.</li>
-          <li className="flex gap-2"><FiCheckCircle className="mt-0.5 flex-shrink-0 text-indigo-500" size={15} /> The photos are sharp and easy to read.</li>
+        <h3 className="display mt-4 text-[1.4rem] leading-snug text-ink">Send {pages} page{pages === 1 ? '' : 's'} for <em className="accent">marking</em>?</h3>
+        <p className="mt-1 text-sm text-ink-2">You cannot add or change pages after this. Check that:</p>
+        <ul className="mt-4 space-y-2 text-sm text-ink-2">
+          <li className="flex gap-2"><FiCheckCircle className="mt-0.5 flex-shrink-0 text-brand" size={15} /> Every answer page is uploaded.</li>
+          <li className="flex gap-2"><FiCheckCircle className="mt-0.5 flex-shrink-0 text-brand" size={15} /> Question numbers are visible next to your answers.</li>
+          <li className="flex gap-2"><FiCheckCircle className="mt-0.5 flex-shrink-0 text-brand" size={15} /> The photos are sharp and easy to read.</li>
         </ul>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button type="button" onClick={onCancel} disabled={busy} className={BTN_SECONDARY}>Not yet</button>
@@ -786,16 +774,16 @@ function Zoom({ src, label, onClose }) {
   }, [onClose])
 
   return (
-    <div className="fixed inset-0 z-[150] flex flex-col bg-slate-950/90" role="dialog" aria-modal="true" onClick={onClose}>
-      <div className="flex items-center justify-between px-4 py-3 text-white">
-        <span className="text-sm font-semibold">{label}</span>
-        <button type="button" onClick={onClose} className="rounded-lg p-2 text-white/80 hover:bg-white/10 hover:text-white" aria-label="Close">
+    <div className="fixed inset-0 z-[150] flex flex-col bg-ink/90" role="dialog" aria-modal="true" onClick={onClose}>
+      <div className="flex items-center justify-between px-4 py-3 text-on-cta">
+        <span className="font-code text-sm">{label}</span>
+        <button type="button" onClick={onClose} className="p-2 text-on-cta/80 transition-colors hover:bg-on-cta/10 hover:text-on-cta" aria-label="Close">
           <FiX size={20} />
         </button>
       </div>
       <div className="flex min-h-0 flex-1 items-center justify-center p-3 sm:p-6">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={label} onClick={(e) => e.stopPropagation()} className="max-h-full max-w-full rounded-lg object-contain shadow-2xl" />
+        <img src={src} alt={label} onClick={(e) => e.stopPropagation()} className="max-h-full max-w-full object-contain" />
       </div>
     </div>
   )

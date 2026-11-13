@@ -5,6 +5,18 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { rateLimit, clientIp } from '../../../../lib/rateLimit'
 import ActivityLog from '../../../../lib/models/ActivityLog'
+import { requireAuth } from '../../../../lib/auth'
+
+// GET /api/auth/login — a cheap "is this stored token still good?" probe for the
+// client. Signature + scope + revocation only (verifyToken), no DB hit: it answers
+// exactly the question "will authed routes accept this token", which lets the
+// client shed a stale token (e.g. an IGCSC-scoped one left under the DSAT key)
+// instead of rendering a logged-in UI whose every API call 401s.
+export async function GET(request) {
+  const auth = requireAuth(request)
+  if (auth.error) return auth.error
+  return NextResponse.json({ ok: true })
+}
 
 export async function POST(request) {
   try {

@@ -20,13 +20,13 @@ const POLL_MS = 5000
 const QUICK_MARKS_MAX = 10
 
 const BTN_PRIMARY =
-  'inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-2 rounded-xl bg-cta px-5 py-2.5 text-sm font-medium text-on-cta transition hover:bg-cta-hover disabled:cursor-not-allowed disabled:opacity-50'
 const BTN_SECONDARY =
-  'inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-2 rounded-xl border border-line-strong px-4 py-2.5 text-sm font-semibold text-ink transition hover:border-ink hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-50'
 const BTN_DANGER =
-  'inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-2 rounded-xl bg-negative px-5 py-2.5 text-sm font-semibold text-on-brand transition hover:bg-negative/90 disabled:cursor-not-allowed disabled:opacity-50'
 const LB_BTN =
-  'flex h-9 w-9 items-center justify-center rounded-lg text-white/80 transition hover:bg-white/10 hover:text-white disabled:opacity-30'
+  'flex h-9 w-9 items-center justify-center rounded-lg text-white/80 transition hover:bg-page/10 hover:text-white disabled:opacity-30'
 
 const WRITTEN_STATE = {
   not_started: { label: 'Not sent yet', tone: 'slate' },
@@ -46,9 +46,9 @@ const BASIS = {
   none: 'No mark scheme — marked on merit',
 }
 const MARK_CLS = {
-  green: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-  amber: 'bg-amber-50 text-amber-700 ring-amber-200',
-  red: 'bg-rose-50 text-rose-700 ring-rose-200',
+  green: 'border-positive/30 bg-[#2f7d4514] text-positive',
+  amber: 'border-star/40 bg-[#b7791f14] text-[#8a5a12]',
+  red: 'border-negative/30 bg-[#b4231814] text-negative',
 }
 
 function fmtWhen(d) {
@@ -119,14 +119,14 @@ function ConfirmDialog({ title, children, confirmLabel, danger, busy, onConfirm,
 
   return (
     <div
-      className="fixed inset-0 z-[300] flex items-end justify-center bg-slate-900/50 p-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-[300] flex items-end justify-center bg-ink/40 p-4 backdrop-blur-sm sm:items-center"
       role="dialog"
       aria-modal="true"
       onClick={() => { if (!busy) onCancel() }}
     >
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-bold text-slate-900">{title}</h2>
-        <div className="mt-2 space-y-2 text-sm leading-relaxed text-slate-600">{children}</div>
+      <div className="w-full max-w-md rounded-2xl bg-surface p-6" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-lg font-bold text-ink">{title}</h2>
+        <div className="mt-2 space-y-2 text-sm leading-relaxed text-ink-2">{children}</div>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button type="button" onClick={onCancel} disabled={busy} className={BTN_SECONDARY}>Cancel</button>
           <button type="button" onClick={onConfirm} disabled={busy} className={danger ? BTN_DANGER : BTN_PRIMARY}>
@@ -176,7 +176,7 @@ function Lightbox({ uploads, index, onClose, onIndex }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[300] flex flex-col bg-slate-950/95" role="dialog" aria-modal="true" aria-label={`Answer page ${index + 1}`}>
+    <div className="fixed inset-0 z-[300] flex flex-col bg-ink/95" role="dialog" aria-modal="true" aria-label={`Answer page ${index + 1}`}>
       <div className="flex items-center justify-between gap-2 px-3 py-2 text-white">
         <span className="text-sm font-semibold">Page {index + 1} of {count}</span>
         <div className="flex items-center gap-1">
@@ -208,7 +208,7 @@ function Lightbox({ uploads, index, onClose, onIndex }) {
               alt={`Answer page ${index + 1}`}
               onClick={() => setScale((s) => (s > 1 ? 1 : 2))}
               style={imgStyle}
-              className={`block select-none rounded-lg bg-white shadow-2xl transition-transform ${zoomed ? 'cursor-zoom-out' : 'max-h-[calc(100vh-6rem)] max-w-full cursor-zoom-in object-contain'}`}
+              className={`block select-none rounded-lg bg-surface transition-transform ${zoomed ? 'cursor-zoom-out' : 'max-h-[calc(100vh-6rem)] max-w-full cursor-zoom-in object-contain'}`}
             />
           </div>
         </div>
@@ -216,7 +216,7 @@ function Lightbox({ uploads, index, onClose, onIndex }) {
           <button
             type="button"
             onClick={() => onIndex(index - 1)}
-            className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-slate-900/70 text-white shadow-lg transition hover:bg-slate-900"
+            className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/70 text-white transition hover:bg-ink"
             aria-label="Previous page"
           >
             <FiChevronLeft size={22} />
@@ -226,7 +226,7 @@ function Lightbox({ uploads, index, onClose, onIndex }) {
           <button
             type="button"
             onClick={() => onIndex(index + 1)}
-            className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-slate-900/70 text-white shadow-lg transition hover:bg-slate-900"
+            className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/70 text-white transition hover:bg-ink"
             aria-label="Next page"
           >
             <FiChevronRight size={22} />
@@ -239,15 +239,15 @@ function Lightbox({ uploads, index, onClose, onIndex }) {
 
 function PhotoPane({ uploads, broken, reloading, onOpen, onBroken, onReload }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-slate-800">
-          <FiImage size={15} className="text-indigo-500" /> Answer pages
+    <div className="rounded-2xl border border-line bg-surface">
+      <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
+        <h3 className="flex items-center gap-2 font-code text-[11px] uppercase tracking-[0.12em] text-muted">
+          <FiImage size={15} className="text-brand" /> Answer pages
         </h3>
-        <span className="text-xs text-slate-400">{uploads.length} page{uploads.length === 1 ? '' : 's'}</span>
+        <span className="font-code text-xs tabular-nums text-subtle">{uploads.length} page{uploads.length === 1 ? '' : 's'}</span>
       </div>
       {broken && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-100 bg-amber-50 px-4 py-2.5 text-xs font-medium text-amber-800">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-star/30 bg-[#b7791f14] px-4 py-2.5 text-xs font-medium text-[#8a5a12]">
           <span>Photo links expire after two hours.</span>
           <button type="button" onClick={onReload} disabled={reloading} className="inline-flex items-center gap-1 font-semibold underline-offset-2 hover:underline disabled:opacity-50">
             <FiRefreshCw size={12} className={reloading ? 'animate-spin' : ''} /> Reload photos
@@ -263,7 +263,7 @@ function PhotoPane({ uploads, broken, reloading, onOpen, onBroken, onReload }) {
               key={u.id}
               type="button"
               onClick={() => onOpen(i)}
-              className="group relative block overflow-hidden rounded-xl border border-slate-200 bg-slate-100 text-left transition hover:border-indigo-300 hover:shadow-md"
+              className="group relative block overflow-hidden rounded-xl border border-line bg-sunken text-left transition hover:border-brand"
               aria-label={`Open page ${i + 1}`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -274,8 +274,8 @@ function PhotoPane({ uploads, broken, reloading, onOpen, onBroken, onReload }) {
                 onError={onBroken}
                 className="block h-44 w-full object-cover object-top sm:h-56 lg:h-auto lg:object-contain"
               />
-              <span className="absolute left-2 top-2 rounded-md bg-slate-900/75 px-2 py-0.5 text-[11px] font-bold text-white">Page {i + 1}</span>
-              <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md bg-white/90 text-slate-700 opacity-0 shadow transition group-hover:opacity-100">
+              <span className="absolute left-2 top-2 rounded-md bg-ink/75 px-2 py-0.5 text-[11px] font-bold text-white">Page {i + 1}</span>
+              <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md bg-surface/90 text-ink-2 opacity-0 transition group-hover:opacity-100">
                 <FiZoomIn size={14} />
               </span>
             </button>
@@ -295,16 +295,16 @@ function ConfidencePill({ value }) {
 
 function Block({ label, icon: Icon, tone = 'slate', children }) {
   const cls = {
-    slate: 'border-slate-200 bg-slate-50/60',
-    green: 'border-emerald-200 bg-emerald-50/60',
-    indigo: 'border-indigo-200 bg-indigo-50/50',
-  }[tone] || 'border-slate-200 bg-slate-50/60'
+    slate: 'border-line bg-canvas',
+    green: 'border-positive/30 bg-[#2f7d4514]',
+    indigo: 'border-brand/30 bg-brand-50',
+  }[tone] || 'border-line bg-canvas'
   return (
     <div className={`rounded-xl border ${cls}`}>
-      <div className="flex items-center gap-1.5 px-3 pt-2.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+      <div className="flex items-center gap-1.5 px-3 pt-2.5 font-code text-[11px] uppercase tracking-[0.1em] text-muted">
         {Icon && <Icon size={12} />} {label}
       </div>
-      <div className="max-h-80 overflow-y-auto break-words px-3 pb-3 pt-1.5 text-sm leading-relaxed text-slate-800">{children}</div>
+      <div className="max-h-80 overflow-y-auto break-words px-3 pb-3 pt-1.5 text-sm leading-relaxed text-ink">{children}</div>
     </div>
   )
 }
@@ -319,8 +319,8 @@ function MarksControl({ value, max, disabled, problem, onChange }) {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2">
-        <div className={`flex items-center overflow-hidden rounded-xl border bg-white ${problem ? 'border-rose-300 ring-2 ring-rose-100' : 'border-slate-200'}`}>
-          <button type="button" onClick={() => step(-1)} disabled={disabled || (valid && n <= 0)} className="flex h-10 w-10 items-center justify-center text-slate-500 transition hover:bg-slate-50 disabled:opacity-30" aria-label="One mark less">
+        <div className={`flex items-center overflow-hidden rounded-xl border bg-surface ${problem ? 'border-negative ring-1 ring-negative/40' : 'border-line'}`}>
+          <button type="button" onClick={() => step(-1)} disabled={disabled || (valid && n <= 0)} className="flex h-10 w-10 items-center justify-center text-muted transition hover:bg-ink/5 disabled:opacity-30" aria-label="One mark less">
             <FiMinus size={15} />
           </button>
           <input
@@ -332,14 +332,14 @@ function MarksControl({ value, max, disabled, problem, onChange }) {
             value={value ?? ''}
             disabled={disabled}
             onChange={(e) => onChange(e.target.value)}
-            className="h-10 w-14 border-x border-slate-200 text-center text-base font-bold text-slate-900 focus:outline-none disabled:bg-slate-50"
+            className="h-10 w-14 border-x border-line bg-surface text-center font-code text-base font-semibold tabular-nums text-ink focus:outline-none disabled:bg-sunken"
             aria-label="Marks awarded"
           />
-          <button type="button" onClick={() => step(1)} disabled={disabled || (valid && n >= max)} className="flex h-10 w-10 items-center justify-center text-slate-500 transition hover:bg-slate-50 disabled:opacity-30" aria-label="One mark more">
+          <button type="button" onClick={() => step(1)} disabled={disabled || (valid && n >= max)} className="flex h-10 w-10 items-center justify-center text-muted transition hover:bg-ink/5 disabled:opacity-30" aria-label="One mark more">
             <FiPlus size={15} />
           </button>
         </div>
-        <span className="text-sm font-semibold text-slate-500">of {max}</span>
+        <span className="text-sm font-semibold text-muted">of {max}</span>
       </div>
       {max > 0 && max <= QUICK_MARKS_MAX && (
         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -351,7 +351,7 @@ function MarksControl({ value, max, disabled, problem, onChange }) {
                 type="button"
                 disabled={disabled}
                 onClick={() => onChange(String(m))}
-                className={`h-8 min-w-[2rem] rounded-lg px-2 text-xs font-bold transition disabled:opacity-40 ${on ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700'}`}
+                className={`h-8 min-w-[2rem] rounded-lg px-2 text-xs font-bold transition disabled:opacity-40 ${on ? 'bg-cta text-on-cta' : 'bg-sunken text-ink-2 hover:bg-brand-50 hover:text-brand'}`}
               >
                 {m}
               </button>
@@ -359,7 +359,7 @@ function MarksControl({ value, max, disabled, problem, onChange }) {
           })}
         </div>
       )}
-      {problem && <p className="mt-1.5 text-xs font-semibold text-rose-600">{problem}</p>}
+      {problem && <p className="mt-1.5 text-xs font-semibold text-negative">{problem}</p>}
     </div>
   )
 }
@@ -374,13 +374,13 @@ function WrittenCard({ row, draft, problem, editable, disabled, onDraft }) {
   const shownMarks = r ? (typed !== '' && Number.isFinite(Number(typed)) ? Number(typed) : Number(r.marksAwarded || 0)) : 0
 
   return (
-    <div className={`rounded-2xl border bg-white shadow-sm ${r?.flagged ? 'border-amber-300' : 'border-slate-200'}`}>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-5">
+    <div className={`rounded-2xl border bg-surface ${r?.flagged ? 'border-star' : 'border-line'}`}>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-5">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <span className="flex h-8 min-w-[2rem] items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-blue-600 px-2 text-sm font-extrabold text-white">
+          <span className="flex h-8 min-w-[2rem] items-center justify-center bg-cta px-2 font-code text-sm font-medium tabular-nums text-on-cta">
             {n ?? '?'}
           </span>
-          <span className="text-xs font-semibold text-slate-500">[{max} mark{max === 1 ? '' : 's'}]</span>
+          <span className="font-code text-xs text-muted">[{max} mark{max === 1 ? '' : 's'}]</span>
           {r?.flagged && (
             <Badge tone="amber"><FiFlag className="mr-1" size={10} /> Flagged</Badge>
           )}
@@ -388,7 +388,7 @@ function WrittenCard({ row, draft, problem, editable, disabled, onDraft }) {
           {r && <ConfidencePill value={r.confidence} />}
         </div>
         {r ? (
-          <span className={`rounded-lg px-2.5 py-1 text-sm font-extrabold ring-1 ${MARK_CLS[markTone(shownMarks, max)]}`}>
+          <span className={`border px-2.5 py-1 font-code text-sm font-semibold tabular-nums ${MARK_CLS[markTone(shownMarks, max)]}`}>
             {fmtNum(shownMarks)} / {max}
           </span>
         ) : (
@@ -398,7 +398,7 @@ function WrittenCard({ row, draft, problem, editable, disabled, onDraft }) {
 
       <div className="space-y-3 p-4 sm:p-5">
         {r?.flagged && r.flagReason && (
-          <div className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-sm font-medium text-amber-800">
+          <div className="flex items-start gap-2 rounded-xl bg-[#b7791f14] px-3 py-2.5 text-sm font-medium text-[#8a5a12]">
             <FiAlertTriangle size={15} className="mt-0.5 flex-shrink-0" />
             <span className="min-w-0 break-words">{r.flagReason}</span>
           </div>
@@ -406,13 +406,13 @@ function WrittenCard({ row, draft, problem, editable, disabled, onDraft }) {
 
         {q ? (
           <Block label="Question" icon={FiBookOpen}>
-            {renderContent(q.text) || <span className="text-slate-400">No question text.</span>}
+            {renderContent(q.text) || <span className="text-subtle">No question text.</span>}
             {/* The figure the student answered from - a graph or diagram the
                 mark scheme refers to. */}
-            {q.image && <img src={q.image} alt={`Question ${q.n} figure`} className="mt-3 max-h-80 w-auto max-w-full rounded-lg border border-slate-200" />}
+            {q.image && <img src={q.image} alt={`Question ${q.n} figure`} className="mt-3 max-h-80 w-auto max-w-full rounded-lg border border-line" />}
           </Block>
         ) : (
-          <div className="rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-500">This question is no longer in the bank. Its mark still counts.</div>
+          <div className="rounded-xl bg-canvas px-3 py-2.5 text-xs text-muted">This question is no longer in the bank. Its mark still counts.</div>
         )}
 
         {q && (q.markScheme || q.finalAnswer) ? (
@@ -421,23 +421,23 @@ function WrittenCard({ row, draft, problem, editable, disabled, onDraft }) {
             {q.finalAnswer && <Block label="Final answer" icon={FiCheck} tone="green">{renderContent(q.finalAnswer)}</Block>}
           </div>
         ) : q ? (
-          <div className="flex items-start gap-2 rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-500">
+          <div className="flex items-start gap-2 rounded-xl bg-canvas px-3 py-2.5 text-xs text-muted">
             <FiInfo size={13} className="mt-0.5 flex-shrink-0" /> No mark scheme or final answer for this question — mark it on its merits.
           </div>
         ) : null}
 
         {r && (
           <Block label="What the AI read" icon={FiCpu} tone="indigo">
-            {r.transcription ? renderContent(r.transcription) : <span className="text-slate-400">Nothing found for this question on the pages.</span>}
+            {r.transcription ? renderContent(r.transcription) : <span className="text-subtle">Nothing found for this question on the pages.</span>}
           </Block>
         )}
 
-        {r && r.basis && BASIS[r.basis] && <p className="text-[11px] font-medium text-slate-400">{BASIS[r.basis]}</p>}
+        {r && r.basis && BASIS[r.basis] && <p className="text-[11px] font-medium text-subtle">{BASIS[r.basis]}</p>}
 
         {r && (
-          <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-4 md:grid-cols-[auto_minmax(0,1fr)]">
+          <div className="grid grid-cols-1 gap-4 border-t border-line pt-4 md:grid-cols-[auto_minmax(0,1fr)]">
             <div>
-              <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Marks</p>
+              <p className="mb-1.5 font-code text-[11px] uppercase tracking-[0.1em] text-muted">Marks</p>
               {editable ? (
                 <MarksControl
                   value={marksValue}
@@ -447,16 +447,16 @@ function WrittenCard({ row, draft, problem, editable, disabled, onDraft }) {
                   onChange={(v) => onDraft(r.questionId, { marks: v })}
                 />
               ) : (
-                <p className="text-lg font-extrabold text-slate-900">{fmtNum(r.marksAwarded)} <span className="text-sm font-semibold text-slate-400">of {max}</span></p>
+                <p className="font-code text-lg font-semibold tabular-nums text-ink">{fmtNum(r.marksAwarded)} <span className="text-sm font-semibold text-subtle">of {max}</span></p>
               )}
               {markChanged && !problem && (
-                <p className="mt-1.5 text-[11px] font-semibold text-amber-600">Unsaved · was {fmtNum(r.marksAwarded)}</p>
+                <p className="mt-1.5 text-[11px] font-semibold text-star">Unsaved · was {fmtNum(r.marksAwarded)}</p>
               )}
             </div>
             <div className="min-w-0">
-              <p className="mb-1.5 flex items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <p className="mb-1.5 flex items-center justify-between gap-2 font-code text-[11px] uppercase tracking-[0.1em] text-muted">
                 <span>Feedback to the student</span>
-                {feedbackChanged && <span className="normal-case tracking-normal text-amber-600">Unsaved</span>}
+                {feedbackChanged && <span className="normal-case tracking-normal text-star">Unsaved</span>}
               </p>
               {editable ? (
                 <textarea
@@ -466,10 +466,10 @@ function WrittenCard({ row, draft, problem, editable, disabled, onDraft }) {
                   maxLength={1200}
                   disabled={disabled}
                   placeholder="What earned marks, and what was missing."
-                  className="w-full resize-y rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 disabled:bg-slate-50 disabled:text-slate-500"
+                  className="w-full resize-y rounded-xl border border-line bg-surface px-3 py-2.5 text-sm text-ink placeholder:text-subtle focus:border-ink focus:outline-none disabled:bg-sunken disabled:text-muted"
                 />
               ) : (
-                <p className="whitespace-pre-line break-words rounded-xl bg-slate-50 px-3 py-2.5 text-sm text-slate-700">{r.feedback || 'No feedback.'}</p>
+                <p className="whitespace-pre-line break-words rounded-xl bg-canvas px-3 py-2.5 text-sm text-ink-2">{r.feedback || 'No feedback.'}</p>
               )}
             </div>
           </div>
@@ -484,11 +484,11 @@ function McqSection({ attempt, rows, open, onToggle }) {
   if (m.state === 'none') return null
   const submitted = m.state === 'submitted'
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="rounded-2xl border border-line bg-surface">
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
         <div className="min-w-0">
-          <h3 className="text-sm font-bold text-slate-800">Section A · Online MCQ <span className="font-normal text-slate-400">(marked automatically, for context)</span></h3>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <h3 className="text-sm font-bold text-ink">Section A · Online MCQ <span className="font-normal text-subtle">(marked automatically, for context)</span></h3>
+          <p className="mt-0.5 text-xs text-muted">
             {submitted
               ? `${m.correct ?? 0} of ${m.count || rows.length} correct${m.autoSubmitted ? ' · submitted when time ran out' : ''}`
               : `${MCQ_STATE[m.state] || m.state} — results appear once the student submits it.`}
@@ -496,12 +496,12 @@ function McqSection({ attempt, rows, open, onToggle }) {
         </div>
         <div className="flex items-center gap-3">
           {submitted && (
-            <span className={`rounded-lg px-2.5 py-1 text-sm font-extrabold ring-1 ${MARK_CLS[markTone(m.score, m.max)]}`}>
+            <span className={`border px-2.5 py-1 font-code text-sm font-semibold tabular-nums ${MARK_CLS[markTone(m.score, m.max)]}`}>
               {fmtNum(m.score)} / {m.max || 0}
             </span>
           )}
           {submitted && rows.length > 0 && (
-            <button type="button" onClick={onToggle} className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-50">
+            <button type="button" onClick={onToggle} className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-brand transition hover:bg-brand-50">
               {open ? 'Hide questions' : 'Show questions'} <FiChevronDown size={13} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
           )}
@@ -509,12 +509,12 @@ function McqSection({ attempt, rows, open, onToggle }) {
       </div>
 
       {submitted && rows.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 border-t border-slate-100 px-4 py-3 sm:px-5">
+        <div className="flex flex-wrap gap-1.5 border-t border-line px-4 py-3 sm:px-5">
           {rows.map(({ r }) => (
             <span
               key={r.questionId}
               title={`Q${r.n}: chose ${r.selected || 'nothing'} · answer ${r.correctAnswer || '?'}`}
-              className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold ${r.isCorrect ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}
+              className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold ${r.isCorrect ? 'bg-[#2f7d4514] text-positive' : 'bg-[#b4231814] text-negative'}`}
             >
               Q{r.n} {r.isCorrect ? <FiCheck size={11} /> : <FiX size={11} />}
               <span className="font-semibold opacity-80">{r.selected || '–'}{!r.isCorrect && r.correctAnswer ? `→${r.correctAnswer}` : ''}</span>
@@ -524,16 +524,16 @@ function McqSection({ attempt, rows, open, onToggle }) {
       )}
 
       {submitted && open && (
-        <div className="space-y-4 border-t border-slate-100 px-4 py-4 sm:px-5">
+        <div className="space-y-4 border-t border-line px-4 py-4 sm:px-5">
           {rows.map(({ r, q }) => (
-            <div key={r.questionId} className="rounded-xl border border-slate-100 p-3">
+            <div key={r.questionId} className="rounded-xl border border-line p-3">
               <div className="mb-2 flex items-center gap-2">
-                <span className="text-xs font-extrabold text-slate-700">Q{r.n}</span>
+                <span className="text-xs font-extrabold text-ink-2">Q{r.n}</span>
                 <Badge tone={r.isCorrect ? 'green' : 'red'}>{r.isCorrect ? 'Correct' : r.selected ? 'Wrong' : 'Not answered'}</Badge>
               </div>
               {q ? (
                 <>
-                  <div className="text-sm text-slate-800">{renderContent(q.text)}</div>
+                  <div className="text-sm text-ink">{renderContent(q.text)}</div>
                   <div className="mt-2 space-y-1.5">
                     {(q.options || []).map((o) => {
                       const isKey = o.letter === r.correctAnswer
@@ -541,20 +541,20 @@ function McqSection({ attempt, rows, open, onToggle }) {
                       return (
                         <div
                           key={o.letter}
-                          className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${isKey ? 'border-emerald-200 bg-emerald-50' : isPick ? 'border-rose-200 bg-rose-50' : 'border-slate-100'}`}
+                          className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${isKey ? 'border-positive/30 bg-[#2f7d4514]' : isPick ? 'border-negative/30 bg-[#b4231814]' : 'border-line'}`}
                         >
-                          <span className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${isKey ? 'bg-emerald-600 text-white' : isPick ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                          <span className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${isKey ? 'bg-positive text-white' : isPick ? 'bg-negative text-white' : 'bg-sunken text-ink-2'}`}>
                             {o.letter}
                           </span>
-                          <div className="min-w-0 flex-1 text-slate-700">{renderContent(o.text)}</div>
-                          {isPick && <span className="flex-shrink-0 text-[11px] font-semibold text-slate-500">Student</span>}
+                          <div className="min-w-0 flex-1 text-ink-2">{renderContent(o.text)}</div>
+                          {isPick && <span className="flex-shrink-0 text-[11px] font-semibold text-muted">Student</span>}
                         </div>
                       )
                     })}
                   </div>
                 </>
               ) : (
-                <p className="text-xs text-slate-500">This question is no longer in the bank. Chose {r.selected || 'nothing'}, answer {r.correctAnswer || '?'}.</p>
+                <p className="text-xs text-muted">This question is no longer in the bank. Chose {r.selected || 'nothing'}, answer {r.correctAnswer || '?'}.</p>
               )}
             </div>
           ))}
@@ -564,12 +564,29 @@ function McqSection({ attempt, rows, open, onToggle }) {
   )
 }
 
+// A status chip that stays readable on the dark ink hero — tone tints text + border.
+const HERO_CHIP_TONES = {
+  green: 'border-positive/40 text-positive',
+  emerald: 'border-positive/40 text-positive',
+  red: 'border-negative/40 text-negative',
+  rose: 'border-negative/40 text-negative',
+  star: 'border-star/40 text-star',
+  amber: 'border-star/40 text-star',
+}
+function HeroChip({ tone, children }) {
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 font-code text-[11px] uppercase tracking-[0.08em] ${HERO_CHIP_TONES[tone] || 'border-page/25 text-on-cta/80'}`}>
+      {children}
+    </span>
+  )
+}
+
 function HeroStat({ label, value, hint }) {
   return (
-    <div className="min-w-0 rounded-xl bg-white/10 px-3 py-2.5 ring-1 ring-white/15">
-      <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-white/70">{label}</p>
-      <p className="mt-0.5 truncate text-lg font-extrabold text-white sm:text-xl">{value}</p>
-      {hint && <p className="truncate text-[11px] text-white/70">{hint}</p>}
+    <div className="min-w-0 border border-page/15 bg-page/5 px-3 py-2.5">
+      <p className="truncate font-code text-[10px] uppercase tracking-[0.1em] text-on-cta/60">{label}</p>
+      <p className="mt-0.5 truncate font-code text-lg font-medium tabular-nums text-on-cta sm:text-xl">{value}</p>
+      {hint && <p className="truncate text-[11px] text-on-cta/60">{hint}</p>}
     </div>
   )
 }
@@ -771,7 +788,7 @@ export default function GradingReviewPage() {
   if (!attempt) {
     return (
       <div className="space-y-4">
-        <Link href="/igcsc/grading" className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition hover:text-indigo-600">
+        <Link href="/igcsc/grading" className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted transition hover:text-brand">
           <FiArrowLeft size={15} /> Marking queue
         </Link>
         <ErrorState message={error || 'That test was not found.'} />
@@ -793,23 +810,23 @@ export default function GradingReviewPage() {
 
   return (
     <div className="pb-6">
-      <Link href="/igcsc/grading" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition hover:text-indigo-600">
+      <Link href="/igcsc/grading" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-muted transition hover:text-brand">
         <FiArrowLeft size={15} /> Marking queue
       </Link>
 
-      {/* Hero */}
-      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 p-5 text-white shadow-sm sm:p-6">
+      {/* Hero — an ink panel, like the site's dark sections */}
+      <div className="overflow-hidden bg-cta p-5 text-on-cta sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-white/70">Checking written answers</p>
-            <h1 className="mt-1 break-words text-2xl font-extrabold tracking-tight">{attempt.userName || 'Student'}</h1>
-            <p className="mt-1 break-words text-sm text-white/85">
+            <p className="font-code text-[11px] uppercase tracking-[0.12em] text-on-cta/60">Staff · Checking written answers</p>
+            <h1 className="display mt-1 break-words text-[clamp(1.5rem,2.6vw,2rem)] leading-tight">{attempt.userName || 'Student'}</h1>
+            <p className="mt-1 break-words text-sm text-on-cta/80">
               {attempt.paperTitle}{attempt.paperUnit ? ` · ${attempt.paperUnit}` : ''}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              {attemptBadge && <Badge tone={attemptBadge.tone}>{attemptBadge.label}</Badge>}
-              {writtenBadge && <Badge tone={writtenBadge.tone}>Written: {writtenBadge.label}</Badge>}
-              {flaggedCount > 0 && <Badge tone="amber">{flaggedCount} flagged</Badge>}
+              {attemptBadge && <HeroChip tone={attemptBadge.tone}>{attemptBadge.label}</HeroChip>}
+              {writtenBadge && <HeroChip tone={writtenBadge.tone}>Written: {writtenBadge.label}</HeroChip>}
+              {flaggedCount > 0 && <HeroChip tone="star">{flaggedCount} flagged</HeroChip>}
             </div>
           </div>
           {canRegrade && wState !== 'not_started' && (
@@ -817,7 +834,7 @@ export default function GradingReviewPage() {
               type="button"
               onClick={() => setAsk('regrade')}
               disabled={!!busy}
-              className="inline-flex flex-shrink-0 items-center justify-center gap-2 rounded-xl bg-white/15 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/30 transition hover:bg-white/25 disabled:opacity-50"
+              className="inline-flex flex-shrink-0 items-center justify-center gap-2 border border-page/30 px-4 py-2.5 text-sm font-medium text-on-cta transition-colors hover:bg-page/10 disabled:opacity-50"
             >
               <FiRefreshCw size={15} className={busy === 'regrade' ? 'animate-spin' : ''} /> Re-run AI marking
             </button>
@@ -847,7 +864,7 @@ export default function GradingReviewPage() {
           />
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-white/70">
+        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 font-code text-[11px] text-on-cta/60">
           {w.submittedAt && <span>Sent {fmtWhen(w.submittedAt)}</span>}
           {w.gradedAt && <span>AI marked {fmtWhen(w.gradedAt)}</span>}
           {w.tries > 1 && <span>{w.tries} marking runs</span>}
@@ -857,9 +874,9 @@ export default function GradingReviewPage() {
 
       {notice && (
         <div className={`mt-4 flex items-start justify-between gap-3 rounded-2xl border px-4 py-3 text-sm font-medium ${
-          notice.tone === 'green' ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-            : notice.tone === 'blue' ? 'border-blue-200 bg-blue-50 text-blue-700'
-              : 'border-rose-200 bg-rose-50 text-rose-700'}`}
+          notice.tone === 'green' ? 'border-positive/30 bg-[#2f7d4514] text-positive'
+            : notice.tone === 'blue' ? 'border-calm/30 bg-[#3f6b6414] text-calm'
+              : 'border-negative/30 bg-[#b4231814] text-negative'}`}
         >
           <span className="flex min-w-0 items-start gap-2">
             {notice.tone === 'green' ? <FiCheckCircle size={16} className="mt-0.5 flex-shrink-0" />
@@ -867,7 +884,7 @@ export default function GradingReviewPage() {
                 : <FiAlertTriangle size={16} className="mt-0.5 flex-shrink-0" />}
             <span className="min-w-0 break-words">{notice.text}</span>
           </span>
-          <button type="button" onClick={() => setNotice(null)} className="flex-shrink-0 rounded-lg p-1 transition hover:bg-white/60" aria-label="Dismiss">
+          <button type="button" onClick={() => setNotice(null)} className="flex-shrink-0 rounded-lg p-1 transition hover:bg-ink/5" aria-label="Dismiss">
             <FiX size={14} />
           </button>
         </div>
@@ -879,21 +896,21 @@ export default function GradingReviewPage() {
 
       {/* Where the written section stands, when it is not simply ready to review */}
       {wState === 'grading' && (
-        <div className="mt-4 flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-4 text-sm text-blue-800">
+        <div className="mt-4 flex items-start gap-3 rounded-2xl border border-calm/30 bg-[#3f6b6414] px-4 py-4 text-sm text-calm">
           <FiLoader size={18} className="mt-0.5 flex-shrink-0 animate-spin" />
           <div>
             <p className="font-semibold">The AI is marking these answers.</p>
-            <p className="mt-0.5 text-blue-700">This usually takes under two minutes. The page updates on its own; marks can be changed once it is done.</p>
+            <p className="mt-0.5 text-calm">This usually takes under two minutes. The page updates on its own; marks can be changed once it is done.</p>
           </div>
         </div>
       )}
       {wState === 'error' && (
-        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-800 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-negative/30 bg-[#b4231814] px-4 py-4 text-sm text-negative sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <FiAlertTriangle size={18} className="mt-0.5 flex-shrink-0" />
             <div>
               <p className="font-semibold">Marking failed.</p>
-              <p className="mt-0.5 break-words text-rose-700">{w.error || 'The AI could not mark these answers.'}</p>
+              <p className="mt-0.5 break-words text-negative">{w.error || 'The AI could not mark these answers.'}</p>
             </div>
           </div>
           {canRegrade && (
@@ -904,9 +921,9 @@ export default function GradingReviewPage() {
         </div>
       )}
       {wState === 'not_started' && (
-        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm text-slate-700 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-line bg-surface px-4 py-4 text-sm text-ink-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <FiInfo size={18} className="mt-0.5 flex-shrink-0 text-slate-400" />
+            <FiInfo size={18} className="mt-0.5 flex-shrink-0 text-subtle" />
             <p>
               {attempt.userName || 'The student'} has not sent their written answers for marking yet.
               {uploads.length > 0 ? ` ${uploads.length} page${uploads.length === 1 ? ' is' : 's are'} uploaded so far.` : ''}
@@ -920,7 +937,7 @@ export default function GradingReviewPage() {
         </div>
       )}
       {wState === 'graded' && (
-        <div className="mt-4 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <div className="mt-4 flex items-start gap-3 rounded-2xl border border-positive/30 bg-[#2f7d4514] px-4 py-3 text-sm text-positive">
           <FiCheckCircle size={17} className="mt-0.5 flex-shrink-0" />
           <p>
             {w.reviewedBy
@@ -939,7 +956,7 @@ export default function GradingReviewPage() {
 
       {/* Section B */}
       {wState === 'none' ? (
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="mt-6 rounded-2xl border border-line bg-surface">
           <EmptyState icon={FiEdit3} title="No written section" hint="This paper is all online MCQ, so there is nothing to mark by hand." />
         </div>
       ) : (
@@ -957,11 +974,11 @@ export default function GradingReviewPage() {
 
           <div className="min-w-0 space-y-4">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-sm font-bold text-slate-800">Section B · Written</h2>
-              <span className="text-xs text-slate-400">{rows.length} question{rows.length === 1 ? '' : 's'}</span>
+              <h2 className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">Section B · Written</h2>
+              <span className="font-code text-xs tabular-nums text-subtle">{rows.length} question{rows.length === 1 ? '' : 's'}</span>
             </div>
             {rows.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="rounded-2xl border border-line bg-surface">
                 <EmptyState icon={FiEdit3} title="No written questions found" hint="The paper's questions may have changed in the bank since this was sat." />
               </div>
             ) : (
@@ -987,16 +1004,16 @@ export default function GradingReviewPage() {
       {/* Save bar */}
       {editable && rows.some((x) => x.r) && (
         <div className="sticky bottom-4 z-40 mt-6">
-          <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:p-4">
+          <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface/95 p-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:p-4">
             <div className="min-w-0 text-sm">
               {problemCount > 0 ? (
-                <span className="font-semibold text-rose-600">{problemCount} mark{problemCount === 1 ? '' : 's'} need fixing</span>
+                <span className="font-semibold text-negative">{problemCount} mark{problemCount === 1 ? '' : 's'} need fixing</span>
               ) : dirty ? (
-                <span className="font-semibold text-amber-700">{changes.length} unsaved change{changes.length === 1 ? '' : 's'}</span>
+                <span className="font-semibold text-[#8a5a12]">{changes.length} unsaved change{changes.length === 1 ? '' : 's'}</span>
               ) : (
-                <span className="text-slate-500">All changes saved</span>
+                <span className="text-muted">All changes saved</span>
               )}
-              <span className="text-slate-400"> · Written {fmtNum(draftScore)} / {w.max || 0}</span>
+              <span className="text-subtle"> · Written {fmtNum(draftScore)} / {w.max || 0}</span>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
@@ -1030,7 +1047,7 @@ export default function GradingReviewPage() {
           onCancel={closeAsk}
         >
           <p>
-            The written mark of <strong className="text-slate-800">{fmtNum(draftScore)} / {w.max || 0}</strong> becomes final
+            The written mark of <strong className="text-ink">{fmtNum(draftScore)} / {w.max || 0}</strong> becomes final
             and {attempt.userName || 'the student'} sees it straight away.
           </p>
           {flaggedCount > 0 && <p>{flaggedCount} flagged answer{flaggedCount === 1 ? '' : 's'} will be marked as checked.</p>}
@@ -1053,7 +1070,7 @@ export default function GradingReviewPage() {
             <>
               <p>The AI will mark every written answer again from the {uploads.length} photographed page{uploads.length === 1 ? '' : 's'}.</p>
               {(overriddenCount > 0 || dirty) && (
-                <p className="font-semibold text-rose-700">Marks and feedback changed by a tutor will be replaced{dirty ? ', and your unsaved changes are lost' : ''}.</p>
+                <p className="font-semibold text-negative">Marks and feedback changed by a tutor will be replaced{dirty ? ', and your unsaved changes are lost' : ''}.</p>
               )}
               <p>The student sees &ldquo;being marked&rdquo; until it finishes.</p>
             </>

@@ -31,11 +31,11 @@ function UserForm({ draft, setDraft, editing, saving, error, onSave, onClose }) 
   const set = (k) => (e) => setDraft((d) => ({ ...d, [k]: e.target.value }))
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4 sm:items-center">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-          <h2 className="text-base font-semibold text-slate-800">{editing ? 'Edit user' : 'Add a user'}</h2>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"><FiX size={18} /></button>
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-4 sm:items-center">
+      <div className="w-full max-w-lg border border-line bg-surface">
+        <div className="flex items-center justify-between border-b border-line px-5 py-4">
+          <h2 className="text-base font-semibold text-ink">{editing ? 'Edit user' : 'Add a user'}</h2>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-subtle hover:bg-ink/5 hover:text-ink"><FiX size={18} /></button>
         </div>
 
         <form
@@ -44,14 +44,14 @@ function UserForm({ draft, setDraft, editing, saving, error, onSave, onClose }) 
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
-              <span className="mb-1 block text-xs font-semibold text-slate-600">Full name</span>
+              <span className="mb-1 block text-xs font-semibold text-ink-2">Full name</span>
               <input required value={draft.name} onChange={set('name')} placeholder="Aarav Sharma"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+                className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-ink focus:outline-none" />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-semibold text-slate-600">Role</span>
+              <span className="mb-1 block text-xs font-semibold text-ink-2">Role</span>
               <select value={draft.role} onChange={set('role')}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100">
+                className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-ink focus:outline-none">
                 <option value="student">Student</option>
                 <option value="tutor">Tutor</option>
                 <option value="admin">Admin</option>
@@ -60,13 +60,13 @@ function UserForm({ draft, setDraft, editing, saving, error, onSave, onClose }) 
           </div>
 
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold text-slate-600">Email</span>
+            <span className="mb-1 block text-xs font-semibold text-ink-2">Email</span>
             <input required type="email" value={draft.email} onChange={set('email')} placeholder="aarav@example.com"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-ink focus:outline-none" />
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold text-slate-600">
+            <span className="mb-1 block text-xs font-semibold text-ink-2">
               {editing ? 'New password' : 'Password'}
             </span>
             <input
@@ -75,9 +75,9 @@ function UserForm({ draft, setDraft, editing, saving, error, onSave, onClose }) 
               value={draft.password}
               onChange={set('password')}
               placeholder={editing ? 'Leave blank to keep the current one' : 'At least 6 characters'}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-ink focus:outline-none"
             />
-            <span className="mt-1 block text-[11px] text-slate-400">
+            <span className="mt-1 block text-[11px] text-subtle">
               {editing
                 ? 'Setting one here replaces their password straight away.'
                 : 'Shown in clear so you can pass it on — they sign in with this at /igcsc/login.'}
@@ -88,20 +88,20 @@ function UserForm({ draft, setDraft, editing, saving, error, onSave, onClose }) 
             <>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-slate-600">Year group</span>
+                  <span className="mb-1 block text-xs font-semibold text-ink-2">Year group</span>
                   <input value={draft.yearGroup} onChange={set('yearGroup')} placeholder="Year 11"
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-ink focus:outline-none" />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-slate-600">Target grade</span>
+                  <span className="mb-1 block text-xs font-semibold text-ink-2">Target grade</span>
                   <input value={draft.targetGrade} onChange={set('targetGrade')} placeholder="A*"
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-ink focus:outline-none" />
                 </label>
               </div>
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-slate-600">Guardian email <span className="font-normal text-slate-400">(optional)</span></span>
+                <span className="mb-1 block text-xs font-semibold text-ink-2">Guardian email <span className="font-normal text-subtle">(optional)</span></span>
                 <input type="email" value={draft.guardianEmail} onChange={set('guardianEmail')} placeholder="parent@example.com"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+                  className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-ink focus:outline-none" />
               </label>
               <SubjectPicker
                 value={draft.subjects}
@@ -110,15 +110,15 @@ function UserForm({ draft, setDraft, editing, saving, error, onSave, onClose }) 
             </>
           )}
 
-          {error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600">{error}</p>}
+          {error && <p className="rounded-lg bg-[#b4231814] px-3 py-2 text-sm text-negative">{error}</p>}
 
           <div className="flex gap-2 pt-1">
             <button type="submit" disabled={saving}
-              className="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
+              className="flex-1 bg-cta px-4 py-2.5 text-sm font-medium text-on-cta hover:bg-cta-hover disabled:opacity-60">
               {saving ? 'Saving…' : editing ? 'Save changes' : 'Create user'}
             </button>
             <button type="button" onClick={onClose}
-              className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+              className="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold text-ink-2 hover:bg-ink/5">
               Cancel
             </button>
           </div>
@@ -224,11 +224,12 @@ export default function UsersPage() {
   return (
     <div>
       <PageHeader
-        title="Users"
+        eyebrow="Staff · Accounts"
+        title={<>The <em className="accent">people</em> on IGCSC</>}
         subtitle="Accounts for the IGCSE portal — students, tutors and admins."
         actions={isAdmin && (
           <button onClick={openCreate}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+            className="flex h-10 items-center gap-2 bg-cta px-4 text-sm font-medium text-on-cta hover:bg-cta-hover">
             <FiPlus size={16} /> Add a user
           </button>
         )}
@@ -237,21 +238,21 @@ export default function UsersPage() {
       {error && <div className="mb-4"><ErrorState message={error} /></div>}
 
       <Card>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
           <div className="flex flex-wrap gap-1.5">
             {ROLES.map((r) => (
               <button key={r.key} onClick={() => setRole(r.key)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-                  role === r.key ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  role === r.key ? 'bg-cta text-on-cta' : 'border border-line text-ink-2 hover:border-ink'
                 }`}>
                 {r.label}
               </button>
             ))}
           </div>
           <div className="relative">
-            <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+            <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle" size={15} />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name or email…"
-              className="w-64 rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+              className="w-64 rounded-lg border border-line py-2 pl-9 pr-3 text-sm focus:border-ink focus:outline-none" />
           </div>
         </div>
 
@@ -267,15 +268,15 @@ export default function UsersPage() {
             )}
           >
             {filtered.map((p, i) => (
-              <tr key={p._id} className="hover:bg-slate-50/60">
-                <td className="px-4 py-3 text-slate-400">{i + 1}</td>
+              <tr key={p._id} className="hover:bg-ink/5">
+                <td className="px-4 py-3 font-code text-xs tabular-nums text-subtle">{i + 1}</td>
                 <td className="px-4 py-3">
-                  <div className="font-semibold text-slate-800">{p.name}</div>
-                  <div className="text-xs text-slate-400">{p.email}</div>
+                  <div className="font-semibold text-ink">{p.name}</div>
+                  <div className="font-code text-xs text-subtle">{p.email}</div>
                 </td>
                 {role === 'student' ? (
                   <>
-                    <td className="px-4 py-3 text-slate-600">{p.yearGroup || '—'}</td>
+                    <td className="px-4 py-3 text-ink-2">{p.yearGroup || '—'}</td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">{(p.subjects || []).slice(0, 3).map((s) => <Pill key={s}>{s}</Pill>)}</div>
                     </td>
@@ -298,23 +299,23 @@ export default function UsersPage() {
                         onClick={() => setActive(p, p.isActive === false)}
                         title={p.isActive === false ? 'Let them sign in again' : 'Suspend their sign-in'}
                         className={`relative h-5 w-9 flex-shrink-0 rounded-full transition-colors disabled:opacity-50 ${
-                          p.isActive === false ? 'bg-slate-300' : 'bg-emerald-500'
+                          p.isActive === false ? 'bg-line-strong' : 'bg-positive'
                         }`}>
-                        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${
+                        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-surface transition-all ${
                           p.isActive === false ? 'left-0.5' : 'left-[18px]'
                         }`} />
                       </button>
                       <button onClick={() => openEdit(p)} title="Edit"
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-indigo-600">
+                        className="rounded-lg p-1.5 text-subtle hover:bg-ink/5 hover:text-brand">
                         <FiEdit2 size={15} />
                       </button>
                       <button onClick={() => remove(p)} disabled={busyId === p._id} title="Remove"
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50">
+                        className="rounded-lg p-1.5 text-subtle hover:bg-[#b4231814] hover:text-negative disabled:opacity-50">
                         <FiTrash2 size={15} />
                       </button>
                     </div>
                   ) : (
-                    <div className="text-right text-xs text-slate-400">Admins only</div>
+                    <div className="text-right text-xs text-subtle">Admins only</div>
                   )}
                 </td>
               </tr>

@@ -21,7 +21,7 @@ export default function Login() {
   const [touched, setTouched] = useState({})
   const [authError, setAuthError] = useState('')
   const router = useRouter()
-  const { login } = useAuth()
+  const { login, logout } = useAuth()
   // Where to go after login when the user was sent here mid-flow (e.g. from an
   // enrollment page). Falls back to the role-based default.
   const [returnTo, setReturnTo] = useState('')
@@ -33,15 +33,37 @@ export default function Login() {
     } catch {}
   }, [])
 
-  // Already signed in with a still-valid token? Skip the form and send them home.
+  // Already signed in? Only skip the form once the SERVER accepts the stored
+  // token (200). A token that merely looks unexpired locally can still be one
+  // the server rejects — wrong scope from the old shared IGCSC login, revoked,
+  // or bad signature — and redirecting on it bounced users between the login
+  // page and a dashboard whose every call 401s. On a definite 401 the stale
+  // keys are cleared and the form is shown; on a network error the form is
+  // shown without touching the keys.
   useEffect(() => {
-    try {
-      const token = localStorage.getItem('token')
-      const raw = localStorage.getItem('user')
-      if (token && raw && !isTokenExpired(token)) {
-        router.replace(roleHome(JSON.parse(raw).role))
-      }
-    } catch {}
+    let cancelled = false
+    const check = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const raw = localStorage.getItem('user')
+        if (!token || !raw || isTokenExpired(token)) return
+        const res = await fetch('/api/auth/login', {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: 'no-store',
+        })
+        if (cancelled) return
+        if (res.ok) {
+          router.replace(roleHome(JSON.parse(raw).role))
+        } else if (res.status === 401 && localStorage.getItem('token') === token) {
+          // Same-token check: never wipe a fresh session the user just created
+          // while this probe of the old token was still in flight.
+          logout()
+        }
+      } catch {}
+    }
+    check()
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router])
 
   const validateField = (name, value) => {

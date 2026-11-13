@@ -27,11 +27,11 @@ const BATCH = 50
 const NOTE_MAX = 300
 
 const BTN_PRIMARY =
-  'inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white enabled:hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-1.5 rounded-lg bg-cta px-3 py-2 text-sm font-medium text-on-cta enabled:hover:bg-cta-hover disabled:cursor-not-allowed disabled:opacity-50'
 const BTN_SECONDARY =
-  'inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-1.5 rounded-lg border border-line-strong px-3 py-2 text-sm font-semibold text-ink enabled:hover:border-ink enabled:hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-50'
 const INPUT =
-  'w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none'
+  'w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-ink-2 placeholder:text-subtle focus:border-ink focus:outline-none'
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
 
@@ -120,11 +120,11 @@ function SaleLine({ meta, currency, isAdmin, canAssign }) {
   return (
     <>
       {text}
-      {meta.held && <span className="text-amber-700"> Held back{reason ? `: ${reason}` : ''}.</span>}
+      {meta.held && <span className="text-[#8a5a12]"> Held back{reason ? `: ${reason}` : ''}.</span>}
       {isAdmin && (
         <>
           {' '}
-          <Link href="/igcsc/store-admin" className="font-semibold text-indigo-600 hover:underline">Change in Store</Link>
+          <Link href="/igcsc/store-admin" className="font-semibold text-brand hover:underline">Change in Store</Link>
         </>
       )}
     </>
@@ -137,7 +137,7 @@ function StudentPick({ s, picked, onToggle }) {
     <label
       title={off ? 'This account is switched off. Turn it back on in Users to give them work.' : undefined}
       className={`flex items-center gap-3 px-4 py-3 transition-colors ${
-        off ? 'cursor-not-allowed opacity-60' : picked ? 'cursor-pointer bg-indigo-50/70' : 'cursor-pointer hover:bg-slate-50'
+        off ? 'cursor-not-allowed opacity-60' : picked ? 'cursor-pointer bg-brand-50' : 'cursor-pointer hover:bg-ink/5'
       }`}
     >
       <input
@@ -145,14 +145,14 @@ function StudentPick({ s, picked, onToggle }) {
         checked={picked}
         disabled={off}
         onChange={() => onToggle(s._id)}
-        className="h-4 w-4 flex-shrink-0 accent-indigo-600"
+        className="h-4 w-4 flex-shrink-0 accent-brand"
       />
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold text-slate-800">{s.name || 'Unnamed student'}</span>
-        <span className="block truncate text-xs text-slate-400">{s.email}</span>
+        <span className="block truncate text-sm font-semibold text-ink">{s.name || 'Unnamed student'}</span>
+        <span className="block truncate text-xs text-subtle">{s.email}</span>
       </span>
       {s.yearGroup && (
-        <span className="flex-shrink-0 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">{s.yearGroup}</span>
+        <span className="flex-shrink-0 rounded-md bg-sunken px-2 py-0.5 text-[11px] font-semibold text-ink-2">{s.yearGroup}</span>
       )}
       {off && <Badge tone="slate">Inactive</Badge>}
     </label>
@@ -260,10 +260,10 @@ function AssignDialog({ paperId, label, onClose }) {
   if (done) {
     body = (
       <div className="px-5 py-8 text-center" role="status">
-        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#2f7d4522] text-positive">
           <FiCheckCircle size={28} />
         </span>
-        <p className="mt-4 text-base font-bold text-slate-900">
+        <p className="mt-4 text-base font-bold text-ink">
           Assigned to {plural(done, 'student')} — they will find it under My Tests.
         </p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
@@ -288,57 +288,57 @@ function AssignDialog({ paperId, label, onClose }) {
     body = (
       <>
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-ink-2">
             Tick the students who should do this paper. It is free for them, even if it is not on sale.
           </p>
           <div className="relative mt-3">
-            <FiSearch size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <FiSearch size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle" />
             <input type="search" value={q} onChange={(e) => setQ(e.target.value)}
               placeholder="Search by name, email or year…" className={`${INPUT} pl-8`} />
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
             <button type="button" onClick={toggleShown} disabled={!pickable.length}
-              className="font-semibold text-indigo-600 hover:underline disabled:cursor-not-allowed disabled:text-slate-300 disabled:no-underline">
+              className="font-semibold text-brand hover:underline disabled:cursor-not-allowed disabled:text-subtle disabled:no-underline">
               {allShownPicked ? 'Unselect all shown' : `Select all shown (${pickable.length})`}
             </button>
-            <span className="text-slate-500">
+            <span className="text-muted">
               {count} selected
               {count > 0 && (
                 <>
                   {' · '}
-                  <button type="button" onClick={() => setPicked(new Set())} className="font-semibold text-slate-600 hover:underline">Clear</button>
+                  <button type="button" onClick={() => setPicked(new Set())} className="font-semibold text-ink-2 hover:underline">Clear</button>
                 </>
               )}
             </span>
           </div>
-          <div className="mt-2 max-h-[38vh] divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200">
+          <div className="mt-2 max-h-[38vh] divide-y divide-line overflow-y-auto rounded-xl border border-line">
             {shown.map((s) => (
               <StudentPick key={s._id} s={s} picked={picked.has(s._id)} onToggle={toggle} />
             ))}
             {shown.length === 0 && (
-              <p className="px-4 py-6 text-center text-xs text-slate-400">No student matches “{q.trim()}”.</p>
+              <p className="px-4 py-6 text-center text-xs text-subtle">No student matches “{q.trim()}”.</p>
             )}
           </div>
 
           <label className="mt-4 block">
-            <span className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-              <FiCalendar size={12} /> Due date <span className="font-normal text-slate-400">(optional)</span>
+            <span className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-ink-2">
+              <FiCalendar size={12} /> Due date <span className="font-normal text-subtle">(optional)</span>
             </span>
             <input type="date" value={due} min={todayInput()} onChange={(e) => setDue(e.target.value)} className={INPUT} />
           </label>
           <label className="mt-3 block">
-            <span className="mb-1 flex items-center justify-between gap-2 text-xs font-semibold text-slate-600">
+            <span className="mb-1 flex items-center justify-between gap-2 text-xs font-semibold text-ink-2">
               <span className="flex items-center gap-1.5">
-                <FiMessageSquare size={12} /> Note for the students <span className="font-normal text-slate-400">(optional)</span>
+                <FiMessageSquare size={12} /> Note for the students <span className="font-normal text-subtle">(optional)</span>
               </span>
-              <span className="font-normal text-slate-400">{note.length}/{NOTE_MAX}</span>
+              <span className="font-normal text-subtle">{note.length}/{NOTE_MAX}</span>
             </span>
             <textarea value={note} onChange={(e) => setNote(e.target.value.slice(0, NOTE_MAX))} maxLength={NOTE_MAX} rows={2}
               placeholder="e.g. Finish this before Friday's class" className={`${INPUT} resize-none`} />
           </label>
         </div>
 
-        <div className="border-t border-slate-100 px-5 py-4">
+        <div className="border-t border-line px-5 py-4">
           {error && <div className="mb-3"><ErrorState message={error} /></div>}
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button type="button" onClick={onClose} disabled={busy} className={BTN_SECONDARY}>Cancel</button>
@@ -354,21 +354,21 @@ function AssignDialog({ paperId, label, onClose }) {
 
   return (
     <div
-      className="no-print fixed inset-0 z-[150] flex items-end justify-center bg-slate-900/50 backdrop-blur-sm sm:items-center sm:p-4"
+      className="no-print fixed inset-0 z-[150] flex items-end justify-center bg-ink/40 backdrop-blur-sm sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="assign-title"
       onClick={dismiss}
     >
-      <div className="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl"
+      <div className="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-line bg-surface sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
+        <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
           <div className="min-w-0">
-            <h2 id="assign-title" className="text-lg font-bold text-slate-900">Assign to students</h2>
-            <p className="mt-0.5 truncate text-sm text-slate-500" title={label}>{label}</p>
+            <h2 id="assign-title" className="text-lg font-bold text-ink">Assign to students</h2>
+            <p className="mt-0.5 truncate text-sm text-muted" title={label}>{label}</p>
           </div>
           <button type="button" onClick={dismiss} disabled={busy} aria-label="Close"
-            className="flex-shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40">
+            className="flex-shrink-0 rounded-lg p-1.5 text-subtle hover:bg-ink/5 hover:text-ink disabled:opacity-40">
             <FiX size={18} />
           </button>
         </div>
@@ -594,15 +594,16 @@ export default function QuestionBankPage() {
       <div>
         <div className="no-print">
           <PageHeader
+            eyebrow="Staff · Question paper"
             title={paper ? paper.subject : 'Exam Paper'}
             subtitle={paperMeta ? <SaleLine meta={paperMeta} currency={currency} isAdmin={isAdmin} canAssign={!block} /> : null}
             actions={
               <div className="flex flex-wrap items-center gap-2">
-                <button onClick={back} className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+                <button onClick={back} className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-sm font-semibold text-ink-2 hover:bg-ink/5">
                   <FiChevronLeft size={15} /> Back
                 </button>
                 <button onClick={() => setShowAnswers((s) => !s)}
-                  className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+                  className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-sm font-semibold text-ink-2 hover:bg-ink/5">
                   {showAnswers ? <><FiEyeOff size={15} /> Hide mark scheme</> : <><FiEye size={15} /> Show mark scheme</>}
                 </button>
                 {/* The wrapper carries the reason too: some browsers show no
@@ -620,7 +621,7 @@ export default function QuestionBankPage() {
             }
           />
           {block && paperMeta && (
-            <div className="-mt-3 mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+            <div className="-mt-3 mb-4 flex items-start gap-2 rounded-xl border border-star/40 bg-[#b7791f14] px-4 py-2.5 text-sm text-[#8a5a12]">
               <FiAlertTriangle size={15} className="mt-0.5 flex-shrink-0" />
               <span>
                 {!paperMeta.paperId ? (
@@ -731,7 +732,8 @@ export default function QuestionBankPage() {
   return (
     <div>
       <PageHeader
-        title="Question Bank"
+        eyebrow="Staff · Library"
+        title={<>The question <em className="accent">bank</em></>}
         subtitle="Open a subject, then a folder, then a paper. Print it, or assign it to students. Each folder's Miscellaneous entry holds its practice sheets and period materials."
       />
       {error && <div className="mb-4"><ErrorState message={error} /></div>}
@@ -742,7 +744,7 @@ export default function QuestionBankPage() {
           {['', ...diffs].map((d) => (
             <button key={d || 'all'} onClick={() => setDiff(d)}
               className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                diff === d ? 'bg-indigo-600 text-white' : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                diff === d ? 'bg-cta text-on-cta' : 'border border-line bg-surface text-ink-2 chip-hover'
               }`}>
               {d || 'All difficulties'}
             </button>
@@ -752,12 +754,12 @@ export default function QuestionBankPage() {
 
       <div className="flex gap-4 overflow-x-auto pb-4">
         {/* ---- Column 0: subjects ---- */}
-        <div className="w-80 flex-shrink-0 border-r border-slate-200/80 pr-4">
+        <div className="w-80 flex-shrink-0 border-r border-line pr-4">
           <div className="relative mb-3">
-            <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle" />
             <input value={colQ.s || ''} onChange={(e) => setSearch('s', e.target.value)}
               placeholder="Search subjects…"
-              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-8 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none" />
+              className="w-full rounded-lg border border-line bg-surface py-2.5 pl-8 pr-3 text-sm text-ink-2 placeholder:text-subtle focus:border-ink focus:outline-none" />
           </div>
           <div className="max-h-[70vh] space-y-2 overflow-y-auto pr-1">
             {loadingSubjects ? <Loading label="Loading…" /> : subjRows.map((s) => {
@@ -765,11 +767,11 @@ export default function QuestionBankPage() {
               return (
                 <button key={`${s.curriculum}|${s.subject}`} onClick={() => openSubject(s)}
                   className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition ${
-                    active ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white hover:bg-slate-50'
+                    active ? 'border-ink bg-brand-50' : 'border-line bg-surface hover:border-line-strong hover:bg-ink/5'
                   }`}>
-                  <FaFolder size={16} className="flex-shrink-0 text-amber-400" />
-                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">{s.curriculum} {s.subject}</span>
-                  <span className="flex-shrink-0 text-[11px] text-slate-400">{s.papers.toLocaleString()}</span>
+                  <FaFolder size={16} className="flex-shrink-0 text-star" />
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{s.curriculum} {s.subject}</span>
+                  <span className="flex-shrink-0 font-code text-[11px] tabular-nums text-subtle">{s.papers.toLocaleString()}</span>
                 </button>
               )
             })}
@@ -784,47 +786,47 @@ export default function QuestionBankPage() {
           <div className="w-80 flex-shrink-0"><Loading label="Loading papers…" /></div>
         )}
         {columns.map((col) => (
-          <div key={col.key} className="w-80 flex-shrink-0 border-r border-slate-200/80 pr-4 last:border-r-0 last:pr-0">
+          <div key={col.key} className="w-80 flex-shrink-0 border-r border-line pr-4 last:border-r-0 last:pr-0">
             <div className="relative mb-3">
-              <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle" />
               <input value={colQ[col.key] || ''} onChange={(e) => setSearch(col.key, e.target.value)}
                 placeholder={`Search in "${col.title}"…`}
-                className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-8 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none" />
+                className="w-full rounded-lg border border-line bg-surface py-2.5 pl-8 pr-3 text-sm text-ink-2 placeholder:text-subtle focus:border-ink focus:outline-none" />
             </div>
             <div className="max-h-[70vh] space-y-2 overflow-y-auto pr-1">
               {col.rows.map((r) => r.type === 'dir' ? (
                 <button key={`d${r.name}`} onClick={() => setPath([...path.slice(0, col.depth), r.name])}
                   className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition ${
-                    path[col.depth] === r.name ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white hover:bg-slate-50'
+                    path[col.depth] === r.name ? 'border-ink bg-brand-50' : 'border-line bg-surface hover:border-line-strong hover:bg-ink/5'
                   }`}>
-                  <FaFolder size={16} className="flex-shrink-0 text-amber-400" />
-                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">{pretty(r.name)}</span>
-                  <span className="flex-shrink-0 text-[11px] text-slate-400">{r.count}</span>
+                  <FaFolder size={16} className="flex-shrink-0 text-star" />
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{pretty(r.name)}</span>
+                  <span className="flex-shrink-0 font-code text-[11px] tabular-nums text-subtle">{r.count}</span>
                 </button>
               ) : r.type === 'misc' ? (
                 <button key="misc" onClick={() => openSheets(col.depth)}
                   title="Practice sheets and period materials for this folder"
-                  className="flex w-full items-center gap-3 rounded-xl border border-sky-200 bg-sky-50/60 px-4 py-3.5 text-left transition hover:bg-sky-100/70">
-                  <FaFolder size={16} className="flex-shrink-0 text-sky-500" />
+                  className="flex w-full items-center gap-3 rounded-xl border border-calm/30 bg-[#3f6b640f] px-4 py-3.5 text-left transition hover:bg-[#3f6b641f]">
+                  <FaFolder size={16} className="flex-shrink-0 text-calm" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-slate-800">Miscellaneous</span>
-                    <span className="block text-[11px] text-slate-400">Practice sheets &amp; periods</span>
+                    <span className="block truncate text-sm font-semibold text-ink">Miscellaneous</span>
+                    <span className="block text-[11px] text-subtle">Practice sheets &amp; periods</span>
                   </span>
-                  {r.count > 0 && <span className="flex-shrink-0 text-[11px] text-slate-400">{plural(r.count, 'file')}</span>}
+                  {r.count > 0 && <span className="flex-shrink-0 font-code text-[11px] text-subtle">{plural(r.count, 'file')}</span>}
                 </button>
               ) : (
                 <button key={`p${r.p.n}`} onClick={() => openPaper(r.p)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left transition hover:bg-emerald-50/60">
-                  <FaFolder size={16} className="flex-shrink-0 text-amber-400" />
+                  className="flex w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3.5 text-left transition hover:border-line-strong hover:bg-brand-50">
+                  <FaFolder size={16} className="flex-shrink-0 text-star" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-slate-800">{r.name}</span>
+                    <span className="block truncate text-sm font-semibold text-ink">{r.name}</span>
                     <SalePills p={r.p} currency={currency} />
                   </span>
-                  <span className="flex-shrink-0 text-[11px] text-slate-400">{r.p.count} Qs</span>
+                  <span className="flex-shrink-0 font-code text-[11px] tabular-nums text-subtle">{r.p.count} Qs</span>
                 </button>
               ))}
               {col.rows.length === 0 && (
-                <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-400">
+                <div className="rounded-xl border border-dashed border-line p-6 text-center text-xs text-subtle">
                   {col.total === 0 ? 'Nothing here for this filter' : 'No match for this search'}
                 </div>
               )}
@@ -833,7 +835,7 @@ export default function QuestionBankPage() {
         ))}
 
         {!sel && !loadingSubjects && (
-          <div className="flex w-80 flex-shrink-0 items-center justify-center rounded-xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-400">
+          <div className="flex w-80 flex-shrink-0 items-center justify-center rounded-xl border border-dashed border-line p-8 text-center text-sm text-subtle">
             Pick a subject to browse its papers →
           </div>
         )}

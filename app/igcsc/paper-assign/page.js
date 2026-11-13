@@ -14,13 +14,13 @@ import { PageHeader, Card, Badge, Loading, EmptyState, ErrorState, Table } from 
 import { ATTEMPT_STATUS } from '../../../lib/igcscStoreShared'
 
 const BTN_PRIMARY =
-  'inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-2 rounded-xl bg-cta px-5 py-2.5 text-sm font-medium text-on-cta transition hover:bg-cta-hover disabled:cursor-not-allowed disabled:opacity-50'
 const BTN_SECONDARY =
-  'inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-2 rounded-xl border border-line-strong px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-50'
 const BTN_DANGER =
-  'inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-2 rounded-xl bg-negative px-5 py-2.5 text-sm font-semibold text-on-brand transition hover:bg-negative/90 disabled:cursor-not-allowed disabled:opacity-50'
 const INPUT =
-  'w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 disabled:bg-slate-50 disabled:text-slate-400'
+  'w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-sm text-ink placeholder:text-subtle focus:border-ink focus:outline-none disabled:bg-sunken disabled:text-subtle'
 
 // The API takes at most 50 students and 50 papers per request; a bigger
 // selection goes in batches.
@@ -109,7 +109,7 @@ function attemptHref(la) {
 
 function Tick({ on }) {
   return (
-    <span className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border-2 transition-colors ${on ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 bg-white'}`}>
+    <span className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border-2 transition-colors ${on ? 'border-ink bg-cta text-on-cta' : 'border-line-strong bg-surface'}`}>
       {on && <FiCheck size={13} />}
     </span>
   )
@@ -117,9 +117,9 @@ function Tick({ on }) {
 
 function Chip({ label, onRemove }) {
   return (
-    <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-indigo-50 py-1 pl-3 pr-1 text-xs font-semibold text-indigo-700">
+    <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-line bg-brand-50 py-1 pl-3 pr-1 font-code text-[11px] text-brand">
       <span className="truncate">{label}</span>
-      <button type="button" onClick={onRemove} className="flex-shrink-0 rounded-full p-0.5 transition hover:bg-indigo-100" aria-label={`Remove ${label}`}>
+      <button type="button" onClick={onRemove} className="flex-shrink-0 rounded-full p-0.5 transition hover:bg-brand-soft" aria-label={`Remove ${label}`}>
         <FiX size={12} />
       </button>
     </span>
@@ -129,7 +129,7 @@ function Chip({ label, onRemove }) {
 function SearchBox({ value, onChange, placeholder }) {
   return (
     <div className="relative">
-      <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+      <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle" size={15} />
       <input
         type="search"
         value={value}
@@ -151,18 +151,18 @@ function StudentRow({ s, picked, onToggle }) {
       disabled={suspended}
       title={suspended ? 'Suspended - reactivate them in Users to assign work' : undefined}
       aria-pressed={picked}
-      className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${picked ? 'bg-indigo-50/70' : 'hover:bg-slate-50'}`}
+      className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${picked ? 'bg-brand-50' : 'hover:bg-ink/5'}`}
     >
       <Tick on={picked} />
-      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 text-xs font-bold text-white">
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-sunken font-code text-xs font-medium text-ink-2">
         {initials}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold text-slate-800">{s.name || 'Unnamed student'}</span>
-        <span className="block truncate text-xs text-slate-400">{s.email}</span>
+        <span className="block truncate text-sm font-semibold text-ink">{s.name || 'Unnamed student'}</span>
+        <span className="block truncate text-xs text-subtle">{s.email}</span>
       </span>
       {s.yearGroup && (
-        <span className="hidden flex-shrink-0 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 sm:inline">{s.yearGroup}</span>
+        <span className="hidden flex-shrink-0 rounded-md bg-sunken px-2 py-0.5 text-[11px] font-semibold text-ink-2 sm:inline">{s.yearGroup}</span>
       )}
       {s.isActive === false && <Badge tone="slate">Inactive</Badge>}
     </button>
@@ -181,21 +181,21 @@ function PaperRow({ p, picked, onToggle }) {
       type="button"
       onClick={() => onToggle(p)}
       aria-pressed={picked}
-      className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors ${picked ? 'bg-indigo-50/70' : 'hover:bg-slate-50'}`}
+      className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors ${picked ? 'bg-brand-50' : 'hover:bg-ink/5'}`}
     >
       <Tick on={picked} />
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-1.5">
-          <span className="text-sm font-semibold text-slate-800">{p.title || 'Untitled paper'}</span>
+          <span className="text-sm font-semibold text-ink">{p.title || 'Untitled paper'}</span>
           {p.difficulty && <Badge tone={DIFF_TONE[p.difficulty] || 'slate'}>{p.difficulty}</Badge>}
           {!p.isPublished && <Badge tone="slate">Not on sale</Badge>}
         </span>
-        {p.unit && <span className="mt-0.5 block truncate text-xs text-slate-500">{p.unit}</span>}
-        <span className="mt-1 block text-[11px] text-slate-400">
+        {p.unit && <span className="mt-0.5 block truncate text-xs text-muted">{p.unit}</span>}
+        <span className="mt-1 block text-[11px] text-subtle">
           {[p.curriculum, p.subject].filter(Boolean).join(' · ')}{bits ? ` · ${bits}` : ''}
         </span>
         {!p.clean && p.holdReason && (
-          <span className="mt-1 flex items-start gap-1 text-[11px] font-medium text-amber-700">
+          <span className="mt-1 flex items-start gap-1 text-[11px] font-medium text-[#8a5a12]">
             <FiAlertTriangle size={11} className="mt-0.5 flex-shrink-0" /> {p.holdReason}
           </span>
         )}
@@ -205,13 +205,13 @@ function PaperRow({ p, picked, onToggle }) {
 }
 
 function AttemptCell({ la }) {
-  if (!la) return <span className="text-xs text-slate-400">Not started</span>
+  if (!la) return <span className="text-xs text-subtle">Not started</span>
   const st = ATTEMPT_STATUS[la.status] || { label: la.status || 'Unknown', tone: 'slate' }
   const body = (
     <span className="inline-flex flex-wrap items-center gap-1.5">
       <Badge tone={st.tone}>{st.label}</Badge>
       {la.percentage != null && (
-        <span className="text-xs font-bold text-slate-700">{la.percentage}%{la.grade ? ` · ${la.grade}` : ''}</span>
+        <span className="font-code text-xs font-semibold tabular-nums text-ink">{la.percentage}%{la.grade ? ` · ${la.grade}` : ''}</span>
       )}
     </span>
   )
@@ -220,10 +220,10 @@ function AttemptCell({ la }) {
 }
 
 function DueLabel({ a }) {
-  if (!a.dueAt) return <span className="text-xs text-slate-400">No due date</span>
+  if (!a.dueAt) return <span className="text-xs text-subtle">No due date</span>
   const overdue = isOverdue(a)
   return (
-    <span className={`inline-flex items-center gap-1 whitespace-nowrap text-xs ${overdue ? 'font-bold text-rose-600' : 'font-medium text-slate-600'}`}>
+    <span className={`inline-flex items-center gap-1 whitespace-nowrap font-code text-xs ${overdue ? 'font-semibold text-negative' : 'text-ink-2'}`}>
       {overdue ? <FiAlertTriangle size={12} /> : <FiCalendar size={12} />}
       {overdue ? 'Overdue · ' : ''}{fmtDate(a.dueAt, true)}
     </span>
@@ -236,7 +236,7 @@ function RevokeButton({ a, onRevoke }) {
     <button
       type="button"
       onClick={() => onRevoke(a)}
-      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50"
+      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-negative transition hover:bg-[#b4231814]"
     >
       <FiTrash2 size={13} /> Revoke
     </button>
@@ -245,22 +245,22 @@ function RevokeButton({ a, onRevoke }) {
 
 function AssignmentRow({ a, onRevoke }) {
   return (
-    <tr className={a.revokedAt ? 'bg-slate-50/60 opacity-70' : 'hover:bg-slate-50/60'}>
+    <tr className={a.revokedAt ? 'bg-canvas opacity-70' : 'hover:bg-ink/5'}>
       <td className="px-4 py-3 align-top">
-        <div className="max-w-[200px] truncate font-semibold text-slate-800">{a.student?.name || 'Unknown student'}</div>
-        <div className="max-w-[200px] truncate text-xs text-slate-400">{a.student?.email}</div>
+        <div className="max-w-[200px] truncate font-semibold text-ink">{a.student?.name || 'Unknown student'}</div>
+        <div className="max-w-[200px] truncate font-code text-xs text-subtle">{a.student?.email}</div>
       </td>
       <td className="px-4 py-3 align-top">
-        <div className="max-w-[260px] truncate font-semibold text-slate-800">{a.paper?.title || 'Paper'}</div>
-        <div className="max-w-[260px] truncate text-xs text-slate-500">{a.paper?.unit}</div>
+        <div className="max-w-[260px] truncate font-semibold text-ink">{a.paper?.title || 'Paper'}</div>
+        <div className="max-w-[260px] truncate text-xs text-muted">{a.paper?.unit}</div>
       </td>
       <td className="px-4 py-3 align-top"><DueLabel a={a} /></td>
       <td className="px-4 py-3 align-top"><AttemptCell la={a.latestAttempt} /></td>
       <td className="px-4 py-3 align-top">
-        <div className="whitespace-nowrap text-xs text-slate-600">{fmtDate(a.createdAt)}</div>
-        {a.assignedByName && <div className="max-w-[140px] truncate text-xs text-slate-400">by {a.assignedByName}</div>}
+        <div className="whitespace-nowrap font-code text-xs text-ink-2">{fmtDate(a.createdAt)}</div>
+        {a.assignedByName && <div className="max-w-[140px] truncate text-xs text-subtle">by {a.assignedByName}</div>}
         {a.note && (
-          <div className="mt-1 max-w-[200px] truncate text-xs italic text-slate-400" title={a.note}>“{a.note}”</div>
+          <div className="mt-1 max-w-[200px] truncate text-xs italic text-subtle" title={a.note}>“{a.note}”</div>
         )}
       </td>
       <td className="px-4 py-3 text-right align-top"><RevokeButton a={a} onRevoke={onRevoke} /></td>
@@ -270,26 +270,26 @@ function AssignmentRow({ a, onRevoke }) {
 
 function AssignmentCard({ a, onRevoke }) {
   return (
-    <div className={`px-4 py-4 ${a.revokedAt ? 'bg-slate-50/60 opacity-70' : ''}`}>
+    <div className={`px-4 py-4 ${a.revokedAt ? 'bg-canvas opacity-70' : ''}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold text-slate-800">{a.student?.name || 'Unknown student'}</div>
-          <div className="truncate text-xs text-slate-400">{a.student?.email}</div>
+          <div className="truncate text-sm font-semibold text-ink">{a.student?.name || 'Unknown student'}</div>
+          <div className="truncate text-xs text-subtle">{a.student?.email}</div>
         </div>
         <div className="flex-shrink-0"><RevokeButton a={a} onRevoke={onRevoke} /></div>
       </div>
-      <div className="mt-2 rounded-xl bg-slate-50 px-3 py-2">
-        <div className="break-words text-sm font-semibold text-slate-800">{a.paper?.title || 'Paper'}</div>
-        {a.paper?.unit && <div className="break-words text-xs text-slate-500">{a.paper.unit}</div>}
+      <div className="mt-2 rounded-xl bg-canvas px-3 py-2">
+        <div className="break-words text-sm font-semibold text-ink">{a.paper?.title || 'Paper'}</div>
+        {a.paper?.unit && <div className="break-words text-xs text-muted">{a.paper.unit}</div>}
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
         <DueLabel a={a} />
         <AttemptCell la={a.latestAttempt} />
       </div>
-      <div className="mt-2 text-xs text-slate-400">
+      <div className="mt-2 text-xs text-subtle">
         Assigned {fmtDate(a.createdAt)}{a.assignedByName ? ` by ${a.assignedByName}` : ''}
       </div>
-      {a.note && <p className="mt-1 break-words text-xs italic text-slate-500">“{a.note}”</p>}
+      {a.note && <p className="mt-1 break-words text-xs italic text-muted">“{a.note}”</p>}
     </div>
   )
 }
@@ -303,14 +303,14 @@ function ConfirmDialog({ title, children, confirmLabel, danger, busy, onConfirm,
 
   return (
     <div
-      className="fixed inset-0 z-[150] flex items-end justify-center bg-slate-900/50 p-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-[150] flex items-end justify-center bg-ink/40 p-4 backdrop-blur-sm sm:items-center"
       role="dialog"
       aria-modal="true"
       onClick={() => { if (!busy) onCancel() }}
     >
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-bold text-slate-900">{title}</h2>
-        <div className="mt-2 text-sm leading-relaxed text-slate-600">{children}</div>
+      <div className="w-full max-w-md border border-line bg-surface p-6" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-lg font-bold text-ink">{title}</h2>
+        <div className="mt-2 text-sm leading-relaxed text-ink-2">{children}</div>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button type="button" onClick={onCancel} disabled={busy} className={BTN_SECONDARY}>Cancel</button>
           <button type="button" onClick={onConfirm} disabled={busy} className={danger ? BTN_DANGER : BTN_PRIMARY}>
@@ -573,7 +573,8 @@ export default function PaperAssignPage() {
   return (
     <div>
       <PageHeader
-        title="Assigned"
+        eyebrow="Staff · Assignments"
+        title={<>Assigned <em className="accent">work</em></>}
         subtitle="Every paper you have given students, and how they did. To give one paper, open it in the Question Bank and press Assign; to give many papers to many students at once, use the form below."
         actions={(
           <Link href="/igcsc/grading" className={BTN_SECONDARY}>
@@ -583,12 +584,12 @@ export default function PaperAssignPage() {
       />
 
       {flash && (
-        <div className={`mb-5 flex items-start justify-between gap-3 rounded-2xl border px-4 py-3 text-sm font-medium ${flash.tone === 'green' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'}`}>
+        <div className={`mb-5 flex items-start justify-between gap-3 rounded-2xl border px-4 py-3 text-sm font-medium ${flash.tone === 'green' ? 'border-positive/30 bg-[#2f7d4514] text-positive' : 'border-negative/30 bg-[#b4231814] text-negative'}`}>
           <span className="flex min-w-0 items-start gap-2">
             {flash.tone === 'green' ? <FiCheckCircle size={16} className="mt-0.5 flex-shrink-0" /> : <FiAlertTriangle size={16} className="mt-0.5 flex-shrink-0" />}
             <span className="min-w-0 break-words">{flash.text}</span>
           </span>
-          <button type="button" onClick={() => setFlash(null)} className="flex-shrink-0 rounded-lg p-1 transition hover:bg-white/60" aria-label="Dismiss">
+          <button type="button" onClick={() => setFlash(null)} className="flex-shrink-0 rounded-lg p-1 transition hover:bg-ink/5" aria-label="Dismiss">
             <FiX size={14} />
           </button>
         </div>
@@ -597,28 +598,28 @@ export default function PaperAssignPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* 1 · Students */}
         <Card
-          title={<span className="flex items-center gap-2"><FiUsers size={15} className="text-indigo-500" /> 1 · Students</span>}
+          title={<span className="flex items-center gap-2"><FiUsers size={15} className="text-brand" /> 1 · Students</span>}
           action={studentIds.length ? <Badge tone="indigo">{studentIds.length} chosen</Badge> : null}
         >
-          <div className="space-y-3 border-b border-slate-100 p-4">
+          <div className="space-y-3 border-b border-line p-4">
             <SearchBox value={studentQ} onChange={setStudentQ} placeholder="Search by name, email or year" />
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
               <button
                 type="button"
                 onClick={toggleAllStudents}
                 disabled={!shownStudents.length}
-                className="font-semibold text-indigo-600 transition hover:text-indigo-800 disabled:text-slate-300"
+                className="font-semibold text-brand transition hover:text-brand disabled:text-subtle"
               >
                 {allStudentsShownPicked ? 'Unselect' : 'Select'} {studentQ.trim() ? 'these' : 'all'} ({shownStudents.length})
               </button>
               {studentIds.length > 0 && (
-                <button type="button" onClick={() => setPickedStudents({})} className="font-semibold text-slate-500 transition hover:text-slate-700">
+                <button type="button" onClick={() => setPickedStudents({})} className="font-semibold text-muted transition hover:text-ink">
                   Clear selection
                 </button>
               )}
             </div>
           </div>
-          <div className="max-h-[440px] divide-y divide-slate-50 overflow-y-auto">
+          <div className="max-h-[440px] divide-y divide-line overflow-y-auto">
             {studentsLoading ? (
               <Loading label="Loading students…" />
             ) : studentsError ? (
@@ -639,10 +640,10 @@ export default function PaperAssignPage() {
 
         {/* 2 · Papers */}
         <Card
-          title={<span className="flex items-center gap-2"><FiFileText size={15} className="text-indigo-500" /> 2 · Papers</span>}
+          title={<span className="flex items-center gap-2"><FiFileText size={15} className="text-brand" /> 2 · Papers</span>}
           action={paperIds.length ? <Badge tone="indigo">{paperIds.length} chosen</Badge> : null}
         >
-          <div className="space-y-3 border-b border-slate-100 p-4">
+          <div className="space-y-3 border-b border-line p-4">
             <SearchBox value={paperQ} onChange={setPaperQ} placeholder="Search title, unit or topic" />
             <div className="grid grid-cols-2 gap-2">
               <select
@@ -676,19 +677,19 @@ export default function PaperAssignPage() {
                 type="button"
                 onClick={toggleAllPapers}
                 disabled={!papers.length}
-                className="font-semibold text-indigo-600 transition hover:text-indigo-800 disabled:text-slate-300"
+                className="font-semibold text-brand transition hover:text-brand disabled:text-subtle"
               >
                 {allPapersShownPicked ? 'Unselect' : 'Select'} the {papers.length} shown
               </button>
-              <span className="text-slate-400">{paperMeta.total} matching</span>
+              <span className="text-subtle">{paperMeta.total} matching</span>
               {paperIds.length > 0 && (
-                <button type="button" onClick={() => setPickedPapers({})} className="font-semibold text-slate-500 transition hover:text-slate-700">
+                <button type="button" onClick={() => setPickedPapers({})} className="font-semibold text-muted transition hover:text-ink">
                   Clear selection
                 </button>
               )}
             </div>
           </div>
-          <div className="max-h-[440px] divide-y divide-slate-50 overflow-y-auto">
+          <div className="max-h-[440px] divide-y divide-line overflow-y-auto">
             {papersLoading && papers.length === 0 ? (
               <Loading label="Loading papers…" />
             ) : papersError && papers.length === 0 ? (
@@ -725,31 +726,31 @@ export default function PaperAssignPage() {
       </div>
 
       {/* 3 · Assign */}
-      <Card className="mt-6" title={<span className="flex items-center gap-2"><FiSend size={15} className="text-indigo-500" /> 3 · Due date and note</span>}>
+      <Card className="mt-6" title={<span className="flex items-center gap-2"><FiSend size={15} className="text-brand" /> 3 · Due date and note</span>}>
         <div className="space-y-5 p-5">
           {(pickedStudentList.length > 0 || pickedPaperList.length > 0) && (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="min-w-0">
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Students</p>
+                <p className="mb-2 font-code text-[11px] uppercase tracking-[0.12em] text-muted">Students</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {pickedStudentList.length === 0 && <span className="text-xs text-slate-400">None chosen yet</span>}
+                  {pickedStudentList.length === 0 && <span className="text-xs text-subtle">None chosen yet</span>}
                   {pickedStudentList.slice(0, CHIPS_SHOWN).map(([id, s]) => (
                     <Chip key={id} label={s.name} onRemove={() => unpickStudent(id)} />
                   ))}
                   {pickedStudentList.length > CHIPS_SHOWN && (
-                    <span className="self-center text-xs font-semibold text-slate-500">+{pickedStudentList.length - CHIPS_SHOWN} more</span>
+                    <span className="self-center text-xs font-semibold text-muted">+{pickedStudentList.length - CHIPS_SHOWN} more</span>
                   )}
                 </div>
               </div>
               <div className="min-w-0">
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Papers</p>
+                <p className="mb-2 font-code text-[11px] uppercase tracking-[0.12em] text-muted">Papers</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {pickedPaperList.length === 0 && <span className="text-xs text-slate-400">None chosen yet</span>}
+                  {pickedPaperList.length === 0 && <span className="text-xs text-subtle">None chosen yet</span>}
                   {pickedPaperList.slice(0, CHIPS_SHOWN).map(([id, p]) => (
                     <Chip key={id} label={p.unit ? `${p.title} · ${p.unit}` : p.title} onRemove={() => unpickPaper(id)} />
                   ))}
                   {pickedPaperList.length > CHIPS_SHOWN && (
-                    <span className="self-center text-xs font-semibold text-slate-500">+{pickedPaperList.length - CHIPS_SHOWN} more</span>
+                    <span className="self-center text-xs font-semibold text-muted">+{pickedPaperList.length - CHIPS_SHOWN} more</span>
                   )}
                 </div>
               </div>
@@ -758,15 +759,15 @@ export default function PaperAssignPage() {
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-[220px_minmax(0,1fr)]">
             <label className="block">
-              <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                <FiCalendar size={13} /> Due date <span className="font-normal text-slate-400">(optional)</span>
+              <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-ink-2">
+                <FiCalendar size={13} /> Due date <span className="font-normal text-subtle">(optional)</span>
               </span>
               <input type="date" value={due} min={todayInput()} onChange={(e) => setDue(e.target.value)} className={INPUT} />
             </label>
             <label className="block">
-              <span className="mb-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-slate-600">
-                <span className="flex items-center gap-1.5"><FiMessageSquare size={13} /> Note for the students <span className="font-normal text-slate-400">(optional)</span></span>
-                <span className="font-normal text-slate-400">{note.length}/{NOTE_MAX}</span>
+              <span className="mb-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-ink-2">
+                <span className="flex items-center gap-1.5"><FiMessageSquare size={13} /> Note for the students <span className="font-normal text-subtle">(optional)</span></span>
+                <span className="font-normal text-subtle">{note.length}/{NOTE_MAX}</span>
               </span>
               <textarea
                 value={note}
@@ -780,14 +781,14 @@ export default function PaperAssignPage() {
           </div>
 
           {offSale > 0 && (
-            <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-xs font-medium text-amber-800">
+            <p className="flex items-start gap-2 rounded-xl bg-[#b7791f14] px-3 py-2.5 text-xs font-medium text-[#8a5a12]">
               <FiAlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
               {offSale === 1 ? 'One of these papers is' : `${offSale} of these papers are`} not on sale. Assigned students can still open {offSale === 1 ? 'it' : 'them'}.
             </p>
           )}
 
-          <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-slate-500">
+          <div className="flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-muted">
               {studentIds.length && paperIds.length
                 ? `${studentIds.length * paperIds.length} assignment${studentIds.length * paperIds.length === 1 ? '' : 's'}. Assigning a paper a student already has updates its due date and note.`
                 : 'Choose at least one student and one paper.'}
@@ -805,25 +806,25 @@ export default function PaperAssignPage() {
         className="mt-8"
         title="Current assignments"
         action={(
-          <button type="button" onClick={loadAssignments} disabled={asgLoading} className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50" aria-label="Refresh">
+          <button type="button" onClick={loadAssignments} disabled={asgLoading} className="rounded-lg p-1.5 text-subtle transition hover:bg-ink/5 hover:text-ink disabled:opacity-50" aria-label="Refresh">
             <FiRefreshCw size={15} className={asgLoading ? 'animate-spin' : ''} />
           </button>
         )}
       >
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 border-b border-line p-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap gap-2 text-xs font-semibold">
-            <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">{asgStats.active} active</span>
-            <span className={`rounded-full px-3 py-1 ${asgStats.overdue ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-500'}`}>{asgStats.overdue} overdue</span>
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">{asgStats.done} marked</span>
+            <span className="rounded-full border border-line bg-brand-50 px-3 py-1 font-code text-[11px] text-brand">{asgStats.active} active</span>
+            <span className={`rounded-full border border-line px-3 py-1 font-code text-[11px] ${asgStats.overdue ? 'bg-[#b4231814] text-negative' : 'bg-sunken text-muted'}`}>{asgStats.overdue} overdue</span>
+            <span className="rounded-full border border-line bg-[#2f7d4514] px-3 py-1 font-code text-[11px] text-positive">{asgStats.done} marked</span>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="sm:w-64"><SearchBox value={asgQ} onChange={setAsgQ} placeholder="Search student or paper" /></div>
-            <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-600">
+            <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-ink-2">
               <input
                 type="checkbox"
                 checked={showRevoked}
                 onChange={(e) => setShowRevoked(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-200"
+                className="h-4 w-4 rounded border-line-strong text-brand"
               />
               Show revoked
             </label>
@@ -843,7 +844,7 @@ export default function PaperAssignPage() {
         ) : (
           <>
             {asgError && <div className="px-4 pt-4"><ErrorState message={asgError} /></div>}
-            <div className="divide-y divide-slate-100 md:hidden">
+            <div className="divide-y divide-line md:hidden">
               {shownAssignments.map((a) => <AssignmentCard key={a._id} a={a} onRevoke={setRevoking} />)}
             </div>
             <div className="hidden md:block">
@@ -861,7 +862,7 @@ export default function PaperAssignPage() {
               </Table>
             </div>
             {assignments.length >= 300 && (
-              <p className="border-t border-slate-100 px-4 py-3 text-xs text-slate-400">Showing the 300 most recent assignments.</p>
+              <p className="border-t border-line px-4 py-3 text-xs text-subtle">Showing the 300 most recent assignments.</p>
             )}
           </>
         )}
@@ -876,8 +877,8 @@ export default function PaperAssignPage() {
           onConfirm={revoke}
           onCancel={closeRevoke}
         >
-          <strong className="text-slate-800">{revoking.student?.name || 'This student'}</strong> will no longer be able to open{' '}
-          <strong className="text-slate-800">{revoking.paper?.title || 'this paper'}</strong> through this assignment, unless they
+          <strong className="text-ink">{revoking.student?.name || 'This student'}</strong> will no longer be able to open{' '}
+          <strong className="text-ink">{revoking.paper?.title || 'this paper'}</strong> through this assignment, unless they
           bought it themselves. Anything they have already handed in is kept. You can assign it again at any time.
         </ConfirmDialog>
       )}

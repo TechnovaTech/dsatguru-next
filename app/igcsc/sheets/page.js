@@ -56,27 +56,27 @@ export default function PracticeSheetsPage() {
 
   return (
     <div>
-      <PageHeader title="Practice Sheets" subtitle="Sheets and period materials your tutors uploaded, topic by topic." />
+      <PageHeader eyebrow="Practice sheets" title="Practice Sheets" subtitle="Sheets and period materials your tutors uploaded, topic by topic." />
       {error && <div className="mb-4"><ErrorState message={error} /></div>}
 
       {sheets === null ? (
         <Loading label="Loading sheets…" />
       ) : groups.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border border-line bg-surface">
           <EmptyState icon={FiFolder} title="No practice sheets yet" hint="Your tutors have not uploaded any sheets yet. Check back soon." />
         </div>
       ) : (
         <>
           <div className="mb-5 flex flex-wrap items-center gap-2">
             <div className="relative min-w-[16rem] flex-1 sm:flex-none">
-              <FiSearch size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <FiSearch size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle" />
               <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search topics or sheets…"
-                className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-8 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none" />
+                className="w-full border border-line bg-surface py-2.5 pl-8 pr-3 text-sm text-ink outline-none placeholder:text-subtle focus:border-ink" />
             </div>
             {subjects.length > 1 && ['', ...subjects].map((s) => (
               <button key={s || 'all'} type="button" onClick={() => setSubj(s)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                  subj === s ? 'bg-indigo-600 text-white' : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                className={`rounded-full border px-3 py-1.5 font-code text-[11px] uppercase tracking-[0.08em] transition-colors ${
+                  subj === s ? 'border-ink bg-cta text-on-cta' : 'border-line bg-surface text-muted chip-hover'
                 }`}>
                 {s || 'All subjects'}
               </button>
@@ -85,21 +85,21 @@ export default function PracticeSheetsPage() {
 
           <div className="space-y-5">
             {shown.map((g) => (
-              <section key={g.key} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <section key={g.key} className="border border-line bg-surface p-5">
                 <header className="mb-4 flex items-start gap-3">
-                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center bg-brand-50 text-brand">
                     <FiFolder size={18} />
                   </span>
                   <div className="min-w-0">
-                    <h2 className="text-base font-bold text-slate-900">{g.crumbs[g.crumbs.length - 1] || g.subjectLabel}</h2>
-                    <p className="truncate text-xs text-slate-400">{[g.subjectLabel, ...g.crumbs].join(' › ')}</p>
+                    <h2 className="display text-[20px] text-ink">{g.crumbs[g.crumbs.length - 1] || g.subjectLabel}</h2>
+                    <p className="truncate font-code text-[11px] text-subtle">{[g.subjectLabel, ...g.crumbs].join(' › ')}</p>
                   </div>
                 </header>
                 <SheetSlots sheets={g.sheets} readOnly />
               </section>
             ))}
             {shown.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-400">
+              <div className="border border-dashed border-line-strong p-8 text-center text-sm text-subtle">
                 No topic or sheet matches that search.
               </div>
             )}

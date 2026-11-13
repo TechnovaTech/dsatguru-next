@@ -68,16 +68,16 @@ const DURATION_PRESETS = [
 const BLANK_FILTERS = { curriculum: '', subject: '', status: '', format: '', q: '' }
 
 const BTN_PRIMARY =
-  'inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-1.5 rounded-xl bg-cta px-4 py-2 text-sm font-medium text-on-cta transition hover:bg-cta-hover disabled:cursor-not-allowed disabled:opacity-50'
 const BTN_SECONDARY =
-  'inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-1.5 rounded-xl border border-line-strong px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-50'
 const BTN_DANGER =
-  'inline-flex items-center justify-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-1.5 rounded-xl bg-negative px-4 py-2 text-sm font-semibold text-on-brand transition hover:bg-negative/90 disabled:cursor-not-allowed disabled:opacity-50'
 const BTN_SMALL =
-  'inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center gap-1 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs font-semibold text-ink-2 transition hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-50'
 const INPUT =
-  'w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 disabled:bg-slate-50 disabled:text-slate-400'
-const CHECKBOX = 'h-4 w-4 cursor-pointer rounded border-slate-300 text-indigo-600 focus:ring-indigo-500'
+  'w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-subtle focus:border-ink focus:outline-none disabled:bg-sunken disabled:text-subtle'
+const CHECKBOX = 'h-4 w-4 cursor-pointer rounded border-line-strong text-brand'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -241,30 +241,30 @@ const Spin = ({ size = 14 }) => <FiLoader className="animate-spin" size={size} /
 
 function Modal({ title, subtitle, icon: Icon, danger, onClose, children, footer, wide }) {
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-900/50 sm:items-center sm:p-4" role="dialog" aria-modal="true">
-      <div className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl ${wide ? 'sm:max-w-2xl' : 'sm:max-w-lg'}`}>
-        <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-ink/40 sm:items-center sm:p-4" role="dialog" aria-modal="true">
+      <div className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl border border-line bg-surface sm:rounded-2xl ${wide ? 'sm:max-w-2xl' : 'sm:max-w-lg'}`}>
+        <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
           <div className="flex min-w-0 items-start gap-3">
             {Icon && (
-              <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${danger ? 'bg-rose-100 text-rose-600' : 'bg-indigo-100 text-indigo-600'}`}>
+              <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${danger ? 'bg-[#b4231822] text-negative' : 'bg-brand-soft text-brand'}`}>
                 <Icon size={18} />
               </span>
             )}
             <div className="min-w-0">
-              <h2 className="text-base font-bold text-slate-900">{title}</h2>
-              {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
+              <h2 className="text-base font-bold text-ink">{title}</h2>
+              {subtitle && <p className="mt-0.5 text-xs text-muted">{subtitle}</p>}
             </div>
           </div>
           {onClose && (
             <button type="button" onClick={onClose} aria-label="Close"
-              className="flex-shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+              className="flex-shrink-0 rounded-lg p-1.5 text-subtle hover:bg-ink/5 hover:text-ink">
               <FiX size={18} />
             </button>
           )}
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
         {footer && (
-          <div className="flex flex-wrap justify-end gap-2 border-t border-slate-100 bg-slate-50/70 px-5 py-3">{footer}</div>
+          <div className="flex flex-wrap justify-end gap-2 border-t border-line bg-canvas px-5 py-3">{footer}</div>
         )}
       </div>
     </div>
@@ -293,8 +293,8 @@ function ConfirmDialog({ title, body, confirmLabel = 'Confirm', danger, busy, er
         </>
       )}
     >
-      <div className="space-y-3 text-sm leading-relaxed text-slate-600">{body}</div>
-      {error && <p className="mt-4 rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">{error}</p>}
+      <div className="space-y-3 text-sm leading-relaxed text-ink-2">{body}</div>
+      {error && <p className="mt-4 rounded-xl bg-[#b4231814] px-3 py-2 text-sm font-medium text-negative">{error}</p>}
     </Modal>
   )
 }
@@ -344,9 +344,9 @@ function useConfirm() {
 }
 
 const NOTICE_TONES = {
-  green: 'border-emerald-200 bg-emerald-50 text-emerald-900',
-  red: 'border-rose-200 bg-rose-50 text-rose-800',
-  amber: 'border-amber-200 bg-amber-50 text-amber-900',
+  green: 'border-positive/30 bg-[#2f7d4514] text-positive',
+  red: 'border-negative/30 bg-[#b4231814] text-negative',
+  amber: 'border-star/40 bg-[#b7791f14] text-[#8a5a12]',
 }
 
 function Notice({ notice, onClose }) {
@@ -357,7 +357,7 @@ function Notice({ notice, onClose }) {
       <Icon size={18} className="mt-0.5 flex-shrink-0" />
       <p className="min-w-0 flex-1">{notice.text}</p>
       <button type="button" onClick={onClose} aria-label="Dismiss"
-        className="flex-shrink-0 rounded-lg p-1 opacity-60 hover:bg-black/5 hover:opacity-100">
+        className="flex-shrink-0 rounded-lg p-1 opacity-60 hover:bg-ink/5 hover:opacity-100">
         <FiX size={16} />
       </button>
     </div>
@@ -374,19 +374,19 @@ function Toggle({ on, onChange, disabled, label, title }) {
       title={title}
       disabled={disabled}
       onClick={() => onChange(!on)}
-      className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${on ? 'bg-emerald-500' : 'bg-slate-300'}`}
+      className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${on ? 'bg-positive' : 'bg-line-strong'}`}
     >
-      <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${on ? 'left-[22px]' : 'left-0.5'}`} />
+      <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-surface transition-all ${on ? 'left-[22px]' : 'left-0.5'}`} />
     </button>
   )
 }
 
 function ToggleRow({ label, hint, on, onChange, disabled }) {
   return (
-    <div className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2.5">
+    <div className="flex items-start justify-between gap-3 rounded-xl border border-line px-3 py-2.5">
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-slate-700">{label}</p>
-        {hint && <p className="text-[11px] text-slate-400">{hint}</p>}
+        <p className="text-sm font-semibold text-ink-2">{label}</p>
+        {hint && <p className="text-[11px] text-subtle">{hint}</p>}
       </div>
       <Toggle on={on} onChange={onChange} disabled={disabled} label={label} />
     </div>
@@ -396,24 +396,24 @@ function ToggleRow({ label, hint, on, onChange, disabled }) {
 function Field({ label, hint, children, className = '' }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-1 block text-xs font-semibold text-slate-600">{label}</span>
+      <span className="mb-1 block text-xs font-semibold text-ink-2">{label}</span>
       {children}
-      {hint && <span className="mt-1 block text-[11px] text-slate-400">{hint}</span>}
+      {hint && <span className="mt-1 block text-[11px] text-subtle">{hint}</span>}
     </label>
   )
 }
 
 function Segmented({ value, options, onChange }) {
   return (
-    <div className="flex w-full rounded-xl bg-slate-100 p-1 sm:inline-flex sm:w-auto">
+    <div className="flex w-full rounded-xl bg-sunken p-1 sm:inline-flex sm:w-auto">
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
           className={`flex-1 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition sm:flex-none ${value === o.value
-            ? 'bg-white text-indigo-700 shadow-sm'
-            : 'text-slate-500 hover:text-slate-700'}`}
+            ? 'bg-surface text-brand'
+            : 'text-muted hover:text-ink'}`}
         >
           {o.label}
         </button>
@@ -425,7 +425,7 @@ function Segmented({ value, options, onChange }) {
 function SearchBox({ value, onChange, placeholder, className = '' }) {
   return (
     <div className={`relative ${className}`}>
-      <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+      <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle" size={15} />
       <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={`${INPUT} pl-9`} />
     </div>
   )
@@ -436,13 +436,13 @@ function Pager({ page, pages, total, limit, busy, onPage }) {
   const from = (page - 1) * limit + 1
   const to = Math.min(total, page * limit)
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-4 py-3 text-xs text-slate-500">
-      <span>{from.toLocaleString()}–{to.toLocaleString()} of {total.toLocaleString()}</span>
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3 text-xs text-muted">
+      <span className="font-code tabular-nums">{from.toLocaleString()}–{to.toLocaleString()} of {total.toLocaleString()}</span>
       <div className="flex items-center gap-1.5">
         <button type="button" onClick={() => onPage(page - 1)} disabled={busy || page <= 1} className={BTN_SMALL}>
           <FiChevronLeft size={14} /> Prev
         </button>
-        <span className="px-1.5 font-semibold text-slate-700">{page} / {pages}</span>
+        <span className="px-1.5 font-code font-medium tabular-nums text-ink">{page} / {pages}</span>
         <button type="button" onClick={() => onPage(page + 1)} disabled={busy || page >= pages} className={BTN_SMALL}>
           Next <FiChevronRight size={14} />
         </button>
@@ -455,8 +455,8 @@ function SectionTitle({ title, subtitle, action }) {
   return (
     <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
-        <h2 className="text-lg font-bold text-slate-900">{title}</h2>
-        {subtitle && <p className="mt-0.5 text-sm text-slate-500">{subtitle}</p>}
+        <h2 className="display text-[1.45rem] leading-tight text-ink">{title}</h2>
+        {subtitle && <p className="mt-0.5 text-sm text-muted">{subtitle}</p>}
       </div>
       {action}
     </div>
@@ -470,30 +470,28 @@ function SectionTitle({ title, subtitle, action }) {
 function StoreHero({ settings, onOpenSettings }) {
   const open = !!settings?.storeOpen
   return (
-    <div className="relative mb-5 overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 p-5 text-white shadow-sm sm:p-6">
-      <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-white/10" />
-      <div className="pointer-events-none absolute -bottom-16 right-24 h-36 w-36 rounded-full bg-white/5" />
+    <div className="relative mb-5 overflow-hidden bg-cta p-5 text-on-cta sm:p-6">
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-100">Paper store</p>
-          <h1 className="mt-1 text-2xl font-extrabold tracking-tight">Store & pricing</h1>
-          <p className="mt-1 max-w-xl text-sm text-indigo-100">
+          <p className="font-code text-[11px] uppercase tracking-[0.16em] text-on-cta/60">Staff · Paper store</p>
+          <h1 className="display mt-1 text-[clamp(1.6rem,2.8vw,2.1rem)] leading-tight">Store & <em className="accent">pricing</em></h1>
+          <p className="mt-1 max-w-xl text-sm text-on-cta/70">
             Set what each paper costs, build plans, follow sales and hand out access.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {settings && (
             <button type="button" onClick={onOpenSettings}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold ring-1 ring-white/25 transition hover:bg-white/25">
-              <span className={`h-2 w-2 rounded-full ${open ? 'bg-emerald-300' : 'bg-amber-300'}`} />
+              className="inline-flex items-center gap-1.5 rounded-full border border-page/25 px-3 py-1.5 font-code text-[11px] uppercase tracking-[0.08em] transition-colors hover:bg-page/10">
+              <span className={`h-2 w-2 rounded-full ${open ? 'bg-positive' : 'bg-star'}`} />
               {open ? 'Store open' : 'Store closed'}
             </button>
           )}
           {settings && (
-            <span className="rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold ring-1 ring-white/25">{cur(settings.currency)}</span>
+            <span className="rounded-full border border-page/25 px-3 py-1.5 font-code text-[11px] uppercase tracking-[0.08em]">{cur(settings.currency)}</span>
           )}
           <Link href="/igcsc/store"
-            className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50">
+            className="inline-flex items-center gap-1.5 rounded-full bg-page px-3 py-1.5 font-code text-[11px] uppercase tracking-[0.08em] text-ink transition-colors hover:bg-sunken">
             <FiExternalLink size={13} /> View store
           </Link>
         </div>
@@ -505,15 +503,15 @@ function StoreHero({ settings, onOpenSettings }) {
 function TabBar({ tab, onPick }) {
   return (
     <div className="-mx-4 mb-5 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-      <div className="inline-flex gap-1 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+      <div className="inline-flex gap-1 rounded-2xl border border-line bg-surface p-1">
         {TABS.map((t) => (
           <button
             key={t.key}
             type="button"
             onClick={() => onPick(t.key)}
             className={`inline-flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition ${tab === t.key
-              ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:bg-slate-100'}`}
+              ? 'bg-cta text-on-cta'
+              : 'text-ink-2 hover:bg-ink/5'}`}
           >
             <t.icon size={15} /> {t.label}
           </button>
@@ -525,13 +523,13 @@ function TabBar({ tab, onPick }) {
 
 function ClosedBanner({ onOpen }) {
   return (
-    <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center">
+    <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-star/40 bg-[#b7791f14] px-4 py-3 text-sm text-[#8a5a12] sm:flex-row sm:items-center">
       <FiLock size={18} className="flex-shrink-0" />
       <p className="min-w-0 flex-1">
         The store is closed: students can browse papers, but nobody can buy. Set your prices and plans, then open it.
       </p>
       <button type="button" onClick={onOpen}
-        className="inline-flex flex-shrink-0 items-center justify-center gap-1.5 rounded-xl bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700">
+        className="inline-flex flex-shrink-0 items-center justify-center gap-1.5 rounded-xl border border-line-strong px-3 py-1.5 text-xs font-semibold text-star hover:border-star hover:bg-star/10">
         <FiPower size={13} /> Open settings
       </button>
     </div>
@@ -541,7 +539,7 @@ function ClosedBanner({ onOpen }) {
 function AdminsOnly() {
   return (
     <div>
-      <PageHeader title="Store & pricing" subtitle="Prices, plans, orders and the store’s settings." />
+      <PageHeader eyebrow="Staff · Paper store" title={<>Store & <em className="accent">pricing</em></>} subtitle="Prices, plans, orders and the store’s settings." />
       <Card>
         <EmptyState
           icon={FiLock}
@@ -575,11 +573,11 @@ function SyncPanel({ settings, summary, syncing, onSync }) {
     <Card className="mb-4 overflow-hidden">
       <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="text-sm font-bold text-slate-800">Catalogue</p>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="text-sm font-bold text-ink">Catalogue</p>
+          <p className="mt-0.5 text-xs text-muted">
             One paper per question-bank folder. Sync after importing questions — prices and publish choices you made by hand are kept.
           </p>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-subtle">
             {settings?.lastSyncAt ? `Last synced ${fmtDateTime(settings.lastSyncAt)}` : 'Not synced yet'}
           </p>
         </div>
@@ -589,22 +587,22 @@ function SyncPanel({ settings, summary, syncing, onSync }) {
         </button>
       </div>
       {syncing && (
-        <div className="border-t border-indigo-100 bg-indigo-50 px-5 py-2.5 text-xs font-medium text-indigo-800">
+        <div className="border-t border-line bg-brand-50 px-5 py-2.5 text-xs font-medium text-brand">
           Reading every question in the bank — this can take a minute. Keep this tab open.
         </div>
       )}
       {!syncing && last && (
-        <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 bg-slate-50/60 px-5 py-3">
-          <span className="mr-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+        <div className="flex flex-wrap items-center gap-2 border-t border-line bg-canvas px-5 py-3">
+          <span className="mr-1 font-code text-[11px] uppercase tracking-[0.1em] text-subtle">
             {summary ? 'This sync' : 'Last sync'}
           </span>
           {chips.map(([label, value]) => (
-            <span key={label} className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-500">
-              {label} <b className="text-slate-800">{Number(value || 0).toLocaleString()}</b>
+            <span key={label} className="inline-flex items-center gap-1 rounded-full border border-line bg-surface px-2.5 py-1 text-xs text-muted">
+              {label} <b className="font-code font-medium tabular-nums text-ink">{Number(value || 0).toLocaleString()}</b>
             </span>
           ))}
-          <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-500">
-            Took <b className="text-slate-800">{fmtDuration(last.ms)}</b>
+          <span className="inline-flex items-center gap-1 rounded-full border border-line bg-surface px-2.5 py-1 text-xs text-muted">
+            Took <b className="font-code font-medium tabular-nums text-ink">{fmtDuration(last.ms)}</b>
           </span>
         </div>
       )}
@@ -616,7 +614,7 @@ function PaperFilters({ facets, filters, query, onQuery, onChange }) {
   const curricula = facets || []
   const subjects = curricula.find((c) => c.curriculum === filters.curriculum)?.subjects || []
   return (
-    <div className="grid gap-2 border-b border-slate-100 p-4 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr]">
+    <div className="grid gap-2 border-b border-line p-4 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr]">
       <SearchBox value={query} onChange={onQuery} placeholder="Search title, unit or topic…" className="sm:col-span-2 lg:col-span-1" />
       <select value={filters.curriculum} onChange={(e) => onChange({ curriculum: e.target.value, subject: '' })} className={INPUT} aria-label="Curriculum">
         <option value="">All curricula</option>
@@ -655,13 +653,13 @@ function BulkBar({ count, allMatching, words, currency, busy, onPrice, onPublish
   }
 
   return (
-    <div className="sticky top-16 z-20 border-b border-indigo-100 bg-indigo-50/95 px-4 py-3 backdrop-blur">
+    <div className="sticky top-16 z-20 border-b border-line bg-page/95 px-4 py-3 backdrop-blur">
       <div className="flex flex-wrap items-center gap-2">
         <div className="mr-auto min-w-0">
-          <p className="text-sm font-bold text-indigo-900">
+          <p className="text-sm font-bold text-ink">
             {allMatching ? `All ${plural(count, 'paper')} matching the filter` : `${plural(count, 'paper')} selected`}
           </p>
-          {allMatching && <p className="truncate text-xs text-indigo-700">{words}</p>}
+          {allMatching && <p className="truncate text-xs text-brand">{words}</p>}
         </div>
         <form onSubmit={submitPrice} className="flex items-center gap-1.5">
           <div className="relative">
@@ -673,7 +671,7 @@ function BulkBar({ count, allMatching, words, currency, busy, onPrice, onPublish
               aria-label="New price"
               className={`${INPUT} w-28 pr-11`}
             />
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-slate-400">{cur(currency)}</span>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-subtle">{cur(currency)}</span>
           </div>
           <button type="submit" disabled={busy} className={BTN_SECONDARY}><FiTag size={14} /> Set price</button>
         </form>
@@ -684,11 +682,11 @@ function BulkBar({ count, allMatching, words, currency, busy, onPrice, onPublish
           <FiEyeOff size={14} /> Unpublish
         </button>
         <button type="button" onClick={onClear} disabled={busy} aria-label="Clear selection" title="Clear selection"
-          className="rounded-xl p-2 text-indigo-700 transition hover:bg-white disabled:opacity-50">
+          className="p-2 text-brand transition-colors hover:bg-ink/5 disabled:opacity-50">
           <FiX size={16} />
         </button>
       </div>
-      {error && <p className="mt-2 text-xs font-medium text-rose-600">{error}</p>}
+      {error && <p className="mt-2 text-xs font-medium text-negative">{error}</p>}
     </div>
   )
 }
@@ -753,15 +751,15 @@ function PriceCell({ paper, currency, onSave }) {
           inputMode="decimal"
           aria-label={`Price of ${paper.title || 'this paper'}`}
           aria-invalid={!!error}
-          className={`${INPUT} pr-11 ${error ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-100' : ''}`}
+          className={`${INPUT} pr-11 ${error ? 'border-negative focus:border-negative' : ''}`}
         />
-        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-slate-400">
-          {state === 'saving' ? <Spin size={12} /> : state === 'saved' ? <FiCheck className="text-emerald-500" size={14} /> : cur(currency)}
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-subtle">
+          {state === 'saving' ? <Spin size={12} /> : state === 'saved' ? <FiCheck className="text-positive" size={14} /> : cur(currency)}
         </span>
       </div>
       {error
-        ? <p className="mt-1 text-[11px] leading-snug text-rose-600">{error}</p>
-        : <p className="mt-1 text-[11px] text-slate-400">{formatPrice(paper.price, currency)}{paper.priceSetManually ? ' · set by hand' : ''}</p>}
+        ? <p className="mt-1 text-[11px] leading-snug text-negative">{error}</p>
+        : <p className="mt-1 font-code text-[11px] tabular-nums text-subtle">{formatPrice(paper.price, currency)}{paper.priceSetManually ? ' · set by hand' : ''}</p>}
     </div>
   )
 }
@@ -770,7 +768,7 @@ function PaperRow({ paper, currency, selected, busy, onSelect, onPrice, onPublis
   const st = paperStatus(paper)
   const cannotPublish = paper.missingFromBank && !paper.isPublished
   return (
-    <tr className={selected ? 'bg-indigo-50/50' : 'hover:bg-slate-50/60'}>
+    <tr className={selected ? 'bg-brand-50' : 'hover:bg-ink/5'}>
       <td className="w-10 px-4 py-3 align-top">
         <input
           type="checkbox"
@@ -781,32 +779,32 @@ function PaperRow({ paper, currency, selected, busy, onSelect, onPrice, onPublis
         />
       </td>
       <td className="min-w-[220px] px-4 py-3 align-top">
-        <div className="font-semibold text-slate-800">{paper.title || 'Untitled paper'}</div>
-        {paper.unit && <div className="text-xs text-slate-500">{paper.unit}</div>}
-        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400">
+        <div className="font-semibold text-ink">{paper.title || 'Untitled paper'}</div>
+        {paper.unit && <div className="text-xs text-muted">{paper.unit}</div>}
+        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-subtle">
           <span>{[paper.curriculum, paper.subject].filter(Boolean).join(' · ')}</span>
           {paper.difficulty && <Badge tone={DIFFICULTY_TONE[paper.difficulty] || 'slate'}>{paper.difficulty}</Badge>}
         </div>
       </td>
-      <td className="whitespace-nowrap px-4 py-3 align-top text-xs text-slate-600">
-        <div>MCQ <b className="text-slate-800">{Number(paper.mcqCount || 0)}</b></div>
-        <div>Written <b className="text-slate-800">{Number(paper.writtenCount || 0)}</b></div>
+      <td className="whitespace-nowrap px-4 py-3 align-top text-xs text-ink-2">
+        <div>MCQ <b className="font-code font-medium tabular-nums text-ink">{Number(paper.mcqCount || 0)}</b></div>
+        <div>Written <b className="font-code font-medium tabular-nums text-ink">{Number(paper.writtenCount || 0)}</b></div>
       </td>
       <td className="whitespace-nowrap px-4 py-3 align-top">
-        <div className="font-semibold text-slate-800">{Number(paper.totalMarks || 0)}</div>
-        <div className="text-[11px] text-slate-400">{Number(paper.durationMin || 0)} min</div>
+        <div className="font-code font-semibold tabular-nums text-ink">{Number(paper.totalMarks || 0)}</div>
+        <div className="font-code text-[11px] tabular-nums text-subtle">{Number(paper.durationMin || 0)} min</div>
       </td>
       <td className="min-w-[170px] px-4 py-3 align-top">
         <span title={!paper.clean && paper.holdReason ? paper.holdReason : undefined}>
           <Badge tone={st.tone}>{st.label}</Badge>
         </span>
         {!paper.clean && paper.holdReason && (
-          <p className="mt-1 max-w-[240px] text-[11px] leading-snug text-amber-700">
+          <p className="mt-1 max-w-[240px] text-[11px] leading-snug text-[#8a5a12]">
             {paper.isPublished ? 'Held: ' : ''}{paper.holdReason}
           </p>
         )}
         {paper.missingFromBank && (
-          <p className="mt-1 max-w-[240px] text-[11px] leading-snug text-rose-600">Its folder is gone from the bank.</p>
+          <p className="mt-1 max-w-[240px] text-[11px] leading-snug text-negative">Its folder is gone from the bank.</p>
         )}
       </td>
       <td className="px-4 py-3 align-top">
@@ -958,8 +956,8 @@ function PapersTab({ currency, settings, facets, onFacets, onSettings }) {
         title: 'Put a held paper on sale?',
         body: (
           <>
-            <p><b className="text-slate-800">{paper.title}</b> was held back by the sync:</p>
-            <p className="rounded-xl bg-amber-50 px-3 py-2 text-amber-900">{paper.holdReason || 'Some of its questions cannot be marked.'}</p>
+            <p><b className="text-ink">{paper.title}</b> was held back by the sync:</p>
+            <p className="rounded-xl bg-[#b7791f14] px-3 py-2 text-[#8a5a12]">{paper.holdReason || 'Some of its questions cannot be marked.'}</p>
             <p>Students who buy it may get questions that are not marked. Publish it anyway?</p>
           </>
         ),
@@ -984,7 +982,7 @@ function PapersTab({ currency, settings, facets, onFacets, onSettings }) {
         <>
           {body}
           {allMatching && (
-            <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500">Filter: {filterWords(data.filters)}</p>
+            <p className="rounded-xl bg-canvas px-3 py-2 text-xs text-muted">Filter: {filterWords(data.filters)}</p>
           )}
         </>
       ),
@@ -1010,7 +1008,7 @@ function PapersTab({ currency, settings, facets, onFacets, onSettings }) {
     title: `Set the price of ${plural(count, 'paper')}?`,
     body: (
       <p>
-        {count === 1 ? 'It' : 'Each one'} will cost <b className="text-slate-800">{formatPrice(price, currency)}</b>.
+        {count === 1 ? 'It' : 'Each one'} will cost <b className="text-ink">{formatPrice(price, currency)}</b>.
         Prices set here are kept by later syncs.
       </p>
     ),
@@ -1088,25 +1086,25 @@ function PapersTab({ currency, settings, facets, onFacets, onSettings }) {
       <Card>
         <PaperFilters facets={facets} filters={filters} query={query} onQuery={setQuery} onChange={updateFilters} />
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-100 px-4 py-2.5 text-xs text-slate-500">
-          <span className="inline-flex items-center gap-1.5 font-semibold text-slate-700">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line px-4 py-2.5 text-xs text-muted">
+          <span className="inline-flex items-center gap-1.5 font-semibold text-ink-2">
             {data ? plural(total, 'paper') : 'Loading…'}
             {loading && data && <Spin size={12} />}
           </span>
           {data && total > 0 && !allMatching && (
-            <button type="button" onClick={selectAllMatching} className="font-semibold text-indigo-600 hover:underline">
+            <button type="button" onClick={selectAllMatching} className="font-semibold text-brand hover:underline">
               Apply a change to all {total.toLocaleString()} matching
             </button>
           )}
           {hasFilters && (
-            <button type="button" onClick={resetFilters} className="font-semibold text-slate-500 hover:text-slate-700 hover:underline">
+            <button type="button" onClick={resetFilters} className="font-semibold text-muted hover:text-ink hover:underline">
               Clear filters
             </button>
           )}
         </div>
 
         {allOnPage && !allMatching && total > pageIds.length && (
-          <div className="border-b border-indigo-100 bg-indigo-50/60 px-4 py-2 text-xs text-indigo-800">
+          <div className="border-b border-line bg-brand-50 px-4 py-2 text-xs text-brand">
             All {pageIds.length} papers on this page are selected.{' '}
             <button type="button" onClick={selectAllMatching} className="font-semibold underline">
               Select all {total.toLocaleString()} matching the filter
@@ -1171,43 +1169,43 @@ function PapersTab({ currency, settings, facets, onFacets, onSettings }) {
 function AdminPlanCard({ plan, currency, busy, onEdit, onDelete, onToggleActive }) {
   const features = Array.isArray(plan.features) ? plan.features : []
   return (
-    <div className={`relative flex flex-col rounded-2xl border bg-white p-5 shadow-sm transition ${plan.highlight
-      ? 'border-indigo-300 ring-2 ring-indigo-100'
-      : 'border-slate-200'} ${plan.isActive ? '' : 'opacity-75'}`}>
+    <div className={`relative flex flex-col rounded-2xl border bg-surface p-5 transition ${plan.highlight
+      ? 'border-brand ring-1 ring-brand/40'
+      : 'border-line'} ${plan.isActive ? '' : 'opacity-75'}`}>
       {plan.highlight && (
-        <span className="absolute -top-2.5 right-4 rounded-full bg-gradient-to-r from-indigo-600 to-blue-600 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
+        <span className="absolute -top-2.5 right-4 rounded-full bg-brand px-2.5 py-0.5 font-code text-[10px] uppercase tracking-[0.08em] text-on-brand">
           Best value
         </span>
       )}
       <div className="flex flex-wrap items-center gap-1.5">
         <Badge tone={plan.kind === 'credits' ? 'violet' : 'blue'}>{plan.kind === 'credits' ? 'Credits pack' : 'Access'}</Badge>
         {!plan.isActive && <Badge tone="slate">Off sale</Badge>}
-        <span className="ml-auto text-[11px] text-slate-400">Order {Number(plan.sortOrder || 0)}</span>
+        <span className="ml-auto font-code text-[11px] tabular-nums text-subtle">Order {Number(plan.sortOrder || 0)}</span>
       </div>
       <div className="flex-1">
-        <h3 className="mt-3 text-lg font-extrabold text-slate-900">{plan.name}</h3>
-        <p className="text-sm text-slate-500">{plan.summary || planSummary(plan)}</p>
-        <p className="mt-3 text-2xl font-extrabold text-slate-900">{formatPrice(plan.price, currency)}</p>
-        {plan.description && <p className="mt-2 text-sm text-slate-600">{plan.description}</p>}
+        <h3 className="display mt-3 text-xl text-ink">{plan.name}</h3>
+        <p className="text-sm text-muted">{plan.summary || planSummary(plan)}</p>
+        <p className="mt-3 font-code text-2xl font-medium tabular-nums text-ink">{formatPrice(plan.price, currency)}</p>
+        {plan.description && <p className="mt-2 text-sm text-ink-2">{plan.description}</p>}
         {features.length > 0 && (
           <ul className="mt-3 space-y-1.5">
             {features.map((f, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
-                <FiCheck size={14} className="mt-0.5 flex-shrink-0 text-emerald-500" /> <span className="min-w-0">{f}</span>
+              <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                <FiCheck size={14} className="mt-0.5 flex-shrink-0 text-positive" /> <span className="min-w-0">{f}</span>
               </li>
             ))}
           </ul>
         )}
       </div>
-      <div className="mt-5 flex items-center gap-2 border-t border-slate-100 pt-4">
+      <div className="mt-5 flex items-center gap-2 border-t border-line pt-4">
         <Toggle on={!!plan.isActive} onChange={() => onToggleActive(plan)} disabled={busy} label={`On sale: ${plan.name}`} />
-        <span className="text-xs font-semibold text-slate-500">{plan.isActive ? 'On sale' : 'Off sale'}</span>
+        <span className="text-xs font-semibold text-muted">{plan.isActive ? 'On sale' : 'Off sale'}</span>
         {busy && <Spin size={12} />}
         <button type="button" onClick={() => onEdit(plan)} className={`${BTN_SMALL} ml-auto`}>
           <FiEdit2 size={13} /> Edit
         </button>
         <button type="button" onClick={() => onDelete(plan)} disabled={busy} aria-label={`Delete ${plan.name}`} title="Delete"
-          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50">
+          className="rounded-lg p-1.5 text-subtle transition hover:bg-[#b4231814] hover:text-negative disabled:opacity-50">
           <FiTrash2 size={15} />
         </button>
       </div>
@@ -1257,13 +1255,13 @@ function PlanForm({ draft, setDraft, editing, currency, facets, saving, error, o
         </Field>
 
         <div>
-          <span className="mb-1 block text-xs font-semibold text-slate-600">What the student gets</span>
+          <span className="mb-1 block text-xs font-semibold text-ink-2">What the student gets</span>
           <Segmented
             value={draft.kind}
             onChange={setFlag('kind')}
             options={[{ value: 'credits', label: 'Credits pack' }, { value: 'access', label: 'Access pass' }]}
           />
-          <p className="mt-1.5 text-[11px] text-slate-400">
+          <p className="mt-1.5 text-[11px] text-subtle">
             {draft.kind === 'credits'
               ? 'Each credit unlocks any one paper the student chooses. Credits never expire.'
               : 'Opens every published paper in a slice of the bank, for a set time or for good.'}
@@ -1348,15 +1346,15 @@ function PlanForm({ draft, setDraft, editing, currency, facets, saving, error, o
           <ToggleRow label="On sale" hint="Off hides it from the store; buyers keep it." on={draft.isActive} onChange={setFlag('isActive')} />
         </div>
 
-        <div className="rounded-xl bg-gradient-to-r from-indigo-50 to-blue-50 px-4 py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-indigo-500">Students see</p>
-          <p className="mt-0.5 text-sm font-bold text-slate-900">
+        <div className="rounded-xl bg-brand-50 px-4 py-3">
+          <p className="font-code text-[11px] uppercase tracking-[0.1em] text-brand">Students see</p>
+          <p className="mt-0.5 text-sm font-bold text-ink">
             {body.name || 'Plan name'} · {pr.error ? '—' : formatPrice(pr.price, currency)}
           </p>
-          <p className="text-sm text-slate-600">{preview}</p>
+          <p className="text-sm text-ink-2">{preview}</p>
         </div>
 
-        {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">{error}</p>}
+        {error && <p className="rounded-xl bg-[#b4231814] px-3 py-2 text-sm font-medium text-negative">{error}</p>}
       </form>
     </Modal>
   )
@@ -1518,33 +1516,33 @@ function OrderRow({ order: o, onRefund, onRevoke }) {
   const canRevoke = o.status === 'paid' && !o.revokedAt
   const statusLabel = ORDER_STATUSES.find((s) => s.value === o.status)?.label || o.status
   return (
-    <tr className="hover:bg-slate-50/60">
-      <td className="whitespace-nowrap px-4 py-3 align-top text-xs text-slate-500">
+    <tr className="hover:bg-ink/5">
+      <td className="whitespace-nowrap px-4 py-3 align-top font-code text-xs text-muted">
         {fmtDateTime(o.createdAt) || '—'}
       </td>
       <td className="min-w-[180px] px-4 py-3 align-top">
-        <div className="font-semibold text-slate-800">{o.userName || '—'}</div>
-        <div className="break-all text-xs text-slate-400">{o.userEmail}</div>
+        <div className="font-semibold text-ink">{o.userName || '—'}</div>
+        <div className="break-all font-code text-xs text-subtle">{o.userEmail}</div>
       </td>
       <td className="min-w-[200px] px-4 py-3 align-top">
-        <div className="text-slate-700">{o.title || '—'}</div>
+        <div className="text-ink-2">{o.title || '—'}</div>
         <div className="mt-1"><Badge tone={KIND_TONE[o.kind] || 'slate'}>{KIND_LABEL[o.kind] || o.kind}</Badge></div>
       </td>
-      <td className="whitespace-nowrap px-4 py-3 text-right align-top font-semibold text-slate-800">
-        {o.kind === 'grant' ? <span className="font-normal text-slate-400">No charge</span> : formatPrice(o.amount, o.currency)}
+      <td className="whitespace-nowrap px-4 py-3 text-right align-top font-code font-semibold tabular-nums text-ink">
+        {o.kind === 'grant' ? <span className="font-normal text-subtle">No charge</span> : formatPrice(o.amount, o.currency)}
       </td>
       <td className="min-w-[130px] px-4 py-3 align-top">
         <div className="flex flex-wrap gap-1">
           <Badge tone={ORDER_TONE[o.status] || 'slate'}>{statusLabel}</Badge>
           {o.revokedAt && <Badge tone="rose">Access revoked</Badge>}
         </div>
-        {o.status === 'paid' && o.paidAt && <p className="mt-1 text-[11px] text-slate-400">Paid {fmtDate(o.paidAt)}</p>}
-        {o.refundedAt && <p className="mt-1 text-[11px] text-slate-400">Refunded {fmtDate(o.refundedAt)}</p>}
+        {o.status === 'paid' && o.paidAt && <p className="mt-1 text-[11px] text-subtle">Paid {fmtDate(o.paidAt)}</p>}
+        {o.refundedAt && <p className="mt-1 text-[11px] text-subtle">Refunded {fmtDate(o.refundedAt)}</p>}
       </td>
-      <td className="min-w-[160px] max-w-[260px] px-4 py-3 align-top text-xs text-slate-500">
-        {o.grantedBy && <div>Granted by <b className="text-slate-700">{o.grantedBy}</b></div>}
-        {o.note && <div className="mt-0.5 break-words text-slate-400">{o.note}</div>}
-        {!o.grantedBy && !o.note && <span className="text-slate-300">—</span>}
+      <td className="min-w-[160px] max-w-[260px] px-4 py-3 align-top text-xs text-muted">
+        {o.grantedBy && <div>Granted by <b className="text-ink-2">{o.grantedBy}</b></div>}
+        {o.note && <div className="mt-0.5 break-words text-subtle">{o.note}</div>}
+        {!o.grantedBy && !o.note && <span className="text-subtle">—</span>}
       </td>
       <td className="whitespace-nowrap px-4 py-3 text-right align-top">
         <div className="flex justify-end gap-1.5">
@@ -1554,11 +1552,11 @@ function OrderRow({ order: o, onRefund, onRevoke }) {
             </button>
           )}
           {canRevoke && (
-            <button type="button" onClick={() => onRevoke(o)} className={`${BTN_SMALL} hover:border-rose-200 hover:text-rose-600`}>
+            <button type="button" onClick={() => onRevoke(o)} className={`${BTN_SMALL} hover:border-negative/40 hover:text-negative`}>
               <FiSlash size={13} /> Revoke
             </button>
           )}
-          {!canRefund && !canRevoke && <span className="text-xs text-slate-300">—</span>}
+          {!canRefund && !canRevoke && <span className="text-xs text-subtle">—</span>}
         </div>
       </td>
     </tr>
@@ -1576,13 +1574,13 @@ function StudentPicker({ students, error, student, onPick }) {
 
   if (student) {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-indigo-200 bg-indigo-50/60 px-3 py-2.5">
-        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-blue-600 text-xs font-bold text-white">
+      <div className="flex items-center gap-3 rounded-xl border border-brand/30 bg-brand-50 px-3 py-2.5">
+        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-sunken font-code text-xs font-medium text-ink-2">
           {(student.name || student.email || '?').trim().slice(0, 2).toUpperCase()}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-slate-800">{student.name}</p>
-          <p className="truncate text-xs text-slate-500">{student.email}</p>
+          <p className="truncate text-sm font-semibold text-ink">{student.name}</p>
+          <p className="truncate text-xs text-muted">{student.email}</p>
         </div>
         <button type="button" onClick={() => onPick(null)} className={BTN_SMALL}>Change</button>
       </div>
@@ -1592,21 +1590,21 @@ function StudentPicker({ students, error, student, onPick }) {
   return (
     <div>
       <SearchBox value={who} onChange={setWho} placeholder="Search students by name or email…" />
-      <div className="mt-2 max-h-56 overflow-y-auto rounded-xl border border-slate-200">
+      <div className="mt-2 max-h-56 overflow-y-auto rounded-xl border border-line">
         {students === null ? (
-          <p className="flex items-center gap-2 px-3 py-3 text-sm text-slate-400"><Spin /> Loading students…</p>
+          <p className="flex items-center gap-2 px-3 py-3 text-sm text-subtle"><Spin /> Loading students…</p>
         ) : error ? (
-          <p className="px-3 py-3 text-sm text-rose-600">{error}</p>
+          <p className="px-3 py-3 text-sm text-negative">{error}</p>
         ) : !matches.length ? (
-          <p className="px-3 py-3 text-sm text-slate-400">{who.trim() ? 'Nobody matches that search.' : 'No students yet.'}</p>
+          <p className="px-3 py-3 text-sm text-subtle">{who.trim() ? 'Nobody matches that search.' : 'No students yet.'}</p>
         ) : (
           matches.map((s) => (
             <button key={s._id} type="button" onClick={() => onPick(s)}
-              className="flex w-full items-center gap-2 border-b border-slate-100 px-3 py-2 text-left last:border-b-0 hover:bg-indigo-50">
-              <FiUser size={14} className="flex-shrink-0 text-slate-400" />
+              className="flex w-full items-center gap-2 border-b border-line px-3 py-2 text-left last:border-b-0 hover:bg-brand-50">
+              <FiUser size={14} className="flex-shrink-0 text-subtle" />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold text-slate-700">{s.name}</span>
-                <span className="block truncate text-xs text-slate-400">{s.email}</span>
+                <span className="block truncate text-sm font-semibold text-ink-2">{s.name}</span>
+                <span className="block truncate text-xs text-subtle">{s.email}</span>
               </span>
               {s.isActive === false && <Badge tone="red">Suspended</Badge>}
             </button>
@@ -1641,11 +1639,11 @@ function PaperPicker({ paper, onPick }) {
 
   if (paper) {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-indigo-200 bg-indigo-50/60 px-3 py-2.5">
-        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm"><FiFileText size={16} /></span>
+      <div className="flex items-center gap-3 rounded-xl border border-brand/30 bg-brand-50 px-3 py-2.5">
+        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-surface text-brand"><FiFileText size={16} /></span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-slate-800">{paper.title}</p>
-          <p className="truncate text-xs text-slate-500">{paper.unit || [paper.curriculum, paper.subject].filter(Boolean).join(' · ')}</p>
+          <p className="truncate text-sm font-semibold text-ink">{paper.title}</p>
+          <p className="truncate text-xs text-muted">{paper.unit || [paper.curriculum, paper.subject].filter(Boolean).join(' · ')}</p>
         </div>
         <button type="button" onClick={() => onPick(null)} className={BTN_SMALL}>Change</button>
       </div>
@@ -1655,20 +1653,20 @@ function PaperPicker({ paper, onPick }) {
   return (
     <div>
       <SearchBox value={query} onChange={setQuery} placeholder="Search papers by title, unit or topic…" />
-      <div className="mt-2 max-h-56 overflow-y-auto rounded-xl border border-slate-200">
+      <div className="mt-2 max-h-56 overflow-y-auto rounded-xl border border-line">
         {results === null || (loading && !results.length) ? (
-          <p className="flex items-center gap-2 px-3 py-3 text-sm text-slate-400"><Spin /> Searching…</p>
+          <p className="flex items-center gap-2 px-3 py-3 text-sm text-subtle"><Spin /> Searching…</p>
         ) : !results.length ? (
-          <p className="px-3 py-3 text-sm text-slate-400">No papers match that search.</p>
+          <p className="px-3 py-3 text-sm text-subtle">No papers match that search.</p>
         ) : (
           results.map((p) => {
             const st = paperStatus(p)
             return (
               <button key={p._id} type="button" onClick={() => onPick(p)}
-                className="flex w-full items-start gap-2 border-b border-slate-100 px-3 py-2 text-left last:border-b-0 hover:bg-indigo-50">
+                className="flex w-full items-start gap-2 border-b border-line px-3 py-2 text-left last:border-b-0 hover:bg-brand-50">
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold text-slate-700">{p.title}</span>
-                  <span className="block truncate text-xs text-slate-400">
+                  <span className="block truncate text-sm font-semibold text-ink-2">{p.title}</span>
+                  <span className="block truncate text-xs text-subtle">
                     {[p.unit, [p.curriculum, p.subject].filter(Boolean).join(' · ')].filter(Boolean).join(' — ')}
                   </span>
                 </span>
@@ -1758,12 +1756,12 @@ function GrantModal({ currency, onClose, onGranted }) {
     >
       <div className="space-y-5">
         <div>
-          <p className="mb-1.5 text-xs font-semibold text-slate-600">1 · Student</p>
+          <p className="mb-1.5 text-xs font-semibold text-ink-2">1 · Student</p>
           <StudentPicker students={students} error={studentsError} student={student} onPick={(s) => { setStudent(s); setError('') }} />
         </div>
 
         <div>
-          <p className="mb-1.5 text-xs font-semibold text-slate-600">2 · What to give</p>
+          <p className="mb-1.5 text-xs font-semibold text-ink-2">2 · What to give</p>
           <Segmented
             value={what}
             onChange={(v) => { setWhat(v); setError('') }}
@@ -1773,9 +1771,9 @@ function GrantModal({ currency, onClose, onGranted }) {
             {what === 'paper' && <PaperPicker paper={paper} onPick={(p) => { setPaper(p); setError('') }} />}
             {what === 'plan' && (
               plans === null ? (
-                <p className="flex items-center gap-2 text-sm text-slate-400"><Spin /> Loading plans…</p>
+                <p className="flex items-center gap-2 text-sm text-subtle"><Spin /> Loading plans…</p>
               ) : !plans.length ? (
-                <p className="text-sm text-slate-400">There are no plans yet. Create one on the Plans tab.</p>
+                <p className="text-sm text-subtle">There are no plans yet. Create one on the Plans tab.</p>
               ) : (
                 <Field label="Plan" hint={plan ? `${plan.summary || planSummary(plan)} · normally ${formatPrice(plan.price, currency)}` : undefined}>
                   <select value={planId} onChange={(e) => { setPlanId(e.target.value); setError('') }} className={INPUT}>
@@ -1796,7 +1794,7 @@ function GrantModal({ currency, onClose, onGranted }) {
           </div>
         </div>
 
-        {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">{error}</p>}
+        {error && <p className="rounded-xl bg-[#b4231814] px-3 py-2 text-sm font-medium text-negative">{error}</p>}
       </div>
     </Modal>
   )
@@ -1859,7 +1857,7 @@ function OrdersTab({ currency }) {
     body: (
       <>
         <p>
-          <b className="text-slate-800">{who(o)}</b> gets {formatPrice(o.amount, o.currency)} back on their card through Stripe,
+          <b className="text-ink">{who(o)}</b> gets {formatPrice(o.amount, o.currency)} back on their card through Stripe,
           and loses “{o.title}”.
         </p>
         <p>Unspent credits from a pack are taken back too. This cannot be undone.</p>
@@ -1878,7 +1876,7 @@ function OrdersTab({ currency }) {
     title: 'Take the access back?',
     body: (
       <>
-        <p><b className="text-slate-800">{who(o)}</b> loses “{o.title}”. No money moves — the order stays paid.</p>
+        <p><b className="text-ink">{who(o)}</b> loses “{o.title}”. No money moves — the order stays paid.</p>
         <p>Unspent credits from a pack are taken back too.</p>
       </>
     ),
@@ -1922,7 +1920,7 @@ function OrdersTab({ currency }) {
       </div>
 
       <Card>
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-3 border-b border-line p-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="-mx-1 flex gap-1 overflow-x-auto px-1">
             {ORDER_STATUSES.map((s) => (
               <button
@@ -1930,8 +1928,8 @@ function OrdersTab({ currency }) {
                 type="button"
                 onClick={() => { setStatus(s.value); setPage(1) }}
                 className={`flex-shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition ${status === s.value
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                  ? 'bg-cta text-on-cta'
+                  : 'border border-line text-ink-2 hover:border-ink'}`}
               >
                 {s.label}
               </button>
@@ -2076,15 +2074,15 @@ function SettingsTab({ onSettings }) {
 
       <Card className="mb-4">
         <div className="flex items-start gap-4 p-5">
-          <span className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${open ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+          <span className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${open ? 'bg-[#2f7d4522] text-positive' : 'bg-[#b7791f26] text-star'}`}>
             <FiPower size={20} />
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-sm font-bold text-slate-800">Store</p>
+              <p className="text-sm font-bold text-ink">Store</p>
               <Badge tone={open ? 'green' : 'amber'}>{open ? 'Open' : 'Closed'}</Badge>
             </div>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-muted">
               {open
                 ? 'Students can buy papers and plans by card.'
                 : 'Students can browse, but nobody can buy. Free papers, grants and assignments still work.'}
@@ -2111,7 +2109,7 @@ function SettingsTab({ onSettings }) {
           </div>
 
           {currencyChanged && (
-            <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <div className="flex items-start gap-3 rounded-xl border border-star/40 bg-[#b7791f14] px-4 py-3 text-sm text-[#8a5a12]">
               <FiAlertTriangle size={18} className="mt-0.5 flex-shrink-0" />
               <p>
                 Changing the currency does not convert existing prices: a {formatPrice(4.99, saved.currency)} paper
@@ -2120,11 +2118,11 @@ function SettingsTab({ onSettings }) {
             </div>
           )}
 
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-subtle">
             To reprice papers already in the catalogue, select them on the Papers tab and use “Set price”.
           </p>
 
-          {formError && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">{formError}</p>}
+          {formError && <p className="rounded-xl bg-[#b4231814] px-3 py-2 text-sm font-medium text-negative">{formError}</p>}
 
           <div className="flex flex-wrap items-center gap-2">
             <button type="submit" disabled={saving || !dirty} className={BTN_PRIMARY}>

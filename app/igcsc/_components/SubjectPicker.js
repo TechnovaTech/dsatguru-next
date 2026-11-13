@@ -49,19 +49,19 @@ export default function SubjectPicker({ value = [], onChange }) {
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between">
-        <span className="text-xs font-semibold text-slate-600">Subjects</span>
+        <span className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">Subjects</span>
         {value.length > 0 && (
-          <button type="button" onClick={() => onChange([])} className="text-[11px] font-medium text-slate-400 hover:text-rose-600">
+          <button type="button" onClick={() => onChange([])} className="font-code text-[11px] text-subtle transition-colors hover:text-negative">
             Clear all
           </button>
         )}
       </div>
 
       {value.length > 0 && (
-        <div className="mb-2 flex flex-wrap gap-1.5 rounded-lg bg-indigo-50/60 p-2">
+        <div className="mb-2 flex flex-wrap gap-1.5 bg-brand-50 p-2">
           {value.map((s) => (
             <button key={s} type="button" onClick={() => toggle(s)}
-              className="flex items-center gap-1 rounded-lg bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-indigo-700"
+              className="flex items-center gap-1 rounded-full bg-brand px-2.5 py-1 text-xs font-medium text-on-brand transition-colors hover:bg-brand-hover"
               title="Remove">
               {s} <FiX size={12} />
             </button>
@@ -70,28 +70,28 @@ export default function SubjectPicker({ value = [], onChange }) {
       )}
 
       <div className="relative mb-2">
-        <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+        <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle" size={14} />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={`Search ${IGCSE_SUBJECTS.length} IGCSE subjects…`}
-          className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          className="w-full border border-line bg-surface py-2 pl-9 pr-3 text-sm text-ink outline-none placeholder:text-subtle focus:border-ink"
         />
       </div>
 
-      <div className="max-h-52 space-y-3 overflow-y-auto rounded-lg border border-slate-200 p-2.5">
+      <div className="max-h-52 space-y-3 overflow-y-auto border border-line bg-surface p-2.5">
         {groups.length === 0 ? (
-          <p className="px-1 py-4 text-center text-xs text-slate-400">
+          <p className="px-1 py-4 text-center text-xs text-subtle">
             Nothing matches “{q}”. Type it below to add it anyway.
           </p>
         ) : groups.map((g) => (
           <div key={g.group}>
-            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">{g.group}</p>
+            <p className="mb-1.5 font-code text-[10px] uppercase tracking-[0.08em] text-subtle">{g.group}</p>
             <div className="flex flex-wrap gap-1.5">
               {g.subjects.map((s) => (
                 <button key={s} type="button" onClick={() => toggle(s)}
-                  className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                    value.includes(s) ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  className={`rounded-full border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                    value.includes(s) ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface text-ink-2 chip-hover'
                   }`}>
                   {s}
                 </button>
@@ -108,10 +108,10 @@ export default function SubjectPicker({ value = [], onChange }) {
           // Enter inside a form would submit it; here it should add the subject.
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustom() } }}
           placeholder="Not listed? Type a subject and add it"
-          className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          className="min-w-0 flex-1 border border-line bg-surface px-3 py-2 text-sm text-ink outline-none placeholder:text-subtle focus:border-ink"
         />
         <button type="button" onClick={addCustom} disabled={!custom.trim()}
-          className="flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+          className="flex items-center gap-1 border border-line-strong px-3 py-2 text-xs font-medium text-ink transition-colors hover:border-ink hover:bg-ink/5 disabled:opacity-50">
           <FiPlus size={14} /> Add
         </button>
       </div>

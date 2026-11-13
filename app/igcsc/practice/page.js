@@ -84,10 +84,10 @@ export default function IgcscPracticePage() {
   if (stage === 'setup') {
     return (
       <div>
-        <PageHeader title="Practice" subtitle="Pick what you want to work on and answer questions from the bank." />
+        <PageHeader eyebrow="Practice" title="Practice" subtitle="Pick what you want to work on and answer questions from the bank." />
         {error && <div className="mb-4"><ErrorState message={error} /></div>}
         {loading && !facets ? <Loading label="Loading the question bank…" /> : (
-          <div className="max-w-2xl space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="max-w-2xl space-y-4 border border-line bg-surface p-6">
             <Select label="Curriculum" value={pick.curriculum} onChange={(v) => choose({ curriculum: v })}
               options={facets?.curricula || []} anyLabel="Any curriculum" />
             <Select label="Subject" value={pick.subject} onChange={(v) => choose({ subject: v })}
@@ -98,29 +98,29 @@ export default function IgcscPracticePage() {
               options={facets?.difficulties || []} anyLabel="Any difficulty" />
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">How many questions</label>
+              <label className="mb-1.5 block font-code text-[11px] uppercase tracking-[0.12em] text-muted">How many questions</label>
               <div className="flex gap-2">
                 {COUNTS.map((c) => (
                   <button key={c} onClick={() => setPick({ ...pick, count: c })}
-                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${pick.count === c ? 'bg-indigo-600 text-white' : 'border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                    className={`px-4 py-2 font-code text-sm tabular-nums transition-colors ${pick.count === c ? 'bg-cta text-on-cta' : 'border border-line text-muted hover:border-ink hover:text-ink'}`}>
                     {c}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
-              <p className="text-sm text-slate-500">
+            <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
+              <p className="text-sm text-muted">
                 {facets?.available != null
-                  ? <><span className="font-bold text-slate-700">{facets.available.toLocaleString()}</span> questions match</>
+                  ? <><span className="font-code font-semibold tabular-nums text-ink">{facets.available.toLocaleString()}</span> questions match</>
                   : ''}
               </p>
               <button onClick={start} disabled={busy}
-                className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
+                className="flex h-11 items-center gap-2 bg-cta px-5 text-sm font-medium text-on-cta transition-colors hover:bg-cta-hover disabled:opacity-60">
                 {busy ? <><FiLoader className="animate-spin" size={15} /> Starting…</> : <><FiPlay size={15} /> Start practice</>}
               </button>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="font-code text-[11px] text-subtle">
               Only multiple-choice questions can be marked automatically, so that is what practice serves.
             </p>
           </div>
@@ -138,31 +138,31 @@ export default function IgcscPracticePage() {
       <div className="mx-auto max-w-3xl">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-bold text-slate-900">Question {idx + 1} of {questions.length}</p>
-            <p className="text-xs text-slate-500">{[q.topic, q.subtopic].filter(Boolean).join(' · ')}</p>
+            <p className="font-code text-[12px] uppercase tracking-[0.08em] text-ink">Question {idx + 1} of {questions.length}</p>
+            <p className="text-xs text-muted">{[q.topic, q.subtopic].filter(Boolean).join(' · ')}</p>
           </div>
           <div className="flex items-center gap-2">
             {q.difficulty && <Badge tone={q.difficulty === 'Easy' ? 'green' : q.difficulty === 'Hard' ? 'red' : 'amber'}>{q.difficulty}</Badge>}
-            <span className="text-xs font-semibold text-slate-500">{answered}/{questions.length} answered</span>
+            <span className="font-code text-[11px] tabular-nums text-muted">{answered}/{questions.length} answered</span>
           </div>
         </div>
 
-        <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
-          <div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${((idx + 1) / questions.length) * 100}%` }} />
+        <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-sunken">
+          <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${((idx + 1) / questions.length) * 100}%` }} />
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="text-[15px] leading-relaxed text-slate-800">{renderMath(String(q.questionText || ''))}</div>
-          {q.questionImage && <img src={q.questionImage} alt="" className="mt-4 max-h-96 max-w-full rounded-lg border border-slate-200" />}
+        <div className="border border-line bg-surface p-6">
+          <div className="text-[15px] leading-relaxed text-ink">{renderMath(String(q.questionText || ''))}</div>
+          {q.questionImage && <img src={q.questionImage} alt="" className="mt-4 max-h-96 max-w-full border border-line" />}
 
           <div className="mt-5 space-y-2">
             {opts.map((L) => {
               const chosen = answers[q._id] === L
               return (
                 <button key={L} onClick={() => setAnswers((a) => ({ ...a, [q._id]: chosen ? '' : L }))}
-                  className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left transition ${chosen ? 'border-indigo-400 bg-indigo-50' : 'border-slate-200 hover:bg-slate-50'}`}>
-                  <span className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${chosen ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'}`}>{L}</span>
-                  <span className="text-sm text-slate-700">{renderMath(String(q.options[L]))}</span>
+                  className={`flex w-full items-start gap-3 border p-3 text-left transition-colors ${chosen ? 'border-brand bg-brand-50' : 'border-line hover:border-line-strong hover:bg-ink/5'}`}>
+                  <span className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full font-code text-xs font-semibold ${chosen ? 'bg-brand text-on-brand' : 'bg-sunken text-ink-2'}`}>{L}</span>
+                  <span className="text-sm text-ink-2">{renderMath(String(q.options[L]))}</span>
                 </button>
               )
             })}
@@ -173,17 +173,17 @@ export default function IgcscPracticePage() {
 
         <div className="mt-4 flex items-center justify-between gap-3">
           <button onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40">
+            className="flex items-center gap-1.5 border border-line-strong px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-ink hover:bg-ink/5 disabled:opacity-40">
             <FiChevronLeft size={15} /> Previous
           </button>
           {idx < questions.length - 1 ? (
             <button onClick={() => setIdx((i) => i + 1)}
-              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+              className="flex items-center gap-1.5 bg-cta px-4 py-2 text-sm font-medium text-on-cta transition-colors hover:bg-cta-hover">
               Next <FiChevronRight size={15} />
             </button>
           ) : (
             <button onClick={submit} disabled={busy}
-              className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60">
+              className="flex items-center gap-1.5 bg-brand px-5 py-2 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-60">
               {busy ? <><FiLoader className="animate-spin" size={15} /> Submitting…</> : 'Submit answers'}
             </button>
           )}
@@ -196,19 +196,19 @@ export default function IgcscPracticePage() {
   const byId = new Map(questions.map((q) => [q._id, q]))
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-6 text-center">
-        <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">Your result</p>
-        <p className="mt-1 text-5xl font-extrabold text-slate-900">{result?.percentage}%</p>
-        <p className="mt-1 text-sm text-slate-500">
-          {result?.correct} of {result?.total} correct · Grade <span className="font-bold text-slate-700">{result?.grade}</span>
+      <div className="mb-5 border border-line bg-surface p-6 text-center">
+        <p className="font-code text-[11px] uppercase tracking-[0.12em] text-muted">Your result</p>
+        <p className="display mt-2 text-[56px] leading-none text-ink">{result?.percentage}<span className="text-[32px]">%</span></p>
+        <p className="mt-2 text-sm text-muted">
+          <span className="font-code tabular-nums">{result?.correct} of {result?.total}</span> correct · Grade <span className="font-code font-semibold text-ink">{result?.grade}</span>
         </p>
         <div className="mt-5 flex items-center justify-center gap-2">
           <button onClick={() => { setStage('setup'); setResult(null) }}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+            className="bg-cta px-4 py-2 text-sm font-medium text-on-cta transition-colors hover:bg-cta-hover">
             Practise again
           </button>
           <button onClick={() => router.push('/igcsc/my-results')}
-            className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+            className="border border-line-strong px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-ink hover:bg-ink/5">
             See all my results
           </button>
         </div>
@@ -218,19 +218,19 @@ export default function IgcscPracticePage() {
         {(result?.responses || []).map((r, i) => {
           const q = byId.get(String(r.questionId))
           return (
-            <div key={i} className={`rounded-xl border p-4 ${r.isCorrect ? 'border-emerald-200 bg-emerald-50/40' : 'border-rose-200 bg-rose-50/40'}`}>
+            <div key={i} className={`border border-l-2 p-4 ${r.isCorrect ? 'border-line border-l-positive bg-positive/5' : 'border-line border-l-negative bg-negative/5'}`}>
               <div className="mb-2 flex items-center gap-2">
-                {r.isCorrect ? <FiCheckCircle className="text-emerald-600" size={16} /> : <FiXCircle className="text-rose-600" size={16} />}
-                <span className="text-xs font-bold text-slate-600">Question {i + 1}</span>
-                {r.topic && <span className="text-xs text-slate-400">· {r.topic}</span>}
+                {r.isCorrect ? <FiCheckCircle className="text-positive" size={16} /> : <FiXCircle className="text-negative" size={16} />}
+                <span className="font-code text-[11px] uppercase tracking-[0.08em] text-ink-2">Question {i + 1}</span>
+                {r.topic && <span className="text-xs text-subtle">· {r.topic}</span>}
               </div>
-              {q && <div className="text-sm text-slate-800">{renderMath(String(q.questionText || ''))}</div>}
+              {q && <div className="text-sm text-ink">{renderMath(String(q.questionText || ''))}</div>}
               <div className="mt-2 flex flex-wrap gap-4 text-xs">
-                <span className="text-slate-500">
-                  Your answer: <span className={`font-bold ${r.isCorrect ? 'text-emerald-700' : 'text-rose-700'}`}>{r.selectedAnswer || '—'}</span>
+                <span className="text-muted">
+                  Your answer: <span className={`font-code font-semibold ${r.isCorrect ? 'text-positive' : 'text-negative'}`}>{r.selectedAnswer || '—'}</span>
                 </span>
                 {!r.isCorrect && (
-                  <span className="text-slate-500">Correct: <span className="font-bold text-emerald-700">{r.correctAnswer}</span></span>
+                  <span className="text-muted">Correct: <span className="font-code font-semibold text-positive">{r.correctAnswer}</span></span>
                 )}
               </div>
             </div>
@@ -246,9 +246,9 @@ export default function IgcscPracticePage() {
 function Select({ label, value, onChange, options, anyLabel }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</label>
+      <label className="mb-1.5 block font-code text-[11px] uppercase tracking-[0.12em] text-muted">{label}</label>
       <select value={value} onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none">
+        className="w-full border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-ink">
         <option value="">{anyLabel}</option>
         {options.map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
