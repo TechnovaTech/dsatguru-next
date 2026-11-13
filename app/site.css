@@ -98,40 +98,40 @@ html.site-light.site-page body {
   background: #f4f0e6;
 }
 
-.site ::selection {
+:is(.site, .ig) ::selection {
   background: var(--marker);
   color: inherit;
 }
-.site :focus-visible {
+:is(.site, .ig) :focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
 
 /* Headings: serif, regular weight, slightly tight, one italic accent word. */
-.site .display {
+:is(.site, .ig) .display {
   font-family: var(--font-site-serif), Georgia, serif;
   font-weight: 400;
   letter-spacing: -0.012em;
 }
-.site .accent {
+:is(.site, .ig) .accent {
   font-style: italic;
   color: inherit;
 }
-.site .text-balance {
+:is(.site, .ig) .text-balance {
   text-wrap: balance;
 }
 
-.site .dot-grid {
+:is(.site, .ig) .dot-grid {
   background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
   background-size: 14px 14px;
 }
 
 /* Spotlight card: a 1px border and a soft glow follow the pointer on hover. */
-.site [data-spotlight] {
+:is(.site, .ig) [data-spotlight] {
   position: relative;
   isolation: isolate;
 }
-.site [data-spotlight]::before {
+:is(.site, .ig) [data-spotlight]::before {
   content: '';
   position: absolute;
   inset: -1px;
@@ -145,7 +145,7 @@ html.site-light.site-page body {
   opacity: 0;
   transition: opacity 0.2s ease;
 }
-.site [data-spotlight]::after {
+:is(.site, .ig) [data-spotlight]::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -155,36 +155,36 @@ html.site-light.site-page body {
   opacity: 0;
   transition: opacity 0.3s ease;
 }
-.site [data-spotlight]:hover::before,
-.site [data-spotlight]:hover::after {
+:is(.site, .ig) [data-spotlight]:hover::before,
+:is(.site, .ig) [data-spotlight]:hover::after {
   opacity: 1;
 }
 
-.site .chip-hover {
+:is(.site, .ig) .chip-hover {
   transition: border-color 0.15s, background-color 0.15s, color 0.15s;
 }
-.site .chip-hover:hover {
+:is(.site, .ig) .chip-hover:hover {
   border-color: color-mix(in srgb, var(--brand) 40%, transparent);
   background-color: var(--brand-50);
   color: var(--brand);
 }
 
 /* Card that lifts on hover. */
-.site .lift {
+:is(.site, .ig) .lift {
   transition: transform 0.3s var(--ease-expo), box-shadow 0.3s var(--ease-expo), border-color 0.2s;
 }
-.site .lift:hover {
+:is(.site, .ig) .lift:hover {
   transform: translateY(-4px);
   box-shadow: 0 20px 40px -20px #000000b3;
 }
 
 /* Link with a thin rule underneath that slides away on hover. */
-.site .link-rule {
+:is(.site, .ig) .link-rule {
   background: linear-gradient(var(--brand), var(--brand)) 0 100% / 100% 1.5px no-repeat;
   padding-bottom: 4px;
   transition: background-size 0.4s var(--ease-expo);
 }
-.site .link-rule:hover {
+:is(.site, .ig) .link-rule:hover {
   background-size: 0% 1.5px;
   background-position: 100% 100%;
 }
@@ -213,18 +213,18 @@ html.site-light.site-page body {
   0% { transform: translate(100%); }
   to { transform: translate(0); }
 }
-.site .animate-rise { animation: site-rise 0.6s var(--ease-expo) both; }
-.site .animate-pulse-dot { animation: site-pulse-dot 2s ease-in-out infinite; }
-.site .animate-pop { animation: site-pop 0.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.site .animate-live { animation: site-live 2s ease-out infinite; }
-.site .animate-marquee { animation: site-marquee var(--marquee-duration, 40s) linear infinite; }
-.site .animate-sheet { animation: site-sheet 0.35s var(--ease-expo) both; }
-.site .group:hover .animate-marquee { animation-play-state: paused; }
+:is(.site, .ig) .animate-rise { animation: site-rise 0.6s var(--ease-expo) both; }
+:is(.site, .ig) .animate-pulse-dot { animation: site-pulse-dot 2s ease-in-out infinite; }
+:is(.site, .ig) .animate-pop { animation: site-pop 0.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
+:is(.site, .ig) .animate-live { animation: site-live 2s ease-out infinite; }
+:is(.site, .ig) .animate-marquee { animation: site-marquee var(--marquee-duration, 40s) linear infinite; }
+:is(.site, .ig) .animate-sheet { animation: site-sheet 0.35s var(--ease-expo) both; }
+:is(.site, .ig) .group:hover .animate-marquee { animation-play-state: paused; }
 
 @media (prefers-reduced-motion: reduce) {
-  .site *,
-  .site *::before,
-  .site *::after {
+  :is(.site, .ig) *,
+  :is(.site, .ig) *::before,
+  :is(.site, .ig) *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -232,8 +232,8 @@ html.site-light.site-page body {
 }
 
 /* Text fields light up their own frame (focus-within), so the inner ring would draw a second outline. */
-.site input:not([type='range'], [type='checkbox'], [type='radio']):focus-visible,
-.site textarea:focus-visible,
-.site select:focus-visible {
+:is(.site, .ig) input:not([type='range'], [type='checkbox'], [type='radio']):focus-visible,
+:is(.site, .ig) textarea:focus-visible,
+:is(.site, .ig) select:focus-visible {
   outline: none;
 }

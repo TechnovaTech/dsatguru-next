@@ -2,6 +2,8 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import './igcsc.css'
+import { siteFontVars } from '../components/siteFonts'
 import { igcscToken, igcscUser, igcscTokenExpired, igcscLogout } from './_components/auth'
 import { apiGetSafe } from './_components/api'
 import Watermark from '../components/Watermark'
@@ -49,10 +51,10 @@ const isActive = (item, pathname) =>
 function BrandMark() {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 text-sm font-black text-white shadow-sm">iG</span>
+      <span className="flex h-9 w-9 items-center justify-center bg-cta font-display text-lg text-on-cta">iG</span>
       <div className="leading-none">
-        <div className="text-base font-extrabold tracking-tight text-slate-900">IGCSC</div>
-        <div className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-indigo-500">Assessment Suite</div>
+        <div className="display text-[19px] text-ink">IGCSC</div>
+        <div className="mt-1 font-code text-[9px] uppercase tracking-[0.16em] text-brand">Assessment Suite</div>
       </div>
     </div>
   )
@@ -61,7 +63,7 @@ function BrandMark() {
 function CountBadge({ n }) {
   if (!n) return null
   return (
-    <span className="ml-0.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-violet-600 px-1.5 text-[10px] font-bold leading-5 text-white">
+    <span className="ml-0.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-brand px-1.5 font-code text-[10px] font-bold leading-5 text-on-brand">
       {n > 99 ? '99+' : n}
     </span>
   )
@@ -133,15 +135,15 @@ export default function IgcscLayout({ children }) {
 
   const handleLogout = () => { igcscLogout(); router.push('/igcsc/login') }
   const initials = (user.name || user.email || 'A').trim().slice(0, 2).toUpperCase()
-  const linkCls = (active) => `flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${active ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'}`
+  const linkCls = (active) => `flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors ${active ? 'border-brand text-ink' : 'border-transparent text-muted hover:border-line-strong hover:text-ink'}`
   const roleLabel = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : ''
   const isStudent = user.role === 'student'
   const links = isStudent ? STUDENT_LINKS : STAFF_LINKS.filter((l) => user.role === 'admin' || !l.adminOnly)
   const badgeFor = (l) => (l.badge === 'marking' ? toCheck : 0)
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-xl">
+    <div className={`${siteFontVars} ig min-h-screen`}>
+      <header className="sticky top-0 z-50 border-b border-line bg-[var(--glass)] backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 lg:px-8">
           <Link href="/igcsc"><BrandMark /></Link>
           {/* Seven links do not fit an iPad in landscape: the full row waits for
@@ -154,28 +156,28 @@ export default function IgcscLayout({ children }) {
             ))}
           </nav>
           <div className="flex items-center gap-3">
-            <Link href="/igcsc/profile" className="flex items-center gap-2.5 rounded-full border border-slate-200 py-1 pl-1 pr-3 transition-colors hover:bg-slate-50">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-blue-600 text-xs font-bold text-white">{initials}</span>
+            <Link href="/igcsc/profile" className="flex items-center gap-2.5 rounded-full border border-line py-1 pl-1 pr-3 transition-colors hover:border-line-strong hover:bg-surface">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cta font-code text-xs font-bold text-on-cta">{initials}</span>
               <span className="hidden text-left leading-tight sm:block">
-                <span className="block text-xs font-semibold text-slate-800">{user.name || 'Administrator'}</span>
-                <span className="block text-[10px] text-slate-400">{roleLabel}</span>
+                <span className="block text-xs font-semibold text-ink">{user.name || 'Administrator'}</span>
+                <span className="block font-code text-[10px] uppercase tracking-[0.08em] text-muted">{roleLabel}</span>
               </span>
             </Link>
-            <button onClick={handleLogout} className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600" title="Logout">
+            <button onClick={handleLogout} className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted transition-colors hover:text-negative" title="Logout">
               <FiLogOut size={16} /> <span className="hidden sm:inline">Logout</span>
             </button>
-            <button onClick={() => setMobileOpen((o) => !o)} className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100 xl:hidden" aria-label="Menu">
+            <button onClick={() => setMobileOpen((o) => !o)} className="relative p-2 text-ink-2 hover:bg-ink/5 xl:hidden" aria-label="Menu">
               {mobileOpen ? <FiX size={20} /> : <FiMenu size={20} />}
-              {!mobileOpen && toCheck > 0 && <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-violet-600" />}
+              {!mobileOpen && toCheck > 0 && <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-brand" />}
             </button>
           </div>
         </div>
         {mobileOpen && (
-          <div className="border-t border-slate-100 bg-white px-4 py-3 xl:hidden">
+          <div className="border-t border-line bg-surface px-4 py-3 xl:hidden">
             <div className="flex flex-col gap-0.5">
               {links.map((it) => (
-                <Link key={it.path} href={it.path} className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition-colors ${isActive(it, pathname) ? 'bg-indigo-50 font-semibold text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>
-                  <it.icon size={16} className="text-slate-400" /> {it.label} <CountBadge n={badgeFor(it)} />
+                <Link key={it.path} href={it.path} className={`flex items-center gap-2.5 border-l-2 px-3 py-2.5 text-sm transition-colors ${isActive(it, pathname) ? 'border-brand bg-brand-50 font-semibold text-ink' : 'border-transparent text-muted hover:bg-ink/5 hover:text-ink'}`}>
+                  <it.icon size={16} className={isActive(it, pathname) ? 'text-brand' : 'text-subtle'} /> {it.label} <CountBadge n={badgeFor(it)} />
                 </Link>
               ))}
             </div>

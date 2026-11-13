@@ -112,6 +112,28 @@ export default function Footer() {
           </p>
         </Container>
       </div>
+
+      {/* The sign-off: a giant clipped wordmark, as on the big editorial sites.
+          On hover the italic half catches the brand colour and the whole mark
+          leans forward a touch; reduced-motion users just get the colour. */}
+      <Link
+        href="/"
+        aria-label="DSAT Guru — back to the top of the home page"
+        className="group/mark block overflow-hidden outline-none"
+      >
+        <p
+          aria-hidden="true"
+          className="display -mb-[0.21em] select-none whitespace-nowrap px-3 text-[14vw] leading-[0.82] text-ink transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] group-hover/mark:-translate-y-[0.04em] sm:px-6 lg:text-[13vw]"
+        >
+          DSAT{' '}
+          <em className="not-italic">
+            <span className="accent transition-colors duration-500 group-hover/mark:text-brand">Guru</span>
+          </em>
+          <span className="inline-block text-brand transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] group-hover/mark:translate-x-[0.12em] group-hover/mark:-translate-y-[0.1em]">
+            .
+          </span>
+        </p>
+      </Link>
     </footer>
   )
 }

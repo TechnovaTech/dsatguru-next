@@ -2,14 +2,11 @@
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { MotionConfig } from 'framer-motion'
-import { IBM_Plex_Mono, Instrument_Sans, Instrument_Serif, Plus_Jakarta_Sans, Playfair_Display } from 'next/font/google'
+import { Plus_Jakarta_Sans, Playfair_Display } from 'next/font/google'
 import Header from './Header'
 import Footer from './Footer'
-
-// Redesign fonts (serif headings, sans body, mono labels).
-const serif = Instrument_Serif({ subsets: ['latin'], weight: '400', style: ['normal', 'italic'], variable: '--font-site-serif', display: 'swap' })
-const sans = Instrument_Sans({ subsets: ['latin'], variable: '--font-site-sans', display: 'swap' })
-const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-site-mono', display: 'swap' })
+// Redesign fonts (serif headings, sans body, mono labels) — shared with the IGCSC portal.
+import { siteFontVars } from './siteFonts'
 
 // Fonts of the previous design, still used by the pages that are not redesigned yet.
 const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], variable: '--font-jakarta', display: 'swap' })
@@ -45,7 +42,7 @@ export default function PublicLayout({ children }) {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className={`${serif.variable} ${sans.variable} ${mono.variable} ${jakarta.variable} ${playfair.variable} site min-h-screen`}>
+      <div className={`${siteFontVars} ${jakarta.variable} ${playfair.variable} site min-h-screen`}>
         <Header />
         {redesigned ? (
           <main className="overflow-x-clip">{children}</main>

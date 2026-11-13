@@ -1,0 +1,67 @@
+/* IGCSC portal — the same editorial design system as the public site, in its
+   daylight version. The `.ig` wrapper defines the SAME CSS variables that
+   `.site` does (app/site.css), so every token utility from tailwind.config.js
+   (bg-page, text-ink, border-line, font-display, font-code, …) and every shared
+   helper class (.display, .link-rule, .lift, …— their selectors in site.css
+   match :is(.site, .ig)) works identically here. Students read maths all day,
+   so the portal is light-first: warm paper, ink type, hairline rules. */
+
+.ig {
+  --page: #f4f0e6;
+  --surface: #faf7f0;
+  --canvas: #ede8db;
+  --sunken: #e4ded0;
+  --ink: #15140f;
+  --ink-2: #3a362d;
+  --muted: #6a6557;
+  --subtle: #a39d8e;
+  --line: #d8d1c0;
+  --line-strong: #bfb7a4;
+  --brand: #b83a19;
+  --brand-hover: #a33315;
+  --brand-press: #8f2c12;
+  --brand-soft: #b83a191a;
+  --brand-50: #b83a190f;
+  --marker: #b83a1938;
+  --on-brand: #ffffff;
+  --cta: #15140f;
+  --cta-hover: #2a2721;
+  --on-cta: #f4f0e6;
+  --positive: #2f7d45;
+  --negative: #b42318;
+  --star: #b7791f;
+  --calm: #3f6b64;
+  --grid-dot: #15140f24;
+  --glass: #f4f0e6d6;
+  --panel: #fbf8f1;
+  --panel-ink: #15140f;
+  --panel-ink-2: #3a362d;
+  --panel-muted: #6a6557;
+  --panel-subtle: #8d8778;
+  --panel-line: #15140f1f;
+  --panel-soft: #15140f0a;
+  --panel-accent: #b83a19;
+  --bar: #e4ded0;
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font-site-sans), ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: light;
+}
+
+/* The page behind the portal follows the paper (no white strip past the end). */
+html:has(.ig),
+html:has(.ig) body {
+  background: #f4f0e6;
+}
+
+/* Editorial everywhere: square corners. Dots, avatars and pills stay round. */
+.ig [class*='rounded']:not(.rounded-full) {
+  border-radius: 0;
+}
+
+/* Exam surfaces (timed test, print sheet) keep their own plain look — the
+   wrapper only re-skins the portal chrome and its pages. */
