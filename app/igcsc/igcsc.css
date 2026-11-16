@@ -4,50 +4,55 @@
    (bg-page, text-ink, border-line, font-display, font-code, …) and every shared
    helper class (.display, .link-rule, .lift, …— their selectors in site.css
    match :is(.site, .ig)) works identically here. Students read maths all day,
-   so the portal is light-first: warm paper, ink type, hairline rules. */
+   so the portal is light-first: white paper, ink type, hairline rules. */
 
 .ig {
-  --page: #f4f0e6;
-  --surface: #faf7f0;
-  --canvas: #ede8db;
-  --sunken: #e4ded0;
-  --ink: #15140f;
-  --ink-2: #3a362d;
-  --muted: #6a6557;
-  --subtle: #a39d8e;
-  --line: #d8d1c0;
-  --line-strong: #bfb7a4;
-  --brand: #b83a19;
-  --brand-hover: #a33315;
-  --brand-press: #8f2c12;
-  --brand-soft: #b83a191a;
-  --brand-50: #b83a190f;
-  --marker: #b83a1938;
+  --page: #ffffff;
+  --surface: #ffffff;
+  --canvas: #fafafa;
+  --sunken: #f4f4f5;
+  --ink: #0a0a0b;
+  --ink-2: #3f3f46;
+  --muted: #70707b;
+  --subtle: #a1a1aa;
+  --line: #ececee;
+  --line-strong: #d6d6da;
+  --brand: #4f46e5;
+  --brand-hover: #4338ca;
+  --brand-press: #3730a3;
+  --brand-soft: #4f46e514;
+  --brand-50: #4f46e50a;
+  --marker: #4f46e526;
   --on-brand: #ffffff;
-  --cta: #15140f;
-  --cta-hover: #2a2721;
-  --on-cta: #f4f0e6;
-  --positive: #2f7d45;
-  --negative: #b42318;
-  --star: #b7791f;
-  --calm: #3f6b64;
-  --grid-dot: #15140f24;
-  --glass: #f4f0e6d6;
-  --panel: #fbf8f1;
-  --panel-ink: #15140f;
-  --panel-ink-2: #3a362d;
-  --panel-muted: #6a6557;
-  --panel-subtle: #8d8778;
-  --panel-line: #15140f1f;
-  --panel-soft: #15140f0a;
-  --panel-accent: #b83a19;
-  --bar: #e4ded0;
+  --cta: #0a0a0b;
+  --cta-hover: #27272a;
+  --on-cta: #ffffff;
+  --positive: #15803d;
+  --negative: #b91c1c;
+  --star: #18181b;
+  --calm: #4f46e5;
+  --grid-dot: #0a0a0b12;
+  --glass: #ffffffd6;
+  --panel: #ffffff;
+  --panel-ink: #0a0a0b;
+  --panel-ink-2: #3f3f46;
+  --panel-muted: #70707b;
+  --panel-subtle: #a1a1aa;
+  --panel-line: #0a0a0b14;
+  --panel-soft: #0a0a0b08;
+  --panel-accent: #4f46e5;
+  --bar: #fafafa;
+  --card-shadow: 0 1px 2px #0a0a0b0a;
+  --card-shadow-lift: 0 12px 28px -14px #0a0a0b24;
+  --radius-btn: 10px;
+  --radius-card: 14px;
   --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   background: var(--page);
   color: var(--ink);
-  font-family: var(--font-site-sans), ui-sans-serif, system-ui, sans-serif;
-  line-height: 1.6;
+  font-family: var(--font-inter), var(--font-site-sans), ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.7;
+  letter-spacing: -0.009em;
   -webkit-font-smoothing: antialiased;
   color-scheme: light;
 }
@@ -55,7 +60,7 @@
 /* The page behind the portal follows the paper (no white strip past the end). */
 html:has(.ig),
 html:has(.ig) body {
-  background: #f4f0e6;
+  background: #ffffff;
 }
 
 /* Editorial everywhere: square corners. Dots, avatars and pills stay round. */

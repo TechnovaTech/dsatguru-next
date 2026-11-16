@@ -439,13 +439,13 @@ function Ring({ pct }) {
   return (
     <div className="relative h-32 w-32 flex-shrink-0">
       <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
-        <circle cx="60" cy="60" r={r} fill="none" stroke="#15140f1f" strokeWidth="10" />
+        <circle cx="60" cy="60" r={r} fill="none" stroke="#0a0a0b1f" strokeWidth="10" />
         <circle
           cx="60"
           cy="60"
           r={r}
           fill="none"
-          stroke="#b83a19"
+          stroke="#4f46e5"
           strokeWidth="10"
           strokeLinecap="butt"
           strokeDasharray={c}

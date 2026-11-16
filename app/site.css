@@ -224,19 +224,20 @@ html.site-page body {
 /* =====================================================================
    MINIMAL — one typeface, one accent, hairlines instead of shadows,
    modest radii, restrained motion.
-   Scoped to `.site` alone (not `.ig`), so the IGCSC portal is untouched.
+   Applied to both wrappers: the public site (`.site`) and the IGCSC portal
+   (`.ig`), so the two surfaces cannot drift apart.
    ===================================================================== */
 
 /* ---- Type: one family throughout. Tight tracking at large sizes is what makes
    a single sans read as a display face. ---- */
-.site .display {
+:is(.site, .ig) .display {
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: -0.032em;
   line-height: 1.06;
 }
 /* The highlighted word is carried by colour alone — no gradient, no marker. */
-.site .accent {
+:is(.site, .ig) .accent {
   font-style: normal;
   font-weight: 600;
   color: var(--brand);
@@ -246,92 +247,92 @@ html.site-page body {
 }
 
 /* ---- Surfaces: a hairline and a near-invisible shadow. No blur, no glass. ---- */
-.site [class~='bg-surface'] {
+:is(.site, .ig) [class~='bg-surface'] {
   background-color: var(--surface);
   border-radius: var(--radius-card);
   box-shadow: var(--card-shadow);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
-.site [class~='bg-panel']:not([class~='border-r']) {
+:is(.site, .ig) [class~='bg-panel']:not([class~='border-r']) {
   border-radius: var(--radius-card);
 }
-.site [class~='bg-sunken'] {
+:is(.site, .ig) [class~='bg-sunken'] {
   border-radius: 10px;
 }
 
 /* ---- Buttons: solid ink for the primary action, a hairline box for the second.
    Flat — the gradient-and-glow pills belonged to the louder themes. ---- */
-.site [class~='bg-brand'] {
+:is(.site, .ig) [class~='bg-brand'] {
   background-image: none;
   background-color: var(--brand);
 }
-.site [class~='bg-cta'] {
+:is(.site, .ig) [class~='bg-cta'] {
   background-image: none;
   background-color: var(--cta);
 }
-.site :is(a, button):is([class~='bg-brand'], [class~='bg-cta']) {
+:is(.site, .ig) :is(a, button):is([class~='bg-brand'], [class~='bg-cta']) {
   box-shadow: none;
   transition: background-color 0.18s ease, opacity 0.18s ease;
 }
-.site :is(a, button)[class~='bg-brand']:hover {
+:is(.site, .ig) :is(a, button)[class~='bg-brand']:hover {
   background-color: var(--brand-hover);
 }
-.site :is(a, button)[class~='bg-cta']:hover {
+:is(.site, .ig) :is(a, button)[class~='bg-cta']:hover {
   background-color: var(--cta-hover);
 }
-.site :is(a, button)[class~='border-line-strong'] {
+:is(.site, .ig) :is(a, button)[class~='border-line-strong'] {
   background-color: var(--surface);
   border-color: var(--line-strong);
   box-shadow: none;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
-.site :is(a, button)[class~='border-line-strong']:hover {
+:is(.site, .ig) :is(a, button)[class~='border-line-strong']:hover {
   background-color: var(--canvas);
 }
 
 /* ---- Shape: modest radii. Pills read playful; 10px reads considered. ---- */
-.site [class~='group/btn'],
-.site :is(a, button):is([class~='bg-brand'], [class~='bg-cta'], [class~='border-line-strong']) {
+:is(.site, .ig) [class~='group/btn'],
+:is(.site, .ig) :is(a, button):is([class~='bg-brand'], [class~='bg-cta'], [class~='border-line-strong']) {
   border-radius: var(--radius-btn);
 }
-.site :is(span, div, em, i):is([class~='bg-brand'], [class~='bg-cta']) {
+:is(.site, .ig) :is(span, div, em, i):is([class~='bg-brand'], [class~='bg-cta']) {
   border-radius: 8px;
 }
-.site :is(input:not([type='range'], [type='checkbox'], [type='radio']), textarea, select) {
+:is(.site, .ig) :is(input:not([type='range'], [type='checkbox'], [type='radio']), textarea, select) {
   border-radius: var(--radius-btn);
 }
 
 /* On the ink bar and panels the indigo is too dim to read, so accents there take
    the light indigo tint instead. */
-.site :is([class~='bg-[var(--bar)]'], [class~='bg-panel']) [class~='text-brand'] {
+:is(.site, .ig) :is([class~='bg-[var(--bar)]'], [class~='bg-panel']) [class~='text-brand'] {
   color: var(--panel-accent);
 }
-.site :is([class~='bg-[var(--bar)]'], [class~='bg-panel']) [class~='bg-brand'] {
+:is(.site, .ig) :is([class~='bg-[var(--bar)]'], [class~='bg-panel']) [class~='bg-brand'] {
   background-color: var(--panel-accent);
 }
 
 /* A 4px lift and a slightly darker hairline — nothing more. */
-.site .lift:hover {
+:is(.site, .ig) .lift:hover {
   transform: translateY(-2px);
   border-color: var(--line-strong);
   box-shadow: var(--card-shadow-lift);
 }
 
 /* ---- Scroll reveal: shorter travel, so it reads as a settle rather than a slide. ---- */
-.site .sr {
+:is(.site, .ig) .sr {
   opacity: 0;
   transform: translateY(12px);
   transition: opacity 0.5s var(--ease-expo), transform 0.5s var(--ease-expo);
 }
-.site .sr-in {
+:is(.site, .ig) .sr-in {
   opacity: 1;
   transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .site .sr {
+  :is(.site, .ig) .sr {
     opacity: 1;
     transform: none;
   }

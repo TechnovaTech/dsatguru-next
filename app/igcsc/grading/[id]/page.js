@@ -9,7 +9,7 @@ import { useParams } from 'next/navigation'
 import {
   FiArrowLeft, FiFlag, FiLoader, FiAlertTriangle, FiCheckCircle, FiRefreshCw, FiSave, FiSend,
   FiImage, FiZoomIn, FiZoomOut, FiRotateCw, FiX, FiChevronLeft, FiChevronRight, FiExternalLink,
-  FiCheck, FiChevronDown, FiEdit3, FiCpu, FiUserCheck, FiMinus, FiPlus, FiBookOpen, FiInfo,
+  FiCheck, FiChevronDown, FiEdit3, FiCpu, FiUserCheck, FiMinus, FiPlus, FiBookOpen, FiInfo, FiFileText,
 } from 'react-icons/fi'
 import { apiGet, apiSend } from '../../_components/api'
 import { Badge, Loading, ErrorState, EmptyState } from '../../_components/ui'
@@ -202,14 +202,25 @@ function Lightbox({ uploads, index, onClose, onIndex }) {
         <div className="h-full overflow-auto">
           {/* Block, not flex, when zoomed: a flex item would shrink back to fit. */}
           <div className={`min-h-full p-3 sm:p-6 ${zoomed ? '' : 'flex items-center justify-center'}`}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={u.url}
-              alt={`Answer page ${index + 1}`}
-              onClick={() => setScale((s) => (s > 1 ? 1 : 2))}
-              style={imgStyle}
-              className={`block select-none rounded-lg bg-surface transition-transform ${zoomed ? 'cursor-zoom-out' : 'max-h-[calc(100vh-6rem)] max-w-full cursor-zoom-in object-contain'}`}
-            />
+            {u.kind === 'pdf' ? (
+              // The browser's own PDF viewer handles paging and zoom, so the
+              // scale/rotate controls above do not apply to a scan.
+              <object data={u.url} type="application/pdf" className="h-[calc(100vh-8rem)] w-full rounded-lg bg-surface" aria-label={`Answer scan ${index + 1}`}>
+                <span className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-sm text-muted">
+                  This browser cannot display PDFs.
+                  <a href={u.url} target="_blank" rel="noreferrer" className="font-semibold text-brand underline">Open the scan in a new tab</a>
+                </span>
+              </object>
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={u.url}
+                alt={`Answer page ${index + 1}`}
+                onClick={() => setScale((s) => (s > 1 ? 1 : 2))}
+                style={imgStyle}
+                className={`block select-none rounded-lg bg-surface transition-transform ${zoomed ? 'cursor-zoom-out' : 'max-h-[calc(100vh-6rem)] max-w-full cursor-zoom-in object-contain'}`}
+              />
+            )}
           </div>
         </div>
         {index > 0 && (
@@ -266,14 +277,21 @@ function PhotoPane({ uploads, broken, reloading, onOpen, onBroken, onReload }) {
               className="group relative block overflow-hidden rounded-xl border border-line bg-sunken text-left transition hover:border-brand"
               aria-label={`Open page ${i + 1}`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={u.url}
-                alt={`Answer page ${i + 1}`}
-                loading="lazy"
-                onError={onBroken}
-                className="block h-44 w-full object-cover object-top sm:h-56 lg:h-auto lg:object-contain"
-              />
+              {u.kind === 'pdf' ? (
+                <span className="flex h-44 w-full flex-col items-center justify-center gap-2 bg-canvas text-muted sm:h-56 lg:h-44">
+                  <FiFileText size={28} className="text-brand" />
+                  <span className="font-code text-[11px] uppercase tracking-[0.08em]">PDF scan</span>
+                </span>
+              ) : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={u.url}
+                  alt={`Answer page ${i + 1}`}
+                  loading="lazy"
+                  onError={onBroken}
+                  className="block h-44 w-full object-cover object-top sm:h-56 lg:h-auto lg:object-contain"
+                />
+              )}
               <span className="absolute left-2 top-2 rounded-md bg-ink/75 px-2 py-0.5 text-[11px] font-bold text-white">Page {i + 1}</span>
               <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-md bg-surface/90 text-ink-2 opacity-0 transition group-hover:opacity-100">
                 <FiZoomIn size={14} />

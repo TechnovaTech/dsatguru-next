@@ -1,11 +1,17 @@
 import './globals.css'
 import './site.css'
 import Script from 'next/script'
+import { Inter } from 'next/font/google'
 import { AuthProvider } from './components/AuthContext'
 import { CourseProvider } from './components/CourseContext'
 import { UIProvider } from './components/ui/UIProvider'
 import AppShell from './components/AppShell'
 import SecurityGuard from './components/SecurityGuard'
+
+// The minimal theme's typeface. Declared at the root so the admin, student and
+// tutor shells can use it too - the public site and IGCSC get it from their own
+// wrappers, which were already loading it.
+const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-inter', display: 'swap' })
 
 const BASE_URL = 'https://www.dsatguru.com'
 
@@ -34,7 +40,7 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <head>
       </head>
-      <body className="font-[Poppins]">
+      <body className={`font-[Poppins] ${inter.variable}`}>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-2S6R8YEWQM"
           strategy="afterInteractive"

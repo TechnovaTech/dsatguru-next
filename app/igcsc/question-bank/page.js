@@ -408,6 +408,23 @@ export default function QuestionBankPage() {
   // Guards against a slow earlier fetch overwriting a newer view's data.
   const reqSeq = useRef(0)
 
+  // Finder-style columns: opening a folder appends a column that lands off-screen
+  // to the right, so the user had to scroll across by hand to see what they just
+  // opened. Keep the newest column in view instead.
+  const colsRef = useRef(null)
+  useEffect(() => {
+    const el = colsRef.current
+    if (!el) return
+    // rAF: the new column has to be laid out before scrollWidth means anything.
+    const id = requestAnimationFrame(() => {
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      el.scrollTo({ left: el.scrollWidth - el.clientWidth, behavior: reduced ? 'auto' : 'smooth' })
+    })
+    return () => cancelAnimationFrame(id)
+    // `path` identity changes only when a folder is actually opened or closed, so
+    // this does not fire on every keystroke in a column's search box.
+  }, [path, sel, loadingPapers])
+
   // Allow this one page to print (site-wide print is otherwise blocked).
   useEffect(() => {
     document.documentElement.classList.add('print-mode')
@@ -752,7 +769,7 @@ export default function QuestionBankPage() {
         </div>
       )}
 
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div ref={colsRef} className="flex scroll-smooth gap-4 overflow-x-auto pb-4">
         {/* ---- Column 0: subjects ---- */}
         <div className="w-80 flex-shrink-0 border-r border-line pr-4">
           <div className="relative mb-3">

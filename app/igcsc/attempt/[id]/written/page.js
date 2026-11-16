@@ -64,7 +64,7 @@ function uploadPage(attemptId, blob, { onProgress, onStart } = {}) {
     xhr.ontimeout = () => fail(0, 'The upload timed out. Check your connection, then retry.')
     xhr.onabort = () => fail(-1, 'Upload cancelled.')
     const form = new FormData()
-    form.append('file', blob, 'page.jpg')
+    form.append('file', blob, blob?.type === 'application/pdf' ? 'page.pdf' : 'page.jpg')
     onStart?.(xhr)
     xhr.send(form)
   })
@@ -188,18 +188,25 @@ export default function WrittenSectionPage() {
   const sendItem = async (item) => {
     let blob = item.blob
     if (!blob) {
-      patchItem(item.key, { status: 'compressing', error: '' })
-      try {
-        blob = await compressImage(item.file)
-      } catch (e) {
-        patchItem(item.key, {
-          status: 'failed',
-          retryable: false,
-          error: e?.friendly ? e.message : 'This photo could not be read. Take it again, or choose another.',
-        })
-        return
+      // A scan goes up byte for byte: compressImage re-encodes to JPEG, which
+      // would turn a PDF into an unreadable file. Only photos are compressed.
+      if (item.isPdf) {
+        blob = item.file
+        patchItem(item.key, { blob })
+      } else {
+        patchItem(item.key, { status: 'compressing', error: '' })
+        try {
+          blob = await compressImage(item.file)
+        } catch (e) {
+          patchItem(item.key, {
+            status: 'failed',
+            retryable: false,
+            error: e?.friendly ? e.message : 'This photo could not be read. Take it again, or choose another.',
+          })
+          return
+        }
+        patchItem(item.key, { blob, preview: safePreview(blob) })
       }
-      patchItem(item.key, { blob, preview: safePreview(blob) })
     }
     patchItem(item.key, { status: 'uploading', progress: 0, error: '' })
     try {
@@ -259,10 +266,12 @@ export default function WrittenSectionPage() {
       : null)
     const added = take.map((file) => {
       seqRef.current += 1
+      const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name || '')
       return {
         key: `p${seqRef.current}`,
         file,
-        name: file.name || 'Photo',
+        isPdf,
+        name: file.name || (isPdf ? 'Scan.pdf' : 'Photo'),
         status: 'queued',
         progress: 0,
         error: '',
@@ -450,7 +459,7 @@ export default function WrittenSectionPage() {
               </label>
               <label className={`${BTN_SECONDARY} ${full ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}>
                 <FiImage size={16} /> Choose photos
-                <input type="file" accept="image/*" multiple className="sr-only" disabled={full} onChange={onPick} />
+                <input type="file" accept="image/*,application/pdf" multiple className="sr-only" disabled={full} onChange={onPick} />
               </label>
             </div>
             <div className="mt-4 flex items-center justify-between gap-3 text-xs">
@@ -596,7 +605,7 @@ export default function WrittenSectionPage() {
         />
       )}
 
-      {zoom && <Zoom src={zoom.src} label={zoom.label} onClose={() => setZoom(null)} />}
+      {zoom && <Zoom src={zoom.src} label={zoom.label} kind={zoom.kind} onClose={() => setZoom(null)} />}
     </div>
   )
 }
@@ -641,11 +650,25 @@ function Tip({ icon: Icon, children }) {
 
 function PageThumb({ upload, index, canDelete, deleting = false, onDelete, onZoom, onError }) {
   const label = `Page ${index + 1}`
+  const isPdf = upload.kind === 'pdf'
   return (
     <div className="group relative overflow-hidden border border-line bg-sunken">
-      <button type="button" onClick={() => onZoom({ src: upload.url, label })} className="block w-full" aria-label={`View ${label}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={upload.url} alt={label} loading="lazy" onError={onError} className="aspect-[3/4] w-full object-cover" />
+      <button
+        type="button"
+        onClick={() => onZoom({ src: upload.url, label, kind: upload.kind })}
+        className="block w-full"
+        aria-label={`View ${label}`}
+      >
+        {isPdf ? (
+          // No bitmap to show for a scan, so the tile says what it is.
+          <span className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 bg-canvas text-muted">
+            <FiFileText size={26} className="text-brand" />
+            <span className="font-code text-[11px] uppercase tracking-[0.08em]">PDF</span>
+          </span>
+        ) : (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img src={upload.url} alt={label} loading="lazy" onError={onError} className="aspect-[3/4] w-full object-cover" />
+        )}
       </button>
       <span className="pointer-events-none absolute bottom-2 left-2 bg-cta/80 px-2 py-0.5 font-code text-[11px] text-on-cta">
         {label}
@@ -766,7 +789,7 @@ function SubmitDialog({ pages, busy, onCancel, onConfirm }) {
   )
 }
 
-function Zoom({ src, label, onClose }) {
+function Zoom({ src, label, kind, onClose }) {
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', onKey)
@@ -782,8 +805,24 @@ function Zoom({ src, label, onClose }) {
         </button>
       </div>
       <div className="flex min-h-0 flex-1 items-center justify-center p-3 sm:p-6">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={label} onClick={(e) => e.stopPropagation()} className="max-h-full max-w-full object-contain" />
+        {kind === 'pdf' ? (
+          <object
+            data={src}
+            type="application/pdf"
+            onClick={(e) => e.stopPropagation()}
+            className="h-full w-full bg-page"
+            aria-label={label}
+          >
+            {/* Shown when the browser has no built-in PDF viewer (common on phones). */}
+            <span className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-on-cta/80">
+              This browser cannot display PDFs.
+              <a href={src} target="_blank" rel="noreferrer" className="underline">Open the scan in a new tab</a>
+            </span>
+          </object>
+        ) : (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img src={src} alt={label} onClick={(e) => e.stopPropagation()} className="max-h-full max-w-full object-contain" />
+        )}
       </div>
     </div>
   )

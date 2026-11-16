@@ -33,7 +33,7 @@ export default function TutorLayout({ children }) {
   const navBtn = 'flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors'
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="app-min min-h-screen bg-slate-50">
       {/* ===== Top navbar ===== */}
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 shadow-sm backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 lg:px-6">

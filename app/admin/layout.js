@@ -161,16 +161,16 @@ export default function AdminLayout({ children }) {
   const navBtn = 'flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors'
 
   return (
-    <div className={`min-h-screen bg-[#f4f0e6] ${dark ? 'admin-dark' : ''}`}>
+    <div className={`app-min min-h-screen bg-[#fafafa] ${dark ? 'admin-dark' : ''}`}>
       {/* ===== Top navbar ===== */}
-      <header className="sticky top-0 z-50 border-b border-[#d8d1c0] bg-[#15140f]">
+      <header className="sticky top-0 z-50 border-b border-[#ececee] bg-[#0a0a0b]">
         <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 lg:px-6">
           {/* Brand */}
           <Link href="/admin/dashboard" className="flex flex-shrink-0 items-center gap-2">
-            <span className="text-lg font-extrabold tracking-tight text-[#f4f0e6]">
-              DSAT<span className="text-[#b83a19]">GURU</span>
+            <span className="text-lg font-extrabold tracking-tight text-[#fafafa]">
+              DSAT<span className="text-[#4f46e5]">GURU</span>
             </span>
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] ${user.role === 'Admin' ? 'bg-[#b83a19] text-[#f4f0e6]' : 'border border-[#d8d1c0]/30 text-[#f4f0e6]/80'}`}>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] ${user.role === 'Admin' ? 'bg-[#4f46e5] text-[#fafafa]' : 'border border-[#ececee]/30 text-[#fafafa]/80'}`}>
               {user.role === 'TutorAdmin' ? 'Tutor Admin' : user.role}
             </span>
           </Link>
@@ -181,7 +181,7 @@ export default function AdminLayout({ children }) {
               const active = isActive(sec)
               if (sec.path) {
                 return (
-                  <Link key={sec.id} href={sec.path} className={`${navBtn} ${active ? 'bg-[#f4f0e6] text-[#b83a19]' : 'text-[#f4f0e6]/70 hover:bg-[#f4f0e6]/10 hover:text-[#f4f0e6]'}`}>
+                  <Link key={sec.id} href={sec.path} className={`${navBtn} ${active ? 'bg-[#fafafa] text-[#4f46e5]' : 'text-[#fafafa]/70 hover:bg-[#fafafa]/10 hover:text-[#fafafa]'}`}>
                     <sec.icon size={15} /> {sec.label}
                   </Link>
                 )
@@ -190,24 +190,24 @@ export default function AdminLayout({ children }) {
                 <div key={sec.id} className="relative">
                   <button
                     onClick={() => setOpenMenu((m) => (m === sec.id ? null : sec.id))}
-                    className={`${navBtn} ${active || openMenu === sec.id ? 'bg-[#f4f0e6] text-[#b83a19]' : 'text-[#f4f0e6]/70 hover:bg-[#f4f0e6]/10 hover:text-[#f4f0e6]'}`}
+                    className={`${navBtn} ${active || openMenu === sec.id ? 'bg-[#fafafa] text-[#4f46e5]' : 'text-[#fafafa]/70 hover:bg-[#fafafa]/10 hover:text-[#fafafa]'}`}
                   >
                     <sec.icon size={15} /> {sec.label}
                     <FiChevronDown size={13} className={`transition-transform ${openMenu === sec.id ? 'rotate-180' : ''}`} />
-                    {sec.id === 'more' && bugUnread > 0 && <span className="ml-0.5 h-2 w-2 rounded-full bg-[#b83a19]" />}
+                    {sec.id === 'more' && bugUnread > 0 && <span className="ml-0.5 h-2 w-2 rounded-full bg-[#4f46e5]" />}
                   </button>
                   {openMenu === sec.id && (
-                    <div className={`absolute top-full ${sec.align === 'right' ? 'right-0' : 'left-0'} z-[60] mt-2 w-60 overflow-hidden rounded-xl border border-[#d8d1c0]/20 bg-[#15140f] py-1.5 shadow-[0_30px_60px_-24px_#00000080]`}>
+                    <div className={`absolute top-full ${sec.align === 'right' ? 'right-0' : 'left-0'} z-[60] mt-2 w-60 overflow-hidden rounded-xl border border-[#ececee]/20 bg-[#0a0a0b] py-1.5 shadow-[0_30px_60px_-24px_#00000080]`}>
                       {sec.items.map((it) => (
                         <Link
                           key={it.path}
                           href={it.path}
                           onClick={() => setOpenMenu(null)}
-                          className={`block px-4 py-2 text-sm transition-colors ${pathname === it.path ? 'bg-[#f4f0e6] font-semibold text-[#b83a19]' : 'text-[#f4f0e6]/70 hover:bg-[#f4f0e6]/10 hover:text-[#f4f0e6]'}`}
+                          className={`block px-4 py-2 text-sm transition-colors ${pathname === it.path ? 'bg-[#fafafa] font-semibold text-[#4f46e5]' : 'text-[#fafafa]/70 hover:bg-[#fafafa]/10 hover:text-[#fafafa]'}`}
                         >
                           {it.label}
                           {it.path === '/admin/bug-reports' && bugUnread > 0 && (
-                            <span className="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#b83a19] px-1 text-[10px] font-bold text-[#f4f0e6]">{bugUnread > 99 ? '99+' : bugUnread}</span>
+                            <span className="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#4f46e5] px-1 text-[10px] font-bold text-[#fafafa]">{bugUnread > 99 ? '99+' : bugUnread}</span>
                           )}
                         </Link>
                       ))}
@@ -220,19 +220,19 @@ export default function AdminLayout({ children }) {
 
           {/* Right */}
           <div className="flex flex-shrink-0 items-center gap-3">
-            <span className="hidden text-sm text-[#f4f0e6]/60 sm:block">Hi, <span className="font-semibold text-[#f4f0e6]">{user.name?.split(' ')[0]}</span></span>
+            <span className="hidden text-sm text-[#fafafa]/60 sm:block">Hi, <span className="font-semibold text-[#fafafa]">{user.name?.split(' ')[0]}</span></span>
             <button
               onClick={toggleTheme}
               title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
               aria-label="Toggle theme"
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#d8d1c0]/25 text-[#f4f0e6]/80 transition-colors hover:bg-[#f4f0e6]/10 hover:text-[#f4f0e6]"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#ececee]/25 text-[#fafafa]/80 transition-colors hover:bg-[#fafafa]/10 hover:text-[#fafafa]"
             >
               {dark ? <FiSun size={18} /> : <FiMoon size={18} />}
             </button>
-            <button onClick={handleLogout} className="hidden items-center gap-1.5 rounded-lg border border-[#d8d1c0]/25 px-3 py-2 text-sm font-semibold text-[#f4f0e6]/80 transition-colors hover:bg-[#b83a19] hover:text-[#f4f0e6] sm:flex">
+            <button onClick={handleLogout} className="hidden items-center gap-1.5 rounded-lg border border-[#ececee]/25 px-3 py-2 text-sm font-semibold text-[#fafafa]/80 transition-colors hover:bg-[#4f46e5] hover:text-[#fafafa] sm:flex">
               <FiLogOut size={15} /> Logout
             </button>
-            <button onClick={() => setMobileOpen((o) => !o)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#d8d1c0]/25 text-[#f4f0e6]/80 xl:hidden">
+            <button onClick={() => setMobileOpen((o) => !o)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#ececee]/25 text-[#fafafa]/80 xl:hidden">
               {mobileOpen ? <FiX size={20} /> : <FiMenu size={20} />}
             </button>
           </div>
@@ -240,21 +240,21 @@ export default function AdminLayout({ children }) {
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="max-h-[80vh] overflow-y-auto border-t border-[#d8d1c0]/20 bg-[#15140f] px-4 py-4 xl:hidden">
+          <div className="max-h-[80vh] overflow-y-auto border-t border-[#ececee]/20 bg-[#0a0a0b] px-4 py-4 xl:hidden">
             {sections.map((sec) => (
               <div key={sec.id} className="mb-3">
                 {sec.path ? (
-                  <Link href={sec.path} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold ${isActive(sec) ? 'bg-[#f4f0e6] text-[#b83a19]' : 'text-[#f4f0e6]/85'}`}>
+                  <Link href={sec.path} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold ${isActive(sec) ? 'bg-[#fafafa] text-[#4f46e5]' : 'text-[#fafafa]/85'}`}>
                     <sec.icon size={15} /> {sec.label}
                   </Link>
                 ) : (
                   <>
-                    <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-[#f4f0e6]/50">
+                    <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-[#fafafa]/50">
                       <sec.icon size={13} /> {sec.label}
                     </div>
                     <div className="space-y-0.5">
                       {sec.items.map((it) => (
-                        <Link key={it.path} href={it.path} className={`block rounded-lg py-2 pl-9 pr-3 text-sm ${pathname === it.path ? 'bg-[#f4f0e6] font-semibold text-[#b83a19]' : 'text-[#f4f0e6]/70 hover:bg-[#f4f0e6]/10'}`}>
+                        <Link key={it.path} href={it.path} className={`block rounded-lg py-2 pl-9 pr-3 text-sm ${pathname === it.path ? 'bg-[#fafafa] font-semibold text-[#4f46e5]' : 'text-[#fafafa]/70 hover:bg-[#fafafa]/10'}`}>
                           {it.label}
                         </Link>
                       ))}
@@ -263,7 +263,7 @@ export default function AdminLayout({ children }) {
                 )}
               </div>
             ))}
-            <button onClick={handleLogout} className="mt-2 flex w-full items-center gap-2 rounded-lg border border-[#d8d1c0]/25 px-3 py-2.5 text-sm font-semibold text-[#f4f0e6]/80">
+            <button onClick={handleLogout} className="mt-2 flex w-full items-center gap-2 rounded-lg border border-[#ececee]/25 px-3 py-2.5 text-sm font-semibold text-[#fafafa]/80">
               <FiLogOut size={15} /> Logout
             </button>
           </div>

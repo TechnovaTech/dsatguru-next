@@ -3,7 +3,7 @@ import { igcscModels } from '../../../../../../../lib/igcscDb'
 import { requireIgcscAuth } from '../../../../../../../lib/igcscAuth'
 import { StoreError, isOid } from '../../../../../../../lib/igcscStore'
 import { loadAttemptFor, assertOwner, attemptView, removeUpload } from '../../../../../../../lib/igcscAttempts'
-import { verifyUploadSignature, readAnswerImage, sniffImage } from '../../../../../../../lib/igcscFiles'
+import { verifyUploadSignature, readAnswerImage, sniffAnswer } from '../../../../../../../lib/igcscFiles'
 
 // One photographed answer page.
 //
@@ -47,7 +47,9 @@ export async function GET(request, { params }) {
     }
     return new Response(buf, {
       headers: {
-        'Content-Type': sniffImage(buf) || 'application/octet-stream',
+        'Content-Type': sniffAnswer(buf) || 'application/octet-stream',
+        // Open in place rather than prompting a download for the PDFs.
+        'Content-Disposition': 'inline',
         'Cache-Control': 'private, max-age=3600',
         'X-Content-Type-Options': 'nosniff',
       },

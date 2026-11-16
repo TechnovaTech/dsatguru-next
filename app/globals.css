@@ -422,3 +422,40 @@ html.sec-lock video { -webkit-user-drag: none; user-drag: none; }
     print-color-adjust: exact;
   }
 }
+
+/* =====================================================================
+   APP SHELLS — admin, student dashboard and tutor, brought onto the same
+   minimal look as the public site and the IGCSC portal.
+
+   These screens are built from ~6,800 plain Tailwind classes rather than the
+   token system the other two surfaces use, so rewriting them was never the
+   move. Three things actually differed, and only those are corrected here:
+   the typeface, shadow weight and corner radius. The accent needed nothing —
+   Tailwind's indigo-600 is #4f46e5, which is already the minimal brand.
+
+   Each rule is two classes deep so it outranks the Tailwind utility it
+   replaces (0,2,0 vs 0,1,0) without needing !important.
+   ===================================================================== */
+
+.app-min {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.009em;
+}
+
+/* Depth comes from a hairline, not a drop shadow. shadow-sm is already close
+   to that, so it is left alone; these are the heavy ones. */
+.app-min .shadow-lg,
+.app-min .shadow-xl,
+.app-min .shadow-2xl {
+  box-shadow: 0 12px 28px -14px #0a0a0b24;
+}
+
+/* 16px corners read playful next to the 14px cards everywhere else. Buttons
+   and pills (rounded-full) are deliberately untouched — they are usually
+   avatars, badges and icon buttons, where a full round is correct. */
+.app-min .rounded-2xl {
+  border-radius: 14px;
+}
+.app-min .rounded-xl {
+  border-radius: 12px;
+}

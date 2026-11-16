@@ -82,8 +82,8 @@ export default function DashboardLayout({ children }) {
 
   if (loading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f4f0e6]">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#b83a19]" />
+      <div className="flex min-h-screen items-center justify-center bg-[#fafafa]">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#4f46e5]" />
       </div>
     )
   }
@@ -98,14 +98,14 @@ export default function DashboardLayout({ children }) {
   const navBtn = 'flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors'
 
   return (
-    <div className="min-h-screen bg-[#f4f0e6]">
+    <div className="app-min min-h-screen bg-[#fafafa]">
       {/* ===== Top navbar ===== */}
-      <header className="sticky top-0 z-50 border-b border-[#d8d1c0] bg-[#15140f]">
+      <header className="sticky top-0 z-50 border-b border-[#ececee] bg-[#0a0a0b]">
         <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 lg:px-6">
           {/* Brand */}
           <Link href="/dashboard" className="flex flex-shrink-0 items-center gap-2">
-            <span className="text-lg font-extrabold tracking-tight text-[#f4f0e6]">DSAT<span className="text-[#b83a19]">GURU</span></span>
-            <span className="rounded-full bg-[#b83a19] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#f4f0e6]">Student</span>
+            <span className="text-lg font-extrabold tracking-tight text-[#fafafa]">DSAT<span className="text-[#4f46e5]">GURU</span></span>
+            <span className="rounded-full bg-[#4f46e5] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#fafafa]">Student</span>
           </Link>
 
           {/* Desktop nav */}
@@ -114,7 +114,7 @@ export default function DashboardLayout({ children }) {
               const active = isActive(sec)
               if (sec.path) {
                 return (
-                  <Link key={sec.id} href={sec.path} className={`${navBtn} ${active ? 'bg-[#f4f0e6] text-[#b83a19]' : 'text-[#f4f0e6]/70 hover:bg-[#f4f0e6]/10 hover:text-[#f4f0e6]'}`}>
+                  <Link key={sec.id} href={sec.path} className={`${navBtn} ${active ? 'bg-[#fafafa] text-[#4f46e5]' : 'text-[#fafafa]/70 hover:bg-[#fafafa]/10 hover:text-[#fafafa]'}`}>
                     <sec.icon size={15} /> {sec.label}
                   </Link>
                 )
@@ -123,19 +123,19 @@ export default function DashboardLayout({ children }) {
                 <div key={sec.id} className="relative">
                   <button
                     onClick={() => setOpenMenu((m) => (m === sec.id ? null : sec.id))}
-                    className={`${navBtn} ${active || openMenu === sec.id ? 'bg-[#f4f0e6] text-[#b83a19]' : 'text-[#f4f0e6]/70 hover:bg-[#f4f0e6]/10 hover:text-[#f4f0e6]'}`}
+                    className={`${navBtn} ${active || openMenu === sec.id ? 'bg-[#fafafa] text-[#4f46e5]' : 'text-[#fafafa]/70 hover:bg-[#fafafa]/10 hover:text-[#fafafa]'}`}
                   >
                     <sec.icon size={15} /> {sec.label}
                     <FiChevronDown size={13} className={`transition-transform ${openMenu === sec.id ? 'rotate-180' : ''}`} />
                   </button>
                   {openMenu === sec.id && (
-                    <div className={`absolute top-full ${sec.align === 'right' ? 'right-0' : 'left-0'} z-[60] mt-2 w-60 overflow-hidden rounded-xl border border-[#d8d1c0]/20 bg-[#15140f] py-1.5 shadow-[0_30px_60px_-24px_#00000080]`}>
+                    <div className={`absolute top-full ${sec.align === 'right' ? 'right-0' : 'left-0'} z-[60] mt-2 w-60 overflow-hidden rounded-xl border border-[#ececee]/20 bg-[#0a0a0b] py-1.5 shadow-[0_30px_60px_-24px_#00000080]`}>
                       {sec.items.map((it) => (
                         <Link
                           key={it.path}
                           href={it.path}
                           onClick={() => setOpenMenu(null)}
-                          className={`block px-4 py-2 text-sm transition-colors ${pathname === it.path ? 'bg-[#f4f0e6] font-semibold text-[#b83a19]' : 'text-[#f4f0e6]/70 hover:bg-[#f4f0e6]/10 hover:text-[#f4f0e6]'}`}
+                          className={`block px-4 py-2 text-sm transition-colors ${pathname === it.path ? 'bg-[#fafafa] font-semibold text-[#4f46e5]' : 'text-[#fafafa]/70 hover:bg-[#fafafa]/10 hover:text-[#fafafa]'}`}
                         >
                           {it.label}
                         </Link>
@@ -150,14 +150,14 @@ export default function DashboardLayout({ children }) {
           {/* Right */}
           <div className="flex flex-shrink-0 items-center gap-3">
             <BugReportWidget />
-            <Link href="/dashboard/profile" className="hidden items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#f4f0e6]/10 sm:flex">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#b83a19] text-xs font-semibold text-[#f4f0e6]">{initials}</span>
-              <span className="text-sm font-medium text-[#f4f0e6]/80">{user.name?.split(' ')[0]}</span>
+            <Link href="/dashboard/profile" className="hidden items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#fafafa]/10 sm:flex">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#4f46e5] text-xs font-semibold text-[#fafafa]">{initials}</span>
+              <span className="text-sm font-medium text-[#fafafa]/80">{user.name?.split(' ')[0]}</span>
             </Link>
-            <button onClick={handleLogout} className="hidden items-center gap-1.5 rounded-lg border border-[#d8d1c0]/25 px-3 py-2 text-sm font-semibold text-[#f4f0e6]/80 transition-colors hover:bg-[#b83a19] hover:text-[#f4f0e6] sm:flex">
+            <button onClick={handleLogout} className="hidden items-center gap-1.5 rounded-lg border border-[#ececee]/25 px-3 py-2 text-sm font-semibold text-[#fafafa]/80 transition-colors hover:bg-[#4f46e5] hover:text-[#fafafa] sm:flex">
               <FiLogOut size={15} /> Logout
             </button>
-            <button onClick={() => setMobileOpen((o) => !o)} aria-label="Toggle menu" className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#d8d1c0]/25 text-[#f4f0e6]/80 lg:hidden">
+            <button onClick={() => setMobileOpen((o) => !o)} aria-label="Toggle menu" className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#ececee]/25 text-[#fafafa]/80 lg:hidden">
               {mobileOpen ? <FiX size={20} /> : <FiMenu size={20} />}
             </button>
           </div>
@@ -165,21 +165,21 @@ export default function DashboardLayout({ children }) {
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="max-h-[80vh] overflow-y-auto border-t border-[#d8d1c0]/20 bg-[#15140f] px-4 py-4 lg:hidden">
+          <div className="max-h-[80vh] overflow-y-auto border-t border-[#ececee]/20 bg-[#0a0a0b] px-4 py-4 lg:hidden">
             {SECTIONS.map((sec) => (
               <div key={sec.id} className="mb-3">
                 {sec.path ? (
-                  <Link href={sec.path} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold ${isActive(sec) ? 'bg-[#f4f0e6] text-[#b83a19]' : 'text-[#f4f0e6]/85'}`}>
+                  <Link href={sec.path} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold ${isActive(sec) ? 'bg-[#fafafa] text-[#4f46e5]' : 'text-[#fafafa]/85'}`}>
                     <sec.icon size={15} /> {sec.label}
                   </Link>
                 ) : (
                   <>
-                    <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-[#f4f0e6]/50">
+                    <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-[#fafafa]/50">
                       <sec.icon size={13} /> {sec.label}
                     </div>
                     <div className="space-y-0.5">
                       {sec.items.map((it) => (
-                        <Link key={it.path} href={it.path} className={`block rounded-lg py-2 pl-9 pr-3 text-sm ${pathname === it.path ? 'bg-[#f4f0e6] font-semibold text-[#b83a19]' : 'text-[#f4f0e6]/70 hover:bg-[#f4f0e6]/10'}`}>
+                        <Link key={it.path} href={it.path} className={`block rounded-lg py-2 pl-9 pr-3 text-sm ${pathname === it.path ? 'bg-[#fafafa] font-semibold text-[#4f46e5]' : 'text-[#fafafa]/70 hover:bg-[#fafafa]/10'}`}>
                           {it.label}
                         </Link>
                       ))}
@@ -188,7 +188,7 @@ export default function DashboardLayout({ children }) {
                 )}
               </div>
             ))}
-            <button onClick={handleLogout} className="mt-2 flex w-full items-center gap-2 rounded-lg border border-[#d8d1c0]/25 px-3 py-2.5 text-sm font-semibold text-[#f4f0e6]/80">
+            <button onClick={handleLogout} className="mt-2 flex w-full items-center gap-2 rounded-lg border border-[#ececee]/25 px-3 py-2.5 text-sm font-semibold text-[#fafafa]/80">
               <FiLogOut size={15} /> Logout
             </button>
           </div>

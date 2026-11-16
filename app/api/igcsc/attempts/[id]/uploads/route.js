@@ -5,10 +5,11 @@ import { StoreError, meId, isOid } from '../../../../../../lib/igcscStore'
 import {
   loadAttemptFor, assertOwner, attemptView, writtenOpen, addUpload,
 } from '../../../../../../lib/igcscAttempts'
-import { MAX_UPLOAD_BYTES, sniffImage, signedUploadUrl } from '../../../../../../lib/igcscFiles'
+import { MAX_UPLOAD_BYTES, sniffAnswer, signedUploadUrl } from '../../../../../../lib/igcscFiles'
 import { rateLimit } from '../../../../../../lib/rateLimit'
 
-// POST /api/igcsc/attempts/[id]/uploads - one photographed answer page,
+// POST /api/igcsc/attempts/[id]/uploads - one answer page: a photo, or the PDF
+// a scanner app produces when a student scans the paper they printed and filled in,
 // multipart field `file` → 201 { upload: { id, size, uploadedAt, url }, attempt }
 //
 // The browser compresses to JPEG first, but nothing it says is trusted: the
@@ -38,7 +39,7 @@ function tooMany(rl) {
   )
 }
 
-const tooLarge = () => new StoreError(413, `That photo is too large - the limit is ${MB} MB a page.`)
+const tooLarge = () => new StoreError(413, `That file is too large - the limit is ${MB} MB.`)
 
 export async function POST(request, { params }) {
   try {
@@ -62,18 +63,18 @@ export async function POST(request, { params }) {
     try {
       form = await request.formData()
     } catch {
-      throw new StoreError(400, 'Send the photo as a file upload.')
+      throw new StoreError(400, 'Send the answer as a file upload.')
     }
     const file = form.get('file')
     if (!file || typeof file === 'string' || typeof file.arrayBuffer !== 'function') {
-      throw new StoreError(400, 'Choose a photo to upload.')
+      throw new StoreError(400, 'Choose a file to upload.')
     }
     if (Number(file.size) > MAX_UPLOAD_BYTES) throw tooLarge()
     const buf = Buffer.from(await file.arrayBuffer())
     if (buf.length > MAX_UPLOAD_BYTES) throw tooLarge()
-    if (!buf.length) throw new StoreError(400, 'That photo is empty.')
-    const mime = sniffImage(buf)
-    if (!mime) throw new StoreError(415, 'Upload a JPG, PNG or WebP photo.')
+    if (!buf.length) throw new StoreError(400, 'That file is empty.')
+    const mime = sniffAnswer(buf)
+    if (!mime) throw new StoreError(415, 'Upload a PDF, or a JPG, PNG or WebP photo.')
 
     const upload = await addUpload(models, att, buf, mime)
     const fresh = await models.PaperAttempt.findById(att._id).lean()
