@@ -167,7 +167,10 @@ export default function AttemptResultPage() {
   const staffViewer = !!me && (me.role === 'admin' || me.role === 'tutor') && String(me.id || '') !== String(att.userId)
   const mState = att.mcq?.state || 'none'
   const wState = att.written?.state || 'none'
-  const finished = att.status === 'completed' || att.status === 'needs_review'
+  // Tied to whether marks actually arrived, not just to the status: the API
+  // withholds the score until a tutor releases it, and this keeps the two from
+  // drifting apart (an empty "— / 110" card is worse than the waiting state).
+  const finished = att.score != null && (att.status === 'completed' || att.status === 'needs_review')
   const status = ATTEMPT_STATUS[att.status] || { label: att.status, tone: 'slate' }
   const results = Array.isArray(att.results) ? att.results : []
   const flaggedCount = results.filter((r) => r.kind === 'written' && r.flagged).length
@@ -244,9 +247,11 @@ export default function AttemptResultPage() {
               <p className="mt-0.5 text-sm text-ink-2">
                 {att.status === 'grading'
                   ? 'The written answers are being marked. This usually takes under two minutes.'
-                  : staffViewer
-                    ? 'Not every section is finished yet. Here is what is done so far.'
-                    : 'Finish every section to get your final mark and grade. Here is what is done so far.'}
+                  : att.status === 'needs_review'
+                    ? 'A tutor is checking your written answers. Your marks and grade appear here once they release them.'
+                    : staffViewer
+                      ? 'Not every section is finished yet. Here is what is done so far.'
+                      : 'Finish every section to get your final mark and grade. Here is what is done so far.'}
               </p>
             </div>
           </div>
@@ -264,7 +269,7 @@ export default function AttemptResultPage() {
         </div>
       )}
 
-      {att.provisional && (
+      {att.provisional && finished && (
         <div className="mb-6 flex items-start gap-3 border-l-2 border-calm bg-[#3f6b6414] px-4 py-3.5 text-sm text-ink-2">
           <FiUserCheck size={18} className="mt-0.5 flex-shrink-0 text-calm" />
           <span>
