@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { LuArrowRight, LuArrowUp, LuChevronDown, LuMenu, LuMoon, LuPhone, LuSun, LuX } from 'react-icons/lu'
+import { LuArrowRight, LuArrowUp, LuChevronDown, LuMenu, LuPhone, LuX } from 'react-icons/lu'
 import { useAuth } from './AuthContext'
 import { useCourses } from './CourseContext'
 import { Button, Container, Logo, cn } from './site/ui'
@@ -23,31 +23,6 @@ const dsatLinks = [
   { title: 'Study-Guide', href: '/sat-study-guide' },
 ]
 
-// Dark (default) and Light. The choice is saved and applied before paint by the script in app/layout.js.
-export function ThemeToggle() {
-  const [light, setLight] = useState(false)
-  useEffect(() => setLight(document.documentElement.classList.contains('site-light')), [])
-  const toggle = () => {
-    const next = !light
-    document.documentElement.classList.toggle('site-light', next)
-    setLight(next)
-    try {
-      localStorage.setItem('site-theme', next ? 'light' : 'dark')
-    } catch {}
-  }
-  const Icon = light ? LuMoon : LuSun
-  return (
-    <button
-      type="button"
-      onClick={toggle}
-      aria-label={`Switch to ${light ? 'dark' : 'light'} theme`}
-      title={`Switch to ${light ? 'dark' : 'light'} theme`}
-      className="grid size-10 place-items-center border border-line text-ink transition-colors hover:border-line-strong hover:bg-ink/5"
-    >
-      <Icon className="size-[18px]" />
-    </button>
-  )
-}
 
 export default function Header() {
   const { user } = useAuth()
@@ -201,7 +176,6 @@ export default function Header() {
             >
               IGCSC
             </Link>
-            <ThemeToggle />
             {user ? (
               <Button href={dashboardHref} size="sm" arrow className="hidden h-10 sm:inline-flex">
                 Dashboard

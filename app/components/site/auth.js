@@ -10,7 +10,7 @@ export function AuthShell({ kicker, title, subtitle, perks = [], helpTitle, chil
   return (
     <section className="border-b border-line">
       <Container className="py-10 sm:py-14">
-        <div className="animate-rise grid overflow-hidden border border-line bg-surface md:grid-cols-[1fr_1.1fr]">
+        <div className="animate-rise grid overflow-hidden border border-line bg-surface md:grid-cols-[1.08fr_1fr]">
           {/* Brand panel */}
           <div className="relative hidden flex-col justify-between overflow-hidden border-r border-line bg-panel p-10 text-panel-ink md:flex">
             <div className="dot-grid pointer-events-none absolute inset-0 opacity-50" />
@@ -19,7 +19,7 @@ export function AuthShell({ kicker, title, subtitle, perks = [], helpTitle, chil
                 <LuArrowLeft className="size-4" /> Back to home
               </Link>
               <p className="mt-10 font-code text-[12px] uppercase tracking-[0.14em] text-panel-accent">{kicker}</p>
-              <h1 className="display mt-4 text-[2.6rem] leading-[1.02]">{title}</h1>
+              <h1 className="display mt-4 text-balance text-[2.1rem] leading-[1.08] lg:text-[2.2rem]">{title}</h1>
               <p className="mt-4 max-w-[380px] text-[15.5px] leading-relaxed text-panel-ink-2">{subtitle}</p>
               {perks.length ? (
                 <ul className="mt-8 border-t border-panel-line">

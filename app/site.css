@@ -1,101 +1,81 @@
-/* Public-site redesign (serif headings, square edges, Dark and Light themes).
+/* Public-site theme — "Minimal": a near-monochrome palette with a single indigo accent,
+   hairline borders instead of shadows, modest radii and a lot of whitespace.
+   Light only — there is no dark variant.
    Everything here is scoped to the `.site` wrapper that PublicLayout puts around the public pages, so the student
    dashboard, admin, tutor and IGCSC areas keep their own look. Animation names start with `site-` so they cannot
-   clash with the existing ones in globals.css. Dark is the default; <html class="site-light"> switches to Light. */
+   clash with the existing ones in globals.css. */
 
 .site {
-  --page: #15140f;
-  --surface: #1b1a14;
-  --canvas: #1f1d17;
-  --sunken: #27241b;
-  --ink: #eee9dd;
-  --ink-2: #d6d0c1;
-  --muted: #a49d8c;
-  --subtle: #6e6959;
-  --line: #35322a;
-  --line-strong: #4a463b;
-  --brand: #e5582f;
-  --brand-hover: #ef6b45;
-  --brand-press: #cf4a25;
-  --brand-soft: #e5582f24;
-  --brand-50: #e5582f14;
-  --marker: #e5582f59;
-  --on-brand: #15140f;
-  --cta: #eee9dd;
-  --cta-hover: #ffffff;
-  --on-cta: #15140f;
-  --positive: #8fcf9a;
-  --negative: #e8604a;
-  --star: #e2b159;
-  --calm: #8fb3b0;
-  --grid-dot: #eee9dd1f;
-  --glass: #15140fd1;
-  --panel: #1a2421;
-  --panel-ink: #eee9dd;
-  --panel-ink-2: #d6d0c1;
-  --panel-muted: #a49d8c;
-  --panel-subtle: #6e6959;
+  --page: #ffffff;
+  --surface: #ffffff;
+  --canvas: #fafafa;
+  --sunken: #f4f4f5;
+  --ink: #0a0a0b;
+  --ink-2: #3f3f46;
+  --muted: #70707b;
+  --subtle: #a1a1aa;
+  --line: #ececee;
+  --line-strong: #d6d6da;
+  /* The single accent. Used sparingly — links, the eyebrow number, one word in a
+     heading. Primary buttons are ink, not accent. */
+  --brand: #4f46e5;
+  --brand-hover: #4338ca;
+  --brand-press: #3730a3;
+  --brand-soft: #4f46e514;
+  --brand-50: #4f46e50a;
+  --accent: #4f46e5;
+  --accent-soft: #4f46e514;
+  --on-accent: #ffffff;
+  /* No highlighter in this theme — the accent word is carried by colour alone. */
+  --marker-yellow: transparent;
+  --grad-a: #4f46e5;
+  --grad-b: #4f46e5;
+  --grad-cta-a: #0a0a0b;
+  --grad-cta-b: #0a0a0b;
+  --glow: #0a0a0b14;
+  --marker: #4f46e526;
+  --on-brand: #ffffff;
+  --cta: #0a0a0b;
+  --cta-hover: #27272a;
+  --on-cta: #ffffff;
+  --positive: #15803d;
+  --negative: #b91c1c;
+  --star: #18181b;
+  --calm: #4f46e5;
+  --grid-dot: #0a0a0b12;
+  --glass: #ffffffd9;
+  --panel: #0a0a0b;
+  --panel-ink: #fafafa;
+  --panel-ink-2: #d4d4d8;
+  --panel-muted: #a1a1aa;
+  --panel-subtle: #71717a;
   --panel-line: #ffffff1a;
-  --panel-soft: #ffffff0f;
-  --panel-accent: #ff8a5c;
-  --bar: #0f0e0b;
+  --panel-soft: #ffffff0d;
+  --panel-accent: #a5b4fc;
+  --bar: #0a0a0b;
+  /* Depth comes from the hairline, not from a shadow. */
+  --card-shadow: 0 1px 2px #0a0a0b0a;
+  --card-shadow-lift: 0 12px 28px -14px #0a0a0b24;
+  /* Stage behind the hero cut-out. Tinted rather than white so the artwork's
+     near-white parts (hoodie, mug, pot — 23% of it) keep an edge. */
+  --art-bg: #edf1fc;
+  --radius-btn: 10px;
+  --radius-card: 14px;
   --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
-  background: var(--page);
+  background-color: var(--page);
   color: var(--ink);
-  font-family: var(--font-site-sans), ui-sans-serif, system-ui, sans-serif;
-  line-height: 1.6;
+  font-family: var(--font-inter), var(--font-site-sans), ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.7;
+  letter-spacing: -0.009em;
   -webkit-font-smoothing: antialiased;
-  color-scheme: dark;
-}
-
-html.site-light .site {
-  --page: #f4f0e6;
-  --surface: #faf7f0;
-  --canvas: #ede8db;
-  --sunken: #e4ded0;
-  --ink: #15140f;
-  --ink-2: #3a362d;
-  --muted: #6a6557;
-  --subtle: #a39d8e;
-  --line: #d8d1c0;
-  --line-strong: #bfb7a4;
-  --brand: #b83a19;
-  --brand-hover: #a33315;
-  --brand-press: #8f2c12;
-  --brand-soft: #b83a191a;
-  --brand-50: #b83a190f;
-  --marker: #b83a1938;
-  --on-brand: #ffffff;
-  --cta: #15140f;
-  --cta-hover: #2a2721;
-  --on-cta: #f4f0e6;
-  --positive: #2f7d45;
-  --negative: #b42318;
-  --star: #b7791f;
-  --calm: #3f6b64;
-  --grid-dot: #15140f24;
-  --glass: #f4f0e6d6;
-  --panel: #fbf8f1;
-  --panel-ink: #15140f;
-  --panel-ink-2: #3a362d;
-  --panel-muted: #6a6557;
-  --panel-subtle: #8d8778;
-  --panel-line: #15140f1f;
-  --panel-soft: #15140f0a;
-  --panel-accent: #b83a19;
-  --bar: #e4ded0;
   color-scheme: light;
 }
 
-/* The page behind the public site follows the theme too (no white strip when scrolling past the end). */
+/* The page behind the public site follows the theme too (no mismatched strip past the footer). */
 html.site-page,
 html.site-page body {
-  background: #15140f;
-}
-html.site-light.site-page,
-html.site-light.site-page body {
-  background: #f4f0e6;
+  background: #ffffff;
 }
 
 :is(.site, .ig) ::selection {
@@ -236,4 +216,123 @@ html.site-light.site-page body {
 :is(.site, .ig) textarea:focus-visible,
 :is(.site, .ig) select:focus-visible {
   outline: none;
+}
+
+
+
+
+/* =====================================================================
+   MINIMAL — one typeface, one accent, hairlines instead of shadows,
+   modest radii, restrained motion.
+   Scoped to `.site` alone (not `.ig`), so the IGCSC portal is untouched.
+   ===================================================================== */
+
+/* ---- Type: one family throughout. Tight tracking at large sizes is what makes
+   a single sans read as a display face. ---- */
+.site .display {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.032em;
+  line-height: 1.06;
+}
+/* The highlighted word is carried by colour alone — no gradient, no marker. */
+.site .accent {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--brand);
+  background-image: none;
+  -webkit-text-fill-color: currentColor;
+  padding-inline: 0;
+}
+
+/* ---- Surfaces: a hairline and a near-invisible shadow. No blur, no glass. ---- */
+.site [class~='bg-surface'] {
+  background-color: var(--surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--card-shadow);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.site [class~='bg-panel']:not([class~='border-r']) {
+  border-radius: var(--radius-card);
+}
+.site [class~='bg-sunken'] {
+  border-radius: 10px;
+}
+
+/* ---- Buttons: solid ink for the primary action, a hairline box for the second.
+   Flat — the gradient-and-glow pills belonged to the louder themes. ---- */
+.site [class~='bg-brand'] {
+  background-image: none;
+  background-color: var(--brand);
+}
+.site [class~='bg-cta'] {
+  background-image: none;
+  background-color: var(--cta);
+}
+.site :is(a, button):is([class~='bg-brand'], [class~='bg-cta']) {
+  box-shadow: none;
+  transition: background-color 0.18s ease, opacity 0.18s ease;
+}
+.site :is(a, button)[class~='bg-brand']:hover {
+  background-color: var(--brand-hover);
+}
+.site :is(a, button)[class~='bg-cta']:hover {
+  background-color: var(--cta-hover);
+}
+.site :is(a, button)[class~='border-line-strong'] {
+  background-color: var(--surface);
+  border-color: var(--line-strong);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.site :is(a, button)[class~='border-line-strong']:hover {
+  background-color: var(--canvas);
+}
+
+/* ---- Shape: modest radii. Pills read playful; 10px reads considered. ---- */
+.site [class~='group/btn'],
+.site :is(a, button):is([class~='bg-brand'], [class~='bg-cta'], [class~='border-line-strong']) {
+  border-radius: var(--radius-btn);
+}
+.site :is(span, div, em, i):is([class~='bg-brand'], [class~='bg-cta']) {
+  border-radius: 8px;
+}
+.site :is(input:not([type='range'], [type='checkbox'], [type='radio']), textarea, select) {
+  border-radius: var(--radius-btn);
+}
+
+/* On the ink bar and panels the indigo is too dim to read, so accents there take
+   the light indigo tint instead. */
+.site :is([class~='bg-[var(--bar)]'], [class~='bg-panel']) [class~='text-brand'] {
+  color: var(--panel-accent);
+}
+.site :is([class~='bg-[var(--bar)]'], [class~='bg-panel']) [class~='bg-brand'] {
+  background-color: var(--panel-accent);
+}
+
+/* A 4px lift and a slightly darker hairline — nothing more. */
+.site .lift:hover {
+  transform: translateY(-2px);
+  border-color: var(--line-strong);
+  box-shadow: var(--card-shadow-lift);
+}
+
+/* ---- Scroll reveal: shorter travel, so it reads as a settle rather than a slide. ---- */
+.site .sr {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s var(--ease-expo), transform 0.5s var(--ease-expo);
+}
+.site .sr-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site .sr {
+    opacity: 1;
+    transform: none;
+  }
 }

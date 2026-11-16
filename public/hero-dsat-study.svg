@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1b4d" />
+      <stop offset=".55" stop-color="#14306f" />
+      <stop offset="1" stop-color="#1a56db" />
+    </linearGradient>
+    <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a56db" stop-opacity=".30" />
+      <stop offset="1" stop-color="#1a56db" stop-opacity="0" />
+    </linearGradient>
+    <radialGradient id="bloom" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#60a5fa" stop-opacity=".45" />
+      <stop offset="1" stop-color="#60a5fa" stop-opacity="0" />
+    </radialGradient>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="2.5" cy="2.5" r="2.5" fill="#ffffff" opacity=".16" />
+    </pattern>
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#04102e" flood-opacity=".38" />
+    </filter>
+    <filter id="bookShadow" x="-20%" y="-40%" width="140%" height="200%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#04102e" flood-opacity=".32" />
+    </filter>
+  </defs>
+
+  <!-- backdrop -->
+  <rect width="800" height="600" fill="url(#bg)" />
+  <circle cx="610" cy="250" r="250" fill="url(#bloom)" />
+  <rect x="616" y="430" width="152" height="112" fill="url(#dots)" />
+
+  <!-- wave bands -->
+  <path d="M0 455c130-40 250 40 400 13 140-25 280-48 400-13v145H0z" fill="#2563eb" opacity=".42" />
+  <path d="M0 512c150-30 270 40 430 10 150-28 270-42 370-10v88H0z" fill="#3b82f6" opacity=".38" />
+
+  <!-- paper plane + trail -->
+  <path d="M150 170c36-8 76-28 116-62" stroke="#ffffff" stroke-opacity=".45" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6 9" />
+  <path d="M268 92l34 13-18 5-5 15-7-15-12-6z" fill="#ffffff" opacity=".9" />
+
+  <!-- checklist -->
+  <g font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="21" fill="#ffffff">
+    <g>
+      <circle cx="70" cy="96" r="16" fill="#fbbf24" />
+      <path d="M62 96l6 6 11-12" stroke="#0b1b4d" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="100" y="103">Practice</text>
+    </g>
+    <g>
+      <circle cx="70" cy="150" r="16" fill="#fbbf24" />
+      <path d="M62 150l6 6 11-12" stroke="#0b1b4d" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="100" y="157">Improve</text>
+    </g>
+    <g>
+      <circle cx="70" cy="204" r="16" fill="#fbbf24" />
+      <path d="M62 204l6 6 11-12" stroke="#0b1b4d" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="100" y="211">Achieve</text>
+    </g>
+  </g>
+
+  <!-- script accent -->
+  <text x="762" y="100" text-anchor="end" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="44" fill="#fbbf24">Study Smart</text>
+  <path d="M604 118c54 18 110 14 158-10" stroke="#fbbf24" stroke-width="5" stroke-linecap="round" />
+
+  <!-- score card -->
+  <g filter="url(#cardShadow)">
+    <rect x="330" y="170" width="410" height="222" rx="22" fill="#ffffff" />
+  </g>
+  <g font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">
+    <text x="358" y="208" font-size="17" font-weight="700" fill="#0d1f4c">Score Progress</text>
+    <rect x="608" y="188" width="108" height="30" rx="15" fill="#16a34a" />
+    <text x="662" y="208" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">+320 pts</text>
+
+    <path d="M358 322h354" stroke="#e2e9f7" stroke-width="1.5" />
+    <path d="M358 274h354" stroke="#e2e9f7" stroke-width="1.5" />
+    <path d="M358 322l72-16 72 6 72-40 72-28 66-20v100H358z" fill="url(#area)" />
+    <path d="M358 322l72-16 72 6 72-40 72-28 66-20" stroke="#1a56db" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+    <circle cx="712" cy="224" r="7.5" fill="#1a56db" stroke="#ffffff" stroke-width="3.5" />
+
+    <text x="358" y="368" font-size="12.5" font-weight="600" fill="#5a6d94">Start · 1200</text>
+    <text x="712" y="368" text-anchor="end" font-size="12.5" font-weight="600" fill="#5a6d94">Goal · 1520+</text>
+  </g>
+
+  <!-- book spines -->
+  <g font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#0d1f4c" filter="url(#bookShadow)">
+    <g>
+      <rect x="48" y="300" width="256" height="36" rx="9" fill="#ffffff" />
+      <rect x="48" y="300" width="9" height="36" rx="4.5" fill="#2563eb" />
+      <text x="74" y="323">DSAT Prep</text>
+    </g>
+    <g>
+      <rect x="54" y="344" width="250" height="36" rx="9" fill="#ffffff" />
+      <rect x="54" y="344" width="9" height="36" rx="4.5" fill="#38bdf8" />
+      <text x="80" y="367">Quantitative</text>
+    </g>
+    <g>
+      <rect x="60" y="388" width="244" height="36" rx="9" fill="#ffffff" />
+      <rect x="60" y="388" width="9" height="36" rx="4.5" fill="#fbbf24" />
+      <text x="86" y="411">Verbal</text>
+    </g>
+    <g>
+      <rect x="66" y="432" width="238" height="36" rx="9" fill="#ffffff" />
+      <rect x="66" y="432" width="9" height="36" rx="4.5" fill="#1a56db" />
+      <text x="92" y="455">Analytical Skills</text>
+    </g>
+  </g>
+</svg>

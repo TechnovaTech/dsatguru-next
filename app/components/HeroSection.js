@@ -9,37 +9,24 @@ import { CountUp } from './site/motion'
 import { Container, Eyebrow, cn } from './site/ui'
 
 /*
- * Carousel of branded ad posters. Each slide has its own left-side copy + SEO alt.
- * To change a slide: swap the `photo` path with any image in /public.
+ * One fixed hero, as in the reference design — no rotation, so the headline is
+ * always fully opaque (the old three-slide carousel spent part of every cycle
+ * mid-crossfade, which is what made the heading look washed out).
+ * To change the art: swap the `photo` path with any image in /public.
  */
-const slides = [
-  {
-    photo: '/bf16b129-1144-4d6b-93e7-73fd37085477.png',
-    alt: 'Maximize your Digital SAT score with DSATGURU — 200+ point score guarantee and 4,000+ practice questions',
-    pre: 'Boost Your',
-    highlight: 'Digital SAT Score',
-    sub: 'Personalized study plans, 4,000+ realistic Digital SAT practice questions, and proven strategies to raise your score by 200+ points.',
-  },
-  {
-    photo: '/f33d646a-2fab-4cb5-9a0f-bdfdeb5c4d9f.png',
-    alt: 'Affordable premium Digital SAT preparation from $20 per month with live classes and adaptive tests — DSATGURU',
-    pre: 'Premium SAT Prep,',
-    highlight: 'Affordable Price',
-    sub: 'Elite Digital SAT preparation, live online classes, and 25+ adaptive practice tests — without the premium price tag.',
-  },
-  {
-    photo: '/be5a1c49-657c-4ef0-94e7-5879bf183f93.png',
-    alt: 'Experience a real Digital SAT practice test with DSATGURU adaptive engine, timed sections and instant scoring',
-    pre: 'Experience the',
-    highlight: 'Real Digital SAT',
-    sub: 'Practice on an exact replica of test day with our adaptive engine, timed sections, and instant Digital SAT scoring.',
-  },
-]
+const slide = {
+  photo: '/hero-student2.png',
+  alt: 'Maximize your Digital SAT score with DSATGURU — 200+ point score guarantee and 4,000+ practice questions',
+  pre: 'Boost Your',
+  highlight: 'Digital SAT Score',
+  sub: 'Personalized study plans, 4,000+ realistic Digital SAT practice questions, and proven strategies to raise your score by 200+ points.',
+}
 
 const stats = [
   { value: '4,000+', label: 'Practice Questions' },
   { value: '99%+', label: 'Success Rate' },
   { value: '10+', label: 'Years Experience' },
+  { value: '24/7', label: 'Online Support' },
 ]
 
 const avatars = ['JD', 'MR', 'AT', 'SK']
@@ -48,13 +35,7 @@ const avatars = ['JD', 'MR', 'AT', 'SK']
 const COUNT_START = 150
 
 export default function HeroSection({ landingPlanRef }) {
-  const [current, setCurrent] = useState(0)
   const [liveCount, setLiveCount] = useState(COUNT_START)
-
-  useEffect(() => {
-    const t = setInterval(() => setCurrent((p) => (p + 1) % slides.length), 7000)
-    return () => clearInterval(t)
-  }, [])
 
   // Real student count from the backend — updates whenever new students register.
   useEffect(() => {
@@ -78,15 +59,22 @@ export default function HeroSection({ landingPlanRef }) {
     }
   }, [])
 
-  const slide = slides[current]
   const scrollToPlans = () => landingPlanRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
   return (
-    <section className="relative border-b border-line">
+    <section className="relative overflow-hidden border-b border-line">
       <FloatingContact />
-      <div className="dot-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(ellipse_at_70%_30%,#000,transparent_70%)]" />
 
-      <Container className="relative grid items-center gap-12 py-14 sm:py-16 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:py-20">
+      {/* ===== HERO BAND =====
+          Its own positioning context, so the artwork can bleed to the viewport edge
+          without running behind the stats card underneath it. */}
+      <div className="relative">
+        {/* One very faint dot field, masked out before it reaches the copy. The mesh
+            blooms and blurred halos belonged to the previous theme; this one gets its
+            depth from hairlines and whitespace instead. */}
+        <div className="dot-grid pointer-events-none absolute inset-0 z-0 opacity-[0.55] [mask-image:radial-gradient(ellipse_at_82%_18%,#000,transparent_58%)]" />
+
+      <Container className="relative z-10 grid items-center gap-14 py-16 sm:py-20 lg:grid-cols-[1.02fr_1fr] lg:gap-20 lg:py-28">
         {/* ===== LEFT ===== */}
         <div>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
@@ -101,22 +89,14 @@ export default function HeroSection({ landingPlanRef }) {
             </span>
           </div>
 
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={current}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <h1 className="display mt-7 text-balance text-[2.9rem] leading-[0.98] sm:text-[4rem] lg:text-[4.6rem]">
-                {slide.pre} <em className="accent text-brand">{slide.highlight}</em>
-              </h1>
-              <p className="mt-6 max-w-[540px] text-[17.5px] leading-relaxed text-ink-2">{slide.sub}</p>
-            </motion.div>
-          </AnimatePresence>
+          <div>
+            <h1 className="display mt-7 text-balance text-[2.75rem] leading-[1.06] sm:text-[3.6rem] lg:text-[4.15rem]">
+              {slide.pre} <em className="accent text-brand">{slide.highlight}</em>
+            </h1>
+            <p className="mt-6 max-w-[520px] text-[17px] leading-[1.75] text-muted">{slide.sub}</p>
+          </div>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-10 flex flex-wrap gap-3">
             <button
               type="button"
               onClick={scrollToPlans}
@@ -133,7 +113,7 @@ export default function HeroSection({ landingPlanRef }) {
             </a>
           </div>
 
-          <div className="mt-9 flex flex-wrap items-center justify-between gap-5 border-t border-line pt-6">
+          <div className="mt-12 flex flex-wrap items-center justify-between gap-5 border-t border-line pt-7">
             <div className="flex items-center gap-4">
               <div className="flex -space-x-2">
                 {avatars.map((a) => (
@@ -159,57 +139,63 @@ export default function HeroSection({ landingPlanRef }) {
                 students improved
               </p>
             </div>
-            <div className="flex gap-1.5">
-              {slides.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setCurrent(i)}
-                  aria-label={`Go to slide ${i + 1}`}
-                  className={cn('h-1.5 transition-all duration-300', i === current ? 'w-8 bg-brand' : 'w-3 bg-line-strong hover:bg-muted')}
-                />
-              ))}
-            </div>
           </div>
         </div>
 
-        {/* ===== RIGHT (branded ad poster — photo is swappable) ===== */}
+        {/* ===== ARTWORK =====
+            Back inside the grid rather than bleeding off the viewport edge. Contained
+            and floated on a soft halo, it reads as a product shot instead of a poster,
+            which was the main thing the client objected to.
+            It keeps a dark panel of its own because the cut-out's white hoodie and
+            white "Dream Big" lettering would disappear on the pale mesh page. */}
         <div className="relative">
-          <div className="relative border border-line bg-surface p-2.5 shadow-[0_40px_80px_-40px_#000000cc]">
-            <div className="relative aspect-[4/3] overflow-hidden bg-sunken">
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={current}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5, ease: 'easeOut' }}
-                  className="absolute inset-0"
-                >
-                  <Image src={slide.photo} alt={slide.alt} fill priority sizes="(min-width:1024px) 45vw, 90vw" className="object-cover" />
-                </motion.div>
-              </AnimatePresence>
+          <div className="relative z-10 overflow-hidden rounded-[var(--radius-card)] border border-line bg-[var(--art-bg)] p-2.5">
+            {/* object-contain, never cover: the checklist on the left and the
+                "Dream Big / Score High" lettering on the right run to the very edges
+                of the frame (content bbox is 99% x 96% of the file), so any cropping
+                eats them immediately. */}
+            <div className="relative aspect-[3/2] overflow-hidden rounded-[10px]">
+              <Image
+                src={slide.photo}
+                alt={slide.alt}
+                fill
+                priority
+                sizes="(min-width:1024px) 46vw, 92vw"
+                className="object-contain object-center"
+              />
             </div>
           </div>
           {/* live status badge */}
-          <div className="absolute -bottom-4 left-6 flex items-center gap-2 border border-line bg-surface px-3.5 py-2 font-code text-[12px] uppercase tracking-[0.08em] text-ink-2 shadow-[0_16px_32px_-16px_#000000b3]">
-            <span className="animate-live size-2 rounded-full bg-[#22c55e]" />
+          <div className="absolute -bottom-3.5 left-6 z-20 flex items-center gap-2 rounded-[8px] border border-line bg-surface px-3.5 py-2 text-[12px] font-medium text-muted">
+            <span className="animate-live size-2 rounded-full bg-positive" />
             Live classes running now
           </div>
         </div>
       </Container>
+      </div>
 
-      {/* Stats strip */}
-      <div className="border-t border-line">
-        <Container className="grid grid-cols-3 divide-x divide-line">
-          {stats.map((s) => (
-            <div key={s.label} className="px-2 py-7 text-center sm:py-9">
+      {/* Stats strip — a white card floating over the hero, as in the reference. */}
+      <Container className="relative z-10 pb-20 sm:pb-24">
+        {/* Two-up on phones, four across from sm — `divide-x` alone would draw a rule
+            down the middle of the stacked rows, so the vertical rules are applied per
+            cell instead. */}
+        <div className="grid grid-cols-2 rounded-[var(--radius-card)] border border-line bg-surface sm:grid-cols-4">
+          {stats.map((s, i) => (
+            <div
+              key={s.label}
+              className={cn(
+                'px-3 py-9 text-center sm:py-11',
+                i % 2 === 1 && 'border-l border-line',
+                i >= 2 && 'border-t border-line sm:border-t-0',
+                'sm:border-l sm:first:border-l-0',
+              )}
+            >
               <CountUp value={s.value} className="display block text-[2.4rem] leading-none sm:text-[3.4rem]" />
               <span className="mt-2 block font-code text-[11px] uppercase tracking-[0.12em] text-muted sm:text-[12px]">{s.label}</span>
             </div>
           ))}
-        </Container>
-      </div>
+        </div>
+      </Container>
     </section>
   )
 }

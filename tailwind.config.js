@@ -9,6 +9,7 @@ const siteColors = Object.fromEntries(
   [
     'page', 'surface', 'canvas', 'sunken', 'ink', 'ink-2', 'muted', 'subtle', 'line', 'line-strong',
     'brand', 'brand-hover', 'brand-press', 'brand-soft', 'brand-50', 'on-brand', 'cta', 'cta-hover', 'on-cta',
+    'accent', 'accent-soft', 'on-accent',
     'calm', 'star', 'positive', 'negative',
     'panel', 'panel-ink', 'panel-ink-2', 'panel-muted', 'panel-subtle', 'panel-line', 'panel-soft', 'panel-accent',
   ].map((n) => [n, token(n)]),
