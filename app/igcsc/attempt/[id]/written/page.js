@@ -745,7 +745,7 @@ function GradingCard() {
         </div>
         <h2 className="display mt-5 text-xl leading-snug text-ink">Marking your <em className="accent">answers</em>…</h2>
         <p className="mt-1 max-w-sm text-sm text-ink-2">
-          The AI is reading your pages and marking them against the mark scheme. This usually takes under two minutes.
+          We are reading your pages and marking them against the mark scheme. This usually takes under minutes.
         </p>
         <p className="mt-3 inline-flex items-center gap-1.5 font-code text-xs text-muted">
           <FiLoader className="animate-spin" size={12} /> You can leave this page. Your result will be waiting.
