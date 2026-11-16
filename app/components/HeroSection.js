@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
 import { FaStar } from 'react-icons/fa'
 import { LuArrowRight, LuPlay } from 'react-icons/lu'
 import FloatingContact from './site/FloatingContact'
@@ -9,14 +8,15 @@ import { CountUp } from './site/motion'
 import { Container, Eyebrow, cn } from './site/ui'
 
 /*
- * One fixed hero, as in the reference design — no rotation, so the headline is
- * always fully opaque (the old three-slide carousel spent part of every cycle
- * mid-crossfade, which is what made the heading look washed out).
- * To change the art: swap the `photo` path with any image in /public.
+ * One fixed hero - no rotation, so the headline is always fully opaque (the old
+ * three-slide carousel spent part of every cycle mid-crossfade, which is what
+ * made the heading look washed out).
+ *
+ * The hero artwork is no longer rendered here: it is the full-bleed backdrop in
+ * PublicLayout (`/hero-bg.png`), which has to live there so it can sit behind
+ * the header as well. `photo`/`alt` were dropped with it.
  */
 const slide = {
-  photo: '/hero-student2.png',
-  alt: 'Maximize your Digital SAT score with DSATGURU — 200+ point score guarantee and 4,000+ practice questions',
   pre: 'Boost Your',
   highlight: 'Digital SAT Score',
   sub: 'Personalized study plans, 4,000+ realistic Digital SAT practice questions, and proven strategies to raise your score by 200+ points.',
@@ -62,21 +62,13 @@ export default function HeroSection({ landingPlanRef }) {
   const scrollToPlans = () => landingPlanRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
   return (
-    <section className="relative overflow-hidden border-b border-line">
+    <section className="relative overflow-hidden">
       <FloatingContact />
 
-      {/* ===== HERO BAND =====
-          Its own positioning context, so the artwork can bleed to the viewport edge
-          without running behind the stats card underneath it. */}
-      <div className="relative">
-        {/* One very faint dot field, masked out before it reaches the copy. The mesh
-            blooms and blurred halos belonged to the previous theme; this one gets its
-            depth from hairlines and whitespace instead. */}
-        <div className="dot-grid pointer-events-none absolute inset-0 z-0 opacity-[0.55] [mask-image:radial-gradient(ellipse_at_82%_18%,#000,transparent_58%)]" />
-
-      <Container className="relative z-10 grid items-center gap-14 py-16 sm:py-20 lg:grid-cols-[1.02fr_1fr] lg:gap-20 lg:py-28">
-        {/* ===== LEFT ===== */}
-        <div>
+      <Container className="relative z-10 py-16 sm:py-20 lg:py-28">
+        {/* Held to the left half from lg up: the backdrop photo puts its subject on
+            the right, and the copy must not sit on top of her. */}
+        <div className="max-w-[560px] lg:max-w-[48%]">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
             <Eyebrow n="01">Digital SAT & PSAT prep · online</Eyebrow>
             <span className="inline-flex items-center gap-2 text-[13.5px] text-ink-2">
@@ -142,37 +134,12 @@ export default function HeroSection({ landingPlanRef }) {
           </div>
         </div>
 
-        {/* ===== ARTWORK =====
-            Back inside the grid rather than bleeding off the viewport edge. Contained
-            and floated on a soft halo, it reads as a product shot instead of a poster,
-            which was the main thing the client objected to.
-            It keeps a dark panel of its own because the cut-out's white hoodie and
-            white "Dream Big" lettering would disappear on the pale mesh page. */}
-        <div className="relative">
-          <div className="relative z-10 overflow-hidden rounded-[var(--radius-card)] border border-line bg-[var(--art-bg)] p-2.5">
-            {/* object-contain, never cover: the checklist on the left and the
-                "Dream Big / Score High" lettering on the right run to the very edges
-                of the frame (content bbox is 99% x 96% of the file), so any cropping
-                eats them immediately. */}
-            <div className="relative aspect-[3/2] overflow-hidden rounded-[10px]">
-              <Image
-                src={slide.photo}
-                alt={slide.alt}
-                fill
-                priority
-                sizes="(min-width:1024px) 46vw, 92vw"
-                className="object-contain object-center"
-              />
-            </div>
-          </div>
-          {/* live status badge */}
-          <div className="absolute -bottom-3.5 left-6 z-20 flex items-center gap-2 rounded-[8px] border border-line bg-surface px-3.5 py-2 text-[12px] font-medium text-muted">
-            <span className="animate-live size-2 rounded-full bg-positive" />
-            Live classes running now
-          </div>
-        </div>
+        {/* live status badge */}
+        <p className="mt-10 inline-flex items-center gap-2 rounded-[8px] border border-line bg-surface px-3.5 py-2 text-[12px] font-medium text-muted">
+          <span className="animate-live size-2 rounded-full bg-positive" />
+          Live classes running now
+        </p>
       </Container>
-      </div>
 
       {/* Stats strip — a white card floating over the hero, as in the reference. */}
       <Container className="relative z-10 pb-20 sm:pb-24">

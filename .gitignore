@@ -70,3 +70,6 @@ scratchpad/
 
 # Shared student reports live here and are served only via the signed /api/reports route
 private/
+
+# Internal project walkthrough (generated, not for the repo)
+PROJECT_GUIDE.md

@@ -116,7 +116,16 @@ export default function Header() {
         </div>
       ) : null}
 
-      <header className={cn('relative border-b border-line backdrop-blur-md transition-colors', scrolled ? 'bg-[var(--glass)]' : 'bg-page')}>
+      {/* On the homepage the hero photo runs up behind the header, so at the top of
+          the page the bar is transparent and lets it through. It takes its glass
+          background back as soon as the page scrolls, and every other page keeps
+          the solid bar it always had. */}
+      <header
+        className={cn(
+          'relative backdrop-blur-md transition-colors',
+          scrolled ? 'border-b border-line bg-[var(--glass)]' : onHome ? 'border-b border-transparent' : 'border-b border-line bg-page',
+        )}
+      >
         <div ref={progress} aria-hidden="true" className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-brand" />
         <Container className="flex h-16 items-center justify-between gap-4">
           <Logo />
