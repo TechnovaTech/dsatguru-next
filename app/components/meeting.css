@@ -1,0 +1,453 @@
+/* ============================================================================
+   DSATGURU Studio — the live-class theme.  "Liquid glass".
+
+   Everything floats on the wallpaper: frosted white panels, pill controls,
+   soft blue shadows. Scoped under `.studio`, so it cannot reach the public
+   site, the dashboard or the IGCSC portal. Only the look lives here.
+
+   The rules:
+     - Every surface is glass over the wallpaper. Nothing is opaque except
+       video, which is the content.
+     - Pills and circles. 999px for controls, 24px for panels and tiles.
+     - Four type sizes: 11 / 13 / 15 / 18.
+     - Ink is deep navy, not black - black looks dirty on a blue wallpaper.
+     - Shadows are blue-tinted, never grey.
+
+   One region stays dark: the whiteboard tool rail. Its buttons are built on
+   white-alpha fills that only work on a dark surface, and a dark rail over a
+   white canvas is how every drawing tool does it. It is smoked glass here,
+   not flat black, so it still belongs.
+   ========================================================================== */
+
+.studio {
+  /* -- The wallpaper ----------------------------------------------------- */
+  --st-wall: url('/file_00000000ee2881fd93aa7fb10f9cc300.png');
+
+  /* -- Glass. Three weights: the room's panels, raised controls, and the
+        heavier plate used where type has to stay readable over video. ---- */
+  --st-glass: rgb(255 255 255 / 0.55);
+  --st-glass-strong: rgb(255 255 255 / 0.72);
+  --st-glass-ctl: rgb(255 255 255 / 0.58);
+  --st-glass-ctl-hover: rgb(255 255 255 / 0.85);
+  --st-edge: rgb(255 255 255 / 0.7);
+  --st-edge-soft: rgb(255 255 255 / 0.45);
+  --st-blur: blur(24px) saturate(180%);
+
+  /* Plain surfaces. Tiles are opaque: see .st-tile. */
+  --st-tile: #ffffff;
+  --st-avatar-bg: #eceefc;
+
+  /* The gloss that makes glass look like glass: a bright top edge and a
+     blue-tinted drop shadow, never a grey one. */
+  --st-gloss: inset 0 1px 0 rgb(255 255 255 / 0.9);
+  --st-shadow: 0 8px 32px -10px rgb(30 58 138 / 0.22);
+  --st-shadow-lg: 0 18px 48px -14px rgb(30 58 138 / 0.3);
+
+  /* -- Type. Deep navy, so it sits in the wallpaper rather than on it. --- */
+  --st-text: #16233d;
+  --st-dim: #42527a;
+  --st-faint: #5b6b8c;
+  --st-line: rgb(22 35 61 / 0.1);
+
+  /* -- Accent. The site brand indigo, which holds up on the blue. -------- */
+  --st-accent: #4f46e5;
+  --st-accent-hover: #4338ca;
+  --st-accent-soft: rgb(79 70 229 / 0.14);
+  --st-accent-text: #3730a3;   /* brand-press: badge tints sit on glass, not white */
+  --st-live: #065f46;
+  --st-live-soft: rgb(6 95 70 / 0.13);
+  --st-warn: #92400e;
+  --st-warn-soft: rgb(146 64 14 / 0.13);
+  --st-danger: #dc2626;
+  --st-danger-hover: #b91c1c;
+
+  /* -- The whiteboard tool rail ------------------------------------------ */
+  --st-rail: rgb(14 20 34 / 0.82);
+  --st-rail-raised: rgb(255 255 255 / 0.12);
+  --st-rail-line: rgb(255 255 255 / 0.12);
+
+  /* -- Geometry ---------------------------------------------------------- */
+  --st-r: 999px;    /* controls are pills and circles */
+  --st-r-lg: 24px;  /* panels, tiles, popovers */
+
+  color: var(--st-text);
+  /* Inter is already on <body> from app/layout.js. The old UI asked for
+     "Google Sans", which is installed nowhere and silently fell back. */
+  font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The wallpaper. Everything else in the room blurs against this. */
+.st-stage {
+  background:
+    var(--st-wall) center / cover no-repeat,
+    linear-gradient(140deg, #dce8fd, #eef3fe 45%, #cfe0fc);
+}
+
+/* -- Glass surfaces -------------------------------------------------------- */
+
+/* The base recipe. Everything that floats is some weight of this. */
+.st-glass,
+.st-pop,
+.st-panel,
+.st-dock,
+.st-topbar {
+  background: var(--st-glass);
+  backdrop-filter: var(--st-blur);
+  -webkit-backdrop-filter: var(--st-blur);
+  border: 1px solid var(--st-edge);
+  box-shadow: var(--st-shadow), var(--st-gloss);
+}
+
+/* The header is a floating chip, not a bar - the wallpaper should run behind
+   it to the top of the window. */
+.st-topbar {
+  border-radius: var(--st-r);
+}
+
+.st-glass { border-radius: var(--st-r); }
+
+.st-pop {
+  border-radius: var(--st-r-lg);
+  background: var(--st-glass-strong);
+  box-shadow: var(--st-shadow-lg), var(--st-gloss);
+}
+
+/* The side panel (people / chat / transcript) and the whiteboard panel. */
+.st-panel {
+  border-radius: var(--st-r-lg);
+  background: var(--st-glass-strong);
+}
+
+/* The control dock: one glass capsule, the heaviest shadow in the room so it
+   reads as the thing you reach for. */
+.st-dock {
+  border-radius: var(--st-r-lg);
+  background: var(--st-glass-strong);
+  box-shadow: var(--st-shadow-lg), var(--st-gloss);
+}
+
+/* -- Controls -------------------------------------------------------------- */
+
+.st-ctl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--st-text);
+  background: var(--st-glass-ctl);
+  border: 1px solid var(--st-edge-soft);
+  border-radius: var(--st-r);
+  box-shadow: var(--st-gloss);
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease,
+    transform 0.12s ease;
+}
+.st-ctl:hover:not(:disabled) {
+  background: var(--st-glass-ctl-hover);
+  border-color: rgb(255 255 255 / 0.9);
+}
+.st-ctl:active:not(:disabled) { transform: translateY(1px); }
+.st-ctl:focus-visible {
+  outline: 2px solid var(--st-accent);
+  outline-offset: 2px;
+}
+.st-ctl:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* A feature is on: screen share, whiteboard, captions, an open panel. */
+.st-ctl-on {
+  color: #fff;
+  background: var(--st-accent);
+  border-color: rgb(255 255 255 / 0.3);
+  box-shadow: 0 6px 18px -6px rgb(79 70 229 / 0.6), var(--st-gloss);
+}
+.st-ctl-on:hover:not(:disabled) {
+  background: var(--st-accent-hover);
+  border-color: rgb(255 255 255 / 0.4);
+}
+
+/* Mic or camera muted. The one colour convention worth keeping, because
+   people genuinely rely on red meaning "they cannot hear you". */
+.st-ctl-off {
+  color: #fff;
+  background: var(--st-danger);
+  border-color: rgb(255 255 255 / 0.3);
+  box-shadow: 0 6px 18px -6px rgb(220 38 38 / 0.55), var(--st-gloss);
+}
+.st-ctl-off:hover:not(:disabled) {
+  background: var(--st-danger-hover);
+  border-color: rgb(255 255 255 / 0.4);
+}
+
+/* Quieter control. Used on the whiteboard rail, so it reads light-on-dark. */
+.st-ctl-ghost {
+  color: #e2e8f0;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.st-ctl-ghost:hover:not(:disabled) {
+  color: #fff;
+  background: rgb(255 255 255 / 0.14);
+  border-color: transparent;
+}
+
+.st-leave {
+  color: #fff;
+  background: var(--st-danger);
+  border: 1px solid rgb(255 255 255 / 0.3);
+  border-radius: var(--st-r);
+  box-shadow: 0 8px 22px -8px rgb(220 38 38 / 0.65), var(--st-gloss);
+  transition: background 0.18s ease, transform 0.12s ease;
+}
+.st-leave:hover:not(:disabled) { background: var(--st-danger-hover); }
+.st-leave:active:not(:disabled) { transform: translateY(1px); }
+
+/* Host-only destructive action. Outlined so it never competes with Leave. */
+.st-danger-ghost {
+  color: var(--st-danger-hover);
+  background: rgb(255 255 255 / 0.45);
+  border: 1px solid rgb(220 38 38 / 0.35);
+  border-radius: var(--st-r);
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.st-danger-ghost:hover:not(:disabled) {
+  color: #fff;
+  background: var(--st-danger);
+  border-color: var(--st-danger);
+}
+
+/* -- Tiles ----------------------------------------------------------------- */
+
+/* A glass card. When a camera is on the video covers it completely; when it is
+   off the glass and the avatar are what you see, which is the whole point. */
+.st-tile {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--st-r-lg);
+  /* Plain and opaque, not glass. A tile is the largest surface in the room,
+     and at that size letting the wallpaper through reads as a smear rather
+     than as glass - blur needs an edge to sit against, and here there is
+     none. Dropping the backdrop-filter also drops the most expensive paint
+     in the room, on the one element that is always on screen. */
+  background: var(--st-tile);
+  box-shadow: var(--st-shadow), var(--st-gloss), inset 0 0 0 1px var(--st-edge);
+}
+
+/* Name plate over video. Dark and frosted whatever the room does, because it
+   has to stay legible over both a bright screen share and a dark feed. */
+.st-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 5px 10px;
+  border-radius: var(--st-r);
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: rgb(14 20 34 / 0.55);
+  border: 1px solid rgb(255 255 255 / 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Camera-off stand-in: a glass disc with the initial, matching the reference.
+   This is what used to render as a black rectangle. */
+.st-avatar {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-weight: 700;
+  color: var(--st-accent-text);
+  /* Tinted and solid. A translucent white disc vanished on the plain white
+     tile - the initial is the only thing identifying someone with their
+     camera off, so it has to hold its own shape. */
+  background: var(--st-avatar-bg);
+  border: 1px solid rgb(79 70 229 / 0.2);
+  box-shadow: 0 8px 24px -12px rgb(30 58 138 / 0.4);
+}
+
+/* -- Panel internals ------------------------------------------------------- */
+
+.st-tab {
+  position: relative;
+  color: var(--st-dim);
+  transition: color 0.15s ease;
+}
+.st-tab:hover { color: var(--st-text); }
+.st-tab-on { color: var(--st-text); }
+.st-tab-on::after {
+  content: '';
+  position: absolute;
+  inset: auto 20% -1px 20%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--st-accent);
+}
+
+.st-row {
+  border-radius: 14px;
+  transition: background 0.15s ease;
+}
+.st-row:hover { background: rgb(255 255 255 / 0.5); }
+
+.st-input {
+  color: var(--st-text);
+  background: rgb(255 255 255 / 0.6);
+  border: 1px solid var(--st-edge);
+  border-radius: var(--st-r);
+  box-shadow: var(--st-gloss);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.st-input::placeholder { color: var(--st-faint); }
+.st-input:focus {
+  outline: none;
+  background: rgb(255 255 255 / 0.85);
+  border-color: var(--st-accent);
+}
+
+/* A message, a transcript line. */
+.st-bubble {
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.6);
+  border: 1px solid var(--st-edge-soft);
+}
+.st-bubble-self {
+  border-radius: 16px;
+  color: #fff;
+  background: var(--st-accent);
+  border: 1px solid rgb(255 255 255 / 0.25);
+  box-shadow: 0 6px 18px -8px rgb(79 70 229 / 0.6);
+}
+
+/* -- Badges, captions, detail --------------------------------------------- */
+
+.st-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--st-r);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.st-badge-host {
+  color: var(--st-accent-text);
+  background: var(--st-accent-soft);
+}
+.st-badge-role {
+  color: var(--st-dim);
+  background: rgb(22 35 61 / 0.07);
+}
+.st-badge-warn {
+  color: var(--st-warn);
+  background: var(--st-warn-soft);
+}
+.st-badge-live {
+  color: var(--st-live);
+  background: var(--st-live-soft);
+}
+
+/* "We are live" dot in the header. No pulse - a blinking light next to a
+   running clock is noise, and it never stops. */
+.st-live-dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--st-live);
+}
+
+/* Clock digits must not shuffle sideways every second. */
+.st-mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* The caption bar sits on top of video, so it stays dark. Rebinding the type
+   tokens here is what keeps its children light: the speaker name, the interim
+   line and the "Listening" state all read from these, and inheriting the
+   room's navy ink would make them invisible on this plate. */
+.st-cc {
+  --st-text: #ffffff;
+  --st-dim: #dbe3f0;
+  --st-faint: #aebbd0;
+  --st-accent-text: #c7d2fe;
+  --st-live: #6ee7b7;
+  color: #fff;
+  background: rgb(14 20 34 / 0.7);
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: var(--st-r-lg);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: var(--st-shadow-lg);
+}
+
+/* -- The whiteboard tool rail ---------------------------------------------
+   Smoked glass rather than flat black, so it belongs in the room. Same
+   rebinding trick as the caption bar. */
+.st-rail {
+  --st-text: #f1f5f9;
+  --st-dim: #cbd5e1;
+  --st-faint: #94a3b8;
+  --st-line: var(--st-rail-line);
+  --st-edge: rgb(255 255 255 / 0.14);
+  --st-edge-soft: rgb(255 255 255 / 0.1);
+  --st-glass-ctl: rgb(255 255 255 / 0.12);
+  --st-glass-ctl-hover: rgb(255 255 255 / 0.2);
+  --st-accent-text: #c7d2fe;
+  --st-accent-soft: rgb(99 102 241 / 0.3);
+  --st-avatar-bg: rgb(99 102 241 / 0.3);
+  --st-warn: #fcd34d;
+  --st-warn-soft: rgb(252 211 77 / 0.18);
+  --st-live: #6ee7b7;
+  --st-live-soft: rgb(110 231 183 / 0.18);
+  --st-gloss: inset 0 1px 0 rgb(255 255 255 / 0.1);
+  color: var(--st-text);
+  background: var(--st-rail);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+
+/* -- The whiteboard pointer ------------------------------------------------
+   The native `crosshair` draws a hairline cross that several browsers render
+   almost white; on a white board it vanishes, so you cannot see where the
+   stroke will land. These are drawn explicitly: a black mark with a white
+   halo, so they read on the board, on a pasted screenshot, and on a dark
+   image alike. The pair of coordinates after the url is the hotspot, which
+   has to be the centre or every stroke starts offset from the pointer. */
+.st-draw-cursor {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><g fill="none" stroke-linecap="round"><path d="M12 2.5v6.5M12 15v6.5M2.5 12h6.5M15 12h6.5" stroke="%23ffffff" stroke-width="3.5" stroke-opacity="0.95"/><path d="M12 2.5v6.5M12 15v6.5M2.5 12h6.5M15 12h6.5" stroke="%23111111" stroke-width="1.5"/></g></svg>') 12 12, crosshair;
+}
+.st-erase-cursor {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"><circle cx="13" cy="13" r="9" fill="none" stroke="%23ffffff" stroke-width="3.5" stroke-opacity="0.95"/><circle cx="13" cy="13" r="9" fill="none" stroke="%23111111" stroke-width="1.5"/></svg>') 13 13, cell;
+}
+
+/* Scrollbars, inside the meeting only. */
+.studio *::-webkit-scrollbar { width: 8px; height: 8px; }
+.studio *::-webkit-scrollbar-track { background: transparent; }
+.studio *::-webkit-scrollbar-thumb {
+  background: rgb(22 35 61 / 0.22);
+  border-radius: 999px;
+}
+.studio *::-webkit-scrollbar-thumb:hover { background: rgb(22 35 61 / 0.38); }
+.studio * { scrollbar-width: thin; scrollbar-color: rgb(22 35 61 / 0.22) transparent; }
+.studio .st-rail *::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 0.2); }
+.studio .st-rail * { scrollbar-color: rgb(255 255 255 / 0.2) transparent; }
+
+/* Backdrop blur is the whole look, but it is also the most expensive thing
+   here. Where it is unsupported the glass simply reads as a lighter panel. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .studio {
+    --st-glass: rgb(255 255 255 / 0.82);
+    --st-glass-strong: rgb(255 255 255 / 0.92);
+    --st-glass-ctl: rgb(255 255 255 / 0.85);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio *, .studio *::before, .studio *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

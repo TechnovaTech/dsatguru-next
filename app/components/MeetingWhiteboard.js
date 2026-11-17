@@ -1261,7 +1261,7 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
 
       {/* ── TOOLBAR (admin only) ── */}
       {canDraw && (
-        <div className="flex items-center gap-1.5 px-3 py-2 bg-[#202124] flex-wrap z-10 border-b border-white/10">
+        <div className="st-rail flex items-center gap-1.5 px-3 py-2 flex-wrap z-10">
 
           {/* Tools */}
           <div className="flex gap-1 bg-white/5 rounded p-1">
@@ -1326,10 +1326,10 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
           {isAdmin && (
             <>
               <button onClick={undo} disabled={!histDepth.undo}
-                className="rounded bg-[#3c4043] px-2 py-1.5 text-sm text-white hover:bg-[#4a4d51] disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded bg-[var(--st-rail-raised)] px-2 py-1.5 text-sm text-white hover:bg-white/[0.14] disabled:cursor-not-allowed disabled:opacity-40"
                 title="Undo (Ctrl+Z)">↩</button>
               <button onClick={redo} disabled={!histDepth.redo}
-                className="rounded bg-[#3c4043] px-2 py-1.5 text-sm text-white hover:bg-[#4a4d51] disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded bg-[var(--st-rail-raised)] px-2 py-1.5 text-sm text-white hover:bg-white/[0.14] disabled:cursor-not-allowed disabled:opacity-40"
                 title="Redo (Ctrl+Shift+Z)">↪</button>
               <button onClick={clearBoard} className="px-2 py-1.5 bg-red-600/80 hover:bg-red-600 text-white rounded text-sm" title="Clear">🗑 Clear</button>
               <button onClick={() => { setShareOpen(v => !v); setShareMsg('') }}
@@ -1351,7 +1351,7 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
           ref={canvasRef}
           className={`absolute inset-0 ${!canDraw ? 'cursor-default'
             : tool === 'select' ? 'cursor-default'
-            : tool === 'eraser' ? 'cursor-cell' : 'cursor-crosshair'}`}
+            : tool === 'eraser' ? 'st-erase-cursor' : 'st-draw-cursor'}`}
           style={{ background: '#ffffff', touchAction: 'none' }}
           onMouseDown={onDown}
           onMouseMove={onMove}
@@ -1389,7 +1389,7 @@ export default function MeetingWhiteboard({ isAdmin, roomName, meetingTitle, par
             {/* Kept inside the board. Stretch a diagram to fill the canvas and
                 this used to sit past the bottom edge, where overflow-hidden
                 clipped it away along with the only route to Front and Back. */}
-            <div className="absolute z-20 flex items-center gap-1 rounded-lg bg-[#202124] px-1.5 py-1 shadow-xl"
+            <div className="st-rail absolute z-20 flex items-center gap-1 rounded-lg px-1.5 py-1 shadow-xl"
               style={{
                 left: Math.min(Math.max(4, selBox.left), Math.max(4, selBox.cw - (isAdmin ? 236 : 124))),
                 top: selBox.top > 40

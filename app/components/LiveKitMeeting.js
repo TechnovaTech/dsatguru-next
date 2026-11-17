@@ -12,6 +12,8 @@ import {
   DisconnectButton,
 } from '@livekit/components-react'
 import '@livekit/components-styles'
+// The meeting theme. Scoped to `.studio`, so it cannot touch the rest of the app.
+import './meeting.css'
 import { Track, RoomEvent } from 'livekit-client'
 import dynamic from 'next/dynamic'
 import { useToast } from './ui/UIProvider'
@@ -511,8 +513,16 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
   const toggleMic = async () => {
     if (!room) return
     const enabled = !micOn
-    await room.localParticipant.setMicrophoneEnabled(enabled)
-    setMicOn(enabled)
+    try {
+      await room.localParticipant.setMicrophoneEnabled(enabled)
+      setMicOn(enabled)
+    } catch {
+      // A denied or unavailable mic rejects here. The room already raises the
+      // "Microphone blocked" card through onMediaDeviceFailure, so all this
+      // has to do is keep the button honest - and swallow the rejection,
+      // which otherwise surfaces as a dev-overlay crash over a live class.
+      setMicOn(!!room.localParticipant.isMicrophoneEnabled)
+    }
   }
 
   const captureManualSnapshot = () => {
@@ -628,15 +638,33 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
   const toggleCam = async () => {
     if (!room) return
     const enabled = !camOn
-    await room.localParticipant.setCameraEnabled(enabled)
-    setCamOn(enabled)
+    try {
+      await room.localParticipant.setCameraEnabled(enabled)
+      setCamOn(enabled)
+    } catch {
+      // Same as the mic: onMediaDeviceFailure owns the message, this just
+      // keeps the button in step with the room and stops the rejection.
+      setCamOn(!!room.localParticipant.isCameraEnabled)
+    }
   }
 
   const toggleScreen = async () => {
     if (!room) return
     const enabled = !screenSharing
-    await room.localParticipant.setScreenShareEnabled(enabled)
-    setScreenSharing(enabled)
+    try {
+      await room.localParticipant.setScreenShareEnabled(enabled)
+      setScreenSharing(enabled)
+    } catch (e) {
+      // Dismissing the browser's "choose what to share" picker rejects right
+      // here, with the same NotAllowedError a denied camera prompt gives.
+      // That is someone changing their mind, not a fault: say nothing, and
+      // read the button back off the room so it cannot drift out of step.
+      setScreenSharing(!!room.localParticipant.isScreenShareEnabled)
+      const name = e?.name || ''
+      if (name !== 'NotAllowedError' && name !== 'AbortError') {
+        toast.error('Could not start screen sharing. Please try again.')
+      }
+    }
   }
 
   const fmt = s => `${String(Math.floor(s / 3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`
@@ -647,6 +675,10 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
      { source: Track.Source.ScreenShare, withPlaceholder: false }],
     { onlySubscribed: false }
   )
+
+  // A muted camera keeps its publication, so "has a track" is not the same
+  // question as "has a picture". Asking only the first renders a black video.
+  const hasPicture = (t) => !!t?.publication?.track && !t.publication.isMuted
 
   const pinned = pinnedParticipant
     ? videoTracks.find(t => t.participant?.identity === pinnedParticipant)
@@ -710,27 +742,29 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
   }
 
   return (
-    <div className="fixed inset-0 bg-[#202124] z-50 flex flex-col select-none" style={{ fontFamily: 'Google Sans, sans-serif' }}>
+    <div className="studio st-stage fixed inset-0 z-50 flex select-none flex-col">
 
       {/* ── Waiting room (host only) ── */}
       {isAdmin && lobby.length > 0 && (
-        <div className="absolute right-4 top-16 z-[55] w-72 rounded-xl border border-white/10 bg-[#2d2e30] p-3 shadow-2xl">
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-amber-400">
-            Waiting to join ({lobby.length})
+        <div className="st-pop absolute right-3 top-16 z-[55] w-[19rem] rounded-[16px] p-3 md:right-5">
+          <p className="mb-2.5 flex items-center gap-2 px-0.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--st-warn)]">
+            <span className="st-live-dot" style={{ background: 'var(--st-warn)' }} aria-hidden="true" />
+            Waiting to join · {lobby.length}
           </p>
-          <div className="space-y-2">
+          <div className="space-y-1">
             {lobby.map((g) => (
-              <div key={g.claimId} className="flex items-center gap-2">
-                <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-xs font-bold text-amber-300">
+              <div key={g.claimId} className="st-row flex items-center gap-2.5 p-1.5">
+                <span className="st-avatar h-8 w-8 flex-shrink-0 text-[11px]"
+                  style={{ color: 'var(--st-warn)', background: '#b4530914' }}>
                   {(g.name || '?')[0].toUpperCase()}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-sm text-white">{g.name}</span>
+                <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{g.name}</span>
                 <button onClick={() => decideGuest(g.claimId, 'approve')}
-                  className="rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-500">
+                  className="st-ctl st-ctl-on px-2.5 py-1.5 text-[11px] font-semibold">
                   Admit
                 </button>
                 <button onClick={() => decideGuest(g.claimId, 'deny')}
-                  className="rounded-md bg-white/10 px-2 py-1 text-xs font-semibold text-gray-300 hover:bg-white/20">
+                  className="st-ctl st-ctl-ghost px-2.5 py-1.5 text-[11px] font-semibold">
                   Deny
                 </button>
               </div>
@@ -739,26 +773,49 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
         </div>
       )}
 
-      {/* ── TOP BAR ── */}
-      <div className="flex items-center justify-between gap-2 px-3 py-2 bg-[#202124] border-b border-white/10 md:px-4">
-        <div className="flex min-w-0 items-center gap-2 md:gap-3">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">D</div>
+      {/* ── TOP BAR ──
+          Two floating chips rather than a bar, so the wallpaper runs edge to
+          edge behind them. */}
+      <div className="relative z-20 flex flex-shrink-0 items-start justify-between gap-2 p-2.5 md:p-3.5">
+        <div className="st-topbar flex min-w-0 items-center gap-2.5 py-1.5 pl-1.5 pr-3.5">
+          {/* Brand mark. */}
+          <div className="st-avatar h-8 w-8 flex-shrink-0 text-[13px]">D</div>
           <div className="min-w-0">
             {/* A room id is long and meaningless — clip it to one line. */}
-            <div className="truncate text-sm font-medium text-white">{meetingTitle || roomName}</div>
-            <div className="text-xs text-gray-400">{fmt(elapsed)}</div>
+            <div className="truncate text-[13px] font-semibold leading-tight">{meetingTitle || roomName}</div>
+            <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-[var(--st-dim)]">
+              <span className="st-live-dot" />
+              <span className="st-mono">{fmt(elapsed)}</span>
+            </div>
           </div>
-          {isAdmin && <span className="flex-shrink-0 rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">Host</span>}
+          {isAdmin && <span className="st-badge st-badge-host flex-shrink-0">Host</span>}
         </div>
-        <div className="flex flex-shrink-0 items-center gap-1 md:gap-2">
-          <button onClick={() => setGridView(v => !v)} className="rounded-full p-2 text-gray-400 transition-colors hover:bg-white/10 hover:text-white" title={gridView ? 'Speaker view' : 'Grid view'}>
-            {gridView ? <FiUser size={18} /> : <FiGrid size={18} />}
+
+        <div className="flex flex-shrink-0 items-center gap-1.5 md:gap-2">
+          {/* Layout switcher, as a two-state segmented control so the current
+              view is readable at a glance instead of implied by one icon. */}
+          <div className="st-glass hidden items-center gap-1 p-1 sm:flex">
+            <button onClick={() => setGridView(true)}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+                gridView ? 'bg-white/80 text-[var(--st-text)] shadow-sm' : 'text-[var(--st-dim)] hover:text-[var(--st-text)]'}`}
+              title="Grid view">
+              <FiGrid size={12} /> Grid
+            </button>
+            <button onClick={() => setGridView(false)}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+                !gridView ? 'bg-white/80 text-[var(--st-text)] shadow-sm' : 'text-[var(--st-dim)] hover:text-[var(--st-text)]'}`}
+              title="Speaker view">
+              <FiUser size={12} /> Speaker
+            </button>
+          </div>
+          {/* The same toggle, collapsed to one button where there is no room. */}
+          <button onClick={() => setGridView(v => !v)} className="st-ctl h-10 w-10 sm:hidden" title={gridView ? 'Speaker view' : 'Grid view'}>
+            {gridView ? <FiUser size={16} /> : <FiGrid size={16} />}
           </button>
-          <span className="hidden text-sm text-gray-400 sm:inline">
-            {participants.length} participant{participants.length !== 1 ? 's' : ''}
-          </span>
-          <span className="flex items-center gap-1 text-sm text-gray-400 sm:hidden">
-            <FiUsers size={14} />{participants.length}
+          <span className="st-glass flex items-center gap-1.5 px-3.5 py-[11px] text-[11px] font-semibold text-[var(--st-dim)]">
+            <FiUsers size={13} />
+            <span className="st-mono">{participants.length}</span>
+            <span className="hidden md:inline font-medium">in room</span>
           </span>
         </div>
       </div>
@@ -767,12 +824,12 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
       <div className="relative flex flex-1 overflow-hidden">
 
         {/* Video grid — hidden entirely while the board is full screen. */}
-        <div className={`flex flex-col overflow-hidden p-2 gap-2 ${
+        <div className={`flex flex-col gap-2.5 overflow-hidden p-2.5 md:p-3 md:pt-0 ${
           showWhiteboard ? (boardFull ? 'hidden' : 'w-1/2') : 'flex-1'
         }`}>
           {(() => {
             // Separate screen share tracks from camera tracks
-            const screenTracks = videoTracks.filter(t => t.source === Track.Source.ScreenShare && t.publication?.track)
+            const screenTracks = videoTracks.filter(t => t.source === Track.Source.ScreenShare && hasPicture(t))
             const camTracks    = videoTracks.filter(t => t.source !== Track.Source.ScreenShare)
             const hasScreen    = screenTracks.length > 0
 
@@ -781,32 +838,35 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
               // Main area = screen share, bottom strip = cameras
               return (
                 <>
-                  {/* Main screen share */}
-                  <div className="flex-1 relative rounded-xl overflow-hidden bg-black">
-                    <VideoTrack trackRef={screenTracks[0]} className="w-full h-full object-contain" />
-                    <div className="absolute top-2 left-2 bg-blue-600/90 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                      <FiMonitor size={12} /> {personName(screenTracks[0].participant)} is sharing screen
+                  {/* Main screen share. The backing shows either side of a
+                      contain-fitted feed, so it takes the stage colour. */}
+                  <div className="st-tile flex-1">
+                    <VideoTrack trackRef={screenTracks[0]} className="h-full w-full object-contain" />
+                    <div className="absolute left-3 top-3 flex items-center gap-2 rounded-[10px] px-2.5 py-1.5 text-[11px] font-semibold text-white"
+                      style={{ background: 'var(--st-accent)' }}>
+                      <FiMonitor size={12} />
+                      <span className="max-w-[55vw] truncate">{personName(screenTracks[0].participant)} is presenting</span>
                     </div>
                   </div>
                   {/* Camera strip */}
                   {camTracks.length > 0 && (
-                    <div className="h-24 flex gap-2 overflow-x-auto flex-shrink-0">
+                    <div className="flex h-24 flex-shrink-0 gap-2.5 overflow-x-auto pb-0.5">
                       {camTracks.map((trackRef, i) => {
                         const identity = trackRef.participant?.identity || ''
                         const isSelf   = identity === localParticipant?.identity
                         const label    = personName(trackRef.participant)
                         return (
-                          <div key={i} className="relative flex-shrink-0 w-32 rounded-lg overflow-hidden bg-[#3c4043]">
-                            {trackRef.publication?.track
-                              ? <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
-                              : <div className="w-full h-full flex items-center justify-center">
-                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold">
+                          <div key={i} className="st-tile w-32 flex-shrink-0" style={{ borderRadius: '14px' }}>
+                            {hasPicture(trackRef)
+                              ? <VideoTrack trackRef={trackRef} className="h-full w-full object-cover" />
+                              : <div className="flex h-full w-full items-center justify-center">
+                                  <div className="st-avatar h-10 w-10 text-[15px]">
                                     {label[0]?.toUpperCase() || '?'}
                                   </div>
                                 </div>
                             }
-                            <div className="absolute bottom-1 left-1 right-1">
-                              <span className="inline-block max-w-full truncate rounded-md bg-black/60 px-1.5 py-0.5 text-xs font-medium text-white">
+                            <div className="absolute bottom-1.5 left-1.5 right-1.5">
+                              <span className="st-chip truncate" style={{ fontSize: '10.5px', padding: '3px 7px' }}>
                                 {isSelf ? 'You' : label}
                               </span>
                             </div>
@@ -824,23 +884,29 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
               <>
                 {/* Pinned speaker view */}
                 {!gridView && pinned ? (
-                  <div className="flex-1 relative rounded-xl overflow-hidden bg-[#3c4043] cursor-pointer" onClick={() => setPinnedParticipant(null)}>
-                    {pinned.publication?.track
-                      ? <VideoTrack trackRef={pinned} className="w-full h-full object-cover" />
-                      : <div className="w-full h-full flex items-center justify-center">
-                          <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold">
+                  <div className="st-tile group flex-1 cursor-pointer" onClick={() => setPinnedParticipant(null)}>
+                    {hasPicture(pinned)
+                      ? <VideoTrack trackRef={pinned} className="h-full w-full object-cover" />
+                      : <div className="flex h-full w-full flex-col items-center justify-center gap-4">
+                          <div className="st-avatar h-24 w-24 text-[18px]">
                             {(personName(pinned.participant, '?')[0] || '?').toUpperCase()}
                           </div>
+                          <p className="text-[15px] font-semibold text-[var(--st-dim)]">Camera is off</p>
                         </div>
                     }
-                    <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                      {personName(pinned.participant)}
+                    <div className="absolute bottom-3 left-3">
+                      <span className="st-chip">{personName(pinned.participant)}</span>
+                    </div>
+                    {/* Say how to get out of the pin, rather than leaving the
+                        click to be discovered. */}
+                    <div className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100">
+                      <span className="st-chip"><FiMinimize size={11} /> Click to unpin</span>
                     </div>
                   </div>
                 ) : null}
 
                 {/* Grid */}
-                <div className={`${!gridView && pinned ? 'h-28 flex gap-2 overflow-x-auto' : 'flex-1 grid gap-2'}`}
+                <div className={`${!gridView && pinned ? 'flex h-28 gap-2.5 overflow-x-auto pb-0.5' : 'grid flex-1 gap-2.5'}`}
                   style={gridView || !pinned ? {
                     // On a phone: one tile per row up to two people, then two
                     // columns — three would be unreadable slivers.
@@ -857,25 +923,32 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
                     const label    = personName(trackRef.participant)
                     return (
                       <div key={i}
-                        className={`relative rounded-xl overflow-hidden bg-[#3c4043] cursor-pointer group ${!gridView && pinned ? 'flex-shrink-0 w-28' : ''}`}
+                        className={`st-tile group cursor-pointer ${!gridView && pinned ? 'w-28 flex-shrink-0' : ''}`}
+                        style={!gridView && pinned ? { borderRadius: '14px' } : undefined}
                         onClick={() => !gridView && setPinnedParticipant(identity)}
                       >
-                        {trackRef.publication?.track
-                          ? <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
-                          : <div className="w-full h-full flex items-center justify-center min-h-[120px]">
-                              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                        {hasPicture(trackRef)
+                          ? <VideoTrack trackRef={trackRef} className="h-full w-full object-cover" />
+                          : <div className="flex h-full min-h-[120px] w-full flex-col items-center justify-center gap-3 p-4">
+                              <div className="st-avatar h-16 w-16 text-[18px]">
                                 {label[0]?.toUpperCase() || '?'}
                               </div>
+                              {isSelf && (
+                                <p className="text-center text-[13px] font-medium text-[var(--st-dim)]">
+                                  Your camera is off
+                                </p>
+                              )}
                             </div>
                         }
-                        <div className="absolute bottom-2 left-2 right-2">
-                          <span className="inline-block max-w-[85%] truncate rounded-md bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
+                        <div className="absolute bottom-2.5 left-2.5 right-2.5">
+                          <span className="st-chip truncate">
                             {isSelf ? `${label} (You)` : label}
                           </span>
                         </div>
                         {!gridView && (
-                          <div className="absolute inset-0 bg-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <FiMaximize className="text-white" size={20} />
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100"
+                            style={{ background: 'rgb(10 13 20 / .45)' }}>
+                            <span className="st-chip"><FiMaximize size={12} /> Pin</span>
                           </div>
                         )}
                       </div>
@@ -892,26 +965,29 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
             the strokes live in here, and someone has to be listening to answer
             a late viewer's sync request. Closing the panel only hides it. */}
         <div className={`${showWhiteboard
-            ? `absolute inset-0 z-30 flex w-full flex-col md:relative md:inset-auto md:z-auto ${boardFull ? 'md:w-full' : 'md:w-1/2'}`
-            : 'hidden'} bg-white border-l border-white/10`}>
-            <div className="flex items-center justify-between gap-2 px-4 py-2 bg-[#2d2e30] border-b border-white/10">
-              <span className="flex min-w-0 items-center gap-2 text-sm font-medium text-white">
-                <FiEdit3 size={16} className="flex-shrink-0" />
+            ? `absolute inset-2.5 z-30 flex w-auto flex-col md:relative md:inset-auto md:mb-3 md:mr-3 ${boardFull ? 'md:w-full' : 'md:w-1/2'}`
+            : 'hidden'} st-panel overflow-hidden bg-white`}>
+            <div className="st-rail flex flex-shrink-0 items-center justify-between gap-2 px-3 py-2.5 md:px-4">
+              <span className="flex min-w-0 items-center gap-2.5 text-[13px] font-semibold">
+                <span className="st-ctl st-ctl-on h-7 w-7 flex-shrink-0" style={{ borderRadius: '9px' }}>
+                  <FiEdit3 size={13} />
+                </span>
                 <span className="truncate">Whiteboard</span>
-                {!boardCanDraw && <span className="ml-1 flex-shrink-0 text-xs text-yellow-400">View only</span>}
-                {boardCanDraw && !isAdmin && <span className="ml-1 flex-shrink-0 text-xs text-emerald-400">You can draw</span>}
+                {!boardCanDraw && <span className="st-badge st-badge-warn flex-shrink-0">View only</span>}
+                {boardCanDraw && !isAdmin && <span className="st-badge st-badge-live flex-shrink-0">You can draw</span>}
               </span>
-              <div className="flex flex-shrink-0 items-center gap-1">
+              <div className="flex flex-shrink-0 items-center gap-1.5">
                 {/* Full screen hides the tiles; the split view keeps faces visible. */}
                 <button
                   onClick={() => setBoardFull((v) => !v)}
-                  className="hidden items-center gap-1.5 rounded px-2 py-1 text-xs text-gray-300 transition-colors hover:bg-white/10 hover:text-white md:flex"
+                  className="st-ctl st-ctl-ghost hidden items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-semibold md:inline-flex"
                   title={boardFull ? 'Show the video tiles beside the board' : 'Use the whole screen for the board'}
                 >
-                  {boardFull ? <FiMinimize size={13} /> : <FiMaximize size={13} />}
+                  {boardFull ? <FiMinimize size={12} /> : <FiMaximize size={12} />}
                   {boardFull ? 'Split view' : 'Full screen'}
                 </button>
-                <button onClick={() => setShowWhiteboard(false)} className="rounded px-2 py-1 text-xs text-gray-400 transition-colors hover:bg-white/10 hover:text-white">
+                <button onClick={() => setShowWhiteboard(false)}
+                  className="st-ctl st-ctl-ghost px-2.5 py-1.5 text-[11px] font-semibold">
                   Close
                 </button>
               </div>
@@ -936,15 +1012,15 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
 
         {/* ── SIDE PANEL ── */}
         {(showParticipants || showChat || showTranscript) && (
-          <div className="absolute inset-0 z-30 flex w-full flex-col border-l border-white/10 bg-[#2d2e30] md:relative md:inset-auto md:z-auto md:w-72">
+          <div className="st-panel absolute inset-2.5 z-30 flex w-auto flex-col overflow-hidden md:relative md:inset-auto md:z-auto md:mb-3 md:mr-3 md:mt-0 md:w-[19rem]">
             {!showTranscript && (
-              <div className="flex border-b border-white/10">
+              <div className="flex flex-shrink-0 border-b border-[var(--st-line)]">
                 <button onClick={() => { setShowParticipants(true); setShowChat(false) }}
-                  className={`flex-1 py-3 text-sm font-medium transition-colors ${showParticipants ? 'text-white border-b-2 border-blue-500' : 'text-gray-400 hover:text-white'}`}>
-                  People ({participants.length})
+                  className={`st-tab flex-1 py-3.5 text-[13px] font-semibold tracking-wide ${showParticipants ? 'st-tab-on' : ''}`}>
+                  People <span className="st-mono text-[var(--st-faint)]">({participants.length})</span>
                 </button>
                 <button onClick={() => { setShowChat(true); setShowParticipants(false) }}
-                  className={`flex-1 py-3 text-sm font-medium transition-colors ${showChat ? 'text-white border-b-2 border-blue-500' : 'text-gray-400 hover:text-white'}`}>
+                  className={`st-tab flex-1 py-3.5 text-[13px] font-semibold tracking-wide ${showChat ? 'st-tab-on' : ''}`}>
                   Chat
                 </button>
               </div>
@@ -952,17 +1028,21 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
 
             {showTranscript && (
               <div className="flex-1 flex flex-col h-full overflow-hidden">
-                <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#3c4043]">
-                  <h3 className="text-white font-semibold flex items-center gap-2">
-                    <FiFileText className="text-blue-400" /> Live Transcript
+                <div className="flex flex-shrink-0 items-center justify-between gap-2 border-b border-[var(--st-line)] px-3.5 py-3">
+                  <h3 className="flex min-w-0 items-center gap-2.5 text-[13px] font-semibold">
+                    <span className="st-ctl st-ctl-on h-7 w-7 flex-shrink-0" style={{ borderRadius: '9px' }}>
+                      <FiFileText size={13} />
+                    </span>
+                    <span className="truncate">Live transcript</span>
                   </h3>
-                  <button onClick={downloadTranscript} className="text-xs bg-[#8ab4f8] hover:bg-[#aecbfa] text-[#202124] px-2 py-1 rounded transition-colors flex items-center gap-1">
-                  <FiDownload size={12} /> Download PDF
-                </button>
+                  <button onClick={downloadTranscript}
+                    className="st-ctl flex flex-shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-semibold">
+                    <FiDownload size={12} /> PDF
+                  </button>
                 </div>
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                <div className="flex-1 space-y-3 overflow-y-auto p-3.5">
                 {meetingTranscript ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3.5">
                     {meetingTranscript.split('\n').filter(Boolean).map((line, i) => {
                       const match = line.match(/^\[(.*?)\] (.*?): (.*)$/)
                       if (match) {
@@ -970,35 +1050,36 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
                         const isSelf = speaker === displayName
                         return (
                           <div key={i} className={`flex flex-col ${isSelf ? 'items-end' : 'items-start'}`}>
-                            <div className="flex items-center gap-2 mb-1 px-1">
+                            <div className="mb-1.5 flex items-center gap-2 px-0.5">
                               {!isSelf && (
-                                <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-indigo-400 border border-indigo-500/30">
+                                <div className="st-avatar h-[22px] w-[22px] text-[11px]">
                                   {speaker.charAt(0).toUpperCase()}
                                 </div>
                               )}
-                              <span className={`text-xs font-bold ${isSelf ? 'text-blue-400' : 'text-indigo-400'}`}>{speaker}</span>
-                              <span className="text-[10px] text-gray-500 font-mono">{time}</span>
+                              <span className="text-[11px] font-bold" style={{ color: 'var(--st-accent-text)' }}>{speaker}</span>
+                              <span className="st-mono text-[11px] text-[var(--st-faint)]">{time}</span>
                               {isSelf && (
-                                <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-[10px] font-bold text-blue-400 border border-blue-500/30">
+                                <div className="st-avatar h-[22px] w-[22px] text-[11px]">
                                   {speaker.charAt(0).toUpperCase()}
                                 </div>
                               )}
                             </div>
-                            <div className={`px-3 py-2 rounded-2xl text-sm max-w-[90%] border shadow-sm ${isSelf ? 'bg-blue-600/15 border-blue-500/40 text-white rounded-tr-none' : 'bg-white/5 border-white/10 text-gray-300 rounded-tl-none'}`}>
+                            <div className={`max-w-[90%] px-3 py-2 text-[13px] leading-relaxed ${isSelf ? 'st-bubble-self' : 'st-bubble text-[var(--st-dim)]'}`}>
                               {text}
                             </div>
                           </div>
                         )
                       }
-                      return <div key={i} className="text-gray-400 text-xs italic">{line}</div>
+                      return <div key={i} className="text-[11px] italic text-[var(--st-faint)]">{line}</div>
                     })}
                   </div>
                 ) : (
-                    <div className="text-center py-10">
-                      <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <FiFileText className="text-gray-500" size={24} />
+                    <div className="px-6 py-12 text-center">
+                      <div className="mx-auto mb-3.5 flex h-12 w-12 items-center justify-center rounded-[16px]"
+                        style={{ background: 'rgb(255 255 255 / .6)', border: '1px solid var(--st-edge)' }}>
+                        <FiFileText className="text-[var(--st-faint)]" size={20} />
                       </div>
-                      <p className="text-gray-500 text-sm">Transcript will appear here once someone starts speaking with captions enabled.</p>
+                      <p className="text-[13px] leading-relaxed text-[var(--st-faint)]">Turn on captions and the transcript will build itself here as people speak.</p>
                     </div>
                   )}
                 </div>
@@ -1016,26 +1097,27 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
                   const isHost = meta.isHost
                   const isSelf = p.identity === localParticipant?.identity
                   return (
-                    <div key={p.identity} className="flex items-start gap-3 p-2 rounded-lg hover:bg-white/5">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${isHost ? 'bg-blue-600' : 'bg-gradient-to-br from-green-500 to-teal-600'}`}>
+                    <div key={p.identity} className="st-row flex items-start gap-3 p-2">
+                      <div className="st-avatar h-9 w-9 flex-shrink-0 text-[13px]"
+                        style={isHost ? undefined : { color: 'var(--st-dim)' }}>
                         {displayName[0]?.toUpperCase()}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <span className="text-white text-sm font-medium truncate">{displayName}</span>
-                          {isSelf && <span className="text-gray-400 text-xs">(You)</span>}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="truncate text-[13px] font-semibold">{displayName}</span>
+                          {isSelf && <span className="text-[11px] text-[var(--st-faint)]">(You)</span>}
                           {isHost
-                            ? <span className="text-xs bg-blue-600 text-white px-1.5 py-0.5 rounded-full">Host</span>
-                            : <span className="text-xs bg-green-700 text-white px-1.5 py-0.5 rounded-full">{displayRole}</span>
+                            ? <span className="st-badge st-badge-host">Host</span>
+                            : <span className="st-badge st-badge-role">{displayRole}</span>
                           }
                         </div>
                         {displayEmail && (
-                          <div className="text-gray-400 text-xs truncate mt-0.5">{displayEmail}</div>
+                          <div className="mt-0.5 truncate text-[11px] text-[var(--st-faint)]">{displayEmail}</div>
                         )}
                       </div>
-                      <div className="flex gap-1 mt-1">
-                        {!p.isMicrophoneEnabled && <FiMicOff size={13} className="text-red-400" />}
-                        {!p.isCameraEnabled && <FiVideoOff size={13} className="text-red-400" />}
+                      <div className="mt-1 flex gap-1.5">
+                        {!p.isMicrophoneEnabled && <FiMicOff size={13} style={{ color: 'var(--st-danger)' }} />}
+                        {!p.isCameraEnabled && <FiVideoOff size={13} style={{ color: 'var(--st-danger)' }} />}
                       </div>
                     </div>
                   )
@@ -1045,28 +1127,37 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
 
             {showChat && (
               <>
-                <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                <div className="flex-1 space-y-3 overflow-y-auto p-3.5">
                   {chatMessages.length === 0 && (
-                    <div className="text-center text-gray-500 text-sm mt-8">No messages yet</div>
+                    <div className="px-6 py-12 text-center">
+                      <div className="mx-auto mb-3.5 flex h-12 w-12 items-center justify-center rounded-[16px]"
+                        style={{ background: 'rgb(255 255 255 / .6)', border: '1px solid var(--st-edge)' }}>
+                        <FiMessageSquare className="text-[var(--st-faint)]" size={20} />
+                      </div>
+                      <p className="text-[13px] text-[var(--st-faint)]">No messages yet. Say hello.</p>
+                    </div>
                   )}
                   {chatMessages.map((msg, i) => (
                     <div key={i} className={`flex flex-col ${msg.self ? 'items-end' : 'items-start'}`}>
-                      <span className="text-gray-400 text-xs mb-1">{msg.self ? 'You' : msg.sender} · {msg.time}</span>
-                      <div className={`px-3 py-2 rounded-2xl text-sm max-w-[90%] break-words ${msg.self ? 'bg-blue-600 text-white' : 'bg-white/10 text-white'}`}>
+                      <span className="mb-1.5 px-0.5 text-[11px] text-[var(--st-faint)]">
+                        <span className="font-semibold text-[var(--st-dim)]">{msg.self ? 'You' : msg.sender}</span>
+                        <span className="st-mono"> · {msg.time}</span>
+                      </span>
+                      <div className={`max-w-[90%] break-words px-3 py-2 text-[13px] leading-relaxed ${msg.self ? 'st-bubble-self' : 'st-bubble'}`}>
                         {msg.text}
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="p-3 border-t border-white/10 flex gap-2">
+                <div className="flex flex-shrink-0 gap-2 border-t border-[var(--st-line)] p-3">
                   <input
                     value={chatInput}
                     onChange={e => setChatInput(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && sendChat()}
-                    placeholder="Send a message..."
-                    className="flex-1 bg-white/10 text-white placeholder-gray-500 rounded-full px-4 py-2 text-sm outline-none focus:bg-white/15"
+                    placeholder="Message everyone…"
+                    className="st-input min-w-0 flex-1 px-3.5 py-2.5 text-[13px]"
                   />
-                  <button onClick={sendChat} className="bg-[#8ab4f8] hover:bg-[#aecbfa] text-[#202124] rounded-full px-4 py-2 text-sm transition-colors">
+                  <button onClick={sendChat} className="st-ctl st-ctl-on flex-shrink-0 px-4 py-2.5 text-[13px] font-semibold">
                     Send
                   </button>
                 </div>
@@ -1076,135 +1167,85 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
         )}
       </div>
 
-      {/* ── CAPTIONS OVERLAY ── */}
+      {/* ── CAPTIONS OVERLAY ──
+          Sits clear of the dock, which is taller on a phone because the
+          secondary controls wrap onto their own row. */}
       {captionsOn && (
-        <div className="absolute bottom-20 left-0 right-0 flex justify-center pointer-events-none z-30 px-4">
-          <div className="bg-black/75 rounded-xl px-5 py-3 max-w-2xl w-full backdrop-blur-sm border border-white/10 min-h-[60px] flex flex-col justify-center">
+        <div className="pointer-events-none absolute bottom-[8.5rem] left-0 right-0 z-30 flex justify-center px-4 md:bottom-[7rem]">
+          <div className="st-cc flex min-h-[62px] w-full max-w-2xl flex-col justify-center gap-1 px-5 py-3.5">
             {(finalLines.length > 0 || interimText) ? (
               <>
                 {finalLines.map(l => (
-                  <div key={l.id} className="text-white text-lg animate-fadeIn flex gap-2">
-                    <span className="text-blue-400 font-bold shrink-0">{l.speaker}:</span>
+                  <div key={l.id} className="animate-fadeIn flex gap-2 text-[18px] leading-snug">
+                    <span className="shrink-0 font-bold" style={{ color: 'var(--st-accent-text)' }}>{l.speaker}:</span>
                     <span>{l.text}</span>
                   </div>
                 ))}
                 {interimText && (
-                  <div className="text-gray-400 text-lg flex gap-2">
-                    <span className="text-blue-400/50 font-bold shrink-0">{displayName || 'Host'}:</span>
+                  <div className="flex gap-2 text-[18px] leading-snug text-[var(--st-dim)]">
+                    <span className="shrink-0 font-bold" style={{ color: 'var(--st-faint)' }}>{displayName || 'Host'}:</span>
                     <span>{interimText}</span>
                   </div>
                 )}
               </>
             ) : (
-              <div className="text-gray-500 text-sm italic flex items-center justify-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                {captionStatus === 'listening' ? 'Listening for speech...' : 'Initializing captions...'}
+              <div className="flex items-center justify-center gap-2.5 text-[13px] font-medium text-[var(--st-faint)]">
+                <span className="st-live-dot" />
+                {captionStatus === 'listening' ? 'Listening…' : 'Starting captions…'}
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* ── BOTTOM CONTROLS ── */}
-      {/* On a phone this stacks: secondary controls scroll on top, the core
-          controls (and Leave) sit underneath, always reachable by the thumb. */}
-      <div className="flex flex-col-reverse gap-2 border-t border-white/10 bg-[#202124] px-2 py-2 md:flex-row md:items-center md:justify-between md:gap-0 md:px-6 md:py-3">
+      {/* ── BOTTOM CONTROLS ──
+          Two capsules. Below lg they stack - tools on top, core controls (and
+          Leave) underneath where the thumb is. From lg the tools lift out to
+          the right edge, so the core dock stays dead centre however many extra
+          buttons a host has. lg, not md: at tablet width the centred dock and
+          a right-pinned group would run into each other. */}
+      <div className="relative z-20 flex flex-shrink-0 flex-col items-center gap-2 px-2 pb-2 pt-1 lg:flex-row lg:justify-center lg:px-5 lg:pb-4 lg:pt-2">
 
-        {/* Left — time */}
-        <div className="text-gray-400 text-sm w-32 hidden md:block">{fmt(elapsed)}</div>
-
-        {/* Center — core controls */}
-        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
-          {/* Mic */}
-          <button onClick={toggleMic}
-            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${micOn ? 'bg-[#3c4043] hover:bg-[#4a4d51] text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
-            title={micOn ? 'Mute' : 'Unmute'}>
-            {micOn ? <FiMic size={20} /> : <FiMicOff size={20} />}
-          </button>
-
-          {/* Camera */}
-          <button onClick={toggleCam}
-            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${camOn ? 'bg-[#3c4043] hover:bg-[#4a4d51] text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
-            title={camOn ? 'Turn off camera' : 'Turn on camera'}>
-            {camOn ? <FiVideo size={20} /> : <FiVideoOff size={20} />}
-          </button>
-
-          {/* Screen share */}
-          <button onClick={toggleScreen}
-            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${screenSharing ? 'bg-[#8ab4f8] hover:bg-[#aecbfa] text-[#202124]' : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white'}`}
-            title={screenSharing ? 'Stop sharing' : 'Share screen'}>
-            <FiMonitor size={20} />
-          </button>
-
-          {/* Whiteboard */}
-          <button onClick={() => setShowWhiteboard(v => !v)}
-            className={`flex flex-col items-center gap-1 p-3 rounded-full transition-all ${showWhiteboard ? 'bg-[#8ab4f8] hover:bg-[#aecbfa] text-[#202124]' : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white'}`}
-            title="Whiteboard">
-            <FiEdit3 size={20} />
-          </button>
-
-          {/* Leave (hosts can also close the class for everyone) */}
-          <button onClick={() => handleLeave(false)} disabled={leaving}
-            className="flex items-center gap-2 bg-[#ea4335] hover:bg-[#f28b82] disabled:opacity-60 text-white px-5 md:px-7 py-3 rounded-full transition-all font-medium"
-            title="Leave call">
-            {leaving ? <FiLoader size={20} className="animate-spin" /> : <FiPhoneOff size={20} />}
-            <span className="text-sm">{leaving ? 'Leaving…' : 'Leave'}</span>
-          </button>
-          {isAdmin && (
-            <button
-              onClick={() => {
-                if (window.confirm('End this class for everyone? Students will no longer be able to join.')) handleLeave(true)
-              }}
-              disabled={leaving}
-              className="flex items-center gap-2 rounded-full border border-red-500/40 px-4 py-3 text-red-300 transition-all hover:bg-red-600/20 disabled:opacity-60"
-              title="End the class for everyone">
-              <span className="text-sm font-medium"><span className="md:hidden">End</span><span className="hidden md:inline">End class</span></span>
-            </button>
-          )}
-        </div>
-
-        {/* Right — secondary controls */}
-        <div className="flex w-full items-center justify-center gap-2 overflow-x-auto pb-0.5 md:w-32 md:justify-end md:overflow-visible">
+        {/* Tools: captions, people, snapshot, transcript, chat. */}
+        <div className="st-dock order-first flex w-full items-center justify-center gap-1.5 overflow-x-auto p-2 lg:absolute lg:bottom-4 lg:right-5 lg:order-none lg:w-auto lg:overflow-visible">
           <button onClick={toggleCaptions}
-            className={`relative px-3 py-2 rounded-lg transition-all text-sm font-bold border ${
-              captionsOn 
-                ? 'bg-blue-600 text-white border-blue-500' 
-                : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white border-white/10'
-            }`}
+            className={`st-ctl relative h-11 flex-shrink-0 px-3.5 text-[13px] font-extrabold tracking-wider ${captionsOn ? 'st-ctl-on' : ''}`}
             title="Toggle Live Captions (CC)">
             CC
             {captionsOn && (
-              <span className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-[#202124] ${
-                captionStatus === 'listening' ? 'bg-green-500 animate-pulse' : 
-                captionStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'
-              }`} />
+              <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full"
+                style={{
+                  background: captionStatus === 'listening' ? 'var(--st-live)'
+                    : captionStatus === 'error' ? 'var(--st-danger)' : 'var(--st-warn)',
+                  boxShadow: '0 0 0 2px rgb(255 255 255 / .9)',
+                }} />
             )}
           </button>
           {captionsOn && (
-            <div className="relative">
+            <div className="relative flex-shrink-0">
               <button
                 onClick={() => setShowLangPicker(v => !v)}
-                className="flex items-center gap-1 bg-[#3c4043] hover:bg-[#4a4d51] text-white text-xs rounded-full px-3 py-2 border border-white/20 transition-all"
+                className="st-ctl flex h-11 items-center gap-1.5 px-3 text-[11px] font-semibold"
               >
-                <span>{LANGUAGES.find(l => l.code === captionLang)?.flag}</span>
+                <span className="text-sm leading-none">{LANGUAGES.find(l => l.code === captionLang)?.flag}</span>
                 <span className="max-w-[70px] truncate">{LANGUAGES.find(l => l.code === captionLang)?.label}</span>
-                <span className="text-gray-400">▾</span>
+                <span className="text-[var(--st-dim)]">▾</span>
               </button>
 
               {showLangPicker && (
-                <div className="absolute bottom-12 right-0 w-56 bg-[#202124] border border-white/20 rounded-xl shadow-2xl z-50 overflow-hidden">
+                <div className="st-pop absolute bottom-[3.25rem] right-0 z-50 w-60 overflow-hidden rounded-[16px]">
                   {/* Search */}
-                  <div className="p-2 border-b border-white/10">
+                  <div className="border-b border-[var(--st-line)] p-2">
                     <input
                       autoFocus
                       value={langSearch}
                       onChange={e => setLangSearch(e.target.value)}
-                      placeholder="Search language..."
-                      className="w-full bg-white/10 text-white placeholder-gray-500 text-sm rounded-lg px-3 py-1.5 outline-none focus:bg-white/15"
+                      placeholder="Search language…"
+                      className="st-input w-full px-3 py-2 text-[13px]"
                     />
                   </div>
                   {/* List */}
-                  <div className="max-h-52 overflow-y-auto">
+                  <div className="max-h-52 overflow-y-auto p-1">
                     {LANGUAGES
                       .filter(l => l.label.toLowerCase().includes(langSearch.toLowerCase()))
                       .map(l => (
@@ -1224,11 +1265,14 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
                               setTimeout(() => startCaptions(), 200)
                             }
                           }}
-                          className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/10 transition-colors text-left ${captionLang === l.code ? 'bg-blue-600/30 text-blue-300' : 'text-white'}`}
+                          className={`st-row flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[13px] ${captionLang === l.code ? 'font-semibold' : ''}`}
+                          style={captionLang === l.code
+                            ? { background: 'var(--st-accent-soft)', color: 'var(--st-accent-text)' }
+                            : undefined}
                         >
-                          <span className="text-base">{l.flag}</span>
-                          <span>{l.label}</span>
-                          {captionLang === l.code && <span className="ml-auto text-blue-400">✓</span>}
+                          <span className="text-base leading-none">{l.flag}</span>
+                          <span className="truncate">{l.label}</span>
+                          {captionLang === l.code && <span className="ml-auto" style={{ color: 'var(--st-accent-text)' }}>✓</span>}
                         </button>
                       ))
                     }
@@ -1238,29 +1282,82 @@ function MeetingRoom({ roomName, displayName, isAdmin, onClose, meetingTitle, me
             </div>
           )}
           <button onClick={() => { setShowParticipants(v => !v); setShowChat(false); setShowTranscript(false) }}
-            className={`p-3 rounded-full transition-all ${showParticipants ? 'bg-blue-600 text-white' : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white'}`}
+            className={`st-ctl h-11 w-11 flex-shrink-0 ${showParticipants ? 'st-ctl-on' : ''}`}
             title="Participants">
-            <FiUsers size={18} />
+            <FiUsers size={17} />
           </button>
           <button onClick={captureManualSnapshot}
-            className="p-3 rounded-full bg-[#3c4043] hover:bg-[#4a4d51] text-white transition-all"
+            className="st-ctl h-11 w-11 flex-shrink-0"
             title="Capture Screen to Transcript">
-            <FiImage size={18} />
+            <FiImage size={17} />
           </button>
           <button onClick={() => { setShowTranscript(v => !v); setShowChat(false); setShowParticipants(false) }}
-            className={`p-3 rounded-full transition-all ${showTranscript ? 'bg-blue-600 text-white' : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white'}`}
+            className={`st-ctl h-11 w-11 flex-shrink-0 ${showTranscript ? 'st-ctl-on' : ''}`}
             title="Meeting Transcript">
-            <FiFileText size={18} />
+            <FiFileText size={17} />
           </button>
           <button onClick={() => { setShowChat(v => !v); setShowParticipants(false); setShowTranscript(false) }}
-            className={`relative p-3 rounded-full transition-all ${showChat ? 'bg-blue-600 text-white' : 'bg-[#3c4043] hover:bg-[#4a4d51] text-white'}`}
+            className={`st-ctl relative h-11 w-11 flex-shrink-0 ${showChat ? 'st-ctl-on' : ''}`}
             title="Chat">
-            <FiMessageSquare size={18} />
+            <FiMessageSquare size={17} />
             {chatMessages.length > 0 && !showChat && (
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+              <span className="absolute right-1 top-1 h-2 w-2 rounded-full"
+                style={{ background: 'var(--st-danger)', boxShadow: '0 0 0 2px rgb(255 255 255 / .9)' }} />
             )}
           </button>
         </div>
+
+        {/* Core controls. flex-wrap so a host on a narrow laptop (every
+            control plus "End class") wraps rather than clipping. */}
+        <div className="st-dock flex w-full flex-wrap items-center justify-center gap-1.5 p-2 lg:w-auto lg:max-w-full">
+          {/* Mic */}
+          <button onClick={toggleMic}
+            className={`st-ctl h-11 w-11 ${micOn ? '' : 'st-ctl-off'}`}
+            title={micOn ? 'Mute' : 'Unmute'}>
+            {micOn ? <FiMic size={18} /> : <FiMicOff size={18} />}
+          </button>
+
+          {/* Camera */}
+          <button onClick={toggleCam}
+            className={`st-ctl h-11 w-11 ${camOn ? '' : 'st-ctl-off'}`}
+            title={camOn ? 'Turn off camera' : 'Turn on camera'}>
+            {camOn ? <FiVideo size={18} /> : <FiVideoOff size={18} />}
+          </button>
+
+          {/* Screen share */}
+          <button onClick={toggleScreen}
+            className={`st-ctl h-11 w-11 ${screenSharing ? 'st-ctl-on' : ''}`}
+            title={screenSharing ? 'Stop sharing' : 'Share screen'}>
+            <FiMonitor size={18} />
+          </button>
+
+          {/* Whiteboard */}
+          <button onClick={() => setShowWhiteboard(v => !v)}
+            className={`st-ctl h-11 w-11 ${showWhiteboard ? 'st-ctl-on' : ''}`}
+            title="Whiteboard">
+            <FiEdit3 size={18} />
+          </button>
+
+          {/* Leave (hosts can also close the class for everyone) */}
+          <button onClick={() => handleLeave(false)} disabled={leaving}
+            className="st-leave ml-1.5 flex h-11 items-center gap-2 px-5 font-semibold disabled:opacity-60 md:ml-3 md:px-6"
+            title="Leave call">
+            {leaving ? <FiLoader size={17} className="animate-spin" /> : <FiPhoneOff size={17} />}
+            <span className="text-[13px]">{leaving ? 'Leaving…' : 'Leave'}</span>
+          </button>
+          {isAdmin && (
+            <button
+              onClick={() => {
+                if (window.confirm('End this class for everyone? Students will no longer be able to join.')) handleLeave(true)
+              }}
+              disabled={leaving}
+              className="st-danger-ghost flex h-11 items-center gap-2 px-4 text-[13px] font-semibold disabled:opacity-60"
+              title="End the class for everyone">
+              <span className="md:hidden">End</span><span className="hidden md:inline">End class</span>
+            </button>
+          )}
+        </div>
+
       </div>
 
       <RoomAudioRenderer />
@@ -1325,11 +1422,17 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-[#202124] z-50 flex items-center justify-center">
-        <div className="text-white text-center">
-          <FiLoader className="animate-spin w-10 h-10 mx-auto mb-4" />
-          <p className="text-lg">Joining meeting...</p>
-          <p className="text-gray-400 text-sm mt-1">{roomName}</p>
+      <div className="studio st-stage fixed inset-0 z-50 flex items-center justify-center p-6">
+        <div className="text-center">
+          <div className="st-glass mx-auto mb-5 flex h-14 w-14 items-center justify-center text-[18px] font-bold"
+            style={{ color: 'var(--st-accent-text)' }}>
+            D
+          </div>
+          <p className="text-[15px] font-semibold">Joining your class…</p>
+          <p className="mt-1.5 flex items-center justify-center gap-2 text-[11px] text-[var(--st-faint)]">
+            <FiLoader className="animate-spin" size={12} />
+            <span className="st-mono max-w-[60vw] truncate">{roomName}</span>
+          </p>
         </div>
       </div>
     )
@@ -1337,18 +1440,20 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
 
   if (error) {
     return (
-      <div className="fixed inset-0 bg-[#202124] z-50 flex items-center justify-center">
-        <div className="bg-[#2d2e30] rounded-2xl p-8 max-w-md text-center border border-white/10">
-          <div className="w-16 h-16 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FiPhoneOff className="text-red-400" size={28} />
+      <div className="studio st-stage fixed inset-0 z-50 flex items-center justify-center p-5">
+        <div className="st-pop w-full max-w-md rounded-[16px] p-7 text-center md:p-8">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-[16px]"
+            style={{ background: '#b91c1c14' }}>
+            <FiPhoneOff style={{ color: 'var(--st-danger)' }} size={24} />
           </div>
-          <p className="text-white font-semibold text-lg mb-2">Can&apos;t join this class</p>
-          <p className="text-gray-400 mb-6">{error}</p>
-          <div className="flex items-center justify-center gap-3">
-            <button onClick={() => setAttempt(a => a + 1)} className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-full transition-colors">
+          <p className="mb-2 text-[18px] font-semibold">Can&apos;t join this class</p>
+          <p className="mb-7 text-[13px] leading-relaxed text-[var(--st-dim)]">{error}</p>
+          <div className="flex items-center justify-center gap-2.5">
+            <button onClick={() => setAttempt(a => a + 1)}
+              className="st-ctl st-ctl-on px-6 py-2.5 text-[13px] font-semibold">
               Try again
             </button>
-            <button onClick={onClose} className="bg-[#3c4043] hover:bg-[#4a4d51] text-white px-6 py-2 rounded-full transition-colors">
+            <button onClick={onClose} className="st-ctl px-6 py-2.5 text-[13px] font-semibold">
               Close
             </button>
           </div>
@@ -1360,20 +1465,21 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
   return (
     <>
       {roomError && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
-          <div className="max-w-md rounded-2xl border border-white/10 bg-[#2d2e30] p-8 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/20">
-              <FiAlertTriangle className="text-amber-400" size={28} />
+        <div className="studio fixed inset-0 z-[60] flex items-center justify-center p-5"
+          style={{ background: 'rgb(10 10 11 / .5)' }}>
+          <div className="st-pop w-full max-w-md rounded-[16px] p-7 text-center md:p-8">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-[16px]"
+              style={{ background: '#b4530914' }}>
+              <FiAlertTriangle style={{ color: 'var(--st-warn)' }} size={24} />
             </div>
-            <p className="mb-2 text-lg font-semibold text-white">{roomError.title}</p>
-            <p className="mb-6 text-gray-400">{roomError.message}</p>
-            <div className="flex items-center justify-center gap-3">
+            <p className="mb-2 text-[18px] font-semibold">{roomError.title}</p>
+            <p className="mb-7 text-[13px] leading-relaxed text-[var(--st-dim)]">{roomError.message}</p>
+            <div className="flex items-center justify-center gap-2.5">
               <button onClick={() => { setRoomError(null); setAttempt(a => a + 1) }}
-                className="rounded-full bg-indigo-600 px-6 py-2 text-white transition-colors hover:bg-indigo-500">
+                className="st-ctl st-ctl-on px-6 py-2.5 text-[13px] font-semibold">
                 Rejoin
               </button>
-              <button onClick={onClose}
-                className="rounded-full bg-white/10 px-6 py-2 text-white transition-colors hover:bg-white/20">
+              <button onClick={onClose} className="st-ctl px-6 py-2.5 text-[13px] font-semibold">
                 Leave
               </button>
             </div>
@@ -1391,12 +1497,22 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
           title: 'Connection problem',
           message: (e && e.message) || 'We could not reach the class server. Check your internet and try again.',
         })}
-        onMediaDeviceFailure={(f) => setRoomError({
-          title: 'Camera / microphone blocked',
-          message: String(f).includes('Permission')
-            ? 'Allow camera and microphone access in your browser, then rejoin.'
-            : 'We could not start your camera or microphone. Check that no other app is using them, then rejoin.',
-        })}
+        // livekit reports which device kind failed: 'videoinput' for the
+        // camera, 'audioinput' for the mic, and undefined for screen share,
+        // which has no device kind at all (sourceToKind() in livekit-client).
+        // Without that check, cancelling the screen picker threw a
+        // "Camera / microphone blocked" modal over a perfectly healthy room
+        // every single time someone changed their mind about sharing.
+        onMediaDeviceFailure={(failure, kind) => {
+          if (kind !== 'videoinput' && kind !== 'audioinput') return
+          const device = kind === 'videoinput' ? 'camera' : 'microphone'
+          setRoomError({
+            title: kind === 'videoinput' ? 'Camera blocked' : 'Microphone blocked',
+            message: String(failure).includes('Permission')
+              ? `Allow ${device} access in your browser, then rejoin.`
+              : `We could not start your ${device}. Check that no other app is using it, then rejoin.`,
+          })
+        }}
         onConnected={() => setRoomError(null)}
         // Covers both leaving and the host closing the room out from under us.
         onDisconnected={onClose}
