@@ -1422,17 +1422,53 @@ export default function LiveKitMeeting({ roomName, displayName, onClose, isAdmin
 
   if (loading) {
     return (
-      <div className="studio st-stage fixed inset-0 z-50 flex items-center justify-center p-6">
-        <div className="text-center">
-          <div className="st-glass mx-auto mb-5 flex h-14 w-14 items-center justify-center text-[18px] font-bold"
-            style={{ color: 'var(--st-accent-text)' }}>
-            D
+      // The room, drawn empty, instead of a spinner on a blank page. The
+      // header, the tile and both docks are already in their final places, so
+      // when the real meeting replaces this nothing jumps - and the wait reads
+      // as "this is loading" rather than "something is happening elsewhere".
+      <div className="studio st-stage fixed inset-0 z-50 flex select-none flex-col" aria-busy="true">
+        {/* Header chips */}
+        <div className="relative z-20 flex flex-shrink-0 items-start justify-between gap-2 p-2.5 md:p-3.5">
+          <div className="st-topbar flex min-w-0 items-center gap-2.5 py-1.5 pl-1.5 pr-3.5">
+            <div className="st-avatar h-8 w-8 flex-shrink-0 text-[13px]">D</div>
+            <div className="min-w-0">
+              <div className="truncate text-[13px] font-semibold leading-tight">
+                {meetingTitle || 'Live class'}
+              </div>
+              <div className="st-skel mt-1 h-2 w-16 rounded-full" />
+            </div>
           </div>
-          <p className="text-[15px] font-semibold">Joining your class…</p>
-          <p className="mt-1.5 flex items-center justify-center gap-2 text-[11px] text-[var(--st-faint)]">
-            <FiLoader className="animate-spin" size={12} />
-            <span className="st-mono max-w-[60vw] truncate">{roomName}</span>
-          </p>
+          <div className="flex flex-shrink-0 items-center gap-1.5 md:gap-2">
+            <div className="st-glass st-skel hidden h-9 w-32 sm:block" />
+            <div className="st-glass st-skel h-9 w-20" />
+          </div>
+        </div>
+
+        {/* The stage, with the status in the middle of it */}
+        <div className="flex flex-1 overflow-hidden p-2.5 md:p-3 md:pt-0">
+          <div className="st-tile st-skel-sweep flex flex-1 flex-col items-center justify-center gap-4">
+            <div className="st-avatar h-20 w-20 text-[20px]">D</div>
+            <div className="text-center">
+              <p className="text-[18px] font-bold tracking-tight">Joining your class</p>
+              {/* The room id is a timestamp and five random characters, so it
+                  never appears here - it would be the biggest thing on screen
+                  and mean the least. */}
+              <p className="mt-1 text-[13px] text-[var(--st-dim)]">
+                Setting up your camera and microphone
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Both docks, in their final positions */}
+        <div className="relative z-20 flex flex-shrink-0 flex-col items-center gap-2 px-2 pb-2 pt-1 lg:flex-row lg:justify-center lg:px-5 lg:pb-4 lg:pt-2">
+          <div className="st-dock order-first flex w-full items-center justify-center gap-1.5 p-2 lg:absolute lg:bottom-4 lg:right-5 lg:order-none lg:w-auto">
+            {[0, 1, 2, 3, 4].map((i) => <div key={i} className="st-skel h-11 w-11 rounded-full" />)}
+          </div>
+          <div className="st-dock flex w-full flex-wrap items-center justify-center gap-1.5 p-2 lg:w-auto">
+            {[0, 1, 2, 3].map((i) => <div key={i} className="st-skel h-11 w-11 rounded-full" />)}
+            <div className="st-skel ml-1.5 h-11 w-28 rounded-full md:ml-3" />
+          </div>
         </div>
       </div>
     )
