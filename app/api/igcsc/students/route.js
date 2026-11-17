@@ -12,7 +12,7 @@ const ROLES = ['student', 'tutor', 'admin']
 
 // Everything a caller may see. Listing or returning the password hash, even to
 // an admin, puts it somewhere it has no reason to be.
-const SAFE = 'name email role yearGroup subjects targetGrade targetDate guardianEmail assignedTests isActive createdAt'
+const SAFE = 'name email phone role yearGroup subjects targetGrade targetDate guardianEmail assignedTests isActive createdAt'
 
 function clean(doc) {
   return { ...doc, _id: String(doc._id) }
@@ -72,6 +72,9 @@ export async function POST(request) {
       email,
       password: await hashPw(password),
       role,
+      // Optional, and stored as typed: numbers arrive with +, spaces and
+      // dashes, and normalising them here would mangle more than it fixed.
+      phone: String(body?.phone || '').trim(),
       yearGroup: String(body?.yearGroup || ''),
       subjects: Array.isArray(body?.subjects) ? body.subjects.map(String) : [],
       targetGrade: String(body?.targetGrade || ''),

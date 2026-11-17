@@ -20,7 +20,7 @@ const ROLES = [
 ]
 
 const BLANK = {
-  name: '', email: '', password: '', role: 'student',
+  name: '', email: '', password: '', phone: '', role: 'student',
   yearGroup: '', targetGrade: '', guardianEmail: '', subjects: [],
 }
 
@@ -82,6 +82,17 @@ function UserForm({ draft, setDraft, editing, saving, error, onSave, onClose }) 
                 ? 'Setting one here replaces their password straight away.'
                 : 'Shown in clear so you can pass it on — they sign in with this at /igcsc/login.'}
             </span>
+          </label>
+
+          {/* Everyone has a phone, not just students, so this sits above the
+              student-only block. Optional: plenty of accounts get created from
+              an email alone, and a required field would just collect dashes. */}
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold text-ink-2">
+              Phone number <span className="font-normal text-subtle">(optional)</span>
+            </span>
+            <input type="tel" value={draft.phone} onChange={set('phone')} placeholder="+91 98765 43210"
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-ink focus:outline-none" />
           </label>
 
           {draft.role === 'student' && (
@@ -172,6 +183,7 @@ export default function UsersPage() {
     setEditing(p)
     setDraft({
       name: p.name || '', email: p.email || '', password: '', role: p.role || 'student',
+      phone: p.phone || '',
       yearGroup: p.yearGroup || '', targetGrade: p.targetGrade || '',
       guardianEmail: p.guardianEmail || '', subjects: p.subjects || [],
     })

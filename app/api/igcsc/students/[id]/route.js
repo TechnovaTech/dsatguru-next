@@ -11,7 +11,7 @@ import { requireIgcscAuth, IGCSC_ADMIN, hashPw } from '../../../../../lib/igcscA
 // All admin-only, and all refusing to act on the caller's own account in a way
 // that would lock them out of the portal they are standing in.
 const ROLES = ['student', 'tutor', 'admin']
-const SAFE = 'name email role yearGroup subjects targetGrade targetDate guardianEmail assignedTests isActive createdAt'
+const SAFE = 'name email phone role yearGroup subjects targetGrade targetDate guardianEmail assignedTests isActive createdAt'
 
 // An admin who demotes, suspends or deletes the last admin leaves nobody who
 // can undo it — the portal would need a database to recover.
@@ -51,7 +51,7 @@ export async function PUT(request, { params }) {
       user.role = body.role
     }
 
-    for (const field of ['yearGroup', 'targetGrade', 'guardianEmail']) {
+    for (const field of ['phone', 'yearGroup', 'targetGrade', 'guardianEmail']) {
       if (field in body) user[field] = String(body[field] || '')
     }
     if ('subjects' in body) user.subjects = Array.isArray(body.subjects) ? body.subjects.map(String) : []
