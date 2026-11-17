@@ -337,3 +337,45 @@ html.site-page body {
     transform: none;
   }
 }
+
+/* ---- Phone hero: the photo is a background on the section itself ----
+   Desktop gets a next/image layer in PublicLayout that reaches up behind the
+   header. A phone cannot use that: a fixed-height layer is either too short
+   (white type lands on the white page) or too tall (the dark area runs into the
+   next section). As a background on the section it is always exactly as tall as
+   the copy. The gradient is the dark wash, applied in the same declaration.
+   Same file as the desktop layer, so it comes from cache. */
+@media (max-width: 1023px) {
+  .site .hero-photo {
+    background-image: linear-gradient(#0b1020b5, #0b1020b5), url('/hero-bg.png');
+    background-size: cover, cover;
+    background-position: center, right center;
+    background-repeat: no-repeat, no-repeat;
+  }
+}
+
+/* ---- Phone hero: the copy sits directly on the backdrop photo ----
+   Below lg the hero photo keeps its subject in frame and is washed dark
+   (PublicLayout), so the type has to flip light. Elements that carry their own
+   background - the "Live classes" badge, the avatar tiles, the green dot, both
+   buttons - are excluded by :not([class*='bg-']) and keep their own colours. */
+@media (max-width: 1023px) {
+  .site .hero-on-photo :is(h1, h2, p, span, li):not([class*='bg-']) {
+    color: #ffffff;
+  }
+  .site .hero-on-photo [class~='border-line'] {
+    border-color: #ffffff2e;
+  }
+  /* The accent word and the eyebrow number: the indigo is far too dark here. */
+  .site .hero-on-photo .accent,
+  .site .hero-on-photo [class~='text-brand']:not([class*='bg-']) {
+    color: #c3b5ff;
+  }
+  .site .hero-on-photo [class~='text-star'] {
+    color: #ffd24a;
+  }
+  /* The paragraph and the quieter lines read better a touch off-white. */
+  .site .hero-on-photo [class~='text-muted']:not([class*='bg-']) {
+    color: #dfe3f2;
+  }
+}

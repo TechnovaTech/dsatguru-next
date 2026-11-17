@@ -62,13 +62,13 @@ export default function HeroSection({ landingPlanRef }) {
   const scrollToPlans = () => landingPlanRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="hero-photo relative overflow-hidden">
       <FloatingContact />
 
       <Container className="relative z-10 py-16 sm:py-20 lg:py-28">
         {/* Held to the left half from lg up: the backdrop photo puts its subject on
             the right, and the copy must not sit on top of her. */}
-        <div className="max-w-[560px] lg:max-w-[48%]">
+        <div className="hero-on-photo max-w-[560px] lg:max-w-[48%]">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
             <Eyebrow n="01">Digital SAT & PSAT prep · online</Eyebrow>
             <span className="inline-flex items-center gap-2 text-[13.5px] text-ink-2">
@@ -82,7 +82,7 @@ export default function HeroSection({ landingPlanRef }) {
           </div>
 
           <div>
-            <h1 className="display mt-7 text-balance text-[2.75rem] leading-[1.06] sm:text-[3.6rem] lg:text-[4.15rem]">
+            <h1 className="display mt-7 text-balance text-[2.3rem] leading-[1.08] sm:text-[3.6rem] lg:text-[4.15rem]">
               {slide.pre} <em className="accent text-brand">{slide.highlight}</em>
             </h1>
             <p className="mt-6 max-w-[520px] text-[17px] leading-[1.75] text-muted">{slide.sub}</p>

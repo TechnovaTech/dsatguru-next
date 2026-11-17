@@ -48,22 +48,24 @@ export default function PublicLayout({ children }) {
     <MotionConfig reducedMotion="user">
       <div className={`${siteFontVars} ${inter.variable} ${jakarta.variable} ${playfair.variable} site relative min-h-screen`}>
         <ScrollReveal />
-        {/* Homepage hero backdrop. It lives here rather than inside HeroSection so it
-            can sit BEHIND the header and the announcement bar as well - the hero is
-            rendered inside <main>, which starts below them. z-0 keeps it under the
-            header (z-50) and the page content. */}
+        {/* Homepage hero backdrop, desktop only. It lives here rather than inside
+            HeroSection so it can sit BEHIND the header and the announcement bar -
+            the hero is rendered inside <main>, which starts below them. On phones
+            the photo is a CSS background on the hero section itself (`.hero-photo`
+            in app/site.css), so the dark area ends exactly where the copy does. */}
         {pathname === '/' && (
-          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[42rem] overflow-hidden sm:h-[44rem] lg:h-[46rem]">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-0 hidden h-[46rem] overflow-hidden lg:block">
             <Image
               src="/hero-bg.png"
               alt=""
               fill
               priority
               sizes="100vw"
-              /* object-right: the student sits on the right of the frame, so on a
-                 narrow screen the crop keeps her rather than the empty left side. */
               className="object-cover object-right"
             />
+            {/* Desktop: fade only the left, where the copy sits. The right stays
+                clear so the student is not greyed out. */}
+            <div className="absolute inset-0 bg-gradient-to-r from-page via-page/45 to-transparent" />
             {/* Fades the photo into the page below it, so there is no hard seam. */}
             <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-page" />
           </div>
